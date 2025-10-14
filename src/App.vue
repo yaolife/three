@@ -38,9 +38,9 @@
       <el-menu
         :default-active="activeMenu"
         class="el-menu-vertical-demo"
-        background-color="#304156"
+        background-color="#191919"
         text-color="#bfcbd9"
-        active-text-color="#409EFF"
+        active-text-color="rgba(0, 132, 255, 0.34);"
         router
       >
         <el-menu-item index="/all-projects">
@@ -154,7 +154,7 @@ const handleCommand = (command) => {
 }
 
 .sidebar-container {
-  background-color: #304156;
+  background-color: #191919;
   height: 100%;
 }
 
@@ -206,11 +206,12 @@ const handleCommand = (command) => {
 .login-text {
   color: #bfcbd9;
   font-size: 14px;
-  text-align: center;
-  span{
-    color: rgba(206, 206, 206, 0.57);
-    text-decoration:underline
-  }
+  text-align: center
+}
+
+.login-text span {
+  color: rgba(206, 206, 206, 0.57);
+  text-decoration: underline;
 }
 
 .header-container {
