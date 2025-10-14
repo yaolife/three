@@ -52,11 +52,12 @@
           <span>虚拟仿真项目</span>
         </el-menu-item>
         <el-menu-item index="/check-calculation">
-          <span>校核计算</span>
+              <el-icon><Document /></el-icon>
+          <span>校核计算项目</span>
         </el-menu-item>
         <el-menu-item index="/construction-plans">
           <el-icon><Document /></el-icon>
-          <span>施工平立面图</span>
+          <span>施工平立面图项目</span>
         </el-menu-item>
         <el-menu-item index="/recycle-bin">
           <el-icon><Delete /></el-icon>
