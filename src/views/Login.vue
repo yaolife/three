@@ -29,6 +29,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
+import userStore from '../store/user.js'
 
 const router = useRouter()
 const loginForm = reactive({
@@ -49,6 +50,8 @@ const handleLogin = () => {
   // 模拟登录验证
   if (loginForm.username && loginForm.password) {
     ElMessage.success('登录成功')
+    // 设置用户状态
+    userStore.login(loginForm.username)
     // 登录成功后跳转到全部项目页面
     router.push('/all-projects')
   } else {
@@ -57,6 +60,8 @@ const handleLogin = () => {
 }
 
 const skipLogin = () => {
+  // 设置跳过登录状态
+  userStore.skipLogin()
   // 直接进入系统
   router.push('/all-projects')
 }

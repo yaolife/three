@@ -3,8 +3,37 @@
     <!-- 侧边栏 -->
     <el-aside width="200px" class="sidebar-container">
       <div class="logo-container">
-        <img src="/vite.svg" alt="Logo" class="logo" />
-        <span class="logo-text">光热三维施工仿真软件</span>
+        <div v-if="userStore.userState.isLoggedIn" class="user-info">
+          <el-image
+            src="/src/images/user.png"
+            alt="user"
+            class="logo"
+            :fit="'cover'"
+          />
+          <span class="logo-text">{{ userStore.userState.userInfo.name }}[{{ userStore.userState.userInfo.id }}]</span>
+          <el-dropdown @command="handleCommand">
+            <el-image
+              src="/src/images/back.png"
+              alt="user"
+              class="back"
+              :fit="'cover'"
+            />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+        <div v-else class="login-prompt" @click="handleLoginClick">
+            <el-image
+            src="/src/images/user.png"
+            alt="user"
+            class="logo"
+            :fit="'cover'"
+          />
+          <span class="login-text">未登录，<span>点击登录</span></span>
+        </div>
       </div>
       <el-menu
         :default-active="activeMenu"
@@ -41,7 +70,7 @@
       <!-- 顶部导航栏 -->
       <el-header class="header-container">
         <div class="header-left">
-          <span class="user-name">张三(P100000)</span>
+          <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span>
         </div>
         <div class="header-right">
           <el-button type="primary" size="small" @click="createProject">
@@ -50,17 +79,23 @@
           </el-button>
           <div class="search-box">
             <el-input placeholder="搜索" prefix-icon="Search" size="small" />
-            <el-button type="default" size="small" style="margin-left: 8px;">
+            <el-button type="default" size="small" style="margin-left: 8px">
               搜索
             </el-button>
           </div>
-          <el-button type="default" size="small" style="margin-left: 12px;">
+          <el-button v-if="userStore.userState.isLoggedIn" type="default" size="small" @click="handleLogout" style="margin-left: 12px">
+            退出登录
+          </el-button>
+          <el-button v-else type="default" size="small" @click="handleLoginClick" style="margin-left: 12px">
+            登录
+          </el-button>
+          <el-button type="default" size="small" style="margin-left: 12px">
             云数据同步
           </el-button>
-          <el-button type="default" size="small" style="margin-left: 12px;">
+          <el-button type="default" size="small" style="margin-left: 12px">
             更新
           </el-button>
-          <el-button type="default" size="small" style="margin-left: 12px;">
+          <el-button type="default" size="small" style="margin-left: 12px">
             帮助
           </el-button>
         </div>
@@ -75,24 +110,41 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   FolderOpened,
   VideoPlay,
   Document,
   Delete,
   Plus,
-  Search
-} from '@element-plus/icons-vue'
+  Search,
+} from "@element-plus/icons-vue";
+import userStore from './store/user.js';
 
-const route = useRoute()
-const activeMenu = computed(() => route.path || '/all-projects')
+const route = useRoute();
+const router = useRouter();
+const activeMenu = computed(() => route.path || "/all-projects");
 
 const createProject = () => {
   // 创建项目的逻辑将在这里实现
-  console.log('创建新项目')
-}
+  console.log("创建新项目");
+};
+
+const handleLoginClick = () => {
+  router.push('/login');
+};
+
+const handleLogout = () => {
+  userStore.logout();
+  router.push('/login');
+};
+
+const handleCommand = (command) => {
+  if (command === 'logout') {
+    handleLogout();
+  }
+};
 </script>
 
 <style scoped>
@@ -114,16 +166,51 @@ const createProject = () => {
   border-bottom: 1px solid #435971;
 }
 
-.logo {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
+.user-info {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
 }
 
+.logo {
+  width: 26px;
+  height: 26px;
+  margin-right: 10px;
+}
+.back {
+  width: 18px;
+  height: 18px;
+  margin-left: 17px;
+  cursor: pointer;
+}
 .logo-text {
   color: #fff;
   font-size: 16px;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.login-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 0;
+  cursor: pointer;
+}
+
+.login-text {
+  color: #bfcbd9;
+  font-size: 14px;
+  text-align: center;
+  span{
+    color: rgba(206, 206, 206, 0.57);
+    text-decoration:underline
+  }
 }
 
 .header-container {
