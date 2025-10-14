@@ -7,10 +7,10 @@
         <el-table-column prop="title" align="center" label="方案标题" min-width="130" />
         <el-table-column prop="fileType" align="center" label="文件类型" width="100" />
         <el-table-column prop="type" align="center" label="类型" width="100" />
-        <el-table-column prop="relatedProject" align="center" label="所属项目" width="150" />
+        <el-table-column prop="relatedProject" align="center" label="所属项目" width="170" />
         <el-table-column prop="creator" align="center" label="创建人" width="100" />
         <el-table-column prop="createTime" align="center" label="创建时间" width="180" />
-        <el-table-column align="center" label="操作" width="200" fixed="right">
+        <el-table-column align="center" label="操作" width="240" fixed="right">
           <template #default="scope">
             <el-button
               v-if="scope.row.status === 'local'"
