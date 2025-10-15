@@ -203,11 +203,12 @@
               </div>
             </el-tab-pane>
             
-            <!-- 只有在双机吊装时才显示起重机参数2 -->
+            <!-- 使用条件渲染替代v-show来确保tab内容正确显示 -->
             <el-tab-pane 
               v-if="formData.liftingMethod === 'double'" 
               label="起重机参数2" 
               name="crane2"
+              lazy
             >
               <!-- 基本信息 -->
               <div class="section crane-parameters-section">
