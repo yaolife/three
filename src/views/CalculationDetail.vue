@@ -190,7 +190,9 @@
                         <el-checkbox v-model="item.checked" />
                       </td>
                       <td>{{ item.order }}</td>
-                      <td>{{ item.name }}</td>
+                      <td>
+                        <el-input v-model="item.name" size="small" placeholder="请输入系数名称" />
+                      </td>
                       <td>
                         <el-input-number v-model="item.value" :controls="false" size="small" />
                       </td>
@@ -254,8 +256,8 @@ const formData = ref({
 
 const weightItems = ref([
   { id: 1, order: 1, name: '动载系数', value: 0.8, checked: false },
-  { id: 2, order: 2, name: '侧载系数', value: 1, checked: false },
-  { id: 3, order: 3, name: '', value: null, checked: false },
+  { id: 2, order: 2, name: '偏载系数', value: 1, checked: false },
+  { id: 3, order: 3, name: '其他系数', value: null, checked: false },
   { id: 4, order: 4, name: '', value: null, checked: false },
 ])
 
