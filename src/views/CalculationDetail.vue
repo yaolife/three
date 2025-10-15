@@ -90,25 +90,25 @@
               <div class="form-row">
                 <label class="form-label">额定载荷PQ</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.ratedLoad" :controls="false" />
-                  <span class="unit">t/t</span>
+                  <el-input-number v-model="formData.ratedLoad" controls-position="right" precision="2"/>
+                  <span class="unit">pq</span>
                 </div>
               </div>
 
               <div class="form-row">
                 <label class="form-label">主臂长度</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.mainBoomLength" :controls="false" />
+                  <el-input-number v-model="formData.mainBoomLength" controls-position="right" precision="2"/>
                   <span class="unit">m</span>
                 </div>
                 <label class="form-label">副臂长度</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.auxBoomLength" :controls="false" />
+                  <el-input-number v-model="formData.auxBoomLength" controls-position="right" precision="2"/>
                   <span class="unit">m</span>
                 </div>
-                <label class="form-label">作业半径</label>
+                <label class="form-label">作业半径<span>(r)</span></label>
                 <div class="input-with-unit error">
-                  <el-input-number v-model="formData.workRadius" :controls="false" />
+                  <el-input-number v-model="formData.workRadius" controls-position="right" precision="2"/>
                   <span class="unit">m</span>
                 </div>
               </div>
@@ -116,25 +116,25 @@
               <div class="form-row">
                 <label class="form-label">主臂角度</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.mainBoomAngle" :controls="false" />
+                  <el-input-number v-model="formData.mainBoomAngle" controls-position="right" precision="2" />
                   <span class="unit">度</span>
                 </div>
                 <label class="form-label">副臂角度</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.auxBoomAngle" :controls="false" />
+                  <el-input-number v-model="formData.auxBoomAngle" controls-position="right" precision="2"/>
                   <span class="unit">度</span>
                 </div>
               </div>
 
               <div class="form-row">
-                <label class="form-label">吊钩型式吊重量</label>
+                <label class="form-label">车体配重重量</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.hookWeight" :controls="false" />
+                  <el-input-number v-model="formData.hookWeight" controls-position="right" precision="2"/>
                   <span class="unit">t</span>
                 </div>
-                <label class="form-label">吊钩型式吊高度</label>
+                <label class="form-label">吊钩最大起升吊高度</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.hookHeight" :controls="false" />
+                  <el-input-number v-model="formData.hookHeight" controls-position="right" precision="2"/>
                   <span class="unit">m</span>
                 </div>
               </div>
@@ -142,13 +142,13 @@
               <div class="form-row">
                 <label class="form-label">超起平衡重量</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.superLiftWeight" :controls="false" />
+                  <el-input-number v-model="formData.superLiftWeight" controls-position="right" precision="2"/>
                   <span class="unit">t</span>
                 </div>
                 <label class="form-label">超起平衡回转半径</label>
                 <div class="input-with-unit">
-                  <el-input-number v-model="formData.superLiftRadius" :controls="false" />
-                  <span class="unit">t</span>
+                  <el-input-number v-model="formData.superLiftRadius" controls-position="right" precision="2"/>
+                  <span class="unit">m</span>
                 </div>
               </div>
             </div>
@@ -180,7 +180,7 @@
                         <el-checkbox />
                       </th>
                       <th width="80">序号</th>
-                      <th>荷载名称</th>
+                      <th>系数名称</th>
                       <th width="120">值</th>
                     </tr>
                   </thead>
@@ -387,7 +387,7 @@ const weightItems = ref([
   display: flex;
   align-items: center;
   margin-bottom: 16px;
-  gap: 12px;
+  gap: 20px;
 }
 
 .form-label {
@@ -395,6 +395,9 @@ const weightItems = ref([
   font-size: 14px;
   color: #666;
   text-align: right;
+  span{
+    color: red;
+  }
 }
 
 .form-input-group {
