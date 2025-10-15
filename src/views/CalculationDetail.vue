@@ -45,159 +45,320 @@
     <div class="content-wrapper">
       <div class="left-panel">
         <el-scrollbar>
-          <!-- 基本信息 -->
-          <div class="section crane-parameters-section">
-            <div class="section-title">基本信息</div>
-            <div class="form-content">
-              <div class="form-grid">
-                <div class="form-row">
-                  <label class="form-label">起重机名称</label>
-                  <div class="form-input-group">
-                    <el-input
-                      v-model="formData.craneName"
-                      placeholder="SCC13000TM履带起重机"
-                    />
-                    <el-button type="primary" size="medium">选择</el-button>
+          <!-- 起重机参数Tabs -->
+          <el-tabs v-model="craneParamsTab" type="card">
+            <el-tab-pane label="起重机参数1" name="crane1">
+              <!-- 基本信息 -->
+              <div class="section crane-parameters-section">
+                <div class="section-title">基本信息</div>
+                <div class="form-content">
+                  <div class="form-grid">
+                    <div class="form-row">
+                      <label class="form-label">起重机名称</label>
+                      <div class="form-input-group">
+                        <el-input
+                          v-model="formData.craneName"
+                          placeholder="SCC13000TM履带起重机"
+                        />
+                        <el-button type="primary" size="medium">选择</el-button>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <label class="form-label">设备名称</label>
+                      <el-input v-model="formData.equipmentName" disabled/>
+                    </div>
+
+                    <div class="form-row">
+                      <label class="form-label">生产厂家</label>
+                      <el-input v-model="formData.manufacturer" />
+                    </div>
+
+                    <div class="form-row">
+                      <label class="form-label">设备编号</label>
+                      <el-input v-model="formData.equipmentNumber" />
+                    </div>
+
+                    <div class="form-row">
+                      <label class="form-label">型号</label>
+                      <el-input v-model="formData.model" />
+                    </div>
+
+                    <div class="form-row">
+                      <label class="form-label">设备型号</label>
+                      <el-input v-model="formData.equipmentType" />
+                    </div>
                   </div>
                 </div>
-                <div class="form-row">
-                  <label class="form-label">设备名称</label>
-                  <el-input v-model="formData.equipmentName" disabled/>
-                </div>
-
-                <div class="form-row">
-                  <label class="form-label">生产厂家</label>
-                  <el-input v-model="formData.manufacturer" />
-                </div>
-
-                <div class="form-row">
-                  <label class="form-label">设备编号</label>
-                  <el-input v-model="formData.equipmentNumber" />
-                </div>
-
-                <div class="form-row">
-                  <label class="form-label">型号</label>
-                  <el-input v-model="formData.model" />
-                </div>
-
-                <div class="form-row">
-                  <label class="form-label">设备型号</label>
-                  <el-input v-model="formData.equipmentType" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 起重机工况 -->
-          <div class="section section-with-border">
-            <div class="section-title">起重机工况</div>
-            <div class="form-content">
-              <div class="form-row">
-                <label class="form-label">额定载荷PQ</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.ratedLoad"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">pq</span>
-                </div>
               </div>
 
-              <div class="form-row">
-                <label class="form-label">主臂长度</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.mainBoomLength"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">m</span>
+              <!-- 起重机工况 -->
+              <div class="section section-with-border">
+                <div class="section-title">起重机工况</div>
+                <div class="form-content">
+                  <div class="form-row">
+                    <label class="form-label">额定载荷PQ</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.ratedLoad"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">pq</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">主臂长度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.mainBoomLength"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                    <label class="form-label">副臂长度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.auxBoomLength"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                    <label class="form-label">作业半径<span>(r)</span></label>
+                    <div class="input-with-unit error">
+                      <el-input-number
+                        v-model="formData.workRadius"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">主臂角度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.mainBoomAngle"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">度</span>
+                    </div>
+                    <label class="form-label">副臂角度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.auxBoomAngle"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">度</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">车体配重重量</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.hookWeight"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">t</span>
+                    </div>
+                    <label class="form-label">吊钩最大起升吊高度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.hookHeight"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">超起平衡重量</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.superLiftWeight"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">t</span>
+                    </div>
+                    <label class="form-label">超起平衡回转半径</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.superLiftRadius"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
                 </div>
-                <label class="form-label">副臂长度</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.auxBoomLength"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">m</span>
-                </div>
-                <label class="form-label">作业半径<span>(r)</span></label>
-                <div class="input-with-unit error">
-                  <el-input-number
-                    v-model="formData.workRadius"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">m</span>
+              </div>
+            </el-tab-pane>
+            
+            <el-tab-pane label="起重机参数2" name="crane2">
+              <!-- 基本信息 -->
+              <div class="section crane-parameters-section">
+                <div class="section-title">基本信息</div>
+                <div class="form-content">
+                  <div class="form-grid">
+                    <div class="form-row">
+                      <label class="form-label">起重机名称</label>
+                      <div class="form-input-group">
+                        <el-input
+                          v-model="formData.craneName2"
+                          placeholder="SCC13000TM履带起重机"
+                        />
+                        <el-button type="primary" size="medium">选择</el-button>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <label class="form-label">设备名称</label>
+                      <el-input v-model="formData.equipmentName2" disabled/>
+                    </div>
+
+                    <div class="form-row">
+                      <label class="form-label">生产厂家</label>
+                      <el-input v-model="formData.manufacturer2" />
+                    </div>
+
+                    <div class="form-row">
+                      <label class="form-label">设备编号</label>
+                      <el-input v-model="formData.equipmentNumber2" />
+                    </div>
+
+                    <div class="form-row">
+                      <label class="form-label">型号</label>
+                      <el-input v-model="formData.model2" />
+                    </div>
+
+                    <div class="form-row">
+                      <label class="form-label">设备型号</label>
+                      <el-input v-model="formData.equipmentType2" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="form-row">
-                <label class="form-label">主臂角度</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.mainBoomAngle"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">度</span>
-                </div>
-                <label class="form-label">副臂角度</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.auxBoomAngle"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">度</span>
-                </div>
-              </div>
+              <!-- 起重机工况 -->
+              <div class="section section-with-border">
+                <div class="section-title">起重机工况</div>
+                <div class="form-content">
+                  <div class="form-row">
+                    <label class="form-label">额定载荷PQ</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.ratedLoad2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">pq</span>
+                    </div>
+                  </div>
 
-              <div class="form-row">
-                <label class="form-label">车体配重重量</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.hookWeight"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">t</span>
-                </div>
-                <label class="form-label">吊钩最大起升吊高度</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.hookHeight"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">m</span>
-                </div>
-              </div>
+                  <div class="form-row">
+                    <label class="form-label">主臂长度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.mainBoomLength2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                    <label class="form-label">副臂长度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.auxBoomLength2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                    <label class="form-label">作业半径<span>(r)</span></label>
+                    <div class="input-with-unit error">
+                      <el-input-number
+                        v-model="formData.workRadius2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
 
-              <div class="form-row">
-                <label class="form-label">超起平衡重量</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.superLiftWeight"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">t</span>
-                </div>
-                <label class="form-label">超起平衡回转半径</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="formData.superLiftRadius"
-                    controls-position="right"
-                    :precision="2"
-                  />
-                  <span class="unit">m</span>
+                  <div class="form-row">
+                    <label class="form-label">主臂角度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.mainBoomAngle2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">度</span>
+                    </div>
+                    <label class="form-label">副臂角度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.auxBoomAngle2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">度</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">车体配重重量</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.hookWeight2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">t</span>
+                    </div>
+                    <label class="form-label">吊钩最大起升吊高度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.hookHeight2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">超起平衡重量</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.superLiftWeight2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">t</span>
+                    </div>
+                    <label class="form-label">超起平衡回转半径</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="formData.superLiftRadius2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </el-tab-pane>
+          </el-tabs>
 
           <!-- 吊装计算设置 -->
           <div class="section section-with-border">
@@ -407,32 +568,28 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import {
-  ArrowLeft,
-  Edit,
-  Tools,
-  Connection,
-  Histogram,
-} from "@element-plus/icons-vue";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ArrowLeft, Edit, Tools, Connection, Histogram } from '@element-plus/icons-vue'
 
-const router = useRouter();
-const activeTab = ref("crane");
+const router = useRouter()
+const activeTab = ref('crane')
+const craneParamsTab = ref('crane1') // 起重机参数tab页默认选中第一个
 
 const handleTabChange = (tabName) => {
   // 处理标签页切换逻辑
-  console.log("切换到标签页:", tabName);
-};
+  console.log('切换到标签页:', tabName)
+}
 
 const formData = ref({
-  craneName: "SCC13000TM履带起重机",
-  equipmentName: "xxxxxx设备",
-  manufacturer: "三一重工",
-  equipmentNumber: "xxxxxxx",
-  model: "SCC13000TM",
-  equipmentType: "",
-  equipmentType: "H000000",
+  // 起重机1参数
+  craneName: 'SCC13000TM履带起重机',
+  equipmentName: 'xxxxxx设备',
+  manufacturer: '三一重工',
+  equipmentNumber: 'xxxxxxx',
+  model: 'SCC13000TM',
+  equipmentType: '',
+  equipmentType: 'H000000',
   ratedLoad: 12,
   mainBoomLength: 12,
   auxBoomLength: 12,
@@ -443,63 +600,75 @@ const formData = ref({
   hookHeight: 12,
   superLiftWeight: 12,
   superLiftRadius: 12,
-  liftingMethod: "single",
-  // 双机吊装参数
-  crane1Distance: 12,
-  crane1Weight: 12,
-  crane2Distance: 12,
-  crane2Weight: 12,
-  // 重量计算参数
-  equipmentWeight: 12,
-  hookWeightG1: 12,
-  wireRopeWeightG2: 12,
-  slingsWeightG3: 12,
-  otherWeightG4: 12,
-  // 选中状态
+  
+  // 起重机2参数
+  craneName2: '',
+  equipmentName2: '',
+  manufacturer2: '',
+  equipmentNumber2: '',
+  model2: '',
+  equipmentType2: '',
+  ratedLoad2: 12,
+  mainBoomLength2: 12,
+  auxBoomLength2: 12,
+  workRadius2: 12,
+  mainBoomAngle2: 12,
+  auxBoomAngle2: 12,
+  hookWeight2: 12,
+  hookHeight2: 12,
+  superLiftWeight2: 12,
+  superLiftRadius2: 12,
+  
+  // 吊装计算设置
+  liftingMethod: 'single',
+  crane1Distance: 0,
+  crane1Weight: 0,
+  crane2Distance: 0,
+  crane2Weight: 0,
+  
+  // 重量计算设置 - 左侧重量参数
   isEquipmentWeightChecked: false,
+  equipmentWeight: 0,
   isHookWeightChecked: false,
+  hookWeightG1: 0,
   isWireRopeWeightChecked: false,
+  wireRopeWeightG2: 0,
   isSlingsWeightChecked: false,
+  slingsWeightG3: 0,
   isOtherWeightChecked: false,
-});
+  otherWeightG4: 0
+})
 
 const weightItems = ref([
-  { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
-  { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-  { id: 3, order: 3, name: "其他系数", value: null, checked: false },
-  { id: 4, order: 4, name: "", value: null, checked: false },
-]);
+  { id: 1, order: 1, name: '动载系数', value: 0.8, checked: false },
+  { id: 2, order: 2, name: '偏载系数', value: 1, checked: false },
+  { id: 3, order: 3, name: '其他系数', value: null, checked: false },
+  { id: 4, order: 4, name: '', value: null, checked: false },
+])
 
 // 添加新行的函数
 const addNewRow = () => {
-  const newId =
-    weightItems.value.length > 0
-      ? Math.max(...weightItems.value.map((item) => item.id)) + 1
-      : 1;
+  const newId = weightItems.value.length > 0 ? Math.max(...weightItems.value.map(item => item.id)) + 1 : 1
   weightItems.value.push({
     id: newId,
     order: weightItems.value.length + 1,
-    name: "",
+    name: '',
     value: null,
-    checked: false,
-  });
-};
+    checked: false
+  })
+}
 
 // 处理输入变化的函数
 const handleInputChange = (index) => {
   // 如果是最后一行，并且该行已经有内容，则添加新行
   if (index === weightItems.value.length - 1) {
-    const currentItem = weightItems.value[index];
-    if (
-      (currentItem.name && currentItem.name.trim() !== "") ||
-      (currentItem.value !== null &&
-        currentItem.value !== undefined &&
-        currentItem.value !== "")
-    ) {
-      addNewRow();
+    const currentItem = weightItems.value[index]
+    if ((currentItem.name && currentItem.name.trim() !== '') || 
+        (currentItem.value !== null && currentItem.value !== undefined && currentItem.value !== '')) {
+      addNewRow()
     }
   }
-};
+}
 </script>
 
 <style scoped>
