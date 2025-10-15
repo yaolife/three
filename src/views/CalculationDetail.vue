@@ -391,7 +391,7 @@ const weightItems = ref([
 }
 
 .form-label {
-  min-width: 120px;
+  min-width: 130px;
   font-size: 14px;
   color: #666;
   text-align: right;
