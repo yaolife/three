@@ -986,4 +986,12 @@ const handleInputChange = (index) => {
     text-align: left;
   }
 }
+
+/* 起重机参数Tabs样式 */
+:deep(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
+  display: flex;
+  align-items: center;
+  background-color: #0775DB;
+  color: white;
+}
 </style>
