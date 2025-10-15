@@ -203,7 +203,12 @@
               </div>
             </el-tab-pane>
             
-            <el-tab-pane label="起重机参数2" name="crane2">
+            <!-- 只有在双机吊装时才显示起重机参数2 -->
+            <el-tab-pane 
+              v-if="formData.liftingMethod === 'double'" 
+              label="起重机参数2" 
+              name="crane2"
+            >
               <!-- 基本信息 -->
               <div class="section crane-parameters-section">
                 <div class="section-title">基本信息</div>
