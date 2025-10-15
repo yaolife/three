@@ -52,7 +52,6 @@
                 <div class="form-input-group">
                   <el-input v-model="formData.craneName" placeholder="SCC13000TM履带起重机" />
                   <el-button type="primary" size="small">选定</el-button>
-                  <el-button size="small">送定</el-button>
                 </div>
               </div>           
               <div class="form-row">
