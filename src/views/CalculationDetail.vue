@@ -185,16 +185,16 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="item in weightItems" :key="item.id">
+                    <tr v-for="(item, index) in weightItems" :key="item.id">
                       <td>
                         <el-checkbox v-model="item.checked" />
                       </td>
                       <td>{{ item.order }}</td>
                       <td>
-                        <el-input v-model="item.name" size="small" placeholder="请输入系数名称" />
+                        <el-input v-model="item.name" size="small" placeholder="请输入系数名称" @input="handleInputChange(index)" />
                       </td>
                       <td>
-                        <el-input-number v-model="item.value" :controls="false" size="small" />
+                        <el-input-number v-model="item.value" :controls="false" size="small" @change="handleInputChange(index)" />
                       </td>
                     </tr>
                   </tbody>
@@ -260,6 +260,30 @@ const weightItems = ref([
   { id: 3, order: 3, name: '其他系数', value: null, checked: false },
   { id: 4, order: 4, name: '', value: null, checked: false },
 ])
+
+// 添加新行的函数
+const addNewRow = () => {
+  const newId = weightItems.value.length > 0 ? Math.max(...weightItems.value.map(item => item.id)) + 1 : 1
+  weightItems.value.push({
+    id: newId,
+    order: weightItems.value.length + 1,
+    name: '',
+    value: null,
+    checked: false
+  })
+}
+
+// 处理输入变化的函数
+const handleInputChange = (index) => {
+  // 如果是最后一行，并且该行已经有内容，则添加新行
+  if (index === weightItems.value.length - 1) {
+    const currentItem = weightItems.value[index]
+    if ((currentItem.name && currentItem.name.trim() !== '') || 
+        (currentItem.value !== null && currentItem.value !== undefined && currentItem.value !== '')) {
+      addNewRow()
+    }
+  }
+}
 
 </script>
 
