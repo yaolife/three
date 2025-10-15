@@ -165,6 +165,34 @@
                   <el-option label="双机吊装" value="double" />
                 </el-select>
               </div>
+              
+              <!-- 双机吊装参数，仅在选择双机吊装时显示 -->
+              <div v-if="formData.liftingMethod === 'double'" class="double-crane-params">
+                <div class="form-row">
+                  <label class="form-label error">起重机1吊点至设备重心距离<span>L1</span></label>
+                  <div class="input-with-unit">
+                    <el-input-number v-model="formData.crane1Distance" controls-position="right" :precision="2" />
+                    <span class="unit">m</span>
+                  </div>
+                  <label class="form-label error">起重机1承担重量</label>
+                  <div class="input-with-unit">
+                    <el-input-number v-model="formData.crane1Weight" controls-position="right" :precision="2" />
+                    <span class="unit">t</span>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label class="form-label error">起重机2吊点至设备重心距离<span>L2</span></label>
+                  <div class="input-with-unit">
+                    <el-input-number v-model="formData.crane2Distance" controls-position="right" :precision="2" />
+                    <span class="unit">m</span>
+                  </div>
+                  <label class="form-label error">起重机2承担重量</label>
+                  <div class="input-with-unit">
+                    <el-input-number v-model="formData.crane2Weight" controls-position="right" :precision="2" />
+                    <span class="unit">t</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -251,7 +279,12 @@ const formData = ref({
   hookHeight: 12,
   superLiftWeight: 12,
   superLiftRadius: 12,
-  liftingMethod: 'single'
+  liftingMethod: 'single',
+  // 双机吊装参数
+  crane1Distance: 12,
+  crane1Weight: 12,
+  crane2Distance: 12,
+  crane2Weight: 12
 })
 
 const weightItems = ref([
@@ -421,9 +454,10 @@ const handleInputChange = (index) => {
   font-size: 14px;
   color: #666;
   text-align: right;
-  span{
-    color: red;
-  }
+}
+
+.form-label span {
+  color: red;
 }
 
 .form-input-group {
