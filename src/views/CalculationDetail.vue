@@ -51,12 +51,12 @@
                 <label class="form-label">起重机名称</label>
                 <div class="form-input-group">
                   <el-input v-model="formData.craneName" placeholder="SCC13000TM履带起重机" />
-                  <el-button type="primary" size="small">选定</el-button>
+                  <el-button type="primary" size="medium">选择</el-button>
                 </div>
               </div>           
               <div class="form-row">
                 <label class="form-label">设备名称</label>
-                <el-input v-model="formData.equipmentName" disabled />
+                <el-input v-model="formData.equipmentName" />
               </div>
 
               <div class="form-row">
@@ -75,8 +75,8 @@
               </div>
 
               <div class="form-row">
-                <label class="form-label">设备总数</label>
-                <el-input v-model="formData.totalEquipment" />
+                <label class="form-label">设备型号</label>
+                <el-input v-model="formData.equipmentType" />
               </div>
             </div>
           </div>
@@ -237,7 +237,7 @@ const formData = ref({
   manufacturer: '三一重工',
   equipmentNumber: 'xxxxxxx',
   model: 'SCC13000TM',
-  totalEquipment: '0000000',
+  equipmentType: '',
   equipmentType: 'H000000',
   ratedLoad: 12,
   mainBoomLength: 12,

@@ -4,6 +4,8 @@ import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
+// 引入全局样式文件
+import './assets/styles/global.css'
 
 const app = createApp(App)
 
