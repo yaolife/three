@@ -43,46 +43,48 @@
     <div class="content-wrapper">
       <div class="left-panel">
         <el-scrollbar>
-          <!-- 起重机参数 -->
-          <div class="section">
-            <div class="section-title">起重机参数</div>
+          <!-- 基本信息 -->
+          <div class="section crane-parameters-section">
+            <div class="section-title">基本信息</div>
             <div class="form-content">
-              <div class="form-row">
-                <label class="form-label">起重机名称</label>
-                <div class="form-input-group">
-                  <el-input v-model="formData.craneName" placeholder="SCC13000TM履带起重机" />
-                  <el-button type="primary" size="medium">选择</el-button>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label class="form-label">起重机名称</label>
+                  <div class="form-input-group">
+                    <el-input v-model="formData.craneName" placeholder="SCC13000TM履带起重机" />
+                    <el-button type="primary" size="medium">选择</el-button>
+                  </div>
+                </div>           
+                <div class="form-row">
+                  <label class="form-label">设备名称</label>
+                  <el-input v-model="formData.equipmentName" />
                 </div>
-              </div>           
-              <div class="form-row">
-                <label class="form-label">设备名称</label>
-                <el-input v-model="formData.equipmentName" />
-              </div>
 
-              <div class="form-row">
-                <label class="form-label">生产厂家</label>
-                <el-input v-model="formData.manufacturer" />
-              </div>
+                <div class="form-row">
+                  <label class="form-label">生产厂家</label>
+                  <el-input v-model="formData.manufacturer" />
+                </div>
 
-              <div class="form-row">
-                <label class="form-label">设备编号</label>
-                <el-input v-model="formData.equipmentNumber" />
-              </div>
+                <div class="form-row">
+                  <label class="form-label">设备编号</label>
+                  <el-input v-model="formData.equipmentNumber" />
+                </div>
 
-              <div class="form-row">
-                <label class="form-label">型号</label>
-                <el-input v-model="formData.model" />
-              </div>
+                <div class="form-row">
+                  <label class="form-label">型号</label>
+                  <el-input v-model="formData.model" />
+                </div>
 
-              <div class="form-row">
-                <label class="form-label">设备型号</label>
-                <el-input v-model="formData.equipmentType" />
+                <div class="form-row">
+                  <label class="form-label">设备型号</label>
+                  <el-input v-model="formData.equipmentType" />
+                </div>
               </div>
             </div>
           </div>
 
           <!-- 起重机工况 -->
-          <div class="section">
+          <div class="section section-with-border">
             <div class="section-title">起重机工况</div>
             <div class="form-content">
               <div class="form-row">
@@ -153,7 +155,7 @@
           </div>
 
           <!-- 吊装计算设置 -->
-          <div class="section">
+          <div class="section section-with-border">
             <div class="section-title">吊装计算设置</div>
             <div class="form-content">
               <div class="form-row">
@@ -167,7 +169,7 @@
           </div>
 
           <!-- 重量计算设置 -->
-          <div class="section">
+          <div class="section section-with-border">
             <div class="section-title">重量计算设置</div>
             <div class="form-content">
               <div class="weight-table">
@@ -177,7 +179,6 @@
                       <th width="60">
                         <el-checkbox />
                       </th>
-                      <th width="80">勾选</th>
                       <th width="80">序号</th>
                       <th>荷载名称</th>
                       <th width="120">值</th>
@@ -188,7 +189,6 @@
                       <td>
                         <el-checkbox v-model="item.checked" />
                       </td>
-                      <td>{{ item.id }}</td>
                       <td>{{ item.order }}</td>
                       <td>{{ item.name }}</td>
                       <td>
@@ -257,9 +257,6 @@ const weightItems = ref([
   { id: 2, order: 2, name: '侧载系数', value: 1, checked: false },
   { id: 3, order: 3, name: '', value: null, checked: false },
   { id: 4, order: 4, name: '', value: null, checked: false },
-  { id: 5, order: 5, name: '', value: null, checked: false },
-  { id: 6, order: 6, name: '', value: null, checked: false },
-  { id: 7, order: 7, name: '', value: null, checked: false }
 ])
 
 </script>
@@ -379,6 +376,13 @@ const weightItems = ref([
   padding: 0 12px;
 }
 
+/* 带边框的区块样式 */
+.section-with-border {
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  padding: 20px;
+}
+
 .form-row {
   display: flex;
   align-items: center;
@@ -480,5 +484,56 @@ const weightItems = ref([
 
 :deep(.el-select) {
   width: 200px;
+}
+
+/* 起重机参数部分样式 - 添加边框并实现每行2列布局 */
+.crane-parameters-section {
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid .form-row {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.form-grid .form-label {
+  margin-bottom: 0;
+  margin-right: 12px;
+  text-align: right;
+  min-width: 120px;
+}
+
+.form-grid .form-input-group,
+.form-grid .el-input {
+  width: 100%;
+  flex: 1;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-grid .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .form-grid .form-label {
+    margin-bottom: 8px;
+    text-align: left;
+  }
 }
 </style>
