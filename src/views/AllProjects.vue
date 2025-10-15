@@ -69,7 +69,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+
+// 初始化 router
+const router = useRouter()
 
 // 模拟项目数据
 const projectData = ref([
@@ -172,8 +176,15 @@ const handleReUpload = (row) => {
 }
 
 const handleEdit = (row) => {
-  ElMessage({ message: '正在编辑项目...', type: 'info' })
-  // 实际编辑逻辑将在这里实现
+  if (row.type === '校核计算') {
+    router.push({
+      name: 'CalculationDetail',
+      params: { id: row.id }
+    })
+  } else {
+    ElMessage({ message: '正在编辑项目...', type: 'info' })
+    // 实际编辑逻辑将在这里实现
+  }
 }
 
 const handleDelete = (row) => {

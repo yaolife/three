@@ -1,7 +1,7 @@
 <template>
   <el-container class="app-container">
     <!-- 侧边栏 -->
-    <el-aside width="200px" class="sidebar-container">
+    <el-aside v-if="!shouldHideSidebar" width="200px" class="sidebar-container">
       <div class="logo-container">
         <div v-if="userStore.userState.isLoggedIn" class="user-info">
           <el-image
@@ -40,7 +40,7 @@
         class="el-menu-vertical-demo"
         background-color="#191919"
         text-color="#bfcbd9"
-        active-text-color="rgba(0, 132, 255, 0.34);"
+        active-text-color="rgba(0, 132, 255, 0.34)"
         router
       >
         <el-menu-item index="/all-projects">
@@ -69,7 +69,7 @@
     <!-- 主内容区 -->
     <el-container>
       <!-- 顶部导航栏 -->
-      <el-header class="header-container">
+      <el-header v-if="!shouldHideHeader" class="header-container">
         <div class="header-left">
           <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span>
         </div>
@@ -124,6 +124,17 @@ import {
 import userStore from './store/user.js';
 
 const route = useRoute();
+
+// 判断是否应该隐藏侧边栏
+const shouldHideSidebar = computed(() => {
+  return route.meta.hideSidebar || false;
+});
+
+// 判断是否应该隐藏顶部导航栏
+const shouldHideHeader = computed(() => {
+  return route.meta.hideHeader || false;
+});
+
 const router = useRouter();
 const activeMenu = computed(() => route.path || "/all-projects");
 
