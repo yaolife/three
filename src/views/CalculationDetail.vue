@@ -615,12 +615,21 @@
         <div class="section-title">计算过程</div>
         <div class="section-content calculation-process">
           <div class="process-text">已知单台计算机吊装公式为：</div>
-          <div class="process-text">设备重量G+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）×动载系数×偏载系数×其他系数】/起重机额定载荷PQ×100%&lt;100%</div>
+          <div class="process-text">
+            设备重量G+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
+            <template v-for="(factor, index) in singleResult.selectedFactors" :key="index">
+              ×{{ factor.name }}
+            </template>
+            】/起重机额定载荷PQ×100%&lt;100%
+          </div>
           
           <div class="formula">
             <div class="formula-fraction">
               <div class="formula-numerator">
-                (G+G1+G2+G3+G4) × X1 × X2
+                (G+G1+G2+G3+G4)
+                <template v-for="(factor, index) in singleResult.selectedFactors" :key="index">
+                  ×X{{ index + 1 }}
+                </template>
               </div>
               <div class="formula-denominator">
                 起重机额定载荷PQ
@@ -647,7 +656,8 @@
       <div class="section-title">计算结果：{{ singleResult.calculationResult }}%</div>
       <div class="section-content final-result">
         <span :class="{ 'qualified': singleResult.isQualified, 'unqualified': !singleResult.isQualified }">
-          &lt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}
+          <template v-if="singleResult.isQualified">&lt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}</template>
+          <template v-else>&gt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}</template>
         </span>
       </div>
     </div>
@@ -658,7 +668,7 @@
           起重机校核计算结果为{{ singleResult.calculationResult }}%，小于100%，故满足要求。
         </template>
         <template v-else>
-          起重机校核计算结果为{{ singleResult.calculationResult }}%，大于等于100%，故不满足要求。
+          起重机校核计算结果为{{ singleResult.calculationResult }}%，大于100%，故不满足要求。
         </template>
       </div>
     </div>
@@ -725,12 +735,21 @@
         <div class="section-title">计算过程</div>
         <div class="section-content calculation-process">
           <div class="process-text">已知两台起重机吊装公式为：</div>
-          <div class="process-text">（单台起重机所承担最大设备重量G0+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）×动载系数×偏载系数×其他系数】/单台起重机额定载荷PQ×100%&lt;75%</div>
+          <div class="process-text">
+            （单台起重机所承担最大设备重量G0+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
+            <template v-for="(factor, index) in doubleResult.selectedFactors" :key="index">
+              ×{{ factor.name }}
+            </template>
+            】/单台起重机额定载荷PQ×100%&lt;75%
+          </div>
           
           <div class="formula">
             <div class="formula-fraction">
               <div class="formula-numerator">
-                (G+G1+G2+G3+G4) × X1 × X2
+                (G+G1+G2+G3+G4)
+                <template v-for="(factor, index) in doubleResult.selectedFactors" :key="index">
+                  ×X{{ index + 1 }}
+                </template>
               </div>
               <div class="formula-denominator">
                 起重机额定载荷PQ
@@ -740,11 +759,11 @@
           </div>
           
           <div class="weight-details">
+            <div class="weight-item">G：设备重量={{ doubleResult.equipmentWeight }}t</div>
             <div class="weight-item">G1：吊钩重量={{ doubleResult.hookWeight }}t</div>
             <div class="weight-item">G2：计算钢丝绳重量={{ doubleResult.wireRopeWeight }}t</div>
             <div class="weight-item">G3：吊索具重量={{ doubleResult.slingsWeight }}t</div>
-            <div class="weight-item">G4：其他计算重量={{ doubleResult.otherWeight }}t</div>
-            <div class="weight-item">G：设备重量={{ doubleResult.equipmentWeight }}t</div>
+            <div class="weight-item">G4：其他计算重量={{ doubleResult.otherWeight }}t</div>      
             <!-- 动态显示选中的系数，按照X1, X2, X3...的顺序 -->
             <div v-for="(factor, index) in doubleResult.selectedFactors" :key="index" class="weight-item">
               X{{ index + 1 }}：{{ factor.name }}={{ factor.value }}
@@ -757,7 +776,8 @@
         <div class="section-title">起重机1计算结果：{{ doubleResult.calculationResult1 }}%</div>
         <div class="section-content final-result">
           <span :class="{ 'qualified': doubleResult.isQualified1, 'unqualified': !doubleResult.isQualified1 }">
-            &lt;75% {{ doubleResult.isQualified1 ? '(合格)' : '(不合格)' }}
+            <template v-if="doubleResult.isQualified1">&lt;75% (合格)</template>
+            <template v-else>&gt;75% (不合格)</template>
           </span>
         </div>
       </div>
@@ -766,7 +786,8 @@
         <div class="section-title">起重机2计算结果：{{ doubleResult.calculationResult2 }}%</div>
         <div class="section-content final-result">
           <span :class="{ 'qualified': doubleResult.isQualified2, 'unqualified': !doubleResult.isQualified2 }">
-            &lt;75% {{ doubleResult.isQualified2 ? '(合格)' : '(不合格)' }}
+            <template v-if="doubleResult.isQualified2">&lt;75% (合格)</template>
+            <template v-else>&gt;75% (不合格)</template>
           </span>
         </div>
       </div>
@@ -1018,7 +1039,7 @@ const showCalculationResult = () => {
       wireRopeWeight: wireRopeWeightG2.toFixed(2),
       slingsWeight: slingsWeightG3.toFixed(2),
       otherWeight: otherWeightG4.toFixed(2),
-      equipmentWeight: G0, // 默认取65
+      equipmentWeight: equipmentWeight.toFixed(2), 
       factorDisplay: factorDisplay.trim(),
       factorProduct: factorProduct,
       calculationResult1: calculationResult1.toFixed(2),
