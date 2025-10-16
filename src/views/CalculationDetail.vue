@@ -648,7 +648,7 @@ const formData = ref({
 const weightItems = ref([
   { id: 1, order: 1, name: '动载系数', value: 0.8, checked: false },
   { id: 2, order: 2, name: '偏载系数', value: 1, checked: false },
-  { id: 3, order: 3, name: '其他系数', value: null, checked: false },
+  { id: 3, order: 3, name: '其他系数', value: 1, checked: false },
   { id: 4, order: 4, name: '', value: null, checked: false },
 ])
 
