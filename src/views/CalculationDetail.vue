@@ -55,6 +55,7 @@
           </template>
         </el-tab-pane>
       </el-tabs>
+               <el-button type="primary">导出</el-button>
     </div>
 
     <div class="content-wrapper">
@@ -570,7 +571,6 @@
             <el-button type="primary" @click="showCalculationResult"
               >计算结果</el-button
             >
-            <el-button>导出</el-button>
           </div>
         </el-scrollbar>
       </div>
@@ -1331,9 +1331,9 @@ const cancelEditTitle = () => {
 .header {
   background: white;
   padding: 6px 24px;
-
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 .header-left {
@@ -1353,6 +1353,7 @@ const cancelEditTitle = () => {
 /* Tabs样式 */
 .calculation-tabs {
   background: white;
+  margin-left: -30%;
 }
 
 .calculation-tabs :deep(.el-tabs__header) {
