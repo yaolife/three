@@ -3,11 +3,10 @@
     <div class="header">
       <div class="header-left">
         <span class="project-title">XXXXXXXXX设备吊装项目方案</span>
-        <el-image
+        <img
           src="/src/images/hoisting.png"
           alt="edit"
           class="edit"
-          :fit="'cover'"
         />
       </div>
       <el-tabs
