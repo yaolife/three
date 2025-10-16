@@ -630,11 +630,11 @@
           </div>
           
           <div class="weight-details">
+             <div class="weight-item">G：设备重量={{ singleResult.equipmentWeight }}t</div>
             <div class="weight-item">G1：吊钩重量={{ singleResult.hookWeight }}t</div>
             <div class="weight-item">G2：计算钢丝绳重量={{ singleResult.wireRopeWeight }}t</div>
             <div class="weight-item">G3：吊索具重量={{ singleResult.slingsWeight }}t</div>
-            <div class="weight-item">G4：其他计算重量={{ singleResult.otherWeight }}t</div>
-            <div class="weight-item">G：设备重量={{ singleResult.equipmentWeight }}t</div>
+            <div class="weight-item">G4：其他计算重量={{ singleResult.otherWeight }}t</div>          
             <div class="weight-item">X1：动载系数={{ singleResult.dynamicFactor }}</div>
             <div class="weight-item">X2：偏载系数={{ singleResult.offsetFactor }}</div>
           </div>
@@ -951,13 +951,13 @@ const showCalculationResult = () => {
       liftingMethod: '单机吊装',
       craneName: formData.value.craneName,
       equipmentName: formData.value.equipmentName,
-      totalWeight: totalWeight,
-      otherParams: `吊钩重量${hookWeightG1}t、计算钢丝绳重量${wireRopeWeightG2}t、吊索具重量${slingsWeightG3}t、其他计算重量${otherWeightG4}t`,
-      hookWeight: hookWeightG1,
-      wireRopeWeight: wireRopeWeightG2,
-      slingsWeight: slingsWeightG3,
-      otherWeight: otherWeightG4,
-      equipmentWeight: equipmentWeight,
+      totalWeight: totalWeight.toFixed(2),
+      otherParams: `吊钩重量${hookWeightG1.toFixed(2)}t、计算钢丝绳重量${wireRopeWeightG2.toFixed(2)}t、吊索具重量${slingsWeightG3.toFixed(2)}t、其他计算重量${otherWeightG4.toFixed(2)}t`,
+      hookWeight: hookWeightG1.toFixed(2),
+      wireRopeWeight: wireRopeWeightG2.toFixed(2),
+      slingsWeight: slingsWeightG3.toFixed(2),
+      otherWeight: otherWeightG4.toFixed(2),
+      equipmentWeight: equipmentWeight.toFixed(2),
       dynamicFactor: dynamicFactor,
       offsetFactor: offsetFactor,
       calculationResult: calculationResult.toFixed(2),
@@ -979,12 +979,12 @@ const showCalculationResult = () => {
       craneName1: formData.value.craneName || '起重机1',
       craneName2: formData.value.craneName2 || '起重机2',
       equipmentName: formData.value.equipmentName,
-      totalWeight: totalWeight,
-      otherParams: `吊钩重量${hookWeightG1}t、计算钢丝绳重量${wireRopeWeightG2}t、吊索具重量${slingsWeightG3}t、其他计算重量${otherWeightG4}t`,
-      hookWeight: hookWeightG1,
-      wireRopeWeight: wireRopeWeightG2,
-      slingsWeight: slingsWeightG3,
-      otherWeight: otherWeightG4,
+      totalWeight: totalWeight.toFixed(2),
+      otherParams: `吊钩重量${hookWeightG1.toFixed(2)}t、计算钢丝绳重量${wireRopeWeightG2.toFixed(2)}t、吊索具重量${slingsWeightG3.toFixed(2)}t、其他计算重量${otherWeightG4.toFixed(2)}t`,
+      hookWeight: hookWeightG1.toFixed(2),
+      wireRopeWeight: wireRopeWeightG2.toFixed(2),
+      slingsWeight: slingsWeightG3.toFixed(2),
+      otherWeight: otherWeightG4.toFixed(2),
       equipmentWeight: G0, // 默认取65
       dynamicFactor: dynamicFactor,
       offsetFactor: offsetFactor,
