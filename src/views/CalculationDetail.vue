@@ -15,7 +15,7 @@
             <div class="tab-label">
               <el-image
                 style="width: 22px; height: 22px"
-                src="/src/images/crane_active.png"
+                :src="activeTab === 'crane' ? '/src/images/active_crane.png' : '/src/images/crane.png'"
                 alt=""
                 :fit="'cover'"
               />
@@ -28,7 +28,7 @@
             <div class="tab-label">
               <el-image
                 style="width: 22px; height: 22px"
-                src="/src/images/slings.png"
+                :src="activeTab === 'lifting' ? '/src/images/active_slings.png' : '/src/images/slings.png'"
                 alt=""
                 :fit="'cover'"
               />
@@ -41,7 +41,7 @@
             <div class="tab-label">
               <el-image
                 style="width: 22px; height: 22px"
-                src="/src/images/base.png"
+                :src="activeTab === 'foundation' ? '/src/images/active_base.png' : '/src/images/base.png'"
                 alt=""
                 :fit="'cover'"
               />
