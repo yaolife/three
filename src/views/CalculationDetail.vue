@@ -554,7 +554,7 @@
 
           <div class="action-buttons">
             <el-button>重置</el-button>
-            <el-button type="primary">计算结果</el-button>
+            <el-button type="primary" @click="showCalculationResult">计算结果</el-button>
             <el-button>导出</el-button>
           </div>
         </el-scrollbar>
@@ -571,6 +571,210 @@
       </div>
     </div>
   </div>
+
+  <!-- 单机吊装计算结果弹窗 -->
+  <el-dialog
+    v-model="singleCraneDialogVisible"
+    title="计算结果"
+    width="700px"
+    append-to-body
+  >
+    <div class="calculation-result">
+      <h3>xxxxxx方案项目起重机校核计算</h3>
+      
+      <div class="result-section">
+        <div class="section-title">项目吊装方式</div>
+        <div class="section-content">{{ singleResult.liftingMethod }}</div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">起重机选择</div>
+        <div class="section-content">
+          <div class="equipment-info">
+            <div class="info-item">起重机：{{ singleResult.craneName }}</div>
+            <div class="info-item">规格型号：主臂长度{{ formData.mainBoomLength }}m、副臂长度{{ formData.auxBoomLength }}m、主臂角度{{ formData.mainBoomAngle }}°、副臂角度{{ formData.auxBoomAngle }}°、吊钩最大起升高度xxx</div>
+            <div class="info-item">破断拉力：{{ formData.ratedLoad }}t</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">设备选择</div>
+        <div class="section-content">
+          <div class="info-item">设备：{{ singleResult.equipmentName }}</div>
+          <div class="info-item">重量：{{ singleResult.totalWeight }} t</div>
+        </div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">其它参数</div>
+        <div class="section-content">{{ singleResult.otherParams }}</div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">计算过程</div>
+        <div class="section-content calculation-process">
+          <div class="process-text">已知单台计算机吊装公式为：</div>
+          <div class="process-text">设备重量G+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）×动载系数×偏载系数×其他系数】/起重机额定载荷PQ×100%&lt;100%</div>
+          
+          <div class="formula">
+            <div class="formula-fraction">
+              <div class="formula-numerator">
+                (G+G1+G2+G3+G4) × X1 × X2
+              </div>
+              <div class="formula-denominator">
+                起重机额定载荷PQ
+              </div>
+            </div>
+            <div class="formula-operator">× 100% &lt; 100%</div>
+          </div>
+          
+          <div class="weight-details">
+            <div class="weight-item">G1：吊钩重量={{ singleResult.hookWeight }}t</div>
+            <div class="weight-item">G2：计算钢丝绳重量={{ singleResult.wireRopeWeight }}t</div>
+            <div class="weight-item">G3：吊索具重量={{ singleResult.slingsWeight }}t</div>
+            <div class="weight-item">G4：其他计算重量={{ singleResult.otherWeight }}t</div>
+            <div class="weight-item">G：设备重量={{ singleResult.equipmentWeight }}t</div>
+            <div class="weight-item">X1：动载系数={{ singleResult.dynamicFactor }}</div>
+            <div class="weight-item">X2：偏载系数={{ singleResult.offsetFactor }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="result-section result-final">
+        <div class="section-title">计算结果：{{ singleResult.calculationResult }}%</div>
+        <div class="section-content final-result">
+          <span :class="{ 'qualified': singleResult.isQualified, 'unqualified': !singleResult.isQualified }">
+            &lt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-content conclusion">
+          吊索具校核计算结果为{{ singleResult.calculationResult }}%，小于100%，同时出厂安全系数满足6倍安全系数，故满足要求。
+        </div>
+      </div>
+    </div>
+    
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="singleCraneDialogVisible = false">关闭</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
+  <!-- 双机吊装计算结果弹窗 -->
+  <el-dialog
+    v-model="doubleCraneDialogVisible"
+    title="计算结果"
+    width="700px"
+    append-to-body
+  >
+    <div class="calculation-result">
+      <h3>xxxxxx方案项目起重机校核计算</h3>
+      
+      <div class="result-section">
+        <div class="section-title">项目吊装方式</div>
+        <div class="section-content">{{ doubleResult.liftingMethod }}</div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">起重机1选择</div>
+        <div class="section-content">
+          <div class="equipment-info">
+            <div class="info-item">起重机：{{ doubleResult.craneName1 }}</div>
+            <div class="info-item">规格型号：主臂长度{{ formData.mainBoomLength }}m、副臂长度{{ formData.auxBoomLength }}m、主臂角度{{ formData.mainBoomAngle }}°、副臂角度{{ formData.auxBoomAngle }}°、吊钩最大起升高度xxx</div>
+            <div class="info-item">破断拉力：{{ formData.ratedLoad }}t</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">起重机2选择</div>
+        <div class="section-content">
+          <div class="equipment-info">
+            <div class="info-item">起重机：{{ doubleResult.craneName2 }}</div>
+            <div class="info-item">规格型号：主臂长度{{ formData.mainBoomLength2 }}m、副臂长度{{ formData.auxBoomLength2 }}m、主臂角度{{ formData.mainBoomAngle2 }}°、副臂角度{{ formData.auxBoomAngle2 }}°、吊钩最大起升高度xxx</div>
+            <div class="info-item">破断拉力：{{ formData.ratedLoad2 }}t</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">设备选择</div>
+        <div class="section-content">
+          <div class="info-item">设备：{{ doubleResult.equipmentName }}</div>
+          <div class="info-item">重量：{{ doubleResult.totalWeight }} t</div>
+        </div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">其它参数</div>
+        <div class="section-content">{{ doubleResult.otherParams }}</div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-title">计算过程</div>
+        <div class="section-content calculation-process">
+          <div class="process-text">已知两台起重机吊装公式为：</div>
+          <div class="process-text">（单台起重机所承担最大设备重量G0+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）×动载系数×偏载系数×其他系数】/单台起重机额定载荷PQ×100%&lt;75%</div>
+          
+          <div class="formula">
+            <div class="formula-fraction">
+              <div class="formula-numerator">
+                (G+G1+G2+G3+G4) × X1 × X2
+              </div>
+              <div class="formula-denominator">
+                起重机额定载荷PQ
+              </div>
+            </div>
+            <div class="formula-operator">× 100% &lt; 75%</div>
+          </div>
+          
+          <div class="weight-details">
+            <div class="weight-item">G1：吊钩重量={{ doubleResult.hookWeight }}t</div>
+            <div class="weight-item">G2：计算钢丝绳重量={{ doubleResult.wireRopeWeight }}t</div>
+            <div class="weight-item">G3：吊索具重量={{ doubleResult.slingsWeight }}t</div>
+            <div class="weight-item">G4：其他计算重量={{ doubleResult.otherWeight }}t</div>
+            <div class="weight-item">G：设备重量={{ doubleResult.equipmentWeight }}t</div>
+            <div class="weight-item">X1：动载系数={{ doubleResult.dynamicFactor }}</div>
+            <div class="weight-item">X2：偏载系数={{ doubleResult.offsetFactor }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="result-section result-final">
+        <div class="section-title">起重机1计算结果：{{ doubleResult.calculationResult1 }}%</div>
+        <div class="section-content final-result">
+          <span :class="{ 'qualified': doubleResult.isQualified1, 'unqualified': !doubleResult.isQualified1 }">
+            &lt;75% {{ doubleResult.isQualified1 ? '(合格)' : '(不合格)' }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="result-section result-final">
+        <div class="section-title">起重机2计算结果：{{ doubleResult.calculationResult2 }}%</div>
+        <div class="section-content final-result">
+          <span :class="{ 'qualified': doubleResult.isQualified2, 'unqualified': !doubleResult.isQualified2 }">
+            &lt;75% {{ doubleResult.isQualified2 ? '(合格)' : '(不合格)' }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="result-section">
+        <div class="section-content conclusion">
+          起重机1校核计算结果为{{ doubleResult.calculationResult1 }}%，小于75%；起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%，小于75%；同时出厂安全系数满足6倍安全系数，故满足要求。
+        </div>
+      </div>
+    </div>
+    
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="doubleCraneDialogVisible = false">关闭</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -673,6 +877,124 @@ const handleInputChange = (index) => {
         (currentItem.value !== null && currentItem.value !== undefined && currentItem.value !== '')) {
       addNewRow()
     }
+  }
+}
+
+// 弹窗可见性状态
+const singleCraneDialogVisible = ref(false)
+const doubleCraneDialogVisible = ref(false)
+
+// 单机吊装计算结果数据
+const singleResult = ref({
+  liftingMethod: '单机吊装',
+  craneName: '',
+  equipmentName: '',
+  totalWeight: 0,
+  otherParams: '',
+  hookWeight: 0,
+  wireRopeWeight: 0,
+  slingsWeight: 0,
+  otherWeight: 0,
+  equipmentWeight: 0,
+  dynamicFactor: 0,
+  offsetFactor: 0,
+  calculationResult: 0,
+  isQualified: false
+})
+
+// 双机吊装计算结果数据
+const doubleResult = ref({
+  liftingMethod: '双机吊装',
+  craneName1: '',
+  craneName2: '',
+  equipmentName: '',
+  totalWeight: 0,
+  otherParams: '',
+  hookWeight: 0,
+  wireRopeWeight: 0,
+  slingsWeight: 0,
+  otherWeight: 0,
+  equipmentWeight: 65, // 默认取65
+  dynamicFactor: 0,
+  offsetFactor: 0,
+  calculationResult1: 0,
+  calculationResult2: 0,
+  isQualified1: false,
+  isQualified2: false
+})
+
+// 显示计算结果弹窗
+const showCalculationResult = () => {
+  // 收集选中的重量参数
+  let equipmentWeight = formData.value.isEquipmentWeightChecked ? formData.value.equipmentWeight : 0
+  let hookWeightG1 = formData.value.isHookWeightChecked ? formData.value.hookWeightG1 : 0
+  let wireRopeWeightG2 = formData.value.isWireRopeWeightChecked ? formData.value.wireRopeWeightG2 : 0
+  let slingsWeightG3 = formData.value.isSlingsWeightChecked ? formData.value.slingsWeightG3 : 0
+  let otherWeightG4 = formData.value.isOtherWeightChecked ? formData.value.otherWeightG4 : 0
+  
+  // 获取系数
+  const dynamicFactor = weightItems.value.find(item => item.name === '动载系数')?.value || 0.8
+  const offsetFactor = weightItems.value.find(item => item.name === '偏载系数')?.value || 1
+  const otherFactor = weightItems.value.find(item => item.name === '其他系数')?.value || 1
+  
+  // 计算总重量
+  const totalWeight = equipmentWeight + hookWeightG1 + wireRopeWeightG2 + slingsWeightG3 + otherWeightG4
+  
+  // 根据吊装方式显示不同的弹窗
+  if (formData.value.liftingMethod === 'single') {
+    // 单机吊装计算
+    const calculationResult = ((equipmentWeight + hookWeightG1 + wireRopeWeightG2 + slingsWeightG3 + otherWeightG4) * 
+                              dynamicFactor * offsetFactor * otherFactor / formData.value.ratedLoad * 100)
+    
+    // 填充单机吊装结果数据
+    singleResult.value = {
+      liftingMethod: '单机吊装',
+      craneName: formData.value.craneName,
+      equipmentName: formData.value.equipmentName,
+      totalWeight: totalWeight,
+      otherParams: `吊钩重量${hookWeightG1}t、计算钢丝绳重量${wireRopeWeightG2}t、吊索具重量${slingsWeightG3}t、其他计算重量${otherWeightG4}t`,
+      hookWeight: hookWeightG1,
+      wireRopeWeight: wireRopeWeightG2,
+      slingsWeight: slingsWeightG3,
+      otherWeight: otherWeightG4,
+      equipmentWeight: equipmentWeight,
+      dynamicFactor: dynamicFactor,
+      offsetFactor: offsetFactor,
+      calculationResult: calculationResult.toFixed(2),
+      isQualified: calculationResult < 100
+    }
+    
+    singleCraneDialogVisible.value = true
+  } else {
+    // 双机吊装计算，G0默认为65
+    const G0 = 65
+    const calculationResult1 = ((G0 + hookWeightG1 + wireRopeWeightG2 + slingsWeightG3 + otherWeightG4) * 
+                               dynamicFactor * offsetFactor * otherFactor / formData.value.ratedLoad * 100)
+    const calculationResult2 = ((G0 + hookWeightG1 + wireRopeWeightG2 + slingsWeightG3 + otherWeightG4) * 
+                               dynamicFactor * offsetFactor * otherFactor / formData.value.ratedLoad2 * 100)
+    
+    // 填充双机吊装结果数据
+    doubleResult.value = {
+      liftingMethod: '双机吊装',
+      craneName1: formData.value.craneName || '起重机1',
+      craneName2: formData.value.craneName2 || '起重机2',
+      equipmentName: formData.value.equipmentName,
+      totalWeight: totalWeight,
+      otherParams: `吊钩重量${hookWeightG1}t、计算钢丝绳重量${wireRopeWeightG2}t、吊索具重量${slingsWeightG3}t、其他计算重量${otherWeightG4}t`,
+      hookWeight: hookWeightG1,
+      wireRopeWeight: wireRopeWeightG2,
+      slingsWeight: slingsWeightG3,
+      otherWeight: otherWeightG4,
+      equipmentWeight: G0, // 默认取65
+      dynamicFactor: dynamicFactor,
+      offsetFactor: offsetFactor,
+      calculationResult1: calculationResult1.toFixed(2),
+      calculationResult2: calculationResult2.toFixed(2),
+      isQualified1: calculationResult1 < 75,
+      isQualified2: calculationResult2 < 75
+    }
+    
+    doubleCraneDialogVisible.value = true
   }
 }
 </script>
@@ -877,6 +1199,123 @@ const handleInputChange = (index) => {
 .weight-table table {
   width: 100%;
   border-collapse: collapse;
+}
+
+/* 计算结果弹窗样式 */
+.calculation-result {
+  font-size: 14px;
+}
+
+.calculation-result h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.result-section {
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.result-section .section-title {
+  background-color: #f5f5f5;
+  padding: 8px 12px;
+  font-weight: bold;
+  color: #666;
+}
+
+.result-section .section-content {
+  padding: 12px;
+  background-color: #fff9e6;
+}
+
+.equipment-info .info-item {
+  margin-bottom: 6px;
+}
+
+.equipment-info .info-item:last-child {
+  margin-bottom: 0;
+}
+
+.calculation-process .process-text {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.formula {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  gap: 10px;
+}
+
+.formula-fraction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.formula-numerator {
+  padding: 10px;
+  border-bottom: 2px solid #333;
+  text-align: center;
+}
+
+.formula-denominator {
+  padding: 10px;
+
+  text-align: center;
+}
+
+.formula-operator {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.weight-details {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.weight-item {
+  padding: 4px 0;
+}
+
+.result-final {
+  margin-top: 20px;
+}
+
+.result-final .section-title {
+  background-color: #f5f5f5;
+  padding: 10px 12px;
+  font-weight: bold;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.final-result {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.qualified {
+  color: #67c23a;
+}
+
+.unqualified {
+  color: #f56c6c;
+}
+
+.conclusion {
+  line-height: 1.6;
+  color: #333;
 }
 
 .weight-table table {
