@@ -70,7 +70,7 @@
                           v-model="formData.craneName"
                           placeholder="SCC13000TM履带起重机"
                         />
-                        <el-button type="primary" size="medium">选择</el-button>
+                        <el-button type="primary" size="default">选择</el-button>
                       </div>
                     </div>
                     <div class="form-row">
@@ -232,7 +232,7 @@
                           v-model="formData.craneName2"
                           placeholder="SCC13000TM履带起重机"
                         />
-                        <el-button type="primary" size="medium">选择</el-button>
+                        <el-button type="primary" size="default">选择</el-button>
                       </div>
                     </div>
                     <div class="form-row">
