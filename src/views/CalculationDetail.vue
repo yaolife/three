@@ -3,11 +3,7 @@
     <div class="header">
       <div class="header-left">
         <span class="project-title">XXXXXXXXX设备吊装项目方案</span>
-        <img
-          src="/src/images/hoisting.png"
-          alt="edit"
-          class="edit"
-        />
+        <img src="/src/images/hoisting.png" alt="edit" class="edit" />
       </div>
       <el-tabs
         v-model="activeTab"
@@ -17,7 +13,12 @@
         <el-tab-pane label="起重机校核计算" name="crane">
           <template #label>
             <div class="tab-label">
-              <el-icon><Tools /></el-icon>
+              <el-image
+                style="width: 22px; height: 22px"
+                src="/src/images/crane_active.png"
+                alt=""
+                :fit="'cover'"
+              />
               起重机校核计算
             </div>
           </template>
@@ -25,7 +26,12 @@
         <el-tab-pane label="吊索具校核计算" name="lifting">
           <template #label>
             <div class="tab-label">
-              <el-icon><Connection /></el-icon>
+              <el-image
+                style="width: 22px; height: 22px"
+                src="/src/images/slings.png"
+                alt=""
+                :fit="'cover'"
+              />
               吊索具校核计算
             </div>
           </template>
@@ -33,7 +39,12 @@
         <el-tab-pane label="地基承载力校核计算" name="foundation">
           <template #label>
             <div class="tab-label">
-              <el-icon><Histogram /></el-icon>
+              <el-image
+                style="width: 22px; height: 22px"
+                src="/src/images/base.png"
+                alt=""
+                :fit="'cover'"
+              />
               地基承载力校核计算
             </div>
           </template>
@@ -860,49 +871,49 @@
       <div class="result-section result-final">
         <div class="section-title">
           <div>起重机1计算结果：{{ doubleResult.calculationResult1 }}%</div>
-                  <div>
-          <span
-            :class="{
-              qualified: doubleResult.isQualified1,
-              unqualified: !doubleResult.isQualified1,
-            }"
-          >
-            <template v-if="parseFloat(doubleResult.calculationResult1) &lt; 75"
-              >&lt;75% (合格)</template
+          <div>
+            <span
+              :class="{
+                qualified: doubleResult.isQualified1,
+                unqualified: !doubleResult.isQualified1,
+              }"
             >
-            <template
-              v-else-if="parseFloat(doubleResult.calculationResult1) === 75"
-              >=75% (不合格)</template
-            >
-            <template v-else>&gt;75% (不合格)</template>
-          </span>
+              <template
+                v-if="parseFloat(doubleResult.calculationResult1) &lt; 75"
+                >&lt;75% (合格)</template
+              >
+              <template
+                v-else-if="parseFloat(doubleResult.calculationResult1) === 75"
+                >=75% (不合格)</template
+              >
+              <template v-else>&gt;75% (不合格)</template>
+            </span>
+          </div>
         </div>
-        </div>
-
       </div>
 
       <div class="result-section result-final">
         <div class="section-title">
           <div>起重机2计算结果：{{ doubleResult.calculationResult2 }}%</div>
-             <div >
-          <span
-            :class="{
-              qualified: doubleResult.isQualified2,
-              unqualified: !doubleResult.isQualified2,
-            }"
-          >
-            <template v-if="parseFloat(doubleResult.calculationResult2) &lt; 75"
-              >&lt;75% (合格)</template
+          <div>
+            <span
+              :class="{
+                qualified: doubleResult.isQualified2,
+                unqualified: !doubleResult.isQualified2,
+              }"
             >
-            <template
-              v-else-if="parseFloat(doubleResult.calculationResult2) === 75"
-              >=75% (不合格)</template
-            >
-            <template v-else>&gt;75% (不合格)</template>
-          </span>
+              <template
+                v-if="parseFloat(doubleResult.calculationResult2) &lt; 75"
+                >&lt;75% (合格)</template
+              >
+              <template
+                v-else-if="parseFloat(doubleResult.calculationResult2) === 75"
+                >=75% (不合格)</template
+              >
+              <template v-else>&gt;75% (不合格)</template>
+            </span>
+          </div>
         </div>
-        </div>
-     
       </div>
 
       <div class="result-section">
@@ -910,17 +921,30 @@
           <template
             v-if="doubleResult.isQualified1 && doubleResult.isQualified2"
           >
-            起重机1校核计算结果为{{ doubleResult.calculationResult1 }}%，小于75%；起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%，小于75%；故满足要求。
+            起重机1校核计算结果为{{
+              doubleResult.calculationResult1
+            }}%，小于75%；起重机2校核计算结果为{{
+              doubleResult.calculationResult2
+            }}%，小于75%；故满足要求。
           </template>
           <template v-else>
             起重机1校核计算结果为{{ doubleResult.calculationResult1 }}%
-            <template v-if="parseFloat(doubleResult.calculationResult1) < 75">小于</template>
-            <template v-else-if="parseFloat(doubleResult.calculationResult1) === 75">等于</template>
+            <template v-if="parseFloat(doubleResult.calculationResult1) < 75"
+              >小于</template
+            >
+            <template
+              v-else-if="parseFloat(doubleResult.calculationResult1) === 75"
+              >等于</template
+            >
             <template v-else>大于</template>
-            75%；
-            起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%
-            <template v-if="parseFloat(doubleResult.calculationResult2) < 75">小于</template>
-            <template v-else-if="parseFloat(doubleResult.calculationResult2) === 75">等于</template>
+            75%； 起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%
+            <template v-if="parseFloat(doubleResult.calculationResult2) < 75"
+              >小于</template
+            >
+            <template
+              v-else-if="parseFloat(doubleResult.calculationResult2) === 75"
+              >等于</template
+            >
             <template v-else>大于</template>
             75%；故不满足要求。
           </template>
