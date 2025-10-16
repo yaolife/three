@@ -1291,7 +1291,9 @@ const showCalculationResult = () => {
   align-items: center;
   gap: 12px;
 }
-
+.header-left:hover{
+  cursor: pointer;
+}
 .project-title {
   font-size: 14px;
   color: #333;
