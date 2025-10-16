@@ -563,7 +563,7 @@
       <div class="right-panel">
         <div class="diagram-container">
           <img
-            src="/src/images/cac.png"
+            :src="formData.liftingMethod === 'double' ? '/src/images/machine.png' : '/src/images/cac.png'"
             alt="起重机示意图"
             class="crane-diagram"
           />
