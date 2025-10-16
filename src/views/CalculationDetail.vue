@@ -630,39 +630,46 @@
           </div>
           
           <div class="weight-details">
-             <div class="weight-item">G：设备重量={{ singleResult.equipmentWeight }}t</div>
-            <div class="weight-item">G1：吊钩重量={{ singleResult.hookWeight }}t</div>
-            <div class="weight-item">G2：计算钢丝绳重量={{ singleResult.wireRopeWeight }}t</div>
-            <div class="weight-item">G3：吊索具重量={{ singleResult.slingsWeight }}t</div>
-            <div class="weight-item">G4：其他计算重量={{ singleResult.otherWeight }}t</div>          
-            <div class="weight-item">X1：动载系数={{ singleResult.dynamicFactor }}</div>
-            <div class="weight-item">X2：偏载系数={{ singleResult.offsetFactor }}</div>
+          <div class="weight-item">G：设备重量={{ singleResult.equipmentWeight }}t</div>
+          <div class="weight-item">G1：吊钩重量={{ singleResult.hookWeight }}t</div>
+          <div class="weight-item">G2：计算钢丝绳重量={{ singleResult.wireRopeWeight }}t</div>
+          <div class="weight-item">G3：吊索具重量={{ singleResult.slingsWeight }}t</div>
+          <div class="weight-item">G4：其他计算重量={{ singleResult.otherWeight }}t</div>
+          <!-- 动态显示选中的系数，按照X1, X2, X3...的顺序 -->
+          <div v-for="(factor, index) in singleResult.selectedFactors" :key="index" class="weight-item">
+            X{{ index + 1 }}：{{ factor.name }}={{ factor.value }}
           </div>
-        </div>
-      </div>
-      
-      <div class="result-section result-final">
-        <div class="section-title">计算结果：{{ singleResult.calculationResult }}%</div>
-        <div class="section-content final-result">
-          <span :class="{ 'qualified': singleResult.isQualified, 'unqualified': !singleResult.isQualified }">
-            &lt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}
-          </span>
-        </div>
-      </div>
-      
-      <div class="result-section">
-        <div class="section-content conclusion">
-          吊索具校核计算结果为{{ singleResult.calculationResult }}%，小于100%，同时出厂安全系数满足6倍安全系数，故满足要求。
         </div>
       </div>
     </div>
     
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="singleCraneDialogVisible = false">关闭</el-button>
-      </span>
-    </template>
-  </el-dialog>
+    <div class="result-section result-final">
+      <div class="section-title">计算结果：{{ singleResult.calculationResult }}%</div>
+      <div class="section-content final-result">
+        <span :class="{ 'qualified': singleResult.isQualified, 'unqualified': !singleResult.isQualified }">
+          &lt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="result-section">
+      <div class="section-content conclusion">
+        <template v-if="singleResult.isQualified">
+          起重机校核计算结果为{{ singleResult.calculationResult }}%，小于100%，故满足要求。
+        </template>
+        <template v-else>
+          起重机校核计算结果为{{ singleResult.calculationResult }}%，大于等于100%，故不满足要求。
+        </template>
+      </div>
+    </div>
+  </div>
+  
+  <template #footer>
+    <span class="dialog-footer">
+      <el-button @click="singleCraneDialogVisible = false">关闭</el-button>
+    </span>
+  </template>
+</el-dialog>
 
   <!-- 双机吊装计算结果弹窗 -->
   <el-dialog
@@ -738,8 +745,10 @@
             <div class="weight-item">G3：吊索具重量={{ doubleResult.slingsWeight }}t</div>
             <div class="weight-item">G4：其他计算重量={{ doubleResult.otherWeight }}t</div>
             <div class="weight-item">G：设备重量={{ doubleResult.equipmentWeight }}t</div>
-            <div class="weight-item">X1：动载系数={{ doubleResult.dynamicFactor }}</div>
-            <div class="weight-item">X2：偏载系数={{ doubleResult.offsetFactor }}</div>
+            <!-- 动态显示选中的系数，按照X1, X2, X3...的顺序 -->
+            <div v-for="(factor, index) in doubleResult.selectedFactors" :key="index" class="weight-item">
+              X{{ index + 1 }}：{{ factor.name }}={{ factor.value }}
+            </div>
           </div>
         </div>
       </div>
@@ -764,7 +773,12 @@
       
       <div class="result-section">
         <div class="section-content conclusion">
-          起重机1校核计算结果为{{ doubleResult.calculationResult1 }}%，小于75%；起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%，小于75%；同时出厂安全系数满足6倍安全系数，故满足要求。
+          <template v-if="doubleResult.isQualified1 && doubleResult.isQualified2">
+            起重机1校核计算结果为{{ doubleResult.calculationResult1 }}%，小于75%；起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%，小于75%；故满足要求。
+          </template>
+          <template v-else>
+            起重机1校核计算结果为{{ doubleResult.calculationResult1 }}%，起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%，其中至少有一个大于等于75%，故不满足要求。
+          </template>
         </div>
       </div>
     </div>
@@ -932,10 +946,14 @@ const showCalculationResult = () => {
   let slingsWeightG3 = formData.value.isSlingsWeightChecked ? formData.value.slingsWeightG3 : 0
   let otherWeightG4 = formData.value.isOtherWeightChecked ? formData.value.otherWeightG4 : 0
   
-  // 获取系数
-  const dynamicFactor = weightItems.value.find(item => item.name === '动载系数')?.value || 0.8
-  const offsetFactor = weightItems.value.find(item => item.name === '偏载系数')?.value || 1
-  const otherFactor = weightItems.value.find(item => item.name === '其他系数')?.value || 1
+  // 获取选中的系数项
+  const selectedFactors = weightItems.value.filter(item => item.checked && item.name && item.value !== null)
+  
+  // 计算系数乘积
+  let factorProduct = 1
+  selectedFactors.forEach(factor => {
+    factorProduct *= factor.value
+  })
   
   // 计算总重量
   const totalWeight = equipmentWeight + hookWeightG1 + wireRopeWeightG2 + slingsWeightG3 + otherWeightG4
@@ -944,7 +962,14 @@ const showCalculationResult = () => {
   if (formData.value.liftingMethod === 'single') {
     // 单机吊装计算
     const calculationResult = ((equipmentWeight + hookWeightG1 + wireRopeWeightG2 + slingsWeightG3 + otherWeightG4) * 
-                              dynamicFactor * offsetFactor * otherFactor / formData.value.ratedLoad * 100)
+                              factorProduct / formData.value.ratedLoad * 100)
+    
+    // 构建选中的系数显示字符串
+    let factorDisplay = ''
+    selectedFactors.forEach((factor, index) => {
+      const factorName = String.fromCharCode(88 + index + 1) // X1, X2, X3...
+      factorDisplay += `${factorName}：${factor.name}=${factor.value.toFixed(2)} `
+    })
     
     // 填充单机吊装结果数据
     singleResult.value = {
@@ -958,10 +983,11 @@ const showCalculationResult = () => {
       slingsWeight: slingsWeightG3.toFixed(2),
       otherWeight: otherWeightG4.toFixed(2),
       equipmentWeight: equipmentWeight.toFixed(2),
-      dynamicFactor: dynamicFactor,
-      offsetFactor: offsetFactor,
+      factorDisplay: factorDisplay.trim(),
+      factorProduct: factorProduct,
       calculationResult: calculationResult.toFixed(2),
-      isQualified: calculationResult < 100
+      isQualified: calculationResult < 100,
+      selectedFactors: selectedFactors
     }
     
     singleCraneDialogVisible.value = true
@@ -969,9 +995,16 @@ const showCalculationResult = () => {
     // 双机吊装计算，G0默认为65
     const G0 = 65
     const calculationResult1 = ((G0 + hookWeightG1 + wireRopeWeightG2 + slingsWeightG3 + otherWeightG4) * 
-                               dynamicFactor * offsetFactor * otherFactor / formData.value.ratedLoad * 100)
+                               factorProduct / formData.value.ratedLoad * 100)
     const calculationResult2 = ((G0 + hookWeightG1 + wireRopeWeightG2 + slingsWeightG3 + otherWeightG4) * 
-                               dynamicFactor * offsetFactor * otherFactor / formData.value.ratedLoad2 * 100)
+                               factorProduct / formData.value.ratedLoad2 * 100)
+    
+    // 构建选中的系数显示字符串
+    let factorDisplay = ''
+    selectedFactors.forEach((factor, index) => {
+      const factorName = String.fromCharCode(88 + index + 1) // X1, X2, X3...
+      factorDisplay += `${factorName}：${factor.name}=${factor.value.toFixed(2)} `
+    })
     
     // 填充双机吊装结果数据
     doubleResult.value = {
@@ -986,12 +1019,13 @@ const showCalculationResult = () => {
       slingsWeight: slingsWeightG3.toFixed(2),
       otherWeight: otherWeightG4.toFixed(2),
       equipmentWeight: G0, // 默认取65
-      dynamicFactor: dynamicFactor,
-      offsetFactor: offsetFactor,
+      factorDisplay: factorDisplay.trim(),
+      factorProduct: factorProduct,
       calculationResult1: calculationResult1.toFixed(2),
       calculationResult2: calculationResult2.toFixed(2),
       isQualified1: calculationResult1 < 75,
-      isQualified2: calculationResult2 < 75
+      isQualified2: calculationResult2 < 75,
+      selectedFactors: selectedFactors
     }
     
     doubleCraneDialogVisible.value = true
