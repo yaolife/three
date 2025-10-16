@@ -911,18 +911,19 @@
           <template
             v-if="doubleResult.isQualified1 && doubleResult.isQualified2"
           >
-            起重机1校核计算结果为{{
-              doubleResult.calculationResult1
-            }}%，小于75%；起重机2校核计算结果为{{
-              doubleResult.calculationResult2
-            }}%，小于75%；故满足要求。
+            起重机1校核计算结果为{{ doubleResult.calculationResult1 }}%，小于75%；起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%，小于75%；故满足要求。
           </template>
           <template v-else>
-            起重机1校核计算结果为{{
-              doubleResult.calculationResult1
-            }}%，起重机2校核计算结果为{{
-              doubleResult.calculationResult2
-            }}%，其中至少有一个大于等于75%，故不满足要求。
+            起重机1校核计算结果为{{ doubleResult.calculationResult1 }}%
+            <template v-if="parseFloat(doubleResult.calculationResult1) < 75">小于</template>
+            <template v-else-if="parseFloat(doubleResult.calculationResult1) === 75">等于</template>
+            <template v-else>大于</template>
+            75%；
+            起重机2校核计算结果为{{ doubleResult.calculationResult2 }}%
+            <template v-if="parseFloat(doubleResult.calculationResult2) < 75">小于</template>
+            <template v-else-if="parseFloat(doubleResult.calculationResult2) === 75">等于</template>
+            <template v-else>大于</template>
+            75%；故不满足要求。
           </template>
         </div>
       </div>
