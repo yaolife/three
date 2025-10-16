@@ -515,7 +515,7 @@
                     <thead>
                       <tr>
                         <th width="60">
-                          <el-checkbox />
+                          勾选
                         </th>
                         <th width="80">序号</th>
                         <th>系数名称</th>
@@ -583,8 +583,7 @@
       <h3>xxxxxx方案项目起重机校核计算</h3>
       
       <div class="result-section">
-        <div class="section-title">项目吊装方式</div>
-        <div class="section-content">{{ singleResult.liftingMethod }}</div>
+        <div class="section-title">项目吊装方式:{{ singleResult.liftingMethod }}</div>
       </div>
       
       <div class="result-section">
@@ -653,12 +652,14 @@
     </div>
     
     <div class="result-section result-final">
-      <div class="section-title">计算结果：{{ singleResult.calculationResult }}%</div>
-      <div class="section-content final-result">
+      <div class="section-title"><div>计算结果：{{ singleResult.calculationResult }}%</div>
+      <div>
         <span :class="{ 'qualified': singleResult.isQualified, 'unqualified': !singleResult.isQualified }">
-          <template v-if="singleResult.isQualified">&lt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}</template>
-          <template v-else>&gt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}</template>
+          <template v-if="parseFloat(singleResult.calculationResult) &lt; 100">&lt;100% {{ singleResult.isQualified ? '(合格)' : '(不合格)' }}</template>
+          <template v-else-if="parseFloat(singleResult.calculationResult) === 100">=100% (不合格)</template>
+          <template v-else>&gt;100% (不合格)</template>
         </span>
+      </div>
       </div>
     </div>
     
@@ -692,8 +693,7 @@
       <h3>xxxxxx方案项目起重机校核计算</h3>
       
       <div class="result-section">
-        <div class="section-title">项目吊装方式</div>
-        <div class="section-content">{{ doubleResult.liftingMethod }}</div>
+        <div class="section-title">项目吊装方式:{{ doubleResult.liftingMethod }}</div>
       </div>
       
       <div class="result-section">
@@ -776,7 +776,8 @@
         <div class="section-title">起重机1计算结果：{{ doubleResult.calculationResult1 }}%</div>
         <div class="section-content final-result">
           <span :class="{ 'qualified': doubleResult.isQualified1, 'unqualified': !doubleResult.isQualified1 }">
-            <template v-if="doubleResult.isQualified1">&lt;75% (合格)</template>
+            <template v-if="parseFloat(doubleResult.calculationResult1) &lt; 75">&lt;75% (合格)</template>
+            <template v-else-if="parseFloat(doubleResult.calculationResult1) === 75">=75% (不合格)</template>
             <template v-else>&gt;75% (不合格)</template>
           </span>
         </div>
@@ -786,7 +787,8 @@
         <div class="section-title">起重机2计算结果：{{ doubleResult.calculationResult2 }}%</div>
         <div class="section-content final-result">
           <span :class="{ 'qualified': doubleResult.isQualified2, 'unqualified': !doubleResult.isQualified2 }">
-            <template v-if="doubleResult.isQualified2">&lt;75% (合格)</template>
+            <template v-if="parseFloat(doubleResult.calculationResult2) &lt; 75">&lt;75% (合格)</template>
+            <template v-else-if="parseFloat(doubleResult.calculationResult2) === 75">=75% (不合格)</template>
             <template v-else>&gt;75% (不合格)</template>
           </span>
         </div>
@@ -1158,7 +1160,6 @@ const showCalculationResult = () => {
   font-size: 16px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 16px;
   padding-bottom: 8px;
 }
 
@@ -1275,7 +1276,7 @@ const showCalculationResult = () => {
 }
 
 .result-section .section-title {
-  background-color: #f5f5f5;
+   background-color: #FFEEBF;
   padding: 8px 12px;
   font-weight: bold;
   color: #666;
@@ -1283,7 +1284,6 @@ const showCalculationResult = () => {
 
 .result-section .section-content {
   padding: 12px;
-  background-color: #fff9e6;
 }
 
 .equipment-info .info-item {
@@ -1346,8 +1346,7 @@ const showCalculationResult = () => {
 }
 
 .result-final .section-title {
-  background-color: #f5f5f5;
-  padding: 10px 12px;
+  background-color: #FFEEBF;
   font-weight: bold;
   color: #666;
   display: flex;
@@ -1486,7 +1485,6 @@ const showCalculationResult = () => {
     text-align: left;
   }
 }
-
 /* 起重机参数Tabs样式 */
 :deep(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
   display: flex;
