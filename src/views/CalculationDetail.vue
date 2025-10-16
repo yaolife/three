@@ -860,9 +860,8 @@
 
       <div class="result-section result-final">
         <div class="section-title">
-          起重机1计算结果：{{ doubleResult.calculationResult1 }}%
-        </div>
-        <div class="section-content final-result">
+          <div>起重机1计算结果：{{ doubleResult.calculationResult1 }}%</div>
+                  <div>
           <span
             :class="{
               qualified: doubleResult.isQualified1,
@@ -879,13 +878,14 @@
             <template v-else>&gt;75% (不合格)</template>
           </span>
         </div>
+        </div>
+
       </div>
 
       <div class="result-section result-final">
         <div class="section-title">
-          起重机2计算结果：{{ doubleResult.calculationResult2 }}%
-        </div>
-        <div class="section-content final-result">
+          <div>起重机2计算结果：{{ doubleResult.calculationResult2 }}%</div>
+             <div >
           <span
             :class="{
               qualified: doubleResult.isQualified2,
@@ -902,6 +902,8 @@
             <template v-else>&gt;75% (不合格)</template>
           </span>
         </div>
+        </div>
+     
       </div>
 
       <div class="result-section">
