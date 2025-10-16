@@ -1009,7 +1009,7 @@ const showCalculationResult = () => {
       factorDisplay: factorDisplay.trim(),
       factorProduct: factorProduct,
       calculationResult: calculationResult.toFixed(2),
-      isQualified: calculationResult < 100,
+      isQualified: calculationResult < 100, // 修改合格判断逻辑，等于100%时不满足要求
       selectedFactors: selectedFactors
     }
     
@@ -1046,8 +1046,8 @@ const showCalculationResult = () => {
       factorProduct: factorProduct,
       calculationResult1: calculationResult1.toFixed(2),
       calculationResult2: calculationResult2.toFixed(2),
-      isQualified1: calculationResult1 < 75,
-      isQualified2: calculationResult2 < 75,
+      isQualified1: calculationResult1 < 75, // 修改合格判断逻辑，等于75%时不满足要求
+      isQualified2: calculationResult2 < 75, // 修改合格判断逻辑，等于75%时不满足要求
       selectedFactors: selectedFactors
     }
     
