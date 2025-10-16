@@ -2,8 +2,13 @@
   <div class="calculation-detail-container">
     <div class="header">
       <div class="header-left">
-        <span class="project-title">XXXXXXXXX设备吊装项目方案</span>
-        <img src="/src/images/hoisting.png" alt="edit" class="edit" />
+        <span class="project-title">{{ projectTitle }}</span>
+        <img 
+          src="/src/images/hoisting.png" 
+          alt="edit" 
+          class="edit" 
+          @click="openEditTitleDialog"
+        />
       </div>
       <el-tabs
         v-model="activeTab"
@@ -586,6 +591,7 @@
     </div>
   </div>
 
+  
   <!-- 单机吊装计算结果弹窗 -->
   <el-dialog
     v-model="singleCraneDialogVisible"
@@ -958,6 +964,25 @@
       </span>
     </template>
   </el-dialog>
+
+  <!-- 编辑标题弹窗 -->
+  <el-dialog
+    v-model="editTitleDialogVisible"
+    title="编辑项目标题"
+    width="400px"
+    append-to-body
+  >
+    <div class="edit-title-dialog">
+      <el-input v-model="newTitle" placeholder="请输入项目标题" />
+    </div>
+
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="cancelEditTitle">取消</el-button>
+        <el-button type="primary" @click="confirmEditTitle">确定</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -1267,6 +1292,32 @@ const showCalculationResult = () => {
     doubleCraneDialogVisible.value = true;
   }
 };
+
+const projectTitle = ref("XXXXXXXXX设备吊装项目方案");
+
+// 编辑标题的弹窗相关数据
+const editTitleDialogVisible = ref(false);
+const newTitle = ref("");
+
+// 打开编辑标题弹窗
+const openEditTitleDialog = () => {
+  newTitle.value = projectTitle.value;
+  editTitleDialogVisible.value = true;
+};
+
+// 确认修改标题
+const confirmEditTitle = () => {
+  if (newTitle.value.trim()) {
+    projectTitle.value = newTitle.value.trim();
+  }
+  editTitleDialogVisible.value = false;
+};
+
+// 取消修改标题
+const cancelEditTitle = () => {
+  editTitleDialogVisible.value = false;
+};
+
 </script>
 
 <style scoped>
@@ -1636,6 +1687,12 @@ const showCalculationResult = () => {
 .edit {
   width: 16px;
   height: 16px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.edit:hover {
+  transform: scale(1.1);
 }
 
 :deep(.el-input-number) {
