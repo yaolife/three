@@ -1,13 +1,12 @@
 <template>
   <div class="calculation-detail-container">
     <div class="header">
-      <div class="header-left">
+      <div class="header-left" @click="openEditTitleDialog">
         <span class="project-title">{{ projectTitle }}</span>
-        <img 
-          src="/src/images/hoisting.png" 
-          alt="edit" 
-          class="edit" 
-          @click="openEditTitleDialog"
+        <img
+          src="/src/images/hoisting.png"
+          alt="edit"
+          class="edit"
         />
       </div>
       <el-tabs
@@ -59,7 +58,8 @@
     </div>
 
     <div class="content-wrapper">
-      <div class="left-panel">
+      <!-- 起重机校核计算内容 -->
+      <div v-if="activeTab === 'crane'" class="left-panel">
         <el-scrollbar>
           <!-- 起重机参数Tabs -->
           <el-tabs v-model="craneParamsTab" type="card">
@@ -575,7 +575,8 @@
         </el-scrollbar>
       </div>
 
-      <div class="right-panel">
+      <!-- 起重机示意图 -->
+      <div v-if="activeTab === 'crane'" class="right-panel">
         <div class="diagram-container">
           <img
             :src="
@@ -588,10 +589,284 @@
           />
         </div>
       </div>
+
+      <!-- 吊索具校核计算内容 -->
+      <div v-if="activeTab === 'lifting'" class="left-panel">
+        <el-scrollbar>
+          <!-- 设备吊索设置 -->
+          <div class="section section-with-border">
+            <div class="section-title">设备吊索设置</div>
+            <div class="form-content">
+              <div class="form-row">
+                <label class="form-label">设备名称</label>
+                <div class="form-input-group">
+                  <el-input
+                    v-model="liftingFormData.equipmentName"
+                    placeholder="xxxx设备"
+                  />
+                  <el-button type="primary" size="default">选择</el-button>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">设备编号</label>
+                <el-input v-model="liftingFormData.equipmentNumber" placeholder="H-00000" />
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">设备型号</label>
+                <el-input v-model="liftingFormData.equipmentModel" placeholder="SCC13000TM" />
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">设备重量<span>(G)</span></label>
+                <div class="input-with-unit">
+                  <el-input-number
+                    v-model="liftingFormData.equipmentWeight"
+                    controls-position="right"
+                    :precision="2"
+                  />
+                  <span class="unit">t</span>
+                </div>
+                <el-checkbox v-model="liftingFormData.isUnbalanced">无吊索</el-checkbox>
+                <el-checkbox v-model="liftingFormData.hasRope">有吊索</el-checkbox>
+              </div>
+            </div>
+          </div>
+
+          <!-- 吊索具配置 -->
+          <div class="section section-with-border">
+            <div class="section-title-with-button">
+              <div class="section-title">吊索具配置</div>
+              <el-button type="primary" size="small">+</el-button>
+            </div>
+            <div class="form-content">
+              <div class="sling-component-header">
+                <span class="component-label">吊索具01</span>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">吊索具名称</label>
+                <div class="form-input-group">
+                  <el-input
+                    v-model="liftingFormData.slingName"
+                    placeholder="xxx"
+                  />
+                  <el-button type="primary" size="default">选择</el-button>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">生产厂家</label>
+                <el-input v-model="liftingFormData.manufacturer" placeholder="H-00000" />
+              </div>
+
+              <div class="form-row">
+                <el-radio-group v-model="liftingFormData.slingType">
+                  <el-radio value="magnetic">磁铁力</el-radio>
+                  <el-radio value="rope">吊索</el-radio>
+                  <el-radio value="other">其它</el-radio>
+                </el-radio-group>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">出厂安全系数</label>
+                <div class="input-with-unit">
+                  <el-input-number
+                    v-model="liftingFormData.safetyFactor"
+                    controls-position="right"
+                    :precision="0"
+                  />
+                </div>
+                <label class="form-label">自定义</label>
+                <div class="input-with-unit">
+                  <el-input-number
+                    v-model="liftingFormData.customSafetyFactor"
+                    controls-position="right"
+                    :precision="0"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">上端点吊装数量</label>
+                <div class="input-with-unit">
+                  <el-input-number
+                    v-model="liftingFormData.topPointCount"
+                    controls-position="right"
+                    :precision="0"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">下端点吊装数量</label>
+                <div class="input-with-unit">
+                  <el-input-number
+                    v-model="liftingFormData.bottomPointCount"
+                    controls-position="right"
+                    :precision="0"
+                  />
+                </div>
+                <label class="form-label">自定义环</label>
+                <el-select v-model="liftingFormData.customLoop" placeholder="拉环">
+                  <el-option label="拉环" value="loop" />
+                </el-select>
+              </div>
+
+              <div class="distance-inputs">
+                <div class="form-row">
+                  <label class="form-label error">距离L1</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.distanceL1"
+                      controls-position="right"
+                      :precision="0"
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="form-label error">距离L2</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.distanceL2"
+                      controls-position="right"
+                      :precision="0"
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="form-label error">距离L3</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.distanceL3"
+                      controls-position="right"
+                      :precision="0"
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="form-label error">距离L4</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.distanceL4"
+                      controls-position="right"
+                      :precision="0"
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="form-label">缆绳长度</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.ropeLength"
+                      controls-position="right"
+                      :precision="0"
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="form-label error">高度(h)</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.height"
+                      controls-position="right"
+                      :precision="0"
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="form-label">角度(a)</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.angle"
+                      controls-position="right"
+                      :precision="0"
+                    />
+                    <span class="unit">度</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 系统设备 -->
+          <div class="section section-with-border">
+            <div class="section-title">系统设备</div>
+            <div class="form-content">
+              <div class="system-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th width="60">勾选</th>
+                      <th width="80">序号</th>
+                      <th>系统名称</th>
+                      <th width="120">值</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, index) in liftingSystemItems" :key="item.id">
+                      <td>
+                        <el-checkbox v-model="item.checked" />
+                      </td>
+                      <td>{{ item.order }}</td>
+                      <td>
+                        <el-input
+                          v-model="item.name"
+                          size="small"
+                          placeholder="请输入系统名称"
+                          @input="handleLiftingSystemInputChange(index)"
+                        />
+                      </td>
+                      <td>
+                        <el-input-number
+                          v-model="item.value"
+                          :controls="false"
+                          size="small"
+                          :precision="1"
+                          @change="handleLiftingSystemInputChange(index)"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <el-button>重置</el-button>
+            <el-button type="primary">计算结果</el-button>
+          </div>
+        </el-scrollbar>
+      </div>
+
+      <!-- 吊索具示意图 -->
+      <div v-if="activeTab === 'lifting'" class="right-panel">
+        <div class="diagram-container">
+          <img
+            src="/src/images/lifting.png"
+            alt="吊索具示意图"
+            class="crane-diagram"
+          />
+        </div>
+      </div>
     </div>
   </div>
 
-  
+
   <!-- 单机吊装计算结果弹窗 -->
   <el-dialog
     v-model="singleCraneDialogVisible"
@@ -708,7 +983,7 @@
               }"
             >
               <template
-                v-if="parseFloat(singleResult.calculationResult) &lt; 100"
+                v-if="parseFloat(singleResult.calculationResult) < 100"
                 >&lt;100%
                 {{ singleResult.isQualified ? "(合格)" : "(不合格)" }}</template
               >
@@ -724,7 +999,7 @@
 
       <div class="result-section">
         <div class="section-content conclusion">
-          <template v-if="parseFloat(singleResult.calculationResult) &lt; 100">
+          <template v-if="parseFloat(singleResult.calculationResult) < 100">
             起重机校核计算结果为{{
               singleResult.calculationResult
             }}%，小于100%，故满足要求。</template
@@ -885,7 +1160,7 @@
               }"
             >
               <template
-                v-if="parseFloat(doubleResult.calculationResult1) &lt; 75"
+                v-if="parseFloat(doubleResult.calculationResult1) < 75"
                 >&lt;75% (合格)</template
               >
               <template
@@ -909,7 +1184,7 @@
               }"
             >
               <template
-                v-if="parseFloat(doubleResult.calculationResult2) &lt; 75"
+                v-if="parseFloat(doubleResult.calculationResult2) < 75"
                 >&lt;75% (合格)</template
               >
               <template
@@ -1063,12 +1338,52 @@ const formData = ref({
   otherWeightG4: 0,
 });
 
+// 吊索具校核计算表单数据
+const liftingFormData = ref({
+  equipmentName: 'xxxx设备',
+  equipmentNumber: 'H-00000',
+  equipmentModel: 'SCC13000TM',
+  equipmentWeight: 15,
+  isUnbalanced: false,
+  hasRope: false,
+  slingName: 'xxx',
+  manufacturer: 'H-00000',
+  slingType: 'magnetic',
+  safetyFactor: 1,
+  customSafetyFactor: 1,
+  topPointCount: 1,
+  bottomPointCount: 4,
+  customLoop: 'loop',
+  distanceL1: 12,
+  distanceL2: 12,
+  distanceL3: 12,
+  distanceL4: 12,
+  ropeLength: 12,
+  height: 12,
+  angle: 43.5,
+});
+
 const weightItems = ref([
   { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
   { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-  { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
+  { id: 3, order: 3, name: "", value: null, checked: false },
   { id: 4, order: 4, name: "", value: null, checked: false },
 ]);
+
+// 吊索具系统设备表单数据
+const liftingSystemItems = ref([
+  { id: 1, order: 1, name: '动载系数', value: 0.8, checked: false },
+  { id: 2, order: 2, name: '偏载系数', value: 1, checked: false },
+  { id: 3, order: 3, name: '', value: null, checked: false },
+  { id: 4, order: 4, name: '', value: null, checked: false },
+  { id: 5, order: 5, name: '', value: null, checked: false },
+  { id: 6, order: 6, name: '', value: null, checked: false },
+  { id: 7, order: 7, name: '', value: null, checked: false },
+  { id: 8, order: 8, name: '', value: null, checked: false },
+  { id: 9, order: 9, name: '', value: null, checked: false },
+  { id: 10, order: 10, name: '', value: null, checked: false },
+]);
+
 
 // 添加新行的函数
 const addNewRow = () => {
@@ -1101,6 +1416,22 @@ const handleInputChange = (index) => {
   }
 };
 
+const handleLiftingSystemInputChange = (index) => {
+  // Auto-add new row logic if needed
+  if (index === liftingSystemItems.value.length - 1) {
+    const currentItem = liftingSystemItems.value[index];
+    if (
+      (currentItem.name && currentItem.name.trim() !== '') ||
+      (currentItem.value !== null &&
+        currentItem.value !== undefined &&
+        currentItem.value !== '')
+    ) {
+      // Already has 10 rows, no need to add more
+    }
+  }
+};
+
+
 // 弹窗可见性状态
 const singleCraneDialogVisible = ref(false);
 const doubleCraneDialogVisible = ref(false);
@@ -1117,10 +1448,11 @@ const singleResult = ref({
   slingsWeight: 0,
   otherWeight: 0,
   equipmentWeight: 0,
-  dynamicFactor: 0,
-  offsetFactor: 0,
+  factorDisplay: "", // Added to hold the formatted factor string
+  factorProduct: 1, // Initialize to 1
   calculationResult: 0,
   isQualified: false,
+  selectedFactors: [], // Added to hold the selected factors for display
 });
 
 // 双机吊装计算结果数据
@@ -1136,12 +1468,13 @@ const doubleResult = ref({
   slingsWeight: 0,
   otherWeight: 0,
   equipmentWeight: 65, // 默认取65
-  dynamicFactor: 0,
-  offsetFactor: 0,
+  factorDisplay: "", // Added to hold the formatted factor string
+  factorProduct: 1, // Initialize to 1
   calculationResult1: 0,
   calculationResult2: 0,
   isQualified1: false,
   isQualified2: false,
+  selectedFactors: [], // Added to hold the selected factors for display
 });
 
 // 显示计算结果弹窗
@@ -1764,5 +2097,74 @@ const cancelEditTitle = () => {
   align-items: center;
   background-color: #0775db;
   color: white;
+}
+
+/* 吊索具校核计算特有样式 */
+.section-title-with-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+}
+
+.sling-component-header {
+  background: #f0f0f0;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+.component-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.error-text {
+  color: #ff4d4f;
+  font-size: 14px;
+}
+
+.distance-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.distance-inputs .form-row {
+  margin-bottom: 0;
+}
+
+.system-table {
+  margin-top: 16px;
+}
+
+.system-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.system-table th,
+.system-table td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #e5e5e5;
+  font-size: 14px;
+}
+
+.system-table th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+}
+
+.system-table td {
+  color: #666;
+}
+
+.system-table .el-input,
+.system-table .el-input-number {
+  width: 100%;
 }
 </style>
