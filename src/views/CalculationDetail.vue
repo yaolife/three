@@ -677,7 +677,7 @@
                 <div class="form-input-group">
                   <el-input
                     v-model="liftingFormData.slingName"
-                    placeholder="xxx"
+                    placeholder="请输入吊索具名称"
                   />
                   <el-button type="primary" size="default">选择</el-button>
                 </div>
@@ -685,6 +685,7 @@
                 <el-radio-group v-model="liftingFormData.slingType" class="inline-radio-group">
                   <el-radio value="magnetic">钢丝绳</el-radio>
                   <el-radio value="rope">吊索</el-radio>
+                  <el-radio value="shackle">卸扣</el-radio>
                   <el-radio value="other">其它</el-radio>
                 </el-radio-group>
               </div>
@@ -1378,13 +1379,11 @@ const liftingFormData = ref({
   equipmentWeight: 15,
   isUnbalanced: false,
   hasRope: false,
-  slingName: "xxx",
+  slingName: "",
   manufacturer: "H-00000",
-  // slingType: "magnetic", // Removed this line as it's replaced by checkboxes
   useMagnetic: false, // Added this new field
   useRope: false, // Added this new field
   safetyFactor: 1,
-  // customSafetyFactor: 1, // Removed this line
   topPointCount: 1,
   bottomPointCount: 4,
   customLoop: "loop",
@@ -1400,7 +1399,7 @@ const liftingFormData = ref({
   height: 12,
   angle: 43.5,
   liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
-  slingType: "", // Initialize slingType, as it's now part of the radio group
+  slingType: "magnetic", // Initialize slingType, as it's now part of the radio group, default to magnetic (钢丝绳)
 });
 
 const weightItems = ref([
