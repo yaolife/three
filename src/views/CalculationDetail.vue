@@ -888,7 +888,7 @@
       <div v-if="activeTab === 'lifting'" class="right-panel">
         <div class="diagram-container">
           <img
-            src="/src/images/lifting.png"
+            :src="liftingFormData.liftingType === 'withBeam' ? '/src/images/beam.png' : '/src/images/lifting.png'"
             alt="吊索具示意图"
             class="crane-diagram"
           />
