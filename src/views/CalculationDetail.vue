@@ -628,8 +628,10 @@
                   />
                   <span class="unit">t</span>
                 </div>
-                <el-checkbox v-model="liftingFormData.isUnbalanced">无吊索</el-checkbox>
-                <el-checkbox v-model="liftingFormData.hasRope">有吊索</el-checkbox>
+                <el-radio-group v-model="liftingFormData.liftingType">
+                  <el-radio value="noBeam">无吊梁</el-radio>
+                  <el-radio value="withBeam">有吊梁</el-radio>
+                </el-radio-group>
               </div>
             </div>
           </div>
@@ -1361,6 +1363,7 @@ const liftingFormData = ref({
   ropeLength: 12,
   height: 12,
   angle: 43.5,
+  liftingType: 'noBeam', // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
 });
 
 const weightItems = ref([
@@ -1736,7 +1739,7 @@ const cancelEditTitle = () => {
 }
 
 .left-panel {
-  width: 60%;
+  width: 65%;
   background: white;
   border-radius: 4px;
   padding: 20px;
