@@ -3,11 +3,7 @@
     <div class="header">
       <div class="header-left" @click="openEditTitleDialog">
         <span class="project-title">{{ projectTitle }}</span>
-        <img
-          src="/src/images/hoisting.png"
-          alt="edit"
-          class="edit"
-        />
+        <img src="/src/images/hoisting.png" alt="edit" class="edit" />
       </div>
       <el-tabs
         v-model="activeTab"
@@ -19,7 +15,11 @@
             <div class="tab-label">
               <el-image
                 style="width: 22px; height: 22px"
-                :src="activeTab === 'crane' ? '/src/images/active_crane.png' : '/src/images/crane.png'"
+                :src="
+                  activeTab === 'crane'
+                    ? '/src/images/active_crane.png'
+                    : '/src/images/crane.png'
+                "
                 alt=""
                 :fit="'cover'"
               />
@@ -32,7 +32,11 @@
             <div class="tab-label">
               <el-image
                 style="width: 22px; height: 22px"
-                :src="activeTab === 'lifting' ? '/src/images/active_slings.png' : '/src/images/slings.png'"
+                :src="
+                  activeTab === 'lifting'
+                    ? '/src/images/active_slings.png'
+                    : '/src/images/slings.png'
+                "
                 alt=""
                 :fit="'cover'"
               />
@@ -45,7 +49,11 @@
             <div class="tab-label">
               <el-image
                 style="width: 22px; height: 22px"
-                :src="activeTab === 'foundation' ? '/src/images/active_base.png' : '/src/images/base.png'"
+                :src="
+                  activeTab === 'foundation'
+                    ? '/src/images/active_base.png'
+                    : '/src/images/base.png'
+                "
                 alt=""
                 :fit="'cover'"
               />
@@ -54,7 +62,7 @@
           </template>
         </el-tab-pane>
       </el-tabs>
-               <el-button type="primary">导出</el-button>
+      <el-button type="primary">导出</el-button>
     </div>
 
     <div class="content-wrapper">
@@ -76,7 +84,9 @@
                           v-model="formData.craneName"
                           placeholder="SCC13000TM履带起重机"
                         />
-                        <el-button type="primary" size="default">选择</el-button>
+                        <el-button type="primary" size="default"
+                          >选择</el-button
+                        >
                       </div>
                     </div>
                     <div class="form-row">
@@ -238,7 +248,9 @@
                           v-model="formData.craneName2"
                           placeholder="SCC13000TM履带起重机"
                         />
-                        <el-button type="primary" size="default">选择</el-button>
+                        <el-button type="primary" size="default"
+                          >选择</el-button
+                        >
                       </div>
                     </div>
                     <div class="form-row">
@@ -597,28 +609,36 @@
           <div class="section section-with-border">
             <div class="section-title">设备吊索设置</div>
             <div class="form-content">
-              <div class="form-row">
-                <label class="form-label">设备名称</label>
-                <div class="form-input-group">
+              <div class="form-grid">
+                <div class="form-row">
+                  <label class="form-label">设备名称</label>
+                  <div class="form-input-group">
+                    <el-input
+                      v-model="liftingFormData.equipmentName"
+                      placeholder="xxxx设备"
+                    />
+                    <el-button type="primary" size="default">选择</el-button>
+                  </div>
+                </div>
+                <div class="form-row"></div>
+                <div class="form-row">
+                  <label class="form-label">设备编号</label>
                   <el-input
-                    v-model="liftingFormData.equipmentName"
-                    placeholder="xxxx设备"
+                    v-model="liftingFormData.equipmentNumber"
+                    placeholder="H-00000"
                   />
-                  <el-button type="primary" size="default">选择</el-button>
+                </div>
+
+                <div class="form-row">
+                  <label class="form-label">设备型号</label>
+                  <el-input
+                    v-model="liftingFormData.equipmentModel"
+                    placeholder="SCC13000TM"
+                  />
                 </div>
               </div>
 
-              <div class="form-row">
-                <label class="form-label">设备编号</label>
-                <el-input v-model="liftingFormData.equipmentNumber" placeholder="H-00000" />
-              </div>
-
-              <div class="form-row">
-                <label class="form-label">设备型号</label>
-                <el-input v-model="liftingFormData.equipmentModel" placeholder="SCC13000TM" />
-              </div>
-
-              <div class="form-row">
+              <div class="form-row" style="margin-top: 16px;">
                 <label class="form-label">设备重量<span>(G)</span></label>
                 <div class="input-with-unit">
                   <el-input-number
@@ -660,7 +680,10 @@
 
               <div class="form-row">
                 <label class="form-label">生产厂家</label>
-                <el-input v-model="liftingFormData.manufacturer" placeholder="H-00000" />
+                <el-input
+                  v-model="liftingFormData.manufacturer"
+                  placeholder="H-00000"
+                />
               </div>
 
               <div class="form-row">
@@ -711,7 +734,10 @@
                   />
                 </div>
                 <label class="form-label">自定义环</label>
-                <el-select v-model="liftingFormData.customLoop" placeholder="拉环">
+                <el-select
+                  v-model="liftingFormData.customLoop"
+                  placeholder="拉环"
+                >
                   <el-option label="拉环" value="loop" />
                 </el-select>
               </div>
@@ -819,7 +845,10 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(item, index) in liftingSystemItems" :key="item.id">
+                    <tr
+                      v-for="(item, index) in liftingSystemItems"
+                      :key="item.id"
+                    >
                       <td>
                         <el-checkbox v-model="item.checked" />
                       </td>
@@ -867,7 +896,6 @@
       </div>
     </div>
   </div>
-
 
   <!-- 单机吊装计算结果弹窗 -->
   <el-dialog
@@ -984,8 +1012,7 @@
                 unqualified: !singleResult.isQualified,
               }"
             >
-              <template
-                v-if="parseFloat(singleResult.calculationResult) < 100"
+              <template v-if="parseFloat(singleResult.calculationResult) < 100"
                 >&lt;100%
                 {{ singleResult.isQualified ? "(合格)" : "(不合格)" }}</template
               >
@@ -1161,8 +1188,7 @@
                 unqualified: !doubleResult.isQualified1,
               }"
             >
-              <template
-                v-if="parseFloat(doubleResult.calculationResult1) < 75"
+              <template v-if="parseFloat(doubleResult.calculationResult1) < 75"
                 >&lt;75% (合格)</template
               >
               <template
@@ -1185,8 +1211,7 @@
                 unqualified: !doubleResult.isQualified2,
               }"
             >
-              <template
-                v-if="parseFloat(doubleResult.calculationResult2) < 75"
+              <template v-if="parseFloat(doubleResult.calculationResult2) < 75"
                 >&lt;75% (合格)</template
               >
               <template
@@ -1342,20 +1367,20 @@ const formData = ref({
 
 // 吊索具校核计算表单数据
 const liftingFormData = ref({
-  equipmentName: 'xxxx设备',
-  equipmentNumber: 'H-00000',
-  equipmentModel: 'SCC13000TM',
+  equipmentName: "xxxx设备",
+  equipmentNumber: "H-00000",
+  equipmentModel: "SCC13000TM",
   equipmentWeight: 15,
   isUnbalanced: false,
   hasRope: false,
-  slingName: 'xxx',
-  manufacturer: 'H-00000',
-  slingType: 'magnetic',
+  slingName: "xxx",
+  manufacturer: "H-00000",
+  slingType: "magnetic",
   safetyFactor: 1,
   customSafetyFactor: 1,
   topPointCount: 1,
   bottomPointCount: 4,
-  customLoop: 'loop',
+  customLoop: "loop",
   distanceL1: 12,
   distanceL2: 12,
   distanceL3: 12,
@@ -1363,7 +1388,7 @@ const liftingFormData = ref({
   ropeLength: 12,
   height: 12,
   angle: 43.5,
-  liftingType: 'noBeam', // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
+  liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
 });
 
 const weightItems = ref([
@@ -1375,18 +1400,17 @@ const weightItems = ref([
 
 // 吊索具系统设备表单数据
 const liftingSystemItems = ref([
-  { id: 1, order: 1, name: '动载系数', value: 0.8, checked: false },
-  { id: 2, order: 2, name: '偏载系数', value: 1, checked: false },
-  { id: 3, order: 3, name: '', value: null, checked: false },
-  { id: 4, order: 4, name: '', value: null, checked: false },
-  { id: 5, order: 5, name: '', value: null, checked: false },
-  { id: 6, order: 6, name: '', value: null, checked: false },
-  { id: 7, order: 7, name: '', value: null, checked: false },
-  { id: 8, order: 8, name: '', value: null, checked: false },
-  { id: 9, order: 9, name: '', value: null, checked: false },
-  { id: 10, order: 10, name: '', value: null, checked: false },
+  { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+  { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
+  { id: 3, order: 3, name: "", value: null, checked: false },
+  { id: 4, order: 4, name: "", value: null, checked: false },
+  { id: 5, order: 5, name: "", value: null, checked: false },
+  { id: 6, order: 6, name: "", value: null, checked: false },
+  { id: 7, order: 7, name: "", value: null, checked: false },
+  { id: 8, order: 8, name: "", value: null, checked: false },
+  { id: 9, order: 9, name: "", value: null, checked: false },
+  { id: 10, order: 10, name: "", value: null, checked: false },
 ]);
-
 
 // 添加新行的函数
 const addNewRow = () => {
@@ -1424,16 +1448,15 @@ const handleLiftingSystemInputChange = (index) => {
   if (index === liftingSystemItems.value.length - 1) {
     const currentItem = liftingSystemItems.value[index];
     if (
-      (currentItem.name && currentItem.name.trim() !== '') ||
+      (currentItem.name && currentItem.name.trim() !== "") ||
       (currentItem.value !== null &&
         currentItem.value !== undefined &&
-        currentItem.value !== '')
+        currentItem.value !== "")
     ) {
       // Already has 10 rows, no need to add more
     }
   }
 };
-
 
 // 弹窗可见性状态
 const singleCraneDialogVisible = ref(false);
@@ -1653,7 +1676,6 @@ const confirmEditTitle = () => {
 const cancelEditTitle = () => {
   editTitleDialogVisible.value = false;
 };
-
 </script>
 
 <style scoped>
@@ -1678,7 +1700,7 @@ const cancelEditTitle = () => {
   align-items: center;
   gap: 12px;
 }
-.header-left:hover{
+.header-left:hover {
   cursor: pointer;
 }
 .project-title {
