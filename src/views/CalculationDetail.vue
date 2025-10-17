@@ -694,7 +694,7 @@
                 <label class="form-label">生产厂家</label>
                 <el-input
                   v-model="liftingFormData.manufacturer"
-                  placeholder="H-00000"
+                  placeholder="请输入生产厂家"
                   class="manufacturer-input"
                 />
               </div>
@@ -1380,7 +1380,7 @@ const liftingFormData = ref({
   isUnbalanced: false,
   hasRope: false,
   slingName: "",
-  manufacturer: "H-00000",
+  manufacturer: "",
   useMagnetic: false, // Added this new field
   useRope: false, // Added this new field
   safetyFactor: 1,
