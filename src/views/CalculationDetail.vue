@@ -658,13 +658,18 @@
 
           <!-- 吊索具配置 -->
           <div class="section section-with-border">
-            <div class="section-title-with-button">
-              <div class="section-title">吊索具配置</div>
-              <el-button type="primary" size="small">+</el-button>
+            <div class="section-title section-title-with-button">
+              <span>吊索具配置</span>
             </div>
             <div class="form-content">
-              <div class="sling-component-header">
-                <span class="component-label">吊索具01</span>
+              <!-- Updated sling component header to use blue button style -->
+              <div class="sling-tabs-container">
+                <el-button type="primary" class="sling-tab-button">
+                  吊索具01
+                </el-button>
+                <el-button type="default" size="small" class="add-sling-button">
+                  +
+                </el-button>
               </div>
 
               <div class="form-row">
@@ -676,6 +681,12 @@
                   />
                   <el-button type="primary" size="default">选择</el-button>
                 </div>
+                <!-- Added radio buttons inline with name field -->
+                <el-radio-group v-model="liftingFormData.slingType" class="inline-radio-group">
+                  <el-radio value="magnetic">钢丝绳</el-radio>
+                  <el-radio value="rope">吊索</el-radio>
+                  <el-radio value="other">其它</el-radio>
+                </el-radio-group>
               </div>
 
               <div class="form-row">
@@ -683,30 +694,19 @@
                 <el-input
                   v-model="liftingFormData.manufacturer"
                   placeholder="H-00000"
+                  class="manufacturer-input"
                 />
               </div>
 
-              <div class="form-row">
-                <el-radio-group v-model="liftingFormData.slingType">
-                  <el-radio value="magnetic">磁铁力</el-radio>
-                  <el-radio value="rope">吊索</el-radio>
-                  <el-radio value="other">其它</el-radio>
-                </el-radio-group>
-              </div>
+              <!-- Removed standalone radio group row -->
 
               <div class="form-row">
+                <el-checkbox v-model="liftingFormData.useMagnetic">磁铁力</el-checkbox>
+                <el-checkbox v-model="liftingFormData.useRope">翻车链</el-checkbox>
                 <label class="form-label">出厂安全系数</label>
                 <div class="input-with-unit">
                   <el-input-number
                     v-model="liftingFormData.safetyFactor"
-                    controls-position="right"
-                    :precision="0"
-                  />
-                </div>
-                <label class="form-label">自定义</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="liftingFormData.customSafetyFactor"
                     controls-position="right"
                     :precision="0"
                   />
@@ -733,10 +733,11 @@
                     :precision="0"
                   />
                 </div>
-                <label class="form-label">自定义环</label>
+                <label class="form-label">挂布方式</label>
                 <el-select
                   v-model="liftingFormData.customLoop"
                   placeholder="拉环"
+                  class="hanging-method-select"
                 >
                   <el-option label="拉环" value="loop" />
                 </el-select>
@@ -744,6 +745,7 @@
 
               <div class="distance-inputs">
                 <div class="form-row">
+                  <el-checkbox v-model="liftingFormData.enableL1" />
                   <label class="form-label error">距离L1</label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -756,6 +758,7 @@
                 </div>
 
                 <div class="form-row">
+                  <el-checkbox v-model="liftingFormData.enableL2" />
                   <label class="form-label error">距离L2</label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -768,6 +771,7 @@
                 </div>
 
                 <div class="form-row">
+                  <el-checkbox v-model="liftingFormData.enableL3" />
                   <label class="form-label error">距离L3</label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -780,6 +784,7 @@
                 </div>
 
                 <div class="form-row">
+                  <el-checkbox v-model="liftingFormData.enableL4" />
                   <label class="form-label error">距离L4</label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -821,7 +826,7 @@
                     <el-input-number
                       v-model="liftingFormData.angle"
                       controls-position="right"
-                      :precision="0"
+                      :precision="1"
                     />
                     <span class="unit">度</span>
                   </div>
@@ -1375,9 +1380,11 @@ const liftingFormData = ref({
   hasRope: false,
   slingName: "xxx",
   manufacturer: "H-00000",
-  slingType: "magnetic",
+  // slingType: "magnetic", // Removed this line as it's replaced by checkboxes
+  useMagnetic: false, // Added this new field
+  useRope: false, // Added this new field
   safetyFactor: 1,
-  customSafetyFactor: 1,
+  // customSafetyFactor: 1, // Removed this line
   topPointCount: 1,
   bottomPointCount: 4,
   customLoop: "loop",
@@ -1385,16 +1392,21 @@ const liftingFormData = ref({
   distanceL2: 12,
   distanceL3: 12,
   distanceL4: 12,
+  enableL1: false, // Added new field
+  enableL2: false, // Added new field
+  enableL3: false, // Added new field
+  enableL4: false, // Added new field
   ropeLength: 12,
   height: 12,
   angle: 43.5,
   liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
+  slingType: "", // Initialize slingType, as it's now part of the radio group
 });
 
 const weightItems = ref([
   { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
   { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-  { id: 3, order: 3, name: "", value: null, checked: false },
+  { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
   { id: 4, order: 4, name: "", value: null, checked: false },
 ]);
 
@@ -1402,14 +1414,8 @@ const weightItems = ref([
 const liftingSystemItems = ref([
   { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
   { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-  { id: 3, order: 3, name: "", value: null, checked: false },
+  { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
   { id: 4, order: 4, name: "", value: null, checked: false },
-  { id: 5, order: 5, name: "", value: null, checked: false },
-  { id: 6, order: 6, name: "", value: null, checked: false },
-  { id: 7, order: 7, name: "", value: null, checked: false },
-  { id: 8, order: 8, name: "", value: null, checked: false },
-  { id: 9, order: 9, name: "", value: null, checked: false },
-  { id: 10, order: 10, name: "", value: null, checked: false },
 ]);
 
 // 添加新行的函数
@@ -2132,6 +2138,40 @@ const cancelEditTitle = () => {
   padding-bottom: 8px;
 }
 
+/* Updated sling component header styles to match reference design */
+.sling-tabs-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sling-tab-button {
+  background: #1890ff;
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+.sling-tab-button:hover {
+  background: #40a9ff;
+}
+
+.add-sling-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border: 1px solid #d9d9d9;
+  background: white;
+}
+
 .sling-component-header {
   background: #f0f0f0;
   padding: 8px 12px;
@@ -2143,6 +2183,19 @@ const cancelEditTitle = () => {
   font-size: 14px;
   font-weight: 600;
   color: #333;
+}
+
+/* Added inline radio group styling */
+.inline-radio-group {
+  margin-left: auto;
+}
+
+.manufacturer-input {
+  max-width: 300px;
+}
+
+.hanging-method-select {
+  width: 150px;
 }
 
 .error-text {
@@ -2159,37 +2212,15 @@ const cancelEditTitle = () => {
 
 .distance-inputs .form-row {
   margin-bottom: 0;
+  gap: 8px;
 }
 
-.system-table {
-  margin-top: 16px;
+/* Added checkbox styling for distance inputs */
+.distance-inputs .form-row .el-checkbox {
+  margin-right: 4px;
 }
 
-.system-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.system-table th,
-.system-table td {
-  padding: 8px;
-  text-align: center;
-  border: 1px solid #e5e5e5;
-  font-size: 14px;
-}
-
-.system-table th {
-  background: #fafafa;
-  font-weight: 600;
-  color: #333;
-}
-
-.system-table td {
-  color: #666;
-}
-
-.system-table .el-input,
-.system-table .el-input-number {
-  width: 100%;
+.distance-inputs .form-row .form-label {
+  min-width: 80px;
 }
 </style>
