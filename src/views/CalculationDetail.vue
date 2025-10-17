@@ -678,6 +678,7 @@
                   <el-input
                     v-model="liftingFormData.slingName"
                     placeholder="请输入吊索具名称"
+                    class="manufacturer-input"
                   />
                   <el-button type="primary" size="default">选择</el-button>
                 </div>
