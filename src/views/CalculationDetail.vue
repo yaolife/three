@@ -849,7 +849,7 @@
 
           <!-- 系统设备 -->
           <div class="section section-with-border">
-            <div class="section-title">系统设备</div>
+            <div class="section-title">系数设置</div>
             <div class="form-content">
               <div class="system-table">
                 <table>
@@ -857,7 +857,7 @@
                     <tr>
                       <th width="60">勾选</th>
                       <th width="80">序号</th>
-                      <th>系统名称</th>
+                      <th>系数名称</th>
                       <th width="120">值</th>
                     </tr>
                   </thead>
@@ -874,7 +874,7 @@
                         <el-input
                           v-model="item.name"
                           size="small"
-                          placeholder="请输入系统名称"
+                          placeholder="请输入系数名称"
                           @input="handleLiftingSystemInputChange(index)"
                         />
                       </td>
