@@ -702,7 +702,7 @@
 
               <!-- Removed standalone radio group row -->
 
-              <div class="form-row">
+              <div class="form-row" style="margin-left: 50px;">
                 <el-radio-group v-model="liftingFormData.loadType">
                   <el-radio value="magnetic">破断拉力</el-radio>
                   <el-radio value="rope">额定载荷</el-radio>
@@ -712,13 +712,13 @@
                   <el-input-number
                     v-model="liftingFormData.safetyFactor"
                     controls-position="right"
-                    :precision="0"
+                    :precision="2"
                   />
                 </div>
               </div>
 
               <div class="form-row">
-                <label class="form-label">上端点吊装数量</label>
+                <label class="form-label">上部吊点数量</label>
                 <div class="input-with-unit">
                   <el-input-number
                     v-model="liftingFormData.topPointCount"
@@ -729,7 +729,7 @@
               </div>
 
               <div class="form-row">
-                <label class="form-label">下端点吊装数量</label>
+                <label class="form-label">下部吊点数量</label>
                 <div class="input-with-unit">
                   <el-input-number
                     v-model="liftingFormData.bottomPointCount"
