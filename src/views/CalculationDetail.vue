@@ -2370,7 +2370,6 @@ const cancelEditTitle = () => {
   padding: 0;
   font-size: 18px;
   background: white;
-   margin-left: 10px;
 }
 .add-sling-button:hover {
   cursor: pointer;
