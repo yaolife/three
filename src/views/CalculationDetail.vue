@@ -718,15 +718,15 @@
                   :class="{ 'sling-tab-button-inactive': activeSlingIndex !== index }"
                   @click="activeSlingIndex = index"
                 >
-                  {{
+                  {{ 
                     sling.liftingType === "withBeam"
-                      ? `上部吊索具0${index + 1}`
+                      ? sling.isBottomSling ? `下部吊索具01` : `上部吊索具01`
                       : `吊索具0${index + 1}`
                   }}
                 </el-button>
-                <!-- Delete图标，第一个按钮之后的每个按钮都显示 -->
+                <!-- Delete图标，第一个按钮之后且不是默认下部吊索具01的按钮都显示 -->
                 <el-image
-                  v-if="index > 0"
+                  v-if="index > 0 && !(sling.isBottomSling && liftingFormDatas.length === 2)"
                   class="remove-sling-button"
                   src="/src/images/delete.png"
                   alt="删除"
@@ -1433,7 +1433,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowLeft,
@@ -1556,6 +1556,37 @@ const activeSlingIndex = ref(0);
 // 获取当前激活的吊索具配置
 const activeSlingData = computed(() => {
   return liftingFormDatas.value[activeSlingIndex.value];
+});
+
+// 监听吊装类型变化，切换时重置吊索具配置到默认初始状态
+watch(() => liftingFormDatas.value[activeSlingIndex.value]?.liftingType, (newType, oldType) => {
+  // 当从无吊梁切换到有吊梁时，重置为有吊梁的默认初始状态
+  if (newType === 'withBeam' && oldType === 'noBeam') {
+    // 获取第一个吊索具配置作为基础
+    const firstSlingData = JSON.parse(JSON.stringify(liftingFormDatas.value[0]));
+    firstSlingData.id = 1;
+    firstSlingData.isBottomSling = false;
+    firstSlingData.liftingType = 'withBeam'; // 明确设置为有吊梁类型
+    
+    // 创建下部吊索具
+    const bottomSlingData = JSON.parse(JSON.stringify(firstSlingData));
+    bottomSlingData.id = 2;
+    bottomSlingData.isBottomSling = true;
+    bottomSlingData.liftingType = 'withBeam'; // 明确设置为有吊梁类型
+    
+    // 重置为两个吊索具的默认配置
+    liftingFormDatas.value = [firstSlingData, bottomSlingData];
+    activeSlingIndex.value = 0;
+  }
+  // 当从有吊梁切换到无吊梁时，重置为单个吊索具配置
+  else if (newType === 'noBeam' && oldType === 'withBeam') {
+    // 保存第一个吊索具配置（上部吊索具），移除其他配置
+    const firstSlingData = JSON.parse(JSON.stringify(liftingFormDatas.value[0]));
+    firstSlingData.isBottomSling = false;
+    firstSlingData.liftingType = 'noBeam'; // 明确设置为无吊梁类型
+    liftingFormDatas.value = [firstSlingData];
+    activeSlingIndex.value = 0;
+  }
 });
 
 // 添加新的吊索具配置
