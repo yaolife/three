@@ -710,13 +710,22 @@
                   <el-radio value="magnetic">破断拉力</el-radio>
                   <el-radio value="rope">额定载荷</el-radio>
                 </el-radio-group>
-                <label class="form-label">出厂安全系数</label>
-                <div class="input-with-unit">
+                <label class="form-label" v-if="liftingFormData.loadType === 'magnetic'">出厂安全系数</label>
+                <div class="input-with-unit" v-if="liftingFormData.loadType === 'magnetic'">
                   <el-input-number
                     v-model="liftingFormData.safetyFactor"
                     controls-position="right"
                     :precision="2"
                   />
+                </div>
+                <label class="form-label" v-if="liftingFormData.loadType === 'rope'">额定载荷(PQ)</label>
+                <div class="input-with-unit" v-if="liftingFormData.loadType === 'rope'">
+                  <el-input-number
+                    v-model="liftingFormData.ratedLoad"
+                    controls-position="right"
+                    :precision="2"
+                  />
+                  <span class="unit">MPa</span>
                 </div>
               </div>
 
@@ -1398,6 +1407,7 @@ const liftingFormData = ref({
   manufacturer: "",
   loadType: "magnetic", // New field for radio button selection, default to "magnetic" (破断拉力)
   safetyFactor: 1,
+  ratedLoad: 0, // 添加额定载荷字段
   topPointCount: 1,
   bottomPointCount: 4,
   customLoop: "loop",
