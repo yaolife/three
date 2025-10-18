@@ -726,6 +726,7 @@
                     :precision="0"
                   />
                 </div>
+                <el-checkbox v-model="liftingFormData.isDouble">是否打双</el-checkbox>
               </div>
 
               <div class="form-row">
@@ -740,7 +741,7 @@
                 <label class="form-label">挂布方式</label>
                 <el-select
                   v-model="liftingFormData.customLoop"
-                  placeholder="拉环"
+                  placeholder="请选择"
                   class="hanging-method-select"
                 >
                   <el-option label="拉环" value="loop" />
@@ -1402,6 +1403,7 @@ const liftingFormData = ref({
   angle: 43.5,
   liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
   slingType: "magnetic", // Initialize slingType, as it's now part of the radio group, default to magnetic (钢丝绳)
+  isDouble: false, // Added field for "是否打双" checkbox
 });
 
 const weightItems = ref([
