@@ -614,7 +614,7 @@
                   <label class="form-label">设备名称</label>
                   <div class="form-input-group">
                     <el-input
-                      v-model="liftingFormData.equipmentName"
+                      v-model="activeSlingData.equipmentName"
                       placeholder="xxxx设备"
                     />
                     <el-button type="primary" size="default">选择</el-button>
@@ -624,7 +624,7 @@
                 <div class="form-row">
                   <label class="form-label">设备编号</label>
                   <el-input
-                    v-model="liftingFormData.equipmentNumber"
+                    v-model="activeSlingData.equipmentNumber"
                     placeholder="H-00000"
                   />
                 </div>
@@ -632,7 +632,7 @@
                 <div class="form-row">
                   <label class="form-label">设备型号</label>
                   <el-input
-                    v-model="liftingFormData.equipmentModel"
+                    v-model="activeSlingData.equipmentModel"
                     placeholder="请输入设备型号"
                   />
                 </div>
@@ -642,13 +642,13 @@
                 <label class="form-label">设备重量<span>(G)</span></label>
                 <div class="input-with-unit">
                   <el-input-number
-                    v-model="liftingFormData.equipmentWeight"
+                    v-model="activeSlingData.equipmentWeight"
                     controls-position="right"
                     :precision="2"
                   />
                   <span class="unit">t</span>
                 </div>
-                <el-radio-group v-model="liftingFormData.liftingType">
+                <el-radio-group v-model="activeSlingData.liftingType">
                   <el-radio value="noBeam">无吊梁</el-radio>
                   <el-radio value="withBeam">有吊梁</el-radio>
                 </el-radio-group>
@@ -657,14 +657,14 @@
               <!-- 有吊梁情况下显示平衡梁参数 -->
               <div
                 class="form-row"
-                v-if="liftingFormData.liftingType === 'withBeam'"
+                v-if="activeSlingData.liftingType === 'withBeam'"
                 style="margin-left: 50px; display: flex; gap: 20px"
               >
                 <div style="display: flex; align-items: center">
                   <label class="form-label">平衡梁重量<span>G(a)</span></label>
                   <div class="input-with-unit">
                     <el-input-number
-                      v-model="liftingFormData.beamWeight"
+                      v-model="activeSlingData.beamWeight"
                       controls-position="right"
                       :precision="2"
                     />
@@ -676,7 +676,7 @@
                   <label class="form-label">平衡梁长度<span>L(a)</span></label>
                   <div class="input-with-unit">
                     <el-input-number
-                      v-model="liftingFormData.beamLength"
+                      v-model="activeSlingData.beamLength"
                       controls-position="right"
                       :precision="2"
                     />
@@ -688,7 +688,7 @@
                   <label class="form-label">吊梁下部吊具重量</label>
                   <div class="input-with-unit">
                     <el-input-number
-                      v-model="liftingFormData.beamSlingWeight"
+                      v-model="activeSlingData.beamSlingWeight"
                       controls-position="right"
                       :precision="2"
                     />
@@ -706,21 +706,40 @@
             </div>
             <!-- Updated sling component header to use blue button style -->
             <div class="sling-tabs-container">
-              <el-button type="primary" class="sling-tab-button">
-                {{
-                  liftingFormData.liftingType === "withBeam"
-                    ? "上部吊索具01"
-                    : "吊索具01"
-                }}
-              </el-button>
-              <!-- <el-button type="default" size="small" class="add-sling-button">
-                +
-              </el-button> -->
+              <div 
+                v-for="(sling, index) in liftingFormDatas" 
+                :key="sling.id"
+                class="sling-tab-wrapper"
+                :class="{ 'active': activeSlingIndex === index }"
+              >
+                <el-button 
+                  type="primary" 
+                  class="sling-tab-button"
+                  :class="{ 'sling-tab-button-inactive': activeSlingIndex !== index }"
+                  @click="activeSlingIndex = index"
+                >
+                  {{
+                    sling.liftingType === "withBeam"
+                      ? `上部吊索具0${index + 1}`
+                      : `吊索具0${index + 1}`
+                  }}
+                </el-button>
+                <!-- Delete图标，第一个按钮之后的每个按钮都显示 -->
+                <el-image
+                  v-if="index > 0"
+                  class="remove-sling-button"
+                  src="/src/images/delete.png"
+                  alt="删除"
+                  :fit="'cover'"
+                  @click="removeSling(index)"
+                />
+              </div>
               <el-image
                 class="add-sling-button"
                 src="/src/images/add.png"
                 alt=""
                 :fit="'cover'"
+                @click="addNewSling"
               />
             </div>
             <div
@@ -731,7 +750,7 @@
                 <label class="form-label">吊索具名称</label>
                 <div class="form-input-group">
                   <el-input
-                    v-model="liftingFormData.slingName"
+                    v-model="activeSlingData.slingName"
                     placeholder="请输入吊索具名称"
                     class="manufacturer-input"
                   />
@@ -739,7 +758,7 @@
                 </div>
                 <!-- Added radio buttons inline with name field -->
                 <el-radio-group
-                  v-model="liftingFormData.slingType"
+                  v-model="activeSlingData.slingType"
                   class="inline-radio-group"
                 >
                   <el-radio value="magnetic">钢丝绳</el-radio>
@@ -752,45 +771,44 @@
               <div class="form-row">
                 <label class="form-label">生产厂家</label>
                 <el-input
-                  v-model="liftingFormData.manufacturer"
+                  v-model="activeSlingData.manufacturer"
                   placeholder="请输入生产厂家"
                   class="manufacturer-input"
                 />
               </div>
 
               <!-- Removed standalone radio group row -->
-
               <div class="form-row" style="margin-left: 50px">
-                <el-radio-group v-model="liftingFormData.loadType">
+                <el-radio-group v-model="activeSlingData.loadType">
                   <el-radio value="magnetic">破断拉力</el-radio>
                   <el-radio value="rope">额定载荷</el-radio>
                 </el-radio-group>
                 <label
                   class="form-label"
-                  v-if="liftingFormData.loadType === 'magnetic'"
+                  v-if="activeSlingData.loadType === 'magnetic'"
                   >出厂安全系数</label
                 >
                 <div
                   class="input-with-unit"
-                  v-if="liftingFormData.loadType === 'magnetic'"
+                  v-if="activeSlingData.loadType === 'magnetic'"
                 >
                   <el-input-number
-                    v-model="liftingFormData.safetyFactor"
+                    v-model="activeSlingData.safetyFactor"
                     controls-position="right"
                     :precision="2"
                   />
                 </div>
                 <label
                   class="form-label"
-                  v-if="liftingFormData.loadType === 'rope'"
+                  v-if="activeSlingData.loadType === 'rope'"
                   >额定载荷(PQ)</label
                 >
                 <div
                   class="input-with-unit"
-                  v-if="liftingFormData.loadType === 'rope'"
+                  v-if="activeSlingData.loadType === 'rope'"
                 >
                   <el-input-number
-                    v-model="liftingFormData.ratedLoad"
+                    v-model="activeSlingData.ratedLoad"
                     controls-position="right"
                     :precision="2"
                   />
@@ -804,12 +822,12 @@
                     <label class="form-label">上部吊点数量</label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="liftingFormData.topPointCount"
+                        v-model="activeSlingData.topPointCount"
                         controls-position="right"
                         :precision="0"
                       />
                     </div>
-                    <el-checkbox v-model="liftingFormData.isDouble"
+                    <el-checkbox v-model="activeSlingData.isDouble"
                       >是否打双</el-checkbox
                     >
                   </div>
@@ -818,14 +836,14 @@
                     <label class="form-label">下部吊点数量</label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="liftingFormData.bottomPointCount"
+                        v-model="activeSlingData.bottomPointCount"
                         controls-position="right"
                         :precision="0"
                       />
                     </div>
                     <label class="form-label">挂布方式</label>
                     <el-select
-                      v-model="liftingFormData.customLoop"
+                      v-model="activeSlingData.customLoop"
                       placeholder="请选择"
                       class="hanging-method-select"
                     >
@@ -836,7 +854,7 @@
                     <label class="form-label">绳索长度</label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="liftingFormData.ropeLength"
+                        v-model="activeSlingData.ropeLength"
                         controls-position="right"
                         :precision="2"
                       />
@@ -848,7 +866,7 @@
                     <label class="form-label error">高度<span>(h)</span></label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="liftingFormData.height"
+                        v-model="activeSlingData.height"
                         controls-position="right"
                         :precision="2"
                       />
@@ -860,7 +878,7 @@
                     <label class="form-label">角度<span>(α)</span></label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="liftingFormData.angle"
+                        v-model="activeSlingData.angle"
                         controls-position="right"
                         :precision="1"
                       />
@@ -870,15 +888,15 @@
                 </div>
                 <div class="distance-inputs-right">
                   <!-- 无吊梁情况下显示L1-L4 -->
-                  <template v-if="liftingFormData.liftingType === 'noBeam'">
+                  <template v-if="activeSlingData.liftingType === 'noBeam'">
                     <div class="form-row">
-                      <el-checkbox v-model="liftingFormData.enableL1" />
+                      <el-checkbox v-model="activeSlingData.enableL1" />
                       <label class="form-label error"
                         >距离<span>L1</span></label
                       >
                       <div class="input-with-unit">
                         <el-input-number
-                          v-model="liftingFormData.distanceL1"
+                          v-model="activeSlingData.distanceL1"
                           controls-position="right"
                           :precision="0"
                         />
@@ -887,13 +905,13 @@
                     </div>
 
                     <div class="form-row">
-                      <el-checkbox v-model="liftingFormData.enableL2" />
+                      <el-checkbox v-model="activeSlingData.enableL2" />
                       <label class="form-label error"
                         >距离<span>L2</span></label
                       >
                       <div class="input-with-unit">
                         <el-input-number
-                          v-model="liftingFormData.distanceL2"
+                          v-model="activeSlingData.distanceL2"
                           controls-position="right"
                           :precision="0"
                         />
@@ -902,13 +920,13 @@
                     </div>
 
                     <div class="form-row">
-                      <el-checkbox v-model="liftingFormData.enableL3" />
+                      <el-checkbox v-model="activeSlingData.enableL3" />
                       <label class="form-label error"
                         >距离<span>L3</span></label
                       >
                       <div class="input-with-unit">
                         <el-input-number
-                          v-model="liftingFormData.distanceL3"
+                          v-model="activeSlingData.distanceL3"
                           controls-position="right"
                           :precision="0"
                         />
@@ -917,13 +935,13 @@
                     </div>
 
                     <div class="form-row">
-                      <el-checkbox v-model="liftingFormData.enableL4" />
+                      <el-checkbox v-model="activeSlingData.enableL4" />
                       <label class="form-label error"
                         >距离<span>L4</span></label
                       >
                       <div class="input-with-unit">
                         <el-input-number
-                          v-model="liftingFormData.distanceL4"
+                          v-model="activeSlingData.distanceL4"
                           controls-position="right"
                           :precision="0"
                         />
@@ -935,15 +953,15 @@
                   <!-- 有吊梁情况下只显示La -->
                   <template v-else>
                     <div class="form-row">
-                      <el-checkbox v-model="liftingFormData.enableLa" />
+                      <el-checkbox v-model="activeSlingData.enableLa" />
                       <label class="form-label error"
                         >距离<span>La</span></label
                       >
                       <div class="input-with-unit">
                         <el-input-number
-                          v-model="liftingFormData.distanceLa"
+                          v-model="activeSlingData.distanceLa"
                           controls-position="right"
-                          :precision="2"
+                          :precision="0"
                         />
                         <span class="unit">m</span>
                       </div>
@@ -1012,7 +1030,7 @@
         <div class="diagram-container">
           <img
             :src="
-              liftingFormData.liftingType === 'withBeam'
+              activeSlingData.liftingType === 'withBeam'
                 ? '/src/images/beam.png'
                 : '/src/images/lifting.png'
             "
@@ -1415,7 +1433,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowLeft,
@@ -1492,42 +1510,77 @@ const formData = ref({
   otherWeightG4: 0,
 });
 
-// 吊索具校核计算表单数据
-const liftingFormData = ref({
-  equipmentName: "xxxx设备",
-  equipmentNumber: "H-00000",
-  equipmentModel: "SCC13000TM",
-  equipmentWeight: 15,
-  isUnbalanced: false,
-  hasRope: false,
-  slingName: "",
-  manufacturer: "",
-  loadType: "magnetic", // New field for radio button selection, default to "magnetic" (破断拉力)
-  safetyFactor: 1,
-  ratedLoad: 0, // 添加额定载荷字段
-  topPointCount: 1,
-  bottomPointCount: 4,
-  customLoop: "loop",
-  distanceL1: 12,
-  distanceL2: 12,
-  distanceL3: 12,
-  distanceL4: 12,
-  distanceLa: 0, // 添加distanceLa字段
-  beamWeight: 0, // 添加平衡梁重量字段
-  beamLength: 0, // 添加平衡梁长度字段
-  beamSlingWeight: 0, // 添加吊梁下部吊具重量字段
-  enableL1: false, // Added new field
-  enableL2: false, // Added new field
-  enableL3: false, // Added new field
-  enableL4: false, // Added new field
-  enableLa: false, // 添加enableLa字段
-  ropeLength: 12,
-  height: 12,
-  angle: 43.5,
-  liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
-  slingType: "magnetic", // Initialize slingType, as it's now part of the radio group, default to magnetic (钢丝绳)
-  isDouble: false, // Added field for "是否打双" checkbox
+// 吊索具校核计算表单数据数组，用于存储多个吊索具配置
+const liftingFormDatas = ref([
+  {
+    id: 1,
+    equipmentName: "xxxx设备",
+    equipmentNumber: "H-00000",
+    equipmentModel: "SCC13000TM",
+    equipmentWeight: 15,
+    isUnbalanced: false,
+    hasRope: false,
+    slingName: "",
+    manufacturer: "",
+    loadType: "magnetic", // New field for radio button selection, default to "magnetic" (破断拉力)
+    safetyFactor: 1,
+    ratedLoad: 0, // 添加额定载荷字段
+    topPointCount: 1,
+    bottomPointCount: 4,
+    customLoop: "loop",
+    distanceL1: 12,
+    distanceL2: 12,
+    distanceL3: 12,
+    distanceL4: 12,
+    distanceLa: 0, // 添加distanceLa字段
+    beamWeight: 0, // 添加平衡梁重量字段
+    beamLength: 0, // 添加平衡梁长度字段
+    beamSlingWeight: 0, // 添加吊梁下部吊具重量字段
+    enableL1: false, // Added new field
+    enableL2: false, // Added new field
+    enableL3: false, // Added new field
+    enableL4: false, // Added new field
+    enableLa: false, // 添加enableLa字段
+    ropeLength: 12,
+    height: 12,
+    angle: 43.5,
+    liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
+    slingType: "magnetic", // Initialize slingType, as it's now part of the radio group, default to magnetic (钢丝绳)
+    isDouble: false, // Added field for "是否打双" checkbox
+  }
+]);
+
+// 当前激活的吊索具配置索引
+const activeSlingIndex = ref(0);
+
+// 获取当前激活的吊索具配置
+const activeSlingData = computed(() => {
+  return liftingFormDatas.value[activeSlingIndex.value];
 });
+
+// 添加新的吊索具配置
+const addNewSling = () => {
+  if (activeSlingData.value.liftingType === 'noBeam') {
+    const newId = liftingFormDatas.value.length + 1;
+    // 复制当前吊索具配置作为新配置的基础
+    const newSlingData = JSON.parse(JSON.stringify(activeSlingData.value));
+    newSlingData.id = newId;
+    liftingFormDatas.value.push(newSlingData);
+  }
+};
+
+// 删除指定索引的吊索具配置
+const removeSling = (index) => {
+  // 至少保留一个吊索具配置
+  if (liftingFormDatas.value.length > 1) {
+    liftingFormDatas.value.splice(index, 1);
+    
+    // 如果删除的是当前激活的配置或之前的配置，需要调整激活索引
+    if (activeSlingIndex.value >= index) {
+      activeSlingIndex.value = Math.max(0, activeSlingIndex.value - 1);
+    }
+  }
+};
 
 const weightItems = ref([
   { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
@@ -2270,6 +2323,11 @@ const cancelEditTitle = () => {
   align-items: center;
 }
 
+.sling-tab-wrapper {
+  position: relative;
+  margin-right: 10px;
+}
+
 .sling-tab-button {
   background: #1890ff;
   color: white;
@@ -2282,6 +2340,27 @@ const cancelEditTitle = () => {
 
 .sling-tab-button:hover {
   background: #40a9ff;
+}
+
+.sling-tab-button-inactive {
+  background: #D4D4D4;
+  color: #666;
+}
+
+.sling-tab-button-inactive:hover {
+  background: #e0e0e0;
+}
+
+.remove-sling-button {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  background: #D4D4D4;
+  border-radius: 50%;
+  padding: 2px;
 }
 
 .add-sling-button {
