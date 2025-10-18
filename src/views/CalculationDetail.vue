@@ -2257,21 +2257,43 @@ const cancelEditTitle = () => {
   gap: 16px;
   margin-top: 16px;
 }
+
 .distance-inputs .distance-inputs-left .form-row {
   margin-bottom: 16px;
   gap: 8px;
+  display: flex;
+  align-items: center;
 }
-.distance-inputs .distance-inputs-right{
- border: 1px solid #E7E7E7;
-background: #F6F6F6;
+
+.distance-inputs .distance-inputs-right {
+  border: 1px solid #E7E7E7;
+  background: #F6F6F6;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 16px;
 }
 
 /* Added checkbox styling for distance inputs */
 .distance-inputs .form-row .el-checkbox {
-  margin-right: 4px;
+  margin-right: 8px;
 }
 
 .distance-inputs .form-row .form-label {
   min-width: 80px;
+  margin-right: 8px;
+}
+
+.distance-inputs-right .form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.distance-inputs-right .form-row .form-label {
+ text-align: left;
+}
+
+.distance-inputs-right .form-row:last-child {
+  margin-bottom: 0;
 }
 </style>
