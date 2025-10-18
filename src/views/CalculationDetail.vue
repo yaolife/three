@@ -2340,6 +2340,7 @@ const cancelEditTitle = () => {
 
 .sling-tab-button:hover {
   background: #40a9ff;
+    color: white;
 }
 
 .sling-tab-button-inactive {
