@@ -764,7 +764,7 @@
                     </el-select>
                   </div>
                   <div class="form-row">
-                    <label class="form-label">缆绳长度</label>
+                    <label class="form-label">绳索长度</label>
                     <div class="input-with-unit">
                       <el-input-number
                         v-model="liftingFormData.ropeLength"
@@ -800,57 +800,76 @@
                   </div>
                 </div>
                 <div class="distance-inputs-right">
-                  <div class="form-row">
-                    <el-checkbox v-model="liftingFormData.enableL1" />
-                    <label class="form-label error">距离<span>L1</span></label>
-                    <div class="input-with-unit">
-                      <el-input-number
-                        v-model="liftingFormData.distanceL1"
-                        controls-position="right"
-                        :precision="0"
-                      />
-                      <span class="unit">m</span>
+                  <!-- 无吊梁情况下显示L1-L4 -->
+                  <template v-if="liftingFormData.liftingType === 'noBeam'">
+                    <div class="form-row">
+                      <el-checkbox v-model="liftingFormData.enableL1" />
+                      <label class="form-label error">距离<span>L1</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="liftingFormData.distanceL1"
+                          controls-position="right"
+                          :precision="0"
+                        />
+                        <span class="unit">m</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div class="form-row">
-                    <el-checkbox v-model="liftingFormData.enableL2" />
-                    <label class="form-label error">距离<span>L2</span></label>
-                    <div class="input-with-unit">
-                      <el-input-number
-                        v-model="liftingFormData.distanceL2"
-                        controls-position="right"
-                        :precision="0"
-                      />
-                      <span class="unit">m</span>
+                    <div class="form-row">
+                      <el-checkbox v-model="liftingFormData.enableL2" />
+                      <label class="form-label error">距离<span>L2</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="liftingFormData.distanceL2"
+                          controls-position="right"
+                          :precision="0"
+                        />
+                        <span class="unit">m</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div class="form-row">
-                    <el-checkbox v-model="liftingFormData.enableL3" />
-                    <label class="form-label error">距离<span>L3</span></label>
-                    <div class="input-with-unit">
-                      <el-input-number
-                        v-model="liftingFormData.distanceL3"
-                        controls-position="right"
-                        :precision="0"
-                      />
-                      <span class="unit">m</span>
+                    <div class="form-row">
+                      <el-checkbox v-model="liftingFormData.enableL3" />
+                      <label class="form-label error">距离<span>L3</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="liftingFormData.distanceL3"
+                          controls-position="right"
+                          :precision="0"
+                        />
+                        <span class="unit">m</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div class="form-row">
-                    <el-checkbox v-model="liftingFormData.enableL4" />
-                    <label class="form-label error">距离<span>L4</span></label>
-                    <div class="input-with-unit">
-                      <el-input-number
-                        v-model="liftingFormData.distanceL4"
-                        controls-position="right"
-                        :precision="0"
-                      />
-                      <span class="unit">m</span>
+                    <div class="form-row">
+                      <el-checkbox v-model="liftingFormData.enableL4" />
+                      <label class="form-label error">距离<span>L4</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="liftingFormData.distanceL4"
+                          controls-position="right"
+                          :precision="0"
+                        />
+                        <span class="unit">m</span>
+                      </div>
                     </div>
-                  </div>
+                  </template>
+
+                  <!-- 有吊梁情况下只显示La -->
+                  <template v-else>
+                    <div class="form-row">
+                      <el-checkbox v-model="liftingFormData.enableLa" />
+                      <label class="form-label error">距离<span>La</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="liftingFormData.distanceLa"
+                          controls-position="right"
+                          :precision="2"
+                        />
+                        <span class="unit">m</span>
+                      </div>
+                    </div>
+                  </template>
                 </div>
               </div>
                  <!-- 系数设置 -->
@@ -1400,7 +1419,7 @@ const formData = ref({
 const liftingFormData = ref({
   equipmentName: "xxxx设备",
   equipmentNumber: "H-00000",
-  equipmentModel: "",
+  equipmentModel: "SCC13000TM",
   equipmentWeight: 15,
   isUnbalanced: false,
   hasRope: false,
@@ -1416,10 +1435,12 @@ const liftingFormData = ref({
   distanceL2: 12,
   distanceL3: 12,
   distanceL4: 12,
+  distanceLa: 0, // 添加distanceLa字段
   enableL1: false, // Added new field
   enableL2: false, // Added new field
   enableL3: false, // Added new field
   enableL4: false, // Added new field
+  enableLa: false, // 添加enableLa字段
   ropeLength: 12,
   height: 12,
   angle: 43.5,
