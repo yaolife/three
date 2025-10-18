@@ -2217,6 +2217,30 @@ const cancelEditTitle = () => {
   font-size: 14px;
 }
 
+/* 添加与起重机校核计算tab下系数表格一致的样式 */
+.system-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.system-table th,
+.system-table td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #e5e5e5;
+  font-size: 14px;
+}
+
+.system-table th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+}
+
+.system-table td {
+  color: #666;
+}
+
 .distance-inputs {
   display: flex;
   justify-content: space-around;
