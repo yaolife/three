@@ -82,7 +82,7 @@
                       <div class="form-input-group">
                         <el-input
                           v-model="formData.craneName"
-                          placeholder="SCC13000TM履带起重机"
+                          placeholder="请输入起重机名称"
                         />
                         <el-button type="primary" size="default"
                           >选择</el-button
@@ -1454,7 +1454,7 @@ const handleTabChange = (tabName) => {
 
 const formData = ref({
   // 起重机1参数
-  craneName: "SCC13000TM履带起重机",
+  craneName: "",
   equipmentName: "xxxxxx设备",
   manufacturer: "三一重工",
   equipmentNumber: "xxxxxxx",
