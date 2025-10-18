@@ -653,6 +653,45 @@
                   <el-radio value="withBeam">有吊梁</el-radio>
                 </el-radio-group>
               </div>
+              
+              <!-- 有吊梁情况下显示平衡梁参数 -->
+              <div class="form-row" v-if="liftingFormData.liftingType === 'withBeam'" style="margin-left: 50px; display: flex; gap: 20px;">
+                <div style="display: flex; align-items: center;">
+                  <label class="form-label">平衡梁重量<span>G(a)</span></label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.beamWeight"
+                      controls-position="right"
+                      :precision="2"
+                    />
+                    <span class="unit">t</span>
+                  </div>
+                </div>
+                
+                <div style="display: flex; align-items: center;">
+                  <label class="form-label">平衡梁长度<span>L(a)</span></label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.beamLength"
+                      controls-position="right"
+                      :precision="2"
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+                
+                <div style="display: flex; align-items: center;">
+                  <label class="form-label">吊梁下部吊具重量</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="liftingFormData.beamSlingWeight"
+                      controls-position="right"
+                      :precision="2"
+                    />
+                    <span class="unit">t</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1436,6 +1475,9 @@ const liftingFormData = ref({
   distanceL3: 12,
   distanceL4: 12,
   distanceLa: 0, // 添加distanceLa字段
+  beamWeight: 0, // 添加平衡梁重量字段
+  beamLength: 0, // 添加平衡梁长度字段
+  beamSlingWeight: 0, // 添加吊梁下部吊具重量字段
   enableL1: false, // Added new field
   enableL2: false, // Added new field
   enableL3: false, // Added new field
