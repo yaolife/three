@@ -856,7 +856,7 @@
             </div>
           </div>
 
-          <!-- 系统设备 -->
+          <!-- 系数设置 -->
           <div class="section section-with-border">
             <div class="section-title">系数设置</div>
             <div class="form-content">
