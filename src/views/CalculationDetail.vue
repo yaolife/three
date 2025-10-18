@@ -633,7 +633,7 @@
                   <label class="form-label">设备型号</label>
                   <el-input
                     v-model="liftingFormData.equipmentModel"
-                    placeholder="SCC13000TM"
+                    placeholder="请输入设备型号"
                   />
                 </div>
               </div>
@@ -853,10 +853,7 @@
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- 系数设置 -->
+                 <!-- 系数设置 -->
           <div class="section section-with-border">
             <div class="section-title">系数设置</div>
             <div class="form-content">
@@ -902,6 +899,10 @@
               </div>
             </div>
           </div>
+            </div>
+          </div>
+
+       
 
           <div class="action-buttons">
             <el-button>重置</el-button>
@@ -1399,7 +1400,7 @@ const formData = ref({
 const liftingFormData = ref({
   equipmentName: "xxxx设备",
   equipmentNumber: "H-00000",
-  equipmentModel: "SCC13000TM",
+  equipmentModel: "",
   equipmentWeight: 15,
   isUnbalanced: false,
   hasRope: false,
@@ -1827,6 +1828,7 @@ const cancelEditTitle = () => {
   border: 1px solid #e5e5e5;
   border-radius: 4px;
   padding: 20px;
+  margin-top: 15px;
 }
 
 .form-row {
@@ -2056,7 +2058,6 @@ const cancelEditTitle = () => {
   gap: 12px;
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #e5e5e5;
 }
 
 .diagram-container {
