@@ -661,8 +661,7 @@
             <div class="section-title section-title-with-button">
               <span>吊索具配置</span>
             </div>
-            <div class="form-content">
-              <!-- Updated sling component header to use blue button style -->
+                  <!-- Updated sling component header to use blue button style -->
               <div class="sling-tabs-container">
                 <el-button type="primary" class="sling-tab-button">
                   吊索具01
@@ -671,7 +670,8 @@
                   +
                 </el-button>
               </div>
-
+            <div class="form-content" style="border: 1px solid #E7E7E7; padding-top: 15px;">
+        
               <div class="form-row">
                 <label class="form-label">吊索具名称</label>
                 <div class="form-input-group">
@@ -2166,8 +2166,6 @@ const cancelEditTitle = () => {
 .sling-tabs-container {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
 }
 
 .sling-tab-button {
@@ -2258,7 +2256,6 @@ const cancelEditTitle = () => {
   gap: 16px;
   margin-top: 16px;
 }
-
 .distance-inputs .distance-inputs-left .form-row {
   margin-bottom: 16px;
   gap: 8px;
