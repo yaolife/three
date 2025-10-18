@@ -638,7 +638,7 @@
                 </div>
               </div>
 
-              <div class="form-row" style="margin-top: 16px;">
+              <div class="form-row" style="margin-top: 16px">
                 <label class="form-label">设备重量<span>(G)</span></label>
                 <div class="input-with-unit">
                   <el-input-number
@@ -683,7 +683,10 @@
                   <el-button type="primary" size="default">选择</el-button>
                 </div>
                 <!-- Added radio buttons inline with name field -->
-                <el-radio-group v-model="liftingFormData.slingType" class="inline-radio-group">
+                <el-radio-group
+                  v-model="liftingFormData.slingType"
+                  class="inline-radio-group"
+                >
                   <el-radio value="magnetic">钢丝绳</el-radio>
                   <el-radio value="rope">吊索</el-radio>
                   <el-radio value="shackle">卸扣</el-radio>
@@ -702,7 +705,7 @@
 
               <!-- Removed standalone radio group row -->
 
-              <div class="form-row" style="margin-left: 50px;">
+              <div class="form-row" style="margin-left: 50px">
                 <el-radio-group v-model="liftingFormData.loadType">
                   <el-radio value="magnetic">破断拉力</el-radio>
                   <el-radio value="rope">额定载荷</el-radio>
@@ -717,123 +720,127 @@
                 </div>
               </div>
 
-              <div class="form-row">
-                <label class="form-label">上部吊点数量</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="liftingFormData.topPointCount"
-                    controls-position="right"
-                    :precision="0"
-                  />
-                </div>
-                <el-checkbox v-model="liftingFormData.isDouble">是否打双</el-checkbox>
-              </div>
-
-              <div class="form-row">
-                <label class="form-label">下部吊点数量</label>
-                <div class="input-with-unit">
-                  <el-input-number
-                    v-model="liftingFormData.bottomPointCount"
-                    controls-position="right"
-                    :precision="0"
-                  />
-                </div>
-                <label class="form-label">挂布方式</label>
-                <el-select
-                  v-model="liftingFormData.customLoop"
-                  placeholder="请选择"
-                  class="hanging-method-select"
-                >
-                  <el-option label="拉环" value="loop" />
-                </el-select>
-              </div>
-
               <div class="distance-inputs">
-                <div class="form-row">
-                  <el-checkbox v-model="liftingFormData.enableL1" />
-                  <label class="form-label error">距离L1</label>
-                  <div class="input-with-unit">
-                    <el-input-number
-                      v-model="liftingFormData.distanceL1"
-                      controls-position="right"
-                      :precision="0"
-                    />
-                    <span class="unit">m</span>
+                <div class="distance-inputs-left">
+                  <div class="form-row">
+                    <label class="form-label">上部吊点数量</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.topPointCount"
+                        controls-position="right"
+                        :precision="0"
+                      />
+                    </div>
+                    <el-checkbox v-model="liftingFormData.isDouble"
+                      >是否打双</el-checkbox
+                    >
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">下部吊点数量</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.bottomPointCount"
+                        controls-position="right"
+                        :precision="0"
+                      />
+                    </div>
+                    <label class="form-label">挂布方式</label>
+                    <el-select
+                      v-model="liftingFormData.customLoop"
+                      placeholder="请选择"
+                      class="hanging-method-select"
+                    >
+                      <el-option label="拉环" value="loop" />
+                    </el-select>
+                  </div>
+                  <div class="form-row">
+                    <label class="form-label">缆绳长度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.ropeLength"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label error">高度<span>(h)</span></label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.height"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">角度<span>(α)</span></label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.angle"
+                        controls-position="right"
+                        :precision="1"
+                      />
+                      <span class="unit">度</span>
+                    </div>
                   </div>
                 </div>
-
-                <div class="form-row">
-                  <el-checkbox v-model="liftingFormData.enableL2" />
-                  <label class="form-label error">距离L2</label>
-                  <div class="input-with-unit">
-                    <el-input-number
-                      v-model="liftingFormData.distanceL2"
-                      controls-position="right"
-                      :precision="0"
-                    />
-                    <span class="unit">m</span>
+                <div class="distance-inputs-right">
+                  <div class="form-row">
+                    <el-checkbox v-model="liftingFormData.enableL1" />
+                    <label class="form-label error">距离<span>L1</span></label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.distanceL1"
+                        controls-position="right"
+                        :precision="0"
+                      />
+                      <span class="unit">m</span>
+                    </div>
                   </div>
-                </div>
 
-                <div class="form-row">
-                  <el-checkbox v-model="liftingFormData.enableL3" />
-                  <label class="form-label error">距离L3</label>
-                  <div class="input-with-unit">
-                    <el-input-number
-                      v-model="liftingFormData.distanceL3"
-                      controls-position="right"
-                      :precision="0"
-                    />
-                    <span class="unit">m</span>
+                  <div class="form-row">
+                    <el-checkbox v-model="liftingFormData.enableL2" />
+                    <label class="form-label error">距离<span>L2</span></label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.distanceL2"
+                        controls-position="right"
+                        :precision="0"
+                      />
+                      <span class="unit">m</span>
+                    </div>
                   </div>
-                </div>
 
-                <div class="form-row">
-                  <el-checkbox v-model="liftingFormData.enableL4" />
-                  <label class="form-label error">距离L4</label>
-                  <div class="input-with-unit">
-                    <el-input-number
-                      v-model="liftingFormData.distanceL4"
-                      controls-position="right"
-                      :precision="0"
-                    />
-                    <span class="unit">m</span>
+                  <div class="form-row">
+                    <el-checkbox v-model="liftingFormData.enableL3" />
+                    <label class="form-label error">距离<span>L3</span></label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.distanceL3"
+                        controls-position="right"
+                        :precision="0"
+                      />
+                      <span class="unit">m</span>
+                    </div>
                   </div>
-                </div>
 
-                <div class="form-row">
-                  <label class="form-label">缆绳长度</label>
-                  <div class="input-with-unit">
-                    <el-input-number
-                      v-model="liftingFormData.ropeLength"
-                      controls-position="right"
-                      :precision="0"
-                    />
-                    <span class="unit">m</span>
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <label class="form-label error">高度(h)</label>
-                  <div class="input-with-unit">
-                    <el-input-number
-                      v-model="liftingFormData.height"
-                      controls-position="right"
-                      :precision="0"
-                    />
-                    <span class="unit">m</span>
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <label class="form-label">角度(a)</label>
-                  <div class="input-with-unit">
-                    <el-input-number
-                      v-model="liftingFormData.angle"
-                      controls-position="right"
-                      :precision="1"
-                    />
-                    <span class="unit">度</span>
+                  <div class="form-row">
+                    <el-checkbox v-model="liftingFormData.enableL4" />
+                    <label class="form-label error">距离<span>L4</span></label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="liftingFormData.distanceL4"
+                        controls-position="right"
+                        :precision="0"
+                      />
+                      <span class="unit">m</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -898,7 +905,11 @@
       <div v-if="activeTab === 'lifting'" class="right-panel">
         <div class="diagram-container">
           <img
-            :src="liftingFormData.liftingType === 'withBeam' ? '/src/images/beam.png' : '/src/images/lifting.png'"
+            :src="
+              liftingFormData.liftingType === 'withBeam'
+                ? '/src/images/beam.png'
+                : '/src/images/lifting.png'
+            "
             alt="吊索具示意图"
             class="crane-diagram"
           />
@@ -1770,7 +1781,7 @@ const cancelEditTitle = () => {
 }
 
 .left-panel {
-  width: 65%;
+  width: 60%;
   background: white;
   border-radius: 4px;
   padding: 20px;
@@ -2207,15 +2218,20 @@ const cancelEditTitle = () => {
 }
 
 .distance-inputs {
-  display: grid;
+  display: flex;
+  justify-content: space-around;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-top: 16px;
 }
 
-.distance-inputs .form-row {
-  margin-bottom: 0;
+.distance-inputs .distance-inputs-left .form-row {
+  margin-bottom: 16px;
   gap: 8px;
+}
+.distance-inputs .distance-inputs-right{
+ border: 1px solid #E7E7E7;
+background: #F6F6F6;
 }
 
 /* Added checkbox styling for distance inputs */
