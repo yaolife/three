@@ -653,10 +653,14 @@
                   <el-radio value="withBeam">有吊梁</el-radio>
                 </el-radio-group>
               </div>
-              
+
               <!-- 有吊梁情况下显示平衡梁参数 -->
-              <div class="form-row" v-if="liftingFormData.liftingType === 'withBeam'" style="margin-left: 50px; display: flex; gap: 20px;">
-                <div style="display: flex; align-items: center;">
+              <div
+                class="form-row"
+                v-if="liftingFormData.liftingType === 'withBeam'"
+                style="margin-left: 50px; display: flex; gap: 20px"
+              >
+                <div style="display: flex; align-items: center">
                   <label class="form-label">平衡梁重量<span>G(a)</span></label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -667,8 +671,8 @@
                     <span class="unit">t</span>
                   </div>
                 </div>
-                
-                <div style="display: flex; align-items: center;">
+
+                <div style="display: flex; align-items: center">
                   <label class="form-label">平衡梁长度<span>L(a)</span></label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -679,8 +683,8 @@
                     <span class="unit">m</span>
                   </div>
                 </div>
-                
-                <div style="display: flex; align-items: center;">
+
+                <div style="display: flex; align-items: center">
                   <label class="form-label">吊梁下部吊具重量</label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -700,17 +704,29 @@
             <div class="section-title section-title-with-button">
               <span>吊索具配置</span>
             </div>
-                  <!-- Updated sling component header to use blue button style -->
-              <div class="sling-tabs-container">
-                <el-button type="primary" class="sling-tab-button">
-                  {{ liftingFormData.liftingType === 'withBeam' ? '上部吊索具01' : '吊索具01' }}
-                </el-button>
-                <el-button type="default" size="small" class="add-sling-button">
-                  +
-                </el-button>
-              </div>
-            <div class="form-content" style="border: 1px solid #E7E7E7; padding-top: 15px;">
-        
+            <!-- Updated sling component header to use blue button style -->
+            <div class="sling-tabs-container">
+              <el-button type="primary" class="sling-tab-button">
+                {{
+                  liftingFormData.liftingType === "withBeam"
+                    ? "上部吊索具01"
+                    : "吊索具01"
+                }}
+              </el-button>
+              <!-- <el-button type="default" size="small" class="add-sling-button">
+                +
+              </el-button> -->
+              <el-image
+                class="add-sling-button"
+                src="/src/images/add.png"
+                alt=""
+                :fit="'cover'"
+              />
+            </div>
+            <div
+              class="form-content"
+              style="border: 1px solid #e7e7e7; padding-top: 15px"
+            >
               <div class="form-row">
                 <label class="form-label">吊索具名称</label>
                 <div class="form-input-group">
@@ -749,16 +765,30 @@
                   <el-radio value="magnetic">破断拉力</el-radio>
                   <el-radio value="rope">额定载荷</el-radio>
                 </el-radio-group>
-                <label class="form-label" v-if="liftingFormData.loadType === 'magnetic'">出厂安全系数</label>
-                <div class="input-with-unit" v-if="liftingFormData.loadType === 'magnetic'">
+                <label
+                  class="form-label"
+                  v-if="liftingFormData.loadType === 'magnetic'"
+                  >出厂安全系数</label
+                >
+                <div
+                  class="input-with-unit"
+                  v-if="liftingFormData.loadType === 'magnetic'"
+                >
                   <el-input-number
                     v-model="liftingFormData.safetyFactor"
                     controls-position="right"
                     :precision="2"
                   />
                 </div>
-                <label class="form-label" v-if="liftingFormData.loadType === 'rope'">额定载荷(PQ)</label>
-                <div class="input-with-unit" v-if="liftingFormData.loadType === 'rope'">
+                <label
+                  class="form-label"
+                  v-if="liftingFormData.loadType === 'rope'"
+                  >额定载荷(PQ)</label
+                >
+                <div
+                  class="input-with-unit"
+                  v-if="liftingFormData.loadType === 'rope'"
+                >
                   <el-input-number
                     v-model="liftingFormData.ratedLoad"
                     controls-position="right"
@@ -843,7 +873,9 @@
                   <template v-if="liftingFormData.liftingType === 'noBeam'">
                     <div class="form-row">
                       <el-checkbox v-model="liftingFormData.enableL1" />
-                      <label class="form-label error">距离<span>L1</span></label>
+                      <label class="form-label error"
+                        >距离<span>L1</span></label
+                      >
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="liftingFormData.distanceL1"
@@ -856,7 +888,9 @@
 
                     <div class="form-row">
                       <el-checkbox v-model="liftingFormData.enableL2" />
-                      <label class="form-label error">距离<span>L2</span></label>
+                      <label class="form-label error"
+                        >距离<span>L2</span></label
+                      >
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="liftingFormData.distanceL2"
@@ -869,7 +903,9 @@
 
                     <div class="form-row">
                       <el-checkbox v-model="liftingFormData.enableL3" />
-                      <label class="form-label error">距离<span>L3</span></label>
+                      <label class="form-label error"
+                        >距离<span>L3</span></label
+                      >
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="liftingFormData.distanceL3"
@@ -882,7 +918,9 @@
 
                     <div class="form-row">
                       <el-checkbox v-model="liftingFormData.enableL4" />
-                      <label class="form-label error">距离<span>L4</span></label>
+                      <label class="form-label error"
+                        >距离<span>L4</span></label
+                      >
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="liftingFormData.distanceL4"
@@ -898,7 +936,9 @@
                   <template v-else>
                     <div class="form-row">
                       <el-checkbox v-model="liftingFormData.enableLa" />
-                      <label class="form-label error">距离<span>La</span></label>
+                      <label class="form-label error"
+                        >距离<span>La</span></label
+                      >
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="liftingFormData.distanceLa"
@@ -911,56 +951,54 @@
                   </template>
                 </div>
               </div>
-                 <!-- 系数设置 -->
-          <div class="section section-with-border">
-            <div class="section-title">系数设置</div>
-            <div class="form-content">
-              <div class="system-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th width="60">勾选</th>
-                      <th width="80">序号</th>
-                      <th>系数名称</th>
-                      <th width="120">值</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="(item, index) in liftingSystemItems"
-                      :key="item.id"
-                    >
-                      <td>
-                        <el-checkbox v-model="item.checked" />
-                      </td>
-                      <td>{{ item.order }}</td>
-                      <td>
-                        <el-input
-                          v-model="item.name"
-                          size="small"
-                          placeholder="请输入系数名称"
-                          @input="handleLiftingSystemInputChange(index)"
-                        />
-                      </td>
-                      <td>
-                        <el-input-number
-                          v-model="item.value"
-                          :controls="false"
-                          size="small"
-                          :precision="1"
-                          @change="handleLiftingSystemInputChange(index)"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <!-- 系数设置 -->
+              <div class="section section-with-border">
+                <div class="section-title">系数设置</div>
+                <div class="form-content">
+                  <div class="system-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th width="60">勾选</th>
+                          <th width="80">序号</th>
+                          <th>系数名称</th>
+                          <th width="120">值</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="(item, index) in liftingSystemItems"
+                          :key="item.id"
+                        >
+                          <td>
+                            <el-checkbox v-model="item.checked" />
+                          </td>
+                          <td>{{ item.order }}</td>
+                          <td>
+                            <el-input
+                              v-model="item.name"
+                              size="small"
+                              placeholder="请输入系数名称"
+                              @input="handleLiftingSystemInputChange(index)"
+                            />
+                          </td>
+                          <td>
+                            <el-input-number
+                              v-model="item.value"
+                              :controls="false"
+                              size="small"
+                              :precision="1"
+                              @change="handleLiftingSystemInputChange(index)"
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-            </div>
-          </div>
-
-       
 
           <div class="action-buttons">
             <el-button>重置</el-button>
@@ -2247,17 +2285,16 @@ const cancelEditTitle = () => {
 }
 
 .add-sling-button {
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 18px;
-  border: 1px solid #d9d9d9;
   background: white;
+   margin-left: 10px;
 }
-
+.add-sling-button:hover {
+  cursor: pointer;
+}
 .sling-component-header {
   background: #f0f0f0;
   padding: 8px 12px;
@@ -2329,8 +2366,8 @@ const cancelEditTitle = () => {
 }
 
 .distance-inputs .distance-inputs-right {
-  border: 1px solid #E7E7E7;
-  background: #F6F6F6;
+  border: 1px solid #e7e7e7;
+  background: #f6f6f6;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -2353,7 +2390,7 @@ const cancelEditTitle = () => {
   margin-bottom: 16px;
 }
 .distance-inputs-right .form-row .form-label {
- text-align: left;
+  text-align: left;
 }
 
 .distance-inputs-right .form-row:last-child {
