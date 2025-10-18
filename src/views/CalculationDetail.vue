@@ -664,7 +664,7 @@
                   <!-- Updated sling component header to use blue button style -->
               <div class="sling-tabs-container">
                 <el-button type="primary" class="sling-tab-button">
-                  吊索具01
+                  {{ liftingFormData.liftingType === 'withBeam' ? '上部吊索具01' : '吊索具01' }}
                 </el-button>
                 <el-button type="default" size="small" class="add-sling-button">
                   +
