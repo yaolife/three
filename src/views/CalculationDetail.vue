@@ -101,7 +101,7 @@
 
                     <div class="form-row">
                       <label class="form-label">设备编号</label>
-                      <el-input v-model="formData.equipmentNumber" />
+                      <el-input v-model="formData.equipmentNumber" placeholder="请输入设备编号" />
                     </div>
 
                     <div class="form-row">
@@ -1498,7 +1498,7 @@ const formData = ref({
   craneName: "",
   equipmentName: "xxxxxx设备",
   manufacturer: "三一重工",
-  equipmentNumber: "xxxxxxx",
+  equipmentNumber: "",
   model: "SCC13000TM",
   equipmentType: "",
   equipmentType: "H000000",
@@ -1967,7 +1967,7 @@ const showCalculationResult = () => {
   }
 };
 
-const projectTitle = ref("XXXXXXXXX设备吊装项目方案");
+const projectTitle = ref("XXXX设备吊装项目方案");
 
 // 编辑标题的弹窗相关数据
 const editTitleDialogVisible = ref(false);
