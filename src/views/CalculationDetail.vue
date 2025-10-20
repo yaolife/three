@@ -2605,7 +2605,4 @@ const cancelEditTitle = () => {
 .distance-inputs-right .form-row:last-child {
   margin-bottom: 0;
 }
-.el-dialog{
-  padding: 0;
-}
 </style>
