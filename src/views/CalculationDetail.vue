@@ -720,13 +720,15 @@
                 >
                   {{ 
                     sling.liftingType === "withBeam"
-                      ? sling.isBottomSling ? `下部吊索具01` : `上部吊索具01`
+                      ? sling.isBottomSling 
+                        ? `下部吊索具${getSlingIndex(sling, true)}` 
+                        : `上部吊索具${getSlingIndex(sling, false)}`
                       : `吊索具0${index + 1}`
                   }}
                 </el-button>
-                <!-- Delete图标，第一个按钮之后且不是默认下部吊索具01的按钮都显示 -->
+                <!-- Delete图标，只在非默认吊索具上显示 -->
                 <el-image
-                  v-if="index > 0 && !(sling.isBottomSling && liftingFormDatas.length === 2)"
+                  v-if="index > 0 && !(sling.isBottomSling && index === 1)"
                   class="remove-sling-button"
                   src="/src/images/delete.png"
                   alt="删除"
@@ -1430,6 +1432,38 @@
       </span>
     </template>
   </el-dialog>
+
+  <!-- 吊索具类型选择弹窗 -->
+  <el-dialog
+    v-model="showSlingTypeDialog"
+    title="添加吊索具"
+    width="300px"
+    center
+    append-to-body
+    :show-close="true"
+  >
+    <div style="display: flex; flex-direction: column; gap: 20px; padding: 20px 0;">
+      <el-button 
+        type="primary" 
+        style="width: 100%; height: 40px; font-size: 16px;"
+        @click="selectedSlingType = 'upper'; confirmAddSling()"
+      >
+        添加上部吊索具
+      </el-button>
+      <el-button 
+        type="primary" 
+        style="width: 100%; height: 40px; font-size: 16px;"
+        @click="selectedSlingType = 'lower'; confirmAddSling()"
+      >
+        添加下部吊索具
+      </el-button>
+    </div>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="closeSlingTypeDialog">关闭</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -1589,15 +1623,73 @@ watch(() => liftingFormDatas.value[activeSlingIndex.value]?.liftingType, (newTyp
   }
 });
 
+// 弹窗相关状态
+const showSlingTypeDialog = ref(false);
+const selectedSlingType = ref(''); // 'upper' or 'lower'
+
 // 添加新的吊索具配置
 const addNewSling = () => {
-  if (activeSlingData.value.liftingType === 'noBeam') {
+  if (activeSlingData.value.liftingType === 'withBeam') {
+    // 有吊梁情况下，显示选择弹窗
+    showSlingTypeDialog.value = true;
+  } else if (activeSlingData.value.liftingType === 'noBeam') {
+    // 无吊梁情况下，保持原有逻辑
     const newId = liftingFormDatas.value.length + 1;
     // 复制当前吊索具配置作为新配置的基础
     const newSlingData = JSON.parse(JSON.stringify(activeSlingData.value));
     newSlingData.id = newId;
     liftingFormDatas.value.push(newSlingData);
   }
+};
+
+// 选择吊索具类型并添加
+const confirmAddSling = () => {
+  if (!selectedSlingType.value) return;
+  
+  // 获取现有相同类型吊索具的数量，以生成正确的序号
+  const isUpper = selectedSlingType.value === 'upper';
+  const existingSameTypeCount = liftingFormDatas.value.filter(sling => 
+    sling.liftingType === 'withBeam' && sling.isBottomSling === !isUpper
+  ).length;
+  
+  // 找到上部吊索具01作为模板
+  const upperSlingTemplate = liftingFormDatas.value.find(sling => 
+    sling.liftingType === 'withBeam' && !sling.isBottomSling
+  );
+  
+  if (upperSlingTemplate) {
+    // 复制上部吊索具01的内容
+    const newSlingData = JSON.parse(JSON.stringify(upperSlingTemplate));
+    newSlingData.id = liftingFormDatas.value.length + 1;
+    newSlingData.isBottomSling = !isUpper;
+    
+    // 添加到数组中
+    liftingFormDatas.value.push(newSlingData);
+  }
+  
+  // 重置选择并关闭弹窗
+  selectedSlingType.value = '';
+  showSlingTypeDialog.value = false;
+};
+
+// 关闭弹窗
+const closeSlingTypeDialog = () => {
+  selectedSlingType.value = '';
+  showSlingTypeDialog.value = false;
+};
+
+// 获取吊索具序号
+const getSlingIndex = (sling, isBottomSling) => {
+  // 找出同类型吊索具的所有项
+  const sameTypeSlings = liftingFormDatas.value.filter(s => 
+    s.liftingType === 'withBeam' && s.isBottomSling === isBottomSling
+  );
+  
+  // 找到当前吊索具在同类型中的索引
+  const index = sameTypeSlings.findIndex(s => s.id === sling.id);
+  
+  // 返回格式为01, 02, 03...的序号
+  return index >= 0 ? `0${index + 1}` : '01';
 };
 
 // 删除指定索引的吊索具配置
