@@ -1440,9 +1440,21 @@
     width="300px"
     center
     append-to-body
-    :show-close="true"
+    :show-close="false"
+    style="padding: 0;"
   >
-    <div style="display: flex; flex-direction: column; gap: 17px; padding: 20px 0;">
+    <template #header>
+      <div style="background: #E5E5E5; padding: 5px;  text-align: left; font-weight: bold; position: relative;">
+        添加吊索具
+        <el-button
+          style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; min-height: 24px; padding: 0;"
+          @click="closeSlingTypeDialog"
+        >
+          <span style="font-size: 18px; font-weight: bold; display: inline-block; transform: rotate(45deg);">+</span>
+        </el-button>
+      </div>
+    </template>
+    <div style="display: flex; flex-direction: column; gap: 17px; padding: 20px 0; align-items: center;">
       <el-button 
         type="default" 
         style="width: 70%; height: 40px; font-size: 16px;"
@@ -2592,5 +2604,8 @@ const cancelEditTitle = () => {
 
 .distance-inputs-right .form-row:last-child {
   margin-bottom: 0;
+}
+.el-dialog{
+  padding: 0;
 }
 </style>
