@@ -1442,27 +1442,22 @@
     append-to-body
     :show-close="true"
   >
-    <div style="display: flex; flex-direction: column; gap: 20px; padding: 20px 0;">
+    <div style="display: flex; flex-direction: column; gap: 17px; padding: 20px 0;">
       <el-button 
-        type="primary" 
-        style="width: 100%; height: 40px; font-size: 16px;"
+        type="default" 
+        style="width: 70%; height: 40px; font-size: 16px;"
         @click="selectedSlingType = 'upper'; confirmAddSling()"
       >
         添加上部吊索具
       </el-button>
       <el-button 
-        type="primary" 
-        style="width: 100%; height: 40px; font-size: 16px;"
+        type="default" 
+        style="width: 70%; height: 40px; font-size: 16px;margin-left: 0;"
         @click="selectedSlingType = 'lower'; confirmAddSling()"
       >
         添加下部吊索具
       </el-button>
     </div>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="closeSlingTypeDialog">关闭</el-button>
-      </span>
-    </template>
   </el-dialog>
 </template>
 
