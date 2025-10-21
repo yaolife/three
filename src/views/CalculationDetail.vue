@@ -656,6 +656,7 @@
                   v-model="activeSlingData.isSinglePointLifting" 
                   style="margin-left: 20px;"
                   @change="handleSinglePointLiftingChange"
+                  v-if="activeSlingData.liftingType !== 'withBeam'"
                 >
                   是否单点吊装
                 </el-checkbox>
