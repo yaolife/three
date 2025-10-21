@@ -841,6 +841,8 @@
                         v-model="activeSlingData.bottomPointCount"
                         controls-position="right"
                         :precision="0"
+                        :min="1"
+                        :max="8"
                       />
                     </div>
                     <label class="form-label">挂布方式</label>
