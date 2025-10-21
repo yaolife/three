@@ -850,7 +850,7 @@
                         v-model="activeSlingData.bottomPointCount"
                         controls-position="right"
                         :precision="0"
-                        :min="1"
+                        :min="activeSlingData.liftingType === 'withBeam' ? 2 : 1"
                         :max="8"
                         :disabled="activeSlingData.isSinglePointLifting"
                       />
