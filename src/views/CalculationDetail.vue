@@ -1087,18 +1087,10 @@
               <div class="section-title">重心设置</div>
               <div class="form-content">
                 <div class="form-row">
-                  <label class="form-label">计算点</label>
+                  <label class="form-label">计算方式</label>
                   <el-radio-group v-model="foundationData.calculationPoint">
-                    <el-radio value="center">吊物重心点</el-radio>
-                    <el-radio value="support">支撑点</el-radio>
-                  </el-radio-group>
-                </div>
-
-                <div class="form-row">
-                  <label class="form-label">地基类型</label>
-                  <el-radio-group v-model="foundationData.foundationType">
-                    <el-radio value="concrete">混凝土基础</el-radio>
-                    <el-radio value="natural">天然地基</el-radio>
+                    <el-radio value="center">平均接地比压</el-radio>
+                    <el-radio value="support" disabled>力矩平衡</el-radio>
                   </el-radio-group>
                 </div>
 
