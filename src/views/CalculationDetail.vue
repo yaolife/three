@@ -1352,13 +1352,13 @@
 
       <div class="result-section">
                  <div class="section-title">
-          结论
+          结论2
         </div>
         <div class="section-content conclusion">
           <!-- 检查所有吊索具是否都满足要求 -->
           <template v-if="liftingFormDatas.every(sling => calculateLiftingResult(sling).isQualified)">
             <template v-for="(sling, index) in liftingFormDatas" :key="sling.id">
-              吊索具{{ index + 1 }}校核计算结果为{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}，{{ sling.loadType === 'magnetic' ? (calculateLiftingResult(sling).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(sling).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(sling).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(sling).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}，同时出厂安全系数满足6倍安全系数,
+              吊索具{{ index + 1 }}校核计算结果为{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}，{{ sling.loadType === 'magnetic' ? (calculateLiftingResult(sling).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(sling).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(sling).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(sling).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}
             </template>
             故满足要求。
           </template>
