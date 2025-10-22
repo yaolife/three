@@ -669,7 +669,7 @@
                 style="margin-left: 50px; display: flex; gap: 20px"
               >
                 <div style="display: flex; align-items: center">
-                  <label class="form-label">平衡梁重量<span>G(a)</span></label>
+                  <label class="form-label">平衡梁重量<span>G1</span></label>
                   <div class="input-with-unit">
                     <el-input-number
                       v-model="activeSlingData.beamWeight"
@@ -693,7 +693,7 @@
                 </div>
 
                 <div style="display: flex; align-items: center">
-                  <label class="form-label">吊梁下部吊具重量</label>
+                  <label class="form-label">吊梁下部吊具重量<span>G2</span></label>
                   <div class="input-with-unit">
                     <el-input-number
                       v-model="activeSlingData.beamSlingWeight"
@@ -1615,17 +1615,17 @@
         <div class="section-content calculation-process">
           <div class="process-text">吊索具校核计算公式为2：</div>
           <div class="process-text" v-if="activeSlingData.loadType === 'magnetic'">
-            (设备重量G + 平衡梁重量G(a) + 吊梁下部吊具重量) × 系数) ÷ (破断拉力N × 吊点数量 × 是否打双系数) &gt; 6
+            (设备重量G + 平衡梁重量G1 + 吊梁下部吊具重量) × 系数) ÷ (破断拉力N × 吊点数量 × 是否打双系数) &gt; 6
           </div>
           <div class="process-text" v-else>
-            (设备重量G + 平衡梁重量G(a) + 吊梁下部吊具重量) × 系数) / (吊索具额定载荷PQ × 吊点数量 × 是否打双系数) × 100% &lt; 100%
+            (设备重量G + 平衡梁重量G1 + 吊梁下部吊具重量) × 系数) / (吊索具额定载荷PQ × 吊点数量 × 是否打双系数) × 100% &lt; 100%
           </div>
 
           <!-- 破断拉力计算公式 -->
           <div class="formula" v-if="activeSlingData.loadType === 'magnetic'">
             <div class="formula-fraction">
               <div class="formula-numerator">
-                (G + G(a) + 吊梁下部吊具重量)
+                (G + G1 + 吊梁下部吊具重量)
                 <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">
                   × X{{ index + 1 }}
                 </template>
@@ -1639,7 +1639,7 @@
           <div class="formula" v-else>
             <div class="formula-fraction">
               <div class="formula-numerator">
-                (G + G(a) + 吊梁下部吊具重量)
+                (G + G1 + 吊梁下部吊具重量)
                 <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">
                   × X{{ index + 1 }}
                 </template>
@@ -1650,9 +1650,9 @@
           </div>
 
           <div class="weight-details">
-            <div class="weight-item">G：设备重量={{ activeSlingData.equipmentWeight }}t</div>
-            <div class="weight-item">G(a)：平衡梁重量={{ activeSlingData.beamWeight }}t</div>
-            <div class="weight-item">吊梁下部吊具重量={{ activeSlingData.beamSlingWeight }}t</div>
+            <div class="weight-item">G:设备重量={{ activeSlingData.equipmentWeight }}t</div>
+            <div class="weight-item">G1:平衡梁重量={{ activeSlingData.beamWeight }}t</div>
+            <div class="weight-item">G2:吊梁下部吊具重量={{ activeSlingData.beamSlingWeight }}t</div>
             <template v-for="(item, index) in activeLiftingSystemItems" :key="index">
               <div class="weight-item">X{{ index + 1 }}：{{ item.name }}={{ item.value }}</div>
             </template>
@@ -2383,7 +2383,7 @@ const calculateLiftingResult = (sling) => {
     }
   } else if (sling.liftingType === 'withBeam') {
     // 有吊梁情况
-    // 计算公式: ((G + G(a) + 吊梁下部吊具重量) × X1 × X2 × ...) / (PQ × 吊点数量 × 是否打双系数) × 100% < 100%
+    // 计算公式: ((G + G1 + 吊梁下部吊具重量) × X1 × X2 × ...) / (PQ × 吊点数量 × 是否打双系数) × 100% < 100%
     
     const totalWeight = sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
     const doubleFactor = sling.isDouble ? 2 : 1;
@@ -2394,7 +2394,7 @@ const calculateLiftingResult = (sling) => {
     return {
       result: result,
       isQualified: result < 100,
-      formula: `((G + G(a) + 吊梁下部吊具重量) × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ) ÷ (PQ × 吊点数量 × 是否打双系数) × 100% = ((${sling.equipmentWeight} + ${sling.beamWeight} + ${sling.beamSlingWeight}) × ${factorProduct.toFixed(2)}) ÷ ${denominator} × 100%`
+      formula: `((G + G1 + G2) × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ) ÷ (PQ × 吊点数量 × 是否打双系数) × 100% = ((${sling.equipmentWeight} + ${sling.beamWeight} + ${sling.beamSlingWeight}) × ${factorProduct.toFixed(2)}) ÷ ${denominator} × 100%`
     };
   }
   
