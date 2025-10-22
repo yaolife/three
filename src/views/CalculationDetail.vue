@@ -1612,7 +1612,9 @@
         <div class="result-section">
           <div class="section-title">计算过程</div>
           <div class="section-content calculation-process">
-            <div class="process-text">吊索具校核计算公式1：</div>
+            <!-- 根据是否为底部吊索具显示不同的描述 -->
+            <div class="process-text" v-if="sling.isBottomSling">已知吊梁与设备之间吊索具的吊装公式为：</div>
+            <div class="process-text" v-else>已知吊钩与吊梁之间吊索具的吊装公式为：</div>
             
             <!-- 根据是否为底部吊索具和loadType显示不同的计算公式 -->
             <template v-if="sling.isBottomSling">
