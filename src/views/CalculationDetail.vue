@@ -750,7 +750,7 @@
                 alt=""
                 :fit="'cover'"
                 @click="addNewSling"
-                v-if="!activeSlingData.isSinglePointLifting"
+                v-if="activeSlingData.liftingType === 'noBeam' ? !activeSlingData.isSinglePointLifting : true"
               />
             </div>
             <div
