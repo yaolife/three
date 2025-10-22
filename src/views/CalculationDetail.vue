@@ -1065,9 +1065,12 @@
           <div class="section section-with-border" style="margin-top: 0">
             <div class="form-content">
               <div class="form-grid">
-             <div class="form-row">
+                <div class="form-row">
                   <label class="form-label">承载类型</label>
-                  <el-select v-model="foundationData.craneType" placeholder="请选择承载类型">
+                  <el-select
+                    v-model="foundationData.craneType"
+                    placeholder="请选择承载类型"
+                  >
                     <el-option label="汽车式" value="truck" />
                     <el-option label="塔式" value="tower" />
                     <el-option label="履带式" value="tracked" />
@@ -1080,51 +1083,34 @@
                     placeholder="请输入起重机名称"
                   />
                 </div>
- 
               </div>
             </div>
             <div class="weight_set">
               <div class="section-title">重心设置</div>
               <div class="form-content">
-                <div class="form-row">
-                  <label class="form-label">计算方式</label>
-                  <el-radio-group v-model="foundationData.calculationPoint">
-                    <el-radio value="center">平均接地比压</el-radio>
-                    <el-radio value="support" disabled>力矩平衡</el-radio>
-                  </el-radio-group>
+                <div class="form-grid">
+                  <div class="form-row">
+                    <label class="form-label">履带名称</label>
+                    <el-input
+                      v-model="foundationData.trackName"
+                      placeholder="请输入履带名称"
+                    />
+                  </div>
+                  <div class="form-row">
+                    <label class="form-label">履带型号</label>
+                    <el-input
+                      v-model="foundationData.trackModel"
+                      placeholder="请输入履带型号"
+                    />
+                  </div>
                 </div>
-
                 <div class="form-grid" style="margin-top: 16px">
                   <div class="form-row">
-                    <label class="form-label">压实系数K</label>
-                    <div class="input-with-unit">
-                      <el-input-number
-                        v-model="foundationData.compactionCoeff"
-                        controls-position="right"
-                        :precision="2"
-                      />
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <label class="form-label">地基承载力特征值fa</label>
-                    <div class="input-with-unit">
-                      <el-input-number
-                        v-model="foundationData.bearingCapacity"
-                        controls-position="right"
-                        :precision="2"
-                      />
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <label class="form-label">重力加速度g</label>
-                    <div class="input-with-unit">
-                      <el-input-number
-                        v-model="foundationData.gravityAccel"
-                        controls-position="right"
-                        :precision="2"
-                      />
-                      <span class="unit">m/s²</span>
-                    </div>
+                    <label class="form-label">计算方式</label>
+                    <el-radio-group v-model="foundationData.calculationPoint">
+                      <el-radio value="center">平均接地比压</el-radio>
+                      <el-radio value="support" disabled>力矩平衡</el-radio>
+                    </el-radio-group>
                   </div>
                 </div>
               </div>
@@ -3500,6 +3486,8 @@ const foundationData = ref({
   bearingCapacity: 200.0,
   gravityAccel: 9.8,
   craneType: "truck",
+  trackName: "",
+  trackModel: "",
 });
 
 // 地基承载力计算方法
@@ -3522,6 +3510,8 @@ const resetFoundation = () => {
     bearingCapacity: 200.0,
     gravityAccel: 9.8,
     craneType: "truck",
+    trackName: "",
+    trackModel: "",
   };
 };
 </script>
