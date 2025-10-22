@@ -1279,7 +1279,7 @@
           <div class="section-title">计算过程</div>
           <div class="section-content calculation-process">
             <!-- 根据loadType显示不同的计算公式 -->
-            <div class="process-text">吊索具校核计算公式为3：</div>
+            <div class="process-text">已知吊索具与设备直连的吊装公式为：</div>
             <div class="process-text" v-if="sling.loadType === 'magnetic'">
               破断拉力安全系数算法，破断拉力÷【设备重量G×动载系数×偏载系数×其他安全系数】＞6
             </div>
@@ -2330,27 +2330,27 @@ const calculateLiftingResult = (sling) => {
     // 无吊梁情况
     if (sling.topPointCount === 1 && sling.bottomPointCount === 1) {
       // 场景一：无吊梁且上/下部吊点数量均为1
-      // 破断拉力计算公式: N > 6 × (G ÷ r × X1 × X2 ÷ sinQ)
-      // 额定载荷计算公式: (G ÷ r × X1 × X2 ÷ sinQ ÷ B) × 100% < 100%
+      // 破断拉力计算公式: N > 6 × (G  × X1 × X2)
+      // 额定载荷计算公式: (G  × X1 × X2 ÷ sinQ ÷ B) × 100% < 100%
       
       const sinQ = calculateSinValue(sling.angle);
+      const numerator = sling.equipmentWeight / sling.bottomPointCount * factorProduct;
       if (sling.loadType === 'magnetic') {
         // 破断拉力安全系数算法
-        // 公式应为: N ÷ (G ÷ r × X1 × X2 ÷ sinQ) > 6
-        const numerator = sling.equipmentWeight / sling.bottomPointCount * factorProduct / sinQ;
+        // 公式应为: N ÷ (G × X1 × X2 ×...) > 6
         const result = sling.safetyFactor / numerator;
         return {
           result: result,
           isQualified: result > 6,
-          formula: `N ÷ (G ÷ r × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ÷ sinQ) = ${sling.safetyFactor} ÷ (${sling.equipmentWeight} ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)})`
+          formula: `N ÷ (G × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')}) = ${sling.safetyFactor} ÷ (${sling.equipmentWeight} ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)})`
         };
       } else {
         // 额定载荷算法
-        const result = (sling.equipmentWeight / sling.bottomPointCount * factorProduct / sinQ / sling.ratedLoad) * 100;
+        const result = (numerator / sling.ratedLoad) * 100;
         return {
           result: result,
           isQualified: result < 100,
-          formula: `(G ÷ r × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ÷ sinQ ÷ B) × 100% = (${sling.equipmentWeight} ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)} ÷ ${sling.ratedLoad}) × 100%`
+          formula: `(G × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')}÷ B) × 100% = (${sling.equipmentWeight} ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)} ÷ ${sling.ratedLoad}) × 100%`
         };
       }
     } else if (sling.bottomPointCount > 1) {
