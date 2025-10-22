@@ -1119,7 +1119,7 @@
                   <!-- 左列 -->
                   <div style="flex: 1;">
                     <div class="form-row" style="margin-bottom: 16px;">
-                      <label class="form-label">左侧履带板宽度<span>B</span></label>
+                      <label class="form-label">左或右侧履带板宽度<span>B1</span></label>
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="foundationData.trackWidthB"
@@ -1152,7 +1152,7 @@
                       </div>
                     </div>
                     <div class="form-row">
-                      <label class="form-label">重力加速度<span>gt</span></label>
+                      <label class="form-label">重力加速度<span>g</span></label>
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="foundationData.gravityAccel"
