@@ -1550,13 +1550,6 @@
   >
     <div class="calculation-result">
       <h3>xxxxxx方案项目吊索具校核计算</h3>
-
-      <div class="result-section">
-        <div class="section-title">
-          项目吊装方式:{{ activeSlingData.liftingType === 'withBeam' ? '有吊梁' : '无吊梁' }}
-        </div>
-      </div>
-
       <div class="result-section">
         <div class="section-title">吊索具信息</div>
         <div class="section-content">
@@ -1625,12 +1618,12 @@
           <div class="formula" v-if="activeSlingData.loadType === 'magnetic'">
             <div class="formula-fraction">
               <div class="formula-numerator">
-                (G + G1 + 吊梁下部吊具重量)
+                (G + G1 + G2)
                 <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">
                   × X{{ index + 1 }}
                 </template>
               </div>
-              <div class="formula-denominator">N × 吊点数量 × 是否打双系数</div>
+              <div class="formula-denominator">N × r</div>
             </div>
             <div class="formula-operator">&gt; 6</div>
           </div>
@@ -1639,12 +1632,12 @@
           <div class="formula" v-else>
             <div class="formula-fraction">
               <div class="formula-numerator">
-                (G + G1 + 吊梁下部吊具重量)
+                (G + G1 + G2)
                 <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">
                   × X{{ index + 1 }}
                 </template>
               </div>
-              <div class="formula-denominator">PQ × 吊点数量 × 是否打双系数</div>
+              <div class="formula-denominator">PQ × r</div>
             </div>
             <div class="formula-operator">× 100% &lt; 100%</div>
           </div>
@@ -1657,7 +1650,7 @@
               <div class="weight-item">X{{ index + 1 }}：{{ item.name }}={{ item.value }}</div>
             </template>
             <div class="weight-item">PQ：吊索具额定载荷={{ activeSlingData.ratedLoad }}MPa</div>
-            <div class="weight-item">吊点数量：{{ activeSlingData.bottomPointCount }}</div>
+            <div class="weight-item">r:吊点数量：{{ activeSlingData.bottomPointCount }}</div>
           </div>
           
           <!-- 计算结果放在计算过程下方 -->
