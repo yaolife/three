@@ -1287,12 +1287,32 @@
               设备重量G×动载系数×偏载系数×其他系数）/额定载荷×100%＜100%
             </div>
 
-            <div class="formula">
+            <!-- 破断拉力计算公式 -->
+            <div class="formula" v-if="sling.loadType === 'magnetic'">
+              <div class="formula-fraction">
+                <div class="formula-numerator" style="padding: 10px 50px;">
+                  N
+                </div>
+                <div class="formula-denominator">
+                  G
+                  <template v-for="(item, index) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="index">
+                    × X{{ index + 1 }}
+                  </template>
+                </div>
+              </div>
+              <div class="formula-operator">&gt; 6</div>
+            </div>
+
+            <!-- 额定载荷计算公式 -->
+            <div class="formula" v-else>
               <div class="formula-fraction">
                 <div class="formula-numerator">
-              N
+                  G
+                  <template v-for="(item, index) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="index">
+                    × X{{ index + 1 }}
+                  </template>
                 </div>
-                <div class="formula-denominator"> G <template v-for="(item, index) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="index">× X{{ index + 1 }}</template> </div>
+                <div class="formula-denominator">额定载荷PQ</div>
               </div>
               <div class="formula-operator">× 100% &lt; 100%</div>
             </div>
@@ -1331,6 +1351,9 @@
       </div>
 
       <div class="result-section">
+                 <div class="section-title">
+          结论
+        </div>
         <div class="section-content conclusion">
           <!-- 检查所有吊索具是否都满足要求 -->
           <template v-if="liftingFormDatas.every(sling => calculateLiftingResult(sling).isQualified)">
@@ -1591,14 +1614,35 @@
         <div class="section-title">计算过程</div>
         <div class="section-content calculation-process">
           <div class="process-text">吊索具校核计算公式为2：</div>
-          <div class="process-text">
+          <div class="process-text" v-if="activeSlingData.loadType === 'magnetic'">
+            (设备重量G + 平衡梁重量G(a) + 吊梁下部吊具重量) × 系数) ÷ (破断拉力N × 吊点数量 × 是否打双系数) &gt; 6
+          </div>
+          <div class="process-text" v-else>
             (设备重量G + 平衡梁重量G(a) + 吊梁下部吊具重量) × 系数) / (吊索具额定载荷PQ × 吊点数量 × 是否打双系数) × 100% &lt; 100%
           </div>
 
-          <div class="formula">
+          <!-- 破断拉力计算公式 -->
+          <div class="formula" v-if="activeSlingData.loadType === 'magnetic'">
             <div class="formula-fraction">
               <div class="formula-numerator">
-                (G + G(a) + 吊梁下部吊具重量) <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">× X{{ index + 1 }}</template>
+                (G + G(a) + 吊梁下部吊具重量)
+                <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">
+                  × X{{ index + 1 }}
+                </template>
+              </div>
+              <div class="formula-denominator">N × 吊点数量 × 是否打双系数</div>
+            </div>
+            <div class="formula-operator">&gt; 6</div>
+          </div>
+
+          <!-- 额定载荷计算公式 -->
+          <div class="formula" v-else>
+            <div class="formula-fraction">
+              <div class="formula-numerator">
+                (G + G(a) + 吊梁下部吊具重量)
+                <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">
+                  × X{{ index + 1 }}
+                </template>
               </div>
               <div class="formula-denominator">PQ × 吊点数量 × 是否打双系数</div>
             </div>
