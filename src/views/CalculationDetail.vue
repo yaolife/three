@@ -610,7 +610,7 @@
         <el-scrollbar>
           <!-- 设备吊索设置 -->
           <div class="section section-with-border">
-            <div class="section-title">设备吊索设置</div>
+            <div class="section-title">设备设置</div>
             <div class="form-content">
               <div class="form-grid">
                 <div class="form-row">
@@ -799,6 +799,15 @@
                 />
               </div>
 
+              <div class="form-row">
+                <label class="form-label">产品型号</label>
+                <el-input
+                  v-model="activeSlingData.productModel"
+                  placeholder="请输入产品型号"
+                  class="manufacturer-input"
+                />
+              </div>
+              
               <!-- Removed standalone radio group row -->
               <div class="form-row" style="margin-left: 50px">
                 <el-radio-group v-model="activeSlingData.loadType">
@@ -1275,7 +1284,7 @@
         <div class="section-content calculation-process">
           <div class="process-text">已知单台计算机吊装公式为：</div>
           <div class="process-text">
-            设备重量G+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
+            （设备重量G+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
             <template
               v-for="(factor, index) in singleResult.selectedFactors"
               :key="index"
@@ -2493,7 +2502,7 @@
         <div class="section-content calculation-process">
           <div class="process-text">已知两台起重机吊装公式为：</div>
           <div class="process-text">
-            （单台起重机所承担最大设备重量G0+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
+                        （单台起重机所承担最大设备重量G0+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
             <template
               v-for="(factor, index) in doubleResult.selectedFactors"
               :key="index"
@@ -2506,7 +2515,7 @@
           <div class="formula">
             <div class="formula-fraction">
               <div class="formula-numerator">
-                (G+G1+G2+G3+G4)
+                (G0+G1+G2+G3+G4)
                 <template
                   v-for="(factor, index) in doubleResult.selectedFactors"
                   :key="index"
@@ -2521,7 +2530,7 @@
 
           <div class="weight-details">
             <div class="weight-item">
-              G：设备重量={{ doubleResult.equipmentWeight }}t
+              G0：单台起重机所承担最大设备重量={{ doubleResult.G0 }}t
             </div>
             <div class="weight-item">
               G1：吊钩重量={{ doubleResult.hookWeight }}t
@@ -2732,6 +2741,143 @@
       </el-button>
     </div>
   </el-dialog>
+
+  <!-- 地基承载力计算结果弹窗 -->
+  <el-dialog
+    v-model="foundationResultDialogVisible"
+    title="计算结果"
+    width="900px"
+    append-to-body
+  >
+    <div class="calculation-result foundation-result">
+      <h3>xxxxx方案项目地基承载力校核计算</h3>
+
+      <div class="result-section">
+        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666;">
+          履带信息
+        </div>
+        <div class="section-content" style="padding: 12px;">
+          <div class="info-row">
+            <span class="info-label">履带名称：</span>
+            <span class="info-value">{{ foundationCalculationResult.trackInfo.name }}</span>
+            <span class="info-label" style="margin-left: 40px;">型号：</span>
+            <span class="info-value">{{ foundationCalculationResult.trackInfo.model }}</span>
+          </div>
+          <div class="info-row" style="margin-top: 8px;">
+            <span class="info-label">规格型号：</span>
+            <span class="info-value">{{ foundationCalculationResult.trackInfo.specifications }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-section">
+        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666;">
+          其它参数
+        </div>
+        <div class="section-content" style="padding: 12px;">
+          <div class="info-row">
+            <span class="info-label">接地长度</span>
+            <span class="info-value">{{ foundationCalculationResult.otherParams.groundLength }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-section">
+        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666;">
+          计算过程
+        </div>
+        <div class="section-content calculation-process" style="padding: 12px;">
+          <div class="process-text">第一步：已知履带接地长度和履带宽度，可以计算出接地面积</div>
+          <div class="process-text">接地面积公式为</div>
+          
+          <div class="formula" style="margin: 20px 0; text-align: center;">
+            <div style="font-size: 24px; color: #666;">
+              <span style="font-style: italic; font-weight: bold;">A</span>
+              <span style="margin: 0 10px;">=</span>
+              <span style="font-style: italic; font-weight: bold;">L</span><sub>4</sub>
+              <span style="margin: 0 10px;">×</span>
+              <span style="font-style: italic; font-weight: bold;">2B</span><sub>1</sub>
+            </div>
+          </div>
+
+          <div class="weight-details" style="margin: 20px 0;">
+            <div class="weight-item">
+              L4：履带接地长度= {{ foundationData.trackGroundLengthL4 }}m
+            </div>
+            <div class="weight-item">
+              B1：左或右侧履带板宽度= {{ foundationData.trackWidthB }}m
+            </div>
+          </div>
+
+          <div class="info-row" style="margin: 20px 0;">
+            <span class="info-label">履带接地面积计算结果A=</span>
+            <span class="info-value">{{ foundationCalculationResult.calculationProcess.area.toFixed(2) }} m²</span>
+          </div>
+
+          <div class="process-text" style="margin-top: 30px;">第二步：根据起重机设计自重和重力加速度，以及得出的接地面积计算出平均接地比压</div>
+          <div class="process-text">平均接地比压按公式为</div>
+
+          <div class="formula" style="margin: 20px 0; text-align: center;">
+            <div style="font-size: 24px; color: #666; display: flex; align-items: center; justify-content: center;">
+              <span style="font-style: italic; font-weight: bold;">T</span>
+              <span style="margin: 0 10px;">=</span>
+              <div style="display: inline-flex; flex-direction: column; align-items: center;">
+                <div style="padding: 5px 20px; border-bottom: 2px solid #666;">
+                  <span style="font-style: italic; font-weight: bold;">W</span>
+                  <span style="margin: 0 5px;">×</span>
+                  <span style="font-style: italic; font-weight: bold;">g</span>
+                </div>
+                <div style="padding: 5px 20px;">
+                  <span style="font-style: italic; font-weight: bold;">A</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="weight-details" style="margin: 20px 0;">
+            <div class="weight-item">
+              W：起重机设计自重={{ foundationData.craneWeightW }}t
+            </div>
+            <div class="weight-item">
+              g：重力加速度={{ foundationData.gravityAccel }} m/s²
+            </div>
+            <div class="weight-item">
+              A：履带接地面积={{ foundationCalculationResult.calculationProcess.area.toFixed(2) }} m²
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-section result-final">
+        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666; display: flex; align-items: center; justify-content: space-between;">
+          <div>T:履带平均接地比压= {{ foundationCalculationResult.calculationProcess.pressure.toFixed(2) }}t</div>
+          <el-button 
+            type="text" 
+            style="color: #666; padding: 0;"
+            @click="copyFoundationResult"
+          >
+            <el-icon style="font-size: 18px;"><DocumentCopy /></el-icon>
+          </el-button>
+        </div>
+      </div>
+
+      <div class="result-section">
+        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666;">
+          结论
+        </div>
+        <div class="section-content conclusion" style="padding: 12px;">
+          履带平均接地比压计算结果为{{ foundationCalculationResult.calculationProcess.pressure.toFixed(0) }}t
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="foundationResultDialogVisible = false">关闭</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
 </template>
 
 <script setup>
@@ -2743,7 +2889,9 @@ import {
   Tools,
   Connection,
   Histogram,
+  DocumentCopy, // 添加复制图标
 } from "@element-plus/icons-vue";
+import { ElMessage } from 'element-plus'; // Corrected import statement for ElMessage
 
 const router = useRouter();
 const activeTab = ref("crane");
@@ -2798,6 +2946,7 @@ const formData = ref({
   crane1Weight: 0,
   crane2Distance: 0,
   crane2Weight: 0,
+  G0: 65, // 添加G0字段，默认值为65
 
   // 重量计算设置 - 左侧重量参数
   isEquipmentWeightChecked: false,
@@ -2824,6 +2973,7 @@ const liftingFormDatas = ref([
     hasRope: false,
     slingName: "",
     manufacturer: "",
+    productModel: "", // 添加产品型号字段，默认值为SCC13000TM
     loadType: "magnetic", // New field for radio button selection, default to "magnetic" (破断拉力)
     safetyFactor: 1,
     ratedLoad: 0, // 添加额定载荷字段
@@ -2867,47 +3017,61 @@ const activeSlingData = computed(() => {
   return liftingFormDatas.value[activeSlingIndex.value];
 });
 
+// 弹窗可见性状态
+const singleCraneDialogVisible = ref(false);
+const doubleCraneDialogVisible = ref(false);
+// 吊索具计算结果弹窗状态
+const liftingResultDialog1Visible = ref(false);
+const liftingResultDialog2Visible = ref(false);
+const liftingResultDialog3Visible = ref(false);
+// 地基承载力计算结果弹窗状态
+const foundationResultDialogVisible = ref(false);
+
+// 弹窗可见性状态
+const showSlingTypeDialog = ref(false);
+const selectedSlingType = ref(""); // 'upper' or 'lower'
+
 // 监听吊装类型变化，切换时重置吊索具配置到默认初始状态
 watch(
-  () => liftingFormDatas.value[activeSlingIndex.value]?.liftingType,
+  () => activeSlingData.value?.liftingType, // Use optional chaining to safely access liftingType
   (newType, oldType) => {
-    // 当从无吊梁切换到有吊梁时，重置为有吊梁的默认初始状态
+    // When switching from 'noBeam' to 'withBeam'
     if (newType === "withBeam" && oldType === "noBeam") {
-      // 获取第一个吊索具配置作为基础
-      const firstSlingData = JSON.parse(
-        JSON.stringify(liftingFormDatas.value[0])
-      );
-      firstSlingData.id = 1;
-      firstSlingData.isBottomSling = false;
-      firstSlingData.liftingType = "withBeam"; // 明确设置为有吊梁类型
+      // Find the first sling as a template
+      const templateSling = liftingFormDatas.value.find(s => s.liftingType === 'noBeam');
+      if (templateSling) {
+        // Create upper sling
+        const upperSling = JSON.parse(JSON.stringify(templateSling));
+        upperSling.id = liftingFormDatas.value.length + 1;
+        upperSling.isBottomSling = false;
+        upperSling.liftingType = 'withBeam';
+        upperSling.liftingSystemItems = JSON.parse(JSON.stringify(upperSling.liftingSystemItems || [{ id: 1, order: 1, name: "动载系数", value: 0.8, checked: false }])); // Ensure it has items
 
-      // 创建下部吊索具
-      const bottomSlingData = JSON.parse(JSON.stringify(firstSlingData));
-      bottomSlingData.id = 2;
-      bottomSlingData.isBottomSling = true;
-      bottomSlingData.liftingType = "withBeam"; // 明确设置为有吊梁类型
+        // Create lower sling
+        const lowerSling = JSON.parse(JSON.stringify(templateSling));
+        lowerSling.id = liftingFormDatas.value.length + 2;
+        lowerSling.isBottomSling = true;
+        lowerSling.liftingType = 'withBeam';
+        lowerSling.liftingSystemItems = JSON.parse(JSON.stringify(lowerSling.liftingSystemItems || [{ id: 1, order: 1, name: "动载系数", value: 0.8, checked: false }])); // Ensure it has items
 
-      // 重置为两个吊索具的默认配置
-      liftingFormDatas.value = [firstSlingData, bottomSlingData];
-      activeSlingIndex.value = 0;
+        liftingFormDatas.value = [upperSling, lowerSling];
+        activeSlingIndex.value = 0;
+      }
     }
-    // 当从有吊梁切换到无吊梁时，重置为单个吊索具配置
+    // When switching from 'withBeam' to 'noBeam'
     else if (newType === "noBeam" && oldType === "withBeam") {
-      // 保存第一个吊索具配置（上部吊索具），移除其他配置
-      const firstSlingData = JSON.parse(
-        JSON.stringify(liftingFormDatas.value[0])
-      );
-      firstSlingData.isBottomSling = false;
-      firstSlingData.liftingType = "noBeam"; // 明确设置为无吊梁类型
-      liftingFormDatas.value = [firstSlingData];
-      activeSlingIndex.value = 0;
+      // Keep the first sling (assuming it's the primary one) and reset its type
+      const firstSling = liftingFormDatas.value.find(s => s.id === 1); // Or the first one in the current list
+      if (firstSling) {
+        firstSling.liftingType = 'noBeam';
+        firstSling.isBottomSling = false; // Reset if it was a lower sling
+        liftingFormDatas.value = [firstSling];
+        activeSlingIndex.value = 0;
+      }
     }
   }
 );
 
-// 弹窗相关状态
-const showSlingTypeDialog = ref(false);
-const selectedSlingType = ref(""); // 'upper' or 'lower'
 
 // 添加新的吊索具配置
 const addNewSling = () => {
@@ -2944,13 +3108,13 @@ const confirmAddSling = () => {
       sling.liftingType === "withBeam" && sling.isBottomSling === !isUpper
   ).length;
 
-  // 找到上部吊索具01作为模板
+  // 找到第一个上部吊索具作为模板
   const upperSlingTemplate = liftingFormDatas.value.find(
     (sling) => sling.liftingType === "withBeam" && !sling.isBottomSling
   );
 
   if (upperSlingTemplate) {
-    // 复制上部吊索具01的内容
+    // 复制模板内容
     const newSlingData = JSON.parse(JSON.stringify(upperSlingTemplate));
     newSlingData.id = liftingFormDatas.value.length + 1;
     newSlingData.isBottomSling = !isUpper;
@@ -2975,11 +3139,12 @@ const confirmAddSling = () => {
   showSlingTypeDialog.value = false;
 };
 
-// 关闭弹窗
+// 关闭吊索具类型选择弹窗
 const closeSlingTypeDialog = () => {
   selectedSlingType.value = "";
   showSlingTypeDialog.value = false;
 };
+
 
 // 获取吊索具序号
 const getSlingIndex = (sling, isBottomSling) => {
@@ -3082,18 +3247,10 @@ const handleLiftingSystemInputChange = (index) => {
   }
 };
 
-// 弹窗可见性状态
-const singleCraneDialogVisible = ref(false);
-const doubleCraneDialogVisible = ref(false);
-// 吊索具计算结果弹窗状态
-const liftingResultDialog1Visible = ref(false);
-const liftingResultDialog2Visible = ref(false);
-const liftingResultDialog3Visible = ref(false);
-
 // 计算属性：获取当前激活吊索具的已选中重量系数项
 const activeLiftingSystemItems = computed(() => {
   return activeSlingData.value.liftingSystemItems.filter(
-    (item) => item.checked && item.value
+    (item) => item.checked && item.name && item.value !== null
   );
 });
 
@@ -3119,187 +3276,78 @@ const calculateLiftingResult = (sling) => {
     factorProduct *= factor.value;
   });
 
-  // 根据不同的吊装类型计算结果
+  // 计算角度的正弦值
+  const sinQ = calculateSinValue(sling.angle);
+
+  // 计算单条吊索的受力（假设平均分配）
+  let forcePerSling = 0;
+  let result = 0;
+  let isQualified = false;
+
+
   if (sling.liftingType === "noBeam") {
     // 无吊梁情况
     if (sling.topPointCount === 1 && sling.bottomPointCount === 1) {
       // 场景一：无吊梁且上/下部吊点数量均为1
-      // 破断拉力计算公式: N > 6 × (G  × X1 × X2)
-      // 额定载荷计算公式: (G  × X1 × X2 ÷ sinQ ÷ B) × 100% < 100%
+      forcePerSling = (sling.equipmentWeight / sling.bottomPointCount) * factorProduct;
 
-      const sinQ = calculateSinValue(sling.angle);
-      const numerator =
-        (sling.equipmentWeight / sling.bottomPointCount) * factorProduct;
       if (sling.loadType === "magnetic") {
         // 破断拉力安全系数算法
-        // 公式应为: N ÷ (G × X1 × X2 ×...) > 6
-        const result = sling.safetyFactor / numerator;
-        return {
-          result: result,
-          isQualified: result > 6,
-          formula: `N ÷ (G × ${selectedFactors
-            .map((f, i) => `X${i + 1}`)
-            .join(" × ")}) = ${sling.safetyFactor} ÷ (${
-            sling.equipmentWeight
-          } ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(
-            2
-          )} ÷ ${sinQ.toFixed(4)})`,
-        };
+        result = sling.safetyFactor / forcePerSling;
+        isQualified = result > 6;
       } else {
         // 额定载荷算法
-        const result = (numerator / sling.ratedLoad) * 100;
-        return {
-          result: result,
-          isQualified: result < 100,
-          formula: `(G × ${selectedFactors
-            .map((f, i) => `X${i + 1}`)
-            .join(" × ")}÷ B) × 100% = (${sling.equipmentWeight} ÷ ${
-            sling.bottomPointCount
-          } × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)} ÷ ${
-            sling.ratedLoad
-          }) × 100%`,
-        };
+        result = (forcePerSling / sling.ratedLoad) * 100;
+        isQualified = result < 100;
       }
     } else if (sling.bottomPointCount > 1) {
       // 场景二：无吊梁且下部吊点数量大于1
-      // 破断拉力计算公式: N ÷ 【G ÷ r × X1 × X2×... ÷ sinQ】> 6
-      // 额定载荷计算公式: G ÷ r × X1 × X2 ×... ÷ sinQ ÷ B < 100%
-
-      const sinQ = calculateSinValue(sling.angle);
-      let result, isQualified;
-
+      forcePerSling = (sling.equipmentWeight / sling.bottomPointCount) * factorProduct / sinQ;
       if (sling.loadType === "magnetic") {
-        // 破断拉力情况: N ÷ 【G ÷ r × X1 × X2 ÷ sinQ】
-        const numerator =
-          ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) /
-          sinQ;
-        result = sling.safetyFactor / numerator;
+        // 破断拉力情况
+        result = sling.safetyFactor / forcePerSling;
         isQualified = result > 6;
       } else {
-        // 额定载荷情况: G ÷ r × X1 × X2 ÷ sinQ ÷ B
-        const numerator =
-          ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) /
-          sinQ;
-        result = (numerator / sling.ratedLoad) * 100;
+        // 额定载荷情况
+        result = (forcePerSling / sling.ratedLoad) * 100;
         isQualified = result < 100;
       }
-
-      return {
-        result: result,
-        isQualified: isQualified,
-        formula:
-          sling.loadType === "magnetic"
-            ? `N ÷ (G ÷ r × ${selectedFactors
-                .map((f, i) => `X${i + 1}`)
-                .join(" × ")} ÷ sinQ) = ${sling.safetyFactor} ÷ (${
-                sling.equipmentWeight
-              } ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(
-                2
-              )} ÷ ${sinQ.toFixed(4)})`
-            : `(G ÷ r × ${selectedFactors
-                .map((f, i) => `X${i + 1}`)
-                .join(" × ")} ÷ sinQ ÷ B) × 100% = (${
-                sling.equipmentWeight
-              } ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(
-                2
-              )} ÷ ${sinQ.toFixed(4)} ÷ ${sling.ratedLoad}) × 100%`,
-      };
     }
   } else if (sling.liftingType === "withBeam") {
     // 有吊梁情况，需要区分上部吊索具和下部吊索具
-    const sinQ = calculateSinValue(sling.angle);
-    const doubleFactor = sling.isDouble ? 2 : 1;
-
     if (sling.isBottomSling) {
       // 下部吊索具
+      forcePerSling = ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) / sinQ;
       if (sling.loadType === "magnetic") {
         // 下部吊索具且为破断拉力
-        // 破断拉力÷【设备重量÷吊点数量×动载系数×偏载系数×其他系数÷sinQ
-        const numerator =
-          ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) /
-          sinQ;
-        const result = sling.safetyFactor / numerator;
-        return {
-          result: result,
-          isQualified: result > 6,
-          formula: `N ÷ (G ÷ r × ${selectedFactors
-            .map((f, i) => `X${i + 1}`)
-            .join(" × ")} ÷ sinQ) = ${sling.safetyFactor} ÷ (${
-            sling.equipmentWeight
-          } ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(
-            2
-          )} ÷ ${sinQ.toFixed(4)})`,
-        };
+        result = sling.safetyFactor / forcePerSling;
+        isQualified = result > 6;
       } else {
         // 下部吊索具且为额定载荷
-        // 设备重量÷吊点数量×动载系数×偏载系数×其他系数÷sinQ÷额定载荷
-        const numerator =
-          ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) /
-          sinQ;
-        const result = (numerator / sling.ratedLoad) * 100;
-        return {
-          result: result,
-          isQualified: result < 100,
-          formula: `(G ÷ r × ${selectedFactors
-            .map((f, i) => `X${i + 1}`)
-            .join(" × ")} ÷ sinQ ÷ B) × 100% = (${sling.equipmentWeight} ÷ ${
-            sling.bottomPointCount
-          } × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)} ÷ ${
-            sling.ratedLoad
-          }) × 100%`,
-        };
+        result = (forcePerSling / sling.ratedLoad) * 100;
+        isQualified = result < 100;
       }
     } else {
       // 上部吊索具
+      const totalWeight = sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
+      forcePerSling = ((totalWeight / sling.bottomPointCount) * factorProduct) / sinQ;
       if (sling.loadType === "magnetic") {
         // 上部吊索具且为破断拉力
-        // 破断拉力÷【（设备重量+吊梁重量+吊梁下部吊索具重量）÷吊点数量×动载系数×偏载系数×其他系数÷sinQ
-        const totalWeight =
-          sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
-        const numerator =
-          ((totalWeight / sling.bottomPointCount) * factorProduct) / sinQ;
-        const result = sling.safetyFactor / numerator;
-        return {
-          result: result,
-          isQualified: result > 6,
-          formula: `N ÷ ((G + G1 + G2) ÷ r × ${selectedFactors
-            .map((f, i) => `X${i + 1}`)
-            .join(" × ")} ÷ sinQ) = ${sling.safetyFactor} ÷ ((${
-            sling.equipmentWeight
-          } + ${sling.beamWeight} + ${sling.beamSlingWeight}) ÷ ${
-            sling.bottomPointCount
-          } × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)})`,
-        };
+        result = sling.safetyFactor / forcePerSling;
+        isQualified = result > 6;
       } else {
         // 上部吊索具且为额定载荷
-        // （设备重量+吊梁重量+吊梁下部吊索具重量）÷吊点数量×动载系数×偏载系数×其他系数÷sinQ（单条吊索与吊梁夹角）÷额定载荷
-        const totalWeight =
-          sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
-        const numerator =
-          ((totalWeight / sling.bottomPointCount) * factorProduct) / sinQ;
-        const result = (numerator / sling.ratedLoad) * 100;
-        return {
-          result: result,
-          isQualified: result < 100,
-          formula: `((G + G1 + G2) ÷ r × ${selectedFactors
-            .map((f, i) => `X${i + 1}`)
-            .join(" × ")} ÷ sinQ ÷ B) × 100% = ((${sling.equipmentWeight} + ${
-            sling.beamWeight
-          } + ${sling.beamSlingWeight}) ÷ ${
-            sling.bottomPointCount
-          } × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)} ÷ ${
-            sling.ratedLoad
-          }) × 100%`,
-        };
+        result = (forcePerSling / sling.ratedLoad) * 100;
+        isQualified = result < 100;
       }
     }
   }
 
+
   // 默认返回
   return {
-    result: 0,
-    isQualified: false,
-    formula: "",
+    result: result,
+    isQualified: isQualified,
   };
 };
 
@@ -3355,7 +3403,8 @@ const doubleResult = ref({
   wireRopeWeight: 0,
   slingsWeight: 0,
   otherWeight: 0,
-  equipmentWeight: 65, // 默认取65
+  equipmentWeight: 65, // 默认取65 双机吊装G0的值
+  G0: 65, // 添加专门的G0字段
   factorDisplay: "", // Added to hold the formatted factor string
   factorProduct: 1, // Initialize to 1
   calculationResult1: 0,
@@ -3416,15 +3465,6 @@ const showCalculationResult = () => {
         formData.value.ratedLoad) *
       100;
 
-    // 构建选中的系数显示字符串
-    let factorDisplay = "";
-    selectedFactors.forEach((factor, index) => {
-      const factorName = String.fromCharCode(88 + index + 1); // X1, X2, X3...
-      factorDisplay += `${factorName}：${factor.name}=${factor.value.toFixed(
-        2
-      )} `;
-    });
-
     // 填充单机吊装结果数据
     singleResult.value = {
       liftingMethod: "单机吊装",
@@ -3443,8 +3483,6 @@ const showCalculationResult = () => {
       slingsWeight: slingsWeightG3.toFixed(2),
       otherWeight: otherWeightG4.toFixed(2),
       equipmentWeight: equipmentWeight.toFixed(2),
-      factorDisplay: factorDisplay.trim(),
-      factorProduct: factorProduct,
       calculationResult: calculationResult.toFixed(2),
       isQualified: calculationResult < 100, // 修改合格判断逻辑，等于100%时不满足要求
       selectedFactors: selectedFactors,
@@ -3452,7 +3490,7 @@ const showCalculationResult = () => {
 
     singleCraneDialogVisible.value = true;
   } else {
-    // 双机吊装计算，G0默认为65
+    // 双机吊装计算，使用用户输入的G0值或默认值65
     const G0 = 65;
     const calculationResult1 =
       (((G0 +
@@ -3473,15 +3511,6 @@ const showCalculationResult = () => {
         formData.value.ratedLoad2) *
       100;
 
-    // 构建选中的系数显示字符串
-    let factorDisplay = "";
-    selectedFactors.forEach((factor, index) => {
-      const factorName = String.fromCharCode(88 + index + 1); // X1, X2, X3...
-      factorDisplay += `${factorName}：${factor.name}=${factor.value.toFixed(
-        2
-      )} `;
-    });
-
     // 填充双机吊装结果数据
     doubleResult.value = {
       liftingMethod: "双机吊装",
@@ -3501,8 +3530,7 @@ const showCalculationResult = () => {
       slingsWeight: slingsWeightG3.toFixed(2),
       otherWeight: otherWeightG4.toFixed(2),
       equipmentWeight: equipmentWeight.toFixed(2),
-      factorDisplay: factorDisplay.trim(),
-      factorProduct: factorProduct,
+      G0: G0, // 存储实际使用的G0值
       calculationResult1: calculationResult1.toFixed(2),
       calculationResult2: calculationResult2.toFixed(2),
       isQualified1: calculationResult1 < 75, // 修改合格判断逻辑，等于75%时不满足要求
@@ -3560,11 +3588,48 @@ const foundationData = ref({
   idlerWheelOffGround: false,
 });
 
+// 地基承载力计算结果弹窗数据
+const foundationCalculationResult = ref({
+  trackInfo: {
+    name: '',
+    model: '',
+    specifications: ''
+  },
+  otherParams: {
+    groundLength: ''
+  },
+  calculationProcess: {
+    area: 0,
+    pressure: 0
+  }
+});
+
 // 地基承载力计算方法
 const calculateFoundation = () => {
-  // 这里可以添加计算逻辑
-  console.log("计算地基承载力");
-  // 显示计算结果弹窗等
+  // 计算接地面积 A = L4 × 2B1
+  const groundArea = foundationData.value.trackGroundLengthL4 * 2 * foundationData.value.trackWidthB;
+  
+  // 计算平均接地比压 T = W × g / A
+  const averagePressure = (foundationData.value.craneWeightW * foundationData.value.gravityAccel) / groundArea;
+  
+  // 准备计算结果数据
+  foundationCalculationResult.value = {
+    trackInfo: {
+      name: foundationData.value.trackName || 'S',
+      model: foundationData.value.trackModel || 'HS-0000',
+      specifications: `左侧履带宽度${foundationData.value.trackWidthB || 26}m、右侧履带宽度${foundationData.value.trackWidthB || 26}m、起重机设计自重、重力加速度。`
+    },
+    otherParams: {
+      groundLength: `${foundationData.value.trackGroundLengthL4 || 6}m`
+    },
+    calculationProcess: {
+      area: groundArea,
+      pressure: averagePressure
+    }
+  };
+  
+  // 显示计算结果弹窗
+  foundationResultDialogVisible.value = true;
 };
 
 // 重置地基承载力数据
@@ -3589,6 +3654,55 @@ const resetFoundation = () => {
     idlerWheelOffGround: false,
   };
 };
+
+// 关闭地基承载力计算结果弹窗
+const handleFoundationDialogClose = () => {
+  foundationResultDialogVisible.value = false;
+};
+
+const copyFoundationResult = () => {
+  const resultText = `
+xxxxx方案项目地基承载力校核计算
+
+履带信息
+履带名称：${foundationCalculationResult.value.trackInfo.name}  型号：${foundationCalculationResult.value.trackInfo.model}
+规格型号：${foundationCalculationResult.value.trackInfo.specifications}
+
+其它参数
+接地长度 ${foundationCalculationResult.value.otherParams.groundLength}
+
+计算过程
+第一步：已知履带接地长度和履带宽度，可以计算出接地面积
+接地面积公式为
+A = L4 × 2B1
+
+L4：履带接地长度=${foundationData.value.trackGroundLengthL4}m
+B1：左或右侧履带板宽度=${foundationData.value.trackWidthB}m
+
+履带接地面积计算结果A= ${foundationCalculationResult.value.calculationProcess.area.toFixed(2)} m²
+
+第二步：根据起重机设计自重和重力加速度，以及得出的接地面积计算出平均接地比压
+平均接地比压按公式为
+T = W × g / A
+
+W：起重机设计自重=${foundationData.value.craneWeightW}t
+g：重力加速度=${foundationData.value.gravityAccel} m/s²
+A：履带接地面积=${foundationCalculationResult.value.calculationProcess.area.toFixed(2)} m²
+
+T:履带平均接地比压= ${foundationCalculationResult.value.calculationProcess.pressure.toFixed(0)}t
+
+结论
+履带平均接地比压计算结果为${foundationCalculationResult.value.calculationProcess.pressure.toFixed(0)}t
+  `.trim();
+
+  // 复制到剪贴板
+  navigator.clipboard.writeText(resultText).then(() => {
+    ElMessage.success('计算结果已复制到剪贴板');
+  }).catch(() => {
+    ElMessage.error('复制失败，请手动复制');
+  });
+};
+
 </script>
 
 <style scoped>
@@ -4243,5 +4357,35 @@ const resetFoundation = () => {
 
 .distance-inputs-right .form-row:last-child {
   margin-bottom: 0;
+}
+
+/* 地基承载力计算结果弹窗样式 */
+.foundation-result .info-row {
+  display: flex;
+  align-items: center;
+  line-height: 1.8;
+}
+
+.foundation-result .info-label {
+  color: #666;
+  font-size: 14px;
+}
+
+.foundation-result .info-value {
+  color: #333;
+  font-size: 14px;
+}
+
+.foundation-result .weight-item {
+  padding: 4px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.foundation-result .process-text {
+  margin: 10px 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
 }
 </style>
