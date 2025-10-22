@@ -3000,6 +3000,7 @@ const liftingFormDatas = ref([
     slingType: "magnetic", // Initialize slingType, as it's now part of the radio group, default to magnetic (钢丝绳)
     isDouble: false, // Added field for "是否打双" checkbox
     isSinglePointLifting: false, // 添加是否单点吊装字段
+    isBottomSling: false, // 标识是否为下部吊索具，false为上部，true为下部
     liftingSystemItems: [
       { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
       { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
@@ -3037,24 +3038,28 @@ watch(
   (newType, oldType) => {
     // When switching from 'noBeam' to 'withBeam'
     if (newType === "withBeam" && oldType === "noBeam") {
-      // Find the first sling as a template
-      const templateSling = liftingFormDatas.value.find(s => s.liftingType === 'noBeam');
+      // 使用第一个吊索具作为模板
+      const templateSling = liftingFormDatas.value[0];
       if (templateSling) {
-        // Create upper sling
+        // 清空当前数据并创建新的上下部吊索具
+        liftingFormDatas.value = [];
+        
+        // 创建上部吊索具01
         const upperSling = JSON.parse(JSON.stringify(templateSling));
-        upperSling.id = liftingFormDatas.value.length + 1;
+        upperSling.id = 1;
         upperSling.isBottomSling = false;
         upperSling.liftingType = 'withBeam';
-        upperSling.liftingSystemItems = JSON.parse(JSON.stringify(upperSling.liftingSystemItems || [{ id: 1, order: 1, name: "动载系数", value: 0.8, checked: false }])); // Ensure it has items
-
-        // Create lower sling
-        const lowerSling = JSON.parse(JSON.stringify(templateSling));
-        lowerSling.id = liftingFormDatas.value.length + 2;
+        
+        // 创建下部吊索具01，复制上部吊索具内容
+        const lowerSling = JSON.parse(JSON.stringify(upperSling));
+        lowerSling.id = 2;
         lowerSling.isBottomSling = true;
-        lowerSling.liftingType = 'withBeam';
-        lowerSling.liftingSystemItems = JSON.parse(JSON.stringify(lowerSling.liftingSystemItems || [{ id: 1, order: 1, name: "动载系数", value: 0.8, checked: false }])); // Ensure it has items
-
-        liftingFormDatas.value = [upperSling, lowerSling];
+        
+        // 添加到数组中，确保顺序正确
+        liftingFormDatas.value.push(upperSling);
+        liftingFormDatas.value.push(lowerSling);
+        
+        // 默认选中第一个（上部吊索具）
         activeSlingIndex.value = 0;
       }
     }
