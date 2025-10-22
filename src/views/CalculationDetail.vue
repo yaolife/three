@@ -1040,6 +1040,92 @@
         </el-scrollbar>
       </div>
 
+      <!-- 地基承载力校核计算内容 -->
+      <div v-if="activeTab === 'foundation'" class="left-panel" style="width: 100%;">
+        <el-scrollbar>
+          <!-- 基本信息 -->
+          <div class="section section-with-border">
+            <div class="section-title">基本信息</div>
+            <div class="form-content">
+              <div class="form-grid">
+                <div class="form-row">
+                  <label class="form-label">地基名称</label>
+                  <el-input v-model="foundationData.foundationName" placeholder="请输入" />
+                </div>
+                <div class="form-row">
+                  <label class="form-label">地基点位</label>
+                  <el-input v-model="foundationData.foundationPoint" placeholder="Q345D钢基础结构" />
+                </div>
+                <div class="form-row">
+                  <label class="form-label">重心标识</label>
+                  <el-input v-model="foundationData.centerMark" placeholder="xxxx" />
+                </div>
+                <div class="form-row">
+                  <label class="form-label">编号</label>
+                  <el-input v-model="foundationData.number" placeholder="H-00000" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 计算点和地基参数 -->
+          <div class="section section-with-border">
+            <div class="section-title">计算设置</div>
+            <div class="form-content">
+              <div class="form-row">
+                <label class="form-label">计算点</label>
+                <el-radio-group v-model="foundationData.calculationPoint">
+                  <el-radio value="center">吊物重心点</el-radio>
+                  <el-radio value="support">支撑点</el-radio>
+                </el-radio-group>
+              </div>
+              
+              <div class="form-row">
+                <label class="form-label">地基类型</label>
+                <el-radio-group v-model="foundationData.foundationType">
+                  <el-radio value="concrete">混凝土基础</el-radio>
+                  <el-radio value="natural">天然地基</el-radio>
+                </el-radio-group>
+              </div>
+              
+              <div class="form-grid" style="margin-top: 16px;">
+                <div class="form-row">
+                  <label class="form-label">压实系数K</label>
+                  <div class="input-with-unit">
+                    <el-input-number v-model="foundationData.compactionCoeff" controls-position="right" :precision="2" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label class="form-label">地基承载力特征值fa</label>
+                  <div class="input-with-unit">
+                    <el-input-number v-model="foundationData.bearingCapacity" controls-position="right" :precision="2" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label class="form-label">重力加速度g</label>
+                  <div class="input-with-unit">
+                    <el-input-number v-model="foundationData.gravityAccel" controls-position="right" :precision="2" />
+                    <span class="unit">m/s²</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <el-button @click="resetFoundation">重置</el-button>
+            <el-button type="primary" @click="calculateFoundation">计算结果</el-button>
+          </div>
+        </el-scrollbar>
+      </div>
+
+      <!-- 地基示意图 -->
+      <div v-if="activeTab === 'foundation'" class="right-panel">
+        <div class="diagram-container">
+          <img src="/src/images/foundation.png" alt="地基示意图" />
+        </div>
+      </div>
+
       <!-- 吊索具示意图 -->
       <div v-if="activeTab === 'lifting'" class="right-panel">
         <div class="diagram-container">
@@ -2740,6 +2826,43 @@ const confirmEditTitle = () => {
 const cancelEditTitle = () => {
   editTitleDialogVisible.value = false;
 };
+
+// 地基承载力校核计算数据
+const foundationData = ref({
+  foundationName: '',
+  foundationPoint: 'Q345D钢基础结构',
+  centerMark: 'xxxx',
+  number: 'H-00000',
+  calculationPoint: 'center',
+  foundationType: 'concrete',
+  compactionCoeff: 1.00,
+  bearingCapacity: 200.00,
+  gravityAccel: 9.80
+});
+
+// 地基承载力计算方法
+const calculateFoundation = () => {
+  // 这里可以添加计算逻辑
+  console.log('计算地基承载力');
+  // 显示计算结果弹窗等
+};
+
+// 重置地基承载力数据
+const resetFoundation = () => {
+  foundationData.value = {
+    foundationName: '',
+    foundationPoint: 'Q345D钢基础结构',
+    centerMark: 'xxxx',
+    number: 'H-00000',
+    calculationPoint: 'center',
+    foundationType: 'concrete',
+    compactionCoeff: 1.00,
+    bearingCapacity: 200.00,
+    gravityAccel: 9.80
+  };
+};
+
+
 </script>
 
 <style scoped>
@@ -2825,7 +2948,7 @@ const cancelEditTitle = () => {
 }
 
 .left-panel {
-  width: 60%;
+  width: 65%;
   background: white;
   border-radius: 4px;
   padding: 20px;
