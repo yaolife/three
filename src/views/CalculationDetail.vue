@@ -1041,7 +1041,7 @@
       </div>
 
       <!-- 地基承载力校核计算内容 -->
-      <div v-if="activeTab === 'foundation'" class="left-panel" style="width: 100%;">
+      <div v-if="activeTab === 'foundation'" class="left-panel">
         <el-scrollbar>
           <!-- 基本信息 -->
           <div class="section section-with-border">
@@ -1121,8 +1121,9 @@
 
       <!-- 地基示意图 -->
       <div v-if="activeTab === 'foundation'" class="right-panel">
-        <div class="diagram-container">
-          <img src="/src/images/foundation.png" alt="地基示意图" />
+        <div class="diagram-container found_img">
+          <img src="/src/images/foundation.png" alt="地基示意图"   class="crane-diagram"/>
+           <img src="/src/images/fou_item.png" alt="地基示意图"   class="crane-diagram"/>
         </div>
       </div>
 
@@ -2948,7 +2949,7 @@ const resetFoundation = () => {
 }
 
 .left-panel {
-  width: 65%;
+  width: 60%;
   background: white;
   border-radius: 4px;
   padding: 20px;
@@ -3223,7 +3224,10 @@ const resetFoundation = () => {
   align-items: center;
   justify-content: center;
 }
-
+.found_img{
+  gap: 20px;
+  flex-direction: column;
+}
 .crane-diagram {
   max-width: 100%;
   max-height: 100%;
