@@ -3054,6 +3054,7 @@ watch(
         const lowerSling = JSON.parse(JSON.stringify(upperSling));
         lowerSling.id = 2;
         lowerSling.isBottomSling = true;
+        lowerSling.bottomPointCount = 4; // 设置下部吊索具的下部吊点数量默认值为4
         
         // 添加到数组中，确保顺序正确
         liftingFormDatas.value.push(upperSling);
@@ -3123,6 +3124,12 @@ const confirmAddSling = () => {
     const newSlingData = JSON.parse(JSON.stringify(upperSlingTemplate));
     newSlingData.id = liftingFormDatas.value.length + 1;
     newSlingData.isBottomSling = !isUpper;
+    
+    // 如果是下部吊索具，设置下部吊点数量默认值为4
+    if (!isUpper) {
+      newSlingData.bottomPointCount = 4;
+    }
+    
     // 确保有独立的 liftingSystemItems
     newSlingData.liftingSystemItems = JSON.parse(
       JSON.stringify(
