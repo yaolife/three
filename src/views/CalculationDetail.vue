@@ -1352,7 +1352,7 @@
 
       <div class="result-section">
                  <div class="section-title">
-          结论2
+          结论
         </div>
         <div class="section-content conclusion">
           <!-- 检查所有吊索具是否都满足要求 -->
