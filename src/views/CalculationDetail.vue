@@ -681,7 +681,7 @@
                 </div>
 
                 <div style="display: flex; align-items: center">
-                  <label class="form-label">平衡梁长度<span>L(a)</span></label>
+                  <label class="form-label">平衡梁长度</label>
                   <div class="input-with-unit">
                     <el-input-number
                       v-model="activeSlingData.beamLength"
