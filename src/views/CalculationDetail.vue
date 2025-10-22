@@ -2058,9 +2058,9 @@ const liftingFormDatas = ref([
     distanceL3: 12,
     distanceL4: 12,
     distanceLa: 0, // 添加distanceLa字段
-    beamWeight: 0, // 添加平衡梁重量字段
-    beamLength: 0, // 添加平衡梁长度字段
-    beamSlingWeight: 0, // 添加吊梁下部吊具重量字段
+    beamWeight: 5, // 添加平衡梁重量字段
+    beamLength: 6, // 添加平衡梁长度字段
+    beamSlingWeight:8, // 添加吊梁下部吊具重量字段
     enableL1: false, // Added new field
     enableL2: false, // Added new field
     enableL3: false, // Added new field
