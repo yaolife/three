@@ -1044,33 +1044,18 @@
       <div v-if="activeTab === 'foundation'" class="left-panel">
         <el-scrollbar>
           <!-- 基本信息 -->
-          <div class="section section-with-border">
-            <div class="section-title">基本信息</div>
+           <div class="found_bear">地基承载</div>
+          <div class="section section-with-border" style="margin-top: 0;">
             <div class="form-content">
               <div class="form-grid">
                 <div class="form-row">
-                  <label class="form-label">地基名称</label>
-                  <el-input v-model="foundationData.foundationName" placeholder="请输入" />
-                </div>
-                <div class="form-row">
-                  <label class="form-label">地基点位</label>
-                  <el-input v-model="foundationData.foundationPoint" placeholder="Q345D钢基础结构" />
-                </div>
-                <div class="form-row">
-                  <label class="form-label">重心标识</label>
-                  <el-input v-model="foundationData.centerMark" placeholder="xxxx" />
-                </div>
-                <div class="form-row">
-                  <label class="form-label">编号</label>
-                  <el-input v-model="foundationData.number" placeholder="H-00000" />
+                  <label class="form-label">起重机名称</label>
+                  <el-input v-model="foundationData.foundationName" placeholder="请输入起重机名称" />
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- 计算点和地基参数 -->
-          <div class="section section-with-border">
-            <div class="section-title">计算设置</div>
+            <div class="weight_set">
+   <div class="section-title">重心设置</div>
             <div class="form-content">
               <div class="form-row">
                 <label class="form-label">计算点</label>
@@ -1110,7 +1095,11 @@
                 </div>
               </div>
             </div>
+</div>
+
           </div>
+
+    
 
           <div class="action-buttons">
             <el-button @click="resetFoundation">重置</el-button>
@@ -3290,7 +3279,20 @@ const resetFoundation = () => {
   width: 100%;
   flex: 1;
 }
-
+.found_bear{
+  background: #0775DB;
+  color: white;
+  width: 86px;
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.weight_set{
+  margin-top: 15px;
+  padding: 20px 15px;
+  border:1px solid #e5e5e5;
+}
 /* 响应式调整 */
 @media (max-width: 768px) {
   .form-grid {
