@@ -1722,17 +1722,20 @@
       </div>
 
       <div class="result-section">
+     <div class="section-title">
+          结论
+        </div>
         <div class="section-content conclusion">
           <!-- 检查所有有吊梁的吊索具是否都满足要求 -->
           <template v-if="liftingFormDatas.filter(s => s.liftingType === 'withBeam').every(sling => calculateLiftingResult(sling).isQualified)">
             <template v-for="sling in liftingFormDatas.filter(s => s.liftingType === 'withBeam')" :key="sling.id">
-              {{ sling.isBottomSling ? '下部' : '上部' }}吊索具校核计算结果为{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}，{{ sling.loadType === 'magnetic' ? (calculateLiftingResult(sling).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(sling).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(sling).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(sling).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}，同时出厂安全系数满足6倍安全系数,
+              吊索具{{ getSlingIndex(sling, sling.isBottomSling) }}校核计算结果为{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}，{{ sling.loadType === 'magnetic' ? (calculateLiftingResult(sling).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(sling).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(sling).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(sling).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}，同时出厂安全系数满足6倍安全系数,
             </template>
             故满足要求。
           </template>
           <template v-else>
             <template v-for="sling in liftingFormDatas.filter(s => s.liftingType === 'withBeam')" :key="sling.id">
-              {{ sling.isBottomSling ? '下部' : '上部' }}吊索具校核计算结果为{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}，{{ sling.loadType === 'magnetic' ? (calculateLiftingResult(sling).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(sling).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(sling).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(sling).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}，{{ calculateLiftingResult(sling).isQualified ? '满足' : '不满足' }}要求；
+              吊索具{{ getSlingIndex(sling, sling.isBottomSling) }}校核计算结果为{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}，{{ sling.loadType === 'magnetic' ? (calculateLiftingResult(sling).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(sling).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(sling).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(sling).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}，{{ calculateLiftingResult(sling).isQualified ? '满足' : '不满足' }}要求；
             </template>
             故不满足要求。
           </template>
