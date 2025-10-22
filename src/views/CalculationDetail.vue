@@ -1550,115 +1550,169 @@
   >
     <div class="calculation-result">
       <h3>xxxxxx方案项目吊索具校核计算</h3>
-      <div class="result-section">
-        <div class="section-title">吊索具信息</div>
-        <div class="section-content">
-          <div class="equipment-info">
-            <div class="info-item">吊索具名称：{{ activeSlingData.slingName }}</div>
-            <div class="info-item">生产厂家：{{ activeSlingData.manufacturer }}</div>
-            <div class="info-item">吊索具类型：{{ activeSlingData.slingType === 'magnetic' ? '钢丝绳' : activeSlingData.slingType === 'rope' ? '吊索' : activeSlingData.slingType === 'shackle' ? '卸扣' : '其它' }}</div>
-            <div class="info-item">
-              {{ activeSlingData.loadType === 'magnetic' ? '出厂安全系数' : '额定载荷' }}：{{ activeSlingData.loadType === 'magnetic' ? activeSlingData.safetyFactor : activeSlingData.ratedLoad }}
-              {{ activeSlingData.loadType === 'rope' ? 'MPa' : '' }}
-            </div>
-          </div>
+
+      <!-- 循环显示所有吊索具信息 -->
+      <div v-for="sling in liftingFormDatas.filter(s => s.liftingType === 'withBeam')" :key="sling.id" class="sling-result-card">
+        <div class="sling-result-header">
+          <h4>{{ sling.isBottomSling ? '下部吊索具' : '上部吊索具' }} {{ getSlingIndex(sling, sling.isBottomSling) }}</h4>
         </div>
-      </div>
-
-      <div class="result-section">
-        <div class="section-title">设备信息</div>
-        <div class="section-content">
-          <div class="info-item">设备名称：{{ activeSlingData.equipmentName }}</div>
-          <div class="info-item">设备编号：{{ activeSlingData.equipmentNumber }}</div>
-          <div class="info-item">设备型号：{{ activeSlingData.equipmentModel }}</div>
-          <div class="info-item">设备重量：{{ activeSlingData.equipmentWeight }} t</div>
-        </div>
-      </div>
-
-      <div class="result-section">
-        <div class="section-title">平衡梁参数</div>
-        <div class="section-content">
-          <div class="info-item">平衡梁重量：{{ activeSlingData.beamWeight }} t</div>
-          <div class="info-item">平衡梁长度：{{ activeSlingData.beamLength }} m</div>
-          <div class="info-item">吊梁下部吊具重量：{{ activeSlingData.beamSlingWeight }} t</div>
-        </div>
-      </div>
-
-      <div class="result-section">
-        <div class="section-title">吊点信息</div>
-        <div class="section-content">
-          <div class="info-item">上部吊点数量：{{ activeSlingData.topPointCount }}</div>
-          <div class="info-item">下部吊点数量：{{ activeSlingData.bottomPointCount }}</div>
-          <div class="info-item">是否打双：{{ activeSlingData.isDouble ? '是' : '否' }}</div>
-          <div class="info-item">挂布方式：{{ activeSlingData.customLoop }}</div>
-        </div>
-      </div>
-
-      <div class="result-section">
-        <div class="section-title">尺寸信息</div>
-        <div class="section-content">
-          <div class="info-item">绳索长度：{{ activeSlingData.ropeLength }} m</div>
-          <div class="info-item">高度：{{ activeSlingData.height }} m</div>
-          <div class="info-item">角度：{{ activeSlingData.angle }} 度</div>
-        </div>
-      </div>
-
-      <div class="result-section">
-        <div class="section-title">计算过程</div>
-        <div class="section-content calculation-process">
-          <div class="process-text">吊索具校核计算公式为2：</div>
-          <div class="process-text" v-if="activeSlingData.loadType === 'magnetic'">
-            (设备重量G + 平衡梁重量G1 + 吊梁下部吊具重量) × 系数) ÷ (破断拉力N × 吊点数量 × 是否打双系数) &gt; 6
-          </div>
-          <div class="process-text" v-else>
-            (设备重量G + 平衡梁重量G1 + 吊梁下部吊具重量) × 系数) / (吊索具额定载荷PQ × 吊点数量 × 是否打双系数) × 100% &lt; 100%
-          </div>
-
-          <!-- 破断拉力计算公式 -->
-          <div class="formula" v-if="activeSlingData.loadType === 'magnetic'">
-            <div class="formula-fraction">
-              <div class="formula-numerator">
-                (G + G1 + G2)
-                <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">
-                  × X{{ index + 1 }}
-                </template>
+        <div class="result-section">
+          <div class="section-title">吊索具信息</div>
+          <div class="section-content">
+            <div class="equipment-info">
+              <div class="info-item">吊索具名称：{{ sling.slingName }}</div>
+              <div class="info-item">生产厂家：{{ sling.manufacturer }}</div>
+              <div class="info-item">吊索具类型：{{ sling.slingType === 'magnetic' ? '钢丝绳' : sling.slingType === 'rope' ? '吊索' : sling.slingType === 'shackle' ? '卸扣' : '其它' }}</div>
+              <div class="info-item">
+                {{ sling.loadType === 'magnetic' ? '出厂安全系数' : '额定载荷' }}：{{ sling.loadType === 'magnetic' ? sling.safetyFactor : sling.ratedLoad }}
+                {{ sling.loadType === 'rope' ? 'MPa' : '' }}
               </div>
-              <div class="formula-denominator">N × r</div>
             </div>
-            <div class="formula-operator">&gt; 6</div>
           </div>
+        </div>
 
-          <!-- 额定载荷计算公式 -->
-          <div class="formula" v-else>
-            <div class="formula-fraction">
-              <div class="formula-numerator">
-                (G + G1 + G2)
-                <template v-for="(item, index) in activeLiftingSystemItems.filter(item => item.checked && item.value)" :key="index">
-                  × X{{ index + 1 }}
-                </template>
+        <div class="result-section">
+          <div class="section-title">设备信息</div>
+          <div class="section-content">
+            <div class="info-item">设备名称：{{ sling.equipmentName }}</div>
+            <div class="info-item">设备编号：{{ sling.equipmentNumber }}</div>
+            <div class="info-item">设备型号：{{ sling.equipmentModel }}</div>
+            <div class="info-item">设备重量：{{ sling.equipmentWeight }} t</div>
+          </div>
+        </div>
+
+        <div class="result-section" v-if="!sling.isBottomSling">
+          <div class="section-title">平衡梁参数</div>
+          <div class="section-content">
+            <div class="info-item">平衡梁重量：{{ sling.beamWeight }} t</div>
+            <div class="info-item">平衡梁长度：{{ sling.beamLength }} m</div>
+            <div class="info-item">吊梁下部吊具重量：{{ sling.beamSlingWeight }} t</div>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <div class="section-title">吊点信息</div>
+          <div class="section-content">
+            <div class="info-item">上部吊点数量：{{ sling.topPointCount }}</div>
+            <div class="info-item">下部吊点数量：{{ sling.bottomPointCount }}</div>
+            <div class="info-item">是否打双：{{ sling.isDouble ? '是' : '否' }}</div>
+            <div class="info-item">挂布方式：{{ sling.customLoop }}</div>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <div class="section-title">尺寸信息</div>
+          <div class="section-content">
+            <div class="info-item">绳索长度：{{ sling.ropeLength }} m</div>
+            <div class="info-item">高度：{{ sling.height }} m</div>
+            <div class="info-item">角度：{{ sling.angle }} 度</div>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <div class="section-title">计算过程</div>
+          <div class="section-content calculation-process">
+            <div class="process-text">吊索具校核计算公式1：</div>
+            
+            <!-- 根据是否为底部吊索具和loadType显示不同的计算公式 -->
+            <template v-if="sling.isBottomSling">
+              <!-- 下部吊索具 -->
+              <div class="process-text" v-if="sling.loadType === 'magnetic'">
+                破断拉力安全系数算法，破断拉力÷【设备重量÷吊点数量×动载系数×偏载系数×其他系数÷sinQ（单条吊索与水平面夹角）】＞6
               </div>
-              <div class="formula-denominator">PQ × r</div>
-            </div>
-            <div class="formula-operator">× 100% &lt; 100%</div>
-          </div>
-
-          <div class="weight-details">
-            <div class="weight-item">G:设备重量={{ activeSlingData.equipmentWeight }}t</div>
-            <div class="weight-item">G1:平衡梁重量={{ activeSlingData.beamWeight }}t</div>
-            <div class="weight-item">G2:吊梁下部吊具重量={{ activeSlingData.beamSlingWeight }}t</div>
-            <template v-for="(item, index) in activeLiftingSystemItems" :key="index">
-              <div class="weight-item">X{{ index + 1 }}：{{ item.name }}={{ item.value }}</div>
+              <div class="process-text" v-else>
+                额定载荷算法，设备重量÷吊点数量×动载系数×偏载系数×其他系数÷sinQ（单条吊索与水平面夹角）÷额定载荷×100%＜100%（出厂安全系数满足6倍安全系数）；
+              </div>
+              
+              <!-- 破断拉力计算公式 -->
+              <div class="formula" v-if="sling.loadType === 'magnetic'">
+                <div class="formula-fraction">
+                  <div class="formula-numerator" style="padding: 0 70px;">
+                    N
+                  </div>
+                  <div class="formula-denominator">G ÷ r <template v-for="(item, itemIndex) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="itemIndex">× X{{ itemIndex + 1 }}</template> ÷ sinQ</div>
+                </div>
+                <div class="formula-operator"> &gt; 6</div>
+              </div>
+              
+              <!-- 额定载荷计算公式 -->
+              <div class="formula" v-else>
+                <div class="formula-fraction">
+                  <div class="formula-numerator" style="border-bottom: none;">
+                    G ÷ r <template v-for="(item, itemIndex) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="itemIndex">× X{{ itemIndex + 1 }}</template> ÷ sinQ ÷ B
+                  </div>
+                </div>
+                <div class="formula-operator">× 100% &lt; 100%</div>
+              </div>
             </template>
-            <div class="weight-item">PQ：吊索具额定载荷={{ activeSlingData.ratedLoad }}MPa</div>
-            <div class="weight-item">r:吊点数量：{{ activeSlingData.bottomPointCount }}</div>
-          </div>
-          
-          <!-- 计算结果放在计算过程下方 -->
-          <div class="result-section result-final" style="margin-top: 20px; border: 1px solid #e0e0e0; border-radius: 4px;">
-            <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666; display: flex; align-items: center; justify-content: space-between;">
-              <div>计算结果：{{ activeSlingData.loadType === 'magnetic' ? calculateLiftingResult(activeSlingData).result.toFixed(2) : calculateLiftingResult(activeSlingData).result.toFixed(2) + '%' }}</div>
-              <div>
-                <span :class="calculateLiftingResult(activeSlingData).isQualified ? 'qualified' : 'unqualified'">{{ calculateLiftingResult(activeSlingData).isQualified ? (activeSlingData.loadType === 'magnetic' ? '>6 (合格)' : '<100% (合格)') : (activeSlingData.loadType === 'magnetic' ? '≤6 (不合格)' : '≥100% (不合格)') }}</span>
+            
+            <template v-else>
+              <!-- 上部吊索具 -->
+              <div class="process-text" v-if="sling.loadType === 'magnetic'">
+                破断拉力安全系数算法，破断拉力÷【（设备重量+平衡梁重量+吊梁下部吊具重量）÷吊点数量×动载系数×偏载系数×其他系数÷sinQ（单条吊索与吊梁夹角）】＞6
+              </div>
+              <div class="process-text" v-else>
+                额定载荷算法，（设备重量+平衡梁重量+吊梁下部吊具重量）÷吊点数量×动载系数×偏载系数×其他系数÷sinQ（单条吊索与吊梁夹角）÷额定载荷×100%＜100%（出厂安全系数满足6倍安全系数）；
+              </div>
+              
+              <!-- 破断拉力计算公式 -->
+              <div class="formula" v-if="sling.loadType === 'magnetic'">
+                <div class="formula-fraction">
+                  <div class="formula-numerator" style="padding: 0 100px;">
+                    N
+                  </div>
+                  <div class="formula-denominator">(G + G1 + G2) ÷ r <template v-for="(item, itemIndex) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="itemIndex">× X{{ itemIndex + 1 }}</template> ÷ sinQ</div>
+                </div>
+                <div class="formula-operator"> &gt; 6</div>
+              </div>
+              
+              <!-- 额定载荷计算公式 -->
+              <div class="formula" v-else>
+                <div class="formula-fraction">
+                  <div class="formula-numerator" style="padding: 0 30px;">
+                    (G + G1 + G2) ÷ r <template v-for="(item, itemIndex) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="itemIndex">× X{{ itemIndex + 1 }}</template> ÷ sinQ
+                  </div>
+                  <div class="formula-denominator">额定载荷 </div>
+                </div>
+                <div class="formula-operator">× 100% &lt; 100%</div>
+              </div>
+            </template>
+
+            <div class="weight-details">
+              <!-- 破断拉力变量说明 -->
+              <template v-if="sling.loadType === 'magnetic'">
+                <div class="weight-item">N：破断拉力={{ sling.safetyFactor }}{{ sling.slingType === 'rope' ? 'MPa' : '' }}</div>
+                <div class="weight-item">G：设备重量={{ sling.equipmentWeight }}t</div>
+                <div v-if="!sling.isBottomSling" class="weight-item">G1：平衡梁重量={{ sling.beamWeight }}t</div>
+                <div v-if="!sling.isBottomSling" class="weight-item">G2：吊梁下部吊具重量={{ sling.beamSlingWeight }}t</div>
+                <div class="weight-item">r：吊点数={{ sling.bottomPointCount }}</div>
+                <div class="weight-item">Q：(单条吊索与{{ sling.isBottomSling ? '水平面' : '吊梁' }}夹角) = {{ sling.angle || '-' }}°</div>
+                <template v-for="(item, itemIndex) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="itemIndex">
+                  <div class="weight-item">X{{ itemIndex + 1 }}：{{ item.name }}={{ item.value }}</div>
+                </template>
+              </template>
+              
+              <!-- 额定载荷变量说明 -->
+              <template v-else>
+                <div class="weight-item">B：额定载荷={{ sling.ratedLoad }}{{ sling.slingType === 'rope' ? 'MPa' : '' }}</div>
+                <div class="weight-item">G：设备重量={{ sling.equipmentWeight }}t</div>
+                <div v-if="!sling.isBottomSling" class="weight-item">G1：平衡梁重量={{ sling.beamWeight }}t</div>
+                <div v-if="!sling.isBottomSling" class="weight-item">G2：吊梁下部吊具重量={{ sling.beamSlingWeight }}t</div>
+                <div class="weight-item">r：吊点数={{ sling.bottomPointCount }}</div>
+                <div class="weight-item">Q：(单条吊索与{{ sling.isBottomSling ? '水平面' : '吊梁' }}夹角) = {{ sling.angle || '-' }}°</div>
+                <template v-for="(item, itemIndex) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="itemIndex">
+                  <div class="weight-item">X{{ itemIndex + 1 }}：{{ item.name }}={{ item.value }}</div>
+                </template>
+              </template>
+            </div>
+            
+            <!-- 计算结果放在计算过程下方 -->
+            <div class="result-section result-final" style="margin-top: 20px; border: 1px solid #e0e0e0; border-radius: 4px;">
+              <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666; display: flex; align-items: center; justify-content: space-between;">
+                <div>计算结果：{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}</div>
+                <div>
+                  <span :class="calculateLiftingResult(sling).isQualified ? 'qualified' : 'unqualified'">{{ calculateLiftingResult(sling).isQualified ? (sling.loadType === 'magnetic' ? '>6 (合格)' : '<100% (合格)') : (sling.loadType === 'magnetic' ? '≤6 (不合格)' : '≥100% (不合格)') }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1667,8 +1721,19 @@
 
       <div class="result-section">
         <div class="section-content conclusion">
-          <!-- 对于有吊梁情况，只显示当前吊索具的结果 -->
-          吊索具校核计算结果为{{ activeSlingData.loadType === 'magnetic' ? calculateLiftingResult(activeSlingData).result.toFixed(2) : calculateLiftingResult(activeSlingData).result.toFixed(2) + '%' }}，{{ activeSlingData.loadType === 'magnetic' ? (calculateLiftingResult(activeSlingData).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(activeSlingData).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(activeSlingData).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(activeSlingData).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}，同时出厂安全系数满足6倍安全系数,故{{ calculateLiftingResult(activeSlingData).isQualified ? '满足' : '不满足' }}要求。
+          <!-- 检查所有有吊梁的吊索具是否都满足要求 -->
+          <template v-if="liftingFormDatas.filter(s => s.liftingType === 'withBeam').every(sling => calculateLiftingResult(sling).isQualified)">
+            <template v-for="sling in liftingFormDatas.filter(s => s.liftingType === 'withBeam')" :key="sling.id">
+              {{ sling.isBottomSling ? '下部' : '上部' }}吊索具校核计算结果为{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}，{{ sling.loadType === 'magnetic' ? (calculateLiftingResult(sling).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(sling).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(sling).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(sling).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}，同时出厂安全系数满足6倍安全系数,
+            </template>
+            故满足要求。
+          </template>
+          <template v-else>
+            <template v-for="sling in liftingFormDatas.filter(s => s.liftingType === 'withBeam')" :key="sling.id">
+              {{ sling.isBottomSling ? '下部' : '上部' }}吊索具校核计算结果为{{ sling.loadType === 'magnetic' ? calculateLiftingResult(sling).result.toFixed(2) : calculateLiftingResult(sling).result.toFixed(2) + '%' }}，{{ sling.loadType === 'magnetic' ? (calculateLiftingResult(sling).result.toFixed(2) > 6 ? '大于' : calculateLiftingResult(sling).result.toFixed(2) == 6 ? '等于' : '小于') + '6' : (calculateLiftingResult(sling).result.toFixed(2) < 100 ? '小于' : calculateLiftingResult(sling).result.toFixed(2) == 100 ? '等于' : '大于') + '100%' }}，{{ calculateLiftingResult(sling).isQualified ? '满足' : '不满足' }}要求；
+            </template>
+            故不满足要求。
+          </template>
         </div>
       </div>
     </div>
@@ -2375,20 +2440,59 @@ const calculateLiftingResult = (sling) => {
       };
     }
   } else if (sling.liftingType === 'withBeam') {
-    // 有吊梁情况
-    // 计算公式: ((G + G1 + 吊梁下部吊具重量) × X1 × X2 × ...) / (PQ × 吊点数量 × 是否打双系数) × 100% < 100%
-    
-    const totalWeight = sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
+    // 有吊梁情况，需要区分上部吊索具和下部吊索具
+    const sinQ = calculateSinValue(sling.angle);
     const doubleFactor = sling.isDouble ? 2 : 1;
-    const denominator = sling.ratedLoad * sling.bottomPointCount * doubleFactor;
-    const result = (totalWeight * factorProduct) / denominator * 100;
     
-    // 对于有吊梁情况，使用额定载荷判断标准（小于100为合格）
-    return {
-      result: result,
-      isQualified: result < 100,
-      formula: `((G + G1 + G2) × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ) ÷ (PQ × 吊点数量 × 是否打双系数) × 100% = ((${sling.equipmentWeight} + ${sling.beamWeight} + ${sling.beamSlingWeight}) × ${factorProduct.toFixed(2)}) ÷ ${denominator} × 100%`
-    };
+    if (sling.isBottomSling) {
+      // 下部吊索具
+      if (sling.loadType === 'magnetic') {
+        // 下部吊索具且为破断拉力
+        // 破断拉力÷【设备重量÷吊点数量×动载系数×偏载系数×其他系数÷sinQ
+        const numerator = sling.equipmentWeight / sling.bottomPointCount * factorProduct / sinQ;
+        const result = sling.safetyFactor / numerator;
+        return {
+          result: result,
+          isQualified: result > 6,
+          formula: `N ÷ (G ÷ r × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ÷ sinQ) = ${sling.safetyFactor} ÷ (${sling.equipmentWeight} ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)})`
+        };
+      } else {
+        // 下部吊索具且为额定载荷
+        // 设备重量÷吊点数量×动载系数×偏载系数×其他系数÷sinQ÷额定载荷
+        const numerator = sling.equipmentWeight / sling.bottomPointCount * factorProduct / sinQ;
+        const result = (numerator / sling.ratedLoad) * 100;
+        return {
+          result: result,
+          isQualified: result < 100,
+          formula: `(G ÷ r × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ÷ sinQ ÷ B) × 100% = (${sling.equipmentWeight} ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)} ÷ ${sling.ratedLoad}) × 100%`
+        };
+      }
+    } else {
+      // 上部吊索具
+      if (sling.loadType === 'magnetic') {
+        // 上部吊索具且为破断拉力
+        // 破断拉力÷【（设备重量+吊梁重量+吊梁下部吊索具重量）÷吊点数量×动载系数×偏载系数×其他系数÷sinQ
+        const totalWeight = sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
+        const numerator = totalWeight / sling.bottomPointCount * factorProduct / sinQ;
+        const result = sling.safetyFactor / numerator;
+        return {
+          result: result,
+          isQualified: result > 6,
+          formula: `N ÷ ((G + G1 + G2) ÷ r × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ÷ sinQ) = ${sling.safetyFactor} ÷ ((${sling.equipmentWeight} + ${sling.beamWeight} + ${sling.beamSlingWeight}) ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)})`
+        };
+      } else {
+        // 上部吊索具且为额定载荷
+        // （设备重量+吊梁重量+吊梁下部吊索具重量）÷吊点数量×动载系数×偏载系数×其他系数÷sinQ（单条吊索与吊梁夹角）÷额定载荷
+        const totalWeight = sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
+        const numerator = totalWeight / sling.bottomPointCount * factorProduct / sinQ;
+        const result = (numerator / sling.ratedLoad) * 100;
+        return {
+          result: result,
+          isQualified: result < 100,
+          formula: `((G + G1 + G2) ÷ r × ${selectedFactors.map((f, i) => `X${i+1}`).join(' × ')} ÷ sinQ ÷ B) × 100% = ((${sling.equipmentWeight} + ${sling.beamWeight} + ${sling.beamSlingWeight}) ÷ ${sling.bottomPointCount} × ${factorProduct.toFixed(2)} ÷ ${sinQ.toFixed(4)} ÷ ${sling.ratedLoad}) × 100%`
+        };
+      }
+    }
   }
   
   // 默认返回
@@ -3271,3 +3375,4 @@ const cancelEditTitle = () => {
   margin-bottom: 0;
 }
 </style>
+
