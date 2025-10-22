@@ -1231,13 +1231,6 @@
         <div class="sling-result-header">
           <h4>吊索具 {{ index + 1 }}</h4>
         </div>
-
-        <div class="result-section">
-          <div class="section-title">
-            项目吊装方式:{{ sling.liftingType === 'withBeam' ? '有吊梁' : '无吊梁' }}
-          </div>
-        </div>
-
         <div class="result-section">
           <div class="section-title">吊索具信息</div>
           <div class="section-content">
@@ -1274,7 +1267,7 @@
         </div>
 
         <div class="result-section">
-          <div class="section-title">尺寸信息</div>
+          <div class="section-title">其他信息</div>
           <div class="section-content">
             <div class="info-item">绳索长度：{{ sling.ropeLength }} m</div>
             <div class="info-item">高度：{{ sling.height }} m</div>
@@ -1288,10 +1281,10 @@
             <!-- 根据loadType显示不同的计算公式 -->
             <div class="process-text">吊索具校核计算公式为3：</div>
             <div class="process-text" v-if="sling.loadType === 'magnetic'">
-              设备重量G × 系数 / (破断拉力 × 吊点数量 × 是否打双系数) × 100% &lt; 100%
+              破断拉力安全系数算法，破断拉力÷【设备重量G×动载系数×偏载系数×其他安全系数】＞6
             </div>
             <div class="process-text" v-else>
-              设备重量G × 系数 / (额定载荷 × 吊点数量 × 是否打双系数) × 100% &lt; 100%
+              设备重量G×动载系数×偏载系数×其他系数）/额定载荷×100%＜100%
             </div>
 
             <div class="formula">
@@ -1309,8 +1302,6 @@
               <template v-if="sling.loadType === 'magnetic'">
                 <div class="weight-item">N：破断拉力={{ sling.safetyFactor }}{{ sling.slingType === 'rope' ? 'MPa' : '' }}</div>
                 <div class="weight-item">G：设备重量={{ sling.equipmentWeight }}t</div>
-                <div class="weight-item">r：吊点数={{ sling.bottomPointCount }}</div>
-                <div class="weight-item">Q：(单条吊索与水平面夹角) = {{ sling.angle || '-' }}</div>
                 <template v-for="(item, itemIndex) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="itemIndex">
                   <div class="weight-item">X{{ itemIndex + 1 }}：{{ item.name }}={{ item.value }}</div>
                 </template>
@@ -1320,12 +1311,9 @@
               <template v-else>
                 <div class="weight-item">B：额定载荷={{ sling.ratedLoad }}{{ sling.slingType === 'rope' ? 'MPa' : '' }}</div>
                 <div class="weight-item">G：设备重量={{ sling.equipmentWeight }}t</div>
-                <div class="weight-item">r：吊点数={{ sling.bottomPointCount }}</div>
-                <div class="weight-item">Q：(单条吊索与水平面夹角) = {{ sling.angle || '-' }}</div>
                 <template v-for="(item, itemIndex) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="itemIndex">
                   <div class="weight-item">X{{ itemIndex + 1 }}：{{ item.name }}={{ item.value }}</div>
                 </template>
-                <div class="weight-item">是否打双系数：{{ sling.isDouble ? 2 : 1 }}</div>
               </template>
             </div>
             
