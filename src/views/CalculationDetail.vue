@@ -1113,6 +1113,71 @@
                     </el-radio-group>
                   </div>
                 </div>
+
+                <!-- 新增的2列布局 -->
+                <div class="form-grid" style="margin-top: 16px; display: flex; gap: 20px;">
+                  <!-- 左列 -->
+                  <div style="flex: 1;">
+                    <div class="form-row" style="margin-bottom: 16px;">
+                      <label class="form-label">左侧履带板宽度<span>B</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="foundationData.trackWidthB"
+                          controls-position="right"
+                          :precision="2"
+                        />
+                        <span class="unit">m</span>
+                      </div>
+                    </div>
+                    <div class="form-row" style="margin-bottom: 16px;">
+                      <label class="form-label">履带接地长度<span>L4</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="foundationData.trackGroundLengthL4"
+                          controls-position="right"
+                          :precision="2"
+                        />
+                        <span class="unit">m</span>
+                      </div>
+                    </div>
+                    <div class="form-row" style="margin-bottom: 16px;">
+                      <label class="form-label">起重机设计自重<span>W</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="foundationData.craneWeightW"
+                          controls-position="right"
+                          :precision="2"
+                        />
+                        <span class="unit">t</span>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <label class="form-label">重力加速度<span>gt</span></label>
+                      <div class="input-with-unit">
+                        <el-input-number
+                          v-model="foundationData.gravityAccel"
+                          controls-position="right"
+                          :precision="2"
+                        />
+                        <span class="unit">m/s²</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- 右列 -->
+                  <div>
+                    <div class="form-row">
+                       <label class="form-label">驱动轮</label>
+                      <el-checkbox v-model="foundationData.driveWheelOffGround" />
+                      <label class="form-label" style="text-align: left;margin-left: -35px;">是否离地</label>
+                    </div>
+                    <div class="form-row">
+                       <label class="form-label">从动轮</label>
+                      <el-checkbox v-model="foundationData.idlerWheelOffGround" />
+                      <label class="form-label" style="text-align: left;margin-left: -35px;">是否离地</label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -3488,6 +3553,11 @@ const foundationData = ref({
   craneType: "truck",
   trackName: "",
   trackModel: "",
+  trackWidthB: 0,
+  trackGroundLengthL4: 0,
+  craneWeightW: 0,
+  driveWheelOffGround: false,
+  idlerWheelOffGround: false,
 });
 
 // 地基承载力计算方法
@@ -3512,6 +3582,11 @@ const resetFoundation = () => {
     craneType: "truck",
     trackName: "",
     trackModel: "",
+    trackWidthB: 0,
+    trackGroundLengthL4: 0,
+    craneWeightW: 0,
+    driveWheelOffGround: false,
+    idlerWheelOffGround: false,
   };
 };
 </script>
