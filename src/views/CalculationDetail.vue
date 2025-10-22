@@ -1290,9 +1290,9 @@
             <div class="formula">
               <div class="formula-fraction">
                 <div class="formula-numerator">
-                  G <template v-for="(item, index) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="index">× X{{ index + 1 }}</template>
+              N
                 </div>
-                <div class="formula-denominator">{{ sling.loadType === 'magnetic' ? '破断拉力' : '额定载荷' }} × 吊点数量 × 是否打双系数</div>
+                <div class="formula-denominator"> G <template v-for="(item, index) in sling.liftingSystemItems.filter(item => item.checked && item.value)" :key="index">× X{{ index + 1 }}</template> </div>
               </div>
               <div class="formula-operator">× 100% &lt; 100%</div>
             </div>
@@ -1614,7 +1614,6 @@
             </template>
             <div class="weight-item">PQ：吊索具额定载荷={{ activeSlingData.ratedLoad }}MPa</div>
             <div class="weight-item">吊点数量：{{ activeSlingData.bottomPointCount }}</div>
-            <div class="weight-item">是否打双系数：{{ activeSlingData.isDouble ? 2 : 1 }}</div>
           </div>
           
           <!-- 计算结果放在计算过程下方 -->
