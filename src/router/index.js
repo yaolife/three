@@ -8,6 +8,8 @@ const CheckCalculation = () => import("../views/CheckCalculation.vue")
 const ConstructionPlans = () => import("../views/ConstructionPlans.vue")
 const RecycleBin = () => import("../views/RecycleBin.vue")
 const CalculationDetail = () => import("../views/CalculationDetail.vue")
+const DataManagement = () => import("../views/DataManagement.vue")
+const RiggingDetail = () => import("../views/RiggingDetail.vue")
 
 const routes = [
   {
@@ -53,7 +55,7 @@ const routes = [
     meta: {
       title: "起重机设计算",
       hideSidebar: true,
-      hideHeader: true  // 添加隐藏顶部导航栏的元信息
+      hideHeader: true, // 添加隐藏顶部导航栏的元信息
     },
   },
   {
@@ -62,6 +64,22 @@ const routes = [
     component: ConstructionPlans,
     meta: {
       title: "施工平立面图",
+    },
+  },
+  {
+    path: "/data-management",
+    name: "DataManagement",
+    component: DataManagement,
+    meta: {
+      title: "数据管理",
+    },
+  },
+  {
+    path: "/rigging-detail/:id?",
+    name: "RiggingDetail",
+    component: RiggingDetail,
+    meta: {
+      title: "吊索具详情",
     },
   },
   {

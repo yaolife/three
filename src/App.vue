@@ -1,7 +1,7 @@
 <template>
   <el-container class="app-container">
     <!-- 侧边栏 -->
-    <el-aside v-if="!shouldHideSidebar" width="200px" class="sidebar-container">
+    <el-aside width="200px" class="sidebar-container">
       <div class="logo-container">
         <div v-if="userStore.userState.isLoggedIn" class="user-info">
           <el-image
@@ -59,6 +59,11 @@
           <el-icon><Document /></el-icon>
           <span>施工平立面图项目</span>
         </el-menu-item>
+        <!-- Added Data Management menu item -->
+        <el-menu-item index="/data-management">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>数据管理</span>
+        </el-menu-item>
         <el-menu-item index="/recycle-bin">
           <el-icon><Delete /></el-icon>
           <span>回收站</span>
@@ -86,9 +91,6 @@
           </div>
           <el-button v-if="userStore.userState.isLoggedIn" type="default" size="small" @click="handleLogout" style="margin-left: 12px">
             退出登录
-          </el-button>
-          <el-button v-else type="default" size="small" @click="handleLoginClick" style="margin-left: 12px">
-            登录
           </el-button>
           <el-button type="default" size="small" style="margin-left: 12px">
             云数据同步
@@ -120,10 +122,12 @@ import {
   Delete,
   Plus,
   Search,
+  DataAnalysis,
 } from "@element-plus/icons-vue";
 import userStore from './store/user.js';
 
 const route = useRoute();
+const router = useRouter();
 
 // 判断是否应该隐藏侧边栏
 const shouldHideSidebar = computed(() => {
@@ -135,7 +139,6 @@ const shouldHideHeader = computed(() => {
   return route.meta.hideHeader || false;
 });
 
-const router = useRouter();
 const activeMenu = computed(() => route.path || "/all-projects");
 
 const createProject = () => {
