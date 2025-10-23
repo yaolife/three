@@ -63,7 +63,14 @@ export function getLiftingDetailPage(params) {
 export function addUpdateLiftingDetail(data) {
   return post("/template/liftingDetail/addUpdate", data)
 }
-
+/**
+ * 吊索具数据库新增/子类型
+ * @param {object} data - 吊索具基本信息
+ * @returns {Promise} - 返回操作结果
+ */
+export function getSubType(data) {
+  return post("/template/liftingInfo/subType", data)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,

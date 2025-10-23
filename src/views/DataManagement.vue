@@ -304,7 +304,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo } from "../api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo,getSubType } from "@/api/index.js";
 
 const router = useRouter();
 
