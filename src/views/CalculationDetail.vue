@@ -786,8 +786,7 @@
                   <el-radio value="0">钢丝绳</el-radio>
                   <el-radio value="1">吊索</el-radio>
                   <el-radio value="2">卸扣</el-radio>
-                  <el-radio value="3">链条</el-radio>
-                  <el-radio value="4">缆绳</el-radio>
+                  <el-radio value="3">缆绳</el-radio>
                 </el-radio-group>
               </div>
 

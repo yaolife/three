@@ -4,8 +4,7 @@ export const translateLiftingType = (type) => {
     0: '钢丝绳',
     1: '吊带',
     2: '卸扣',
-    3: '链条',
-    4: '缆绳'
+    3: '缆绳',
   };
   
   // 如果是数字字符串，直接翻译
@@ -14,7 +13,7 @@ export const translateLiftingType = (type) => {
   }
   
   // 如果已经是中文，直接返回
-  if (['钢丝绳', '吊带', '卸扣', '链条', '缆绳'].includes(type)) {
+  if (['钢丝绳', '吊带', '卸扣', '缆绳'].includes(type)) {
     return type;
   }
   
