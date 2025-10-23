@@ -22,15 +22,15 @@
         <div class="info-section">
           <div class="info-item">
             <span class="label">吊索具类型：</span>
-            <span class="value">{{ riggingInfo.type }}</span>
+            <span class="value">{{ riggingInfo.liftingType }}</span>
           </div>
           <div class="info-item">
             <span class="label">吊索具名称：</span>
-            <span class="value">{{ riggingInfo.name }}</span>
+            <span class="value">{{ riggingInfo.liftingName }}</span>
           </div>
           <div class="info-item">
             <span class="label">生产厂家：</span>
-            <span class="value">{{ riggingInfo.manufacturer }}</span>
+            <span class="value">{{ riggingInfo.prodBusiness }}</span>
           </div>
         </div>
 
@@ -173,9 +173,9 @@ const route = useRoute();
 // 吊索具基本信息
 const riggingInfo = ref({
   id: '',
-  type: '',
-  name: '',
-  manufacturer: '',
+  liftingType: '',
+  liftingName: '',
+  prodBusiness: '',
 });
 
 // 分页和加载状态
@@ -258,9 +258,9 @@ onMounted(() => {
     riggingInfo.value.id = route.query.id;
   }
   if (route.query.type) {
-    riggingInfo.value.type = route.query.type;
-    riggingInfo.value.name = route.query.name;
-    riggingInfo.value.manufacturer = route.query.manufacturer;
+    riggingInfo.value.liftingType = route.query.liftingType;
+    riggingInfo.value.liftingName = route.query.liftingName;
+    riggingInfo.value.prodBusiness = route.query.prodBusiness;
   } else if (route.params.id) {
     // 如果是编辑模式，从后端获取数据
     riggingInfo.value.id = route.params.id;
