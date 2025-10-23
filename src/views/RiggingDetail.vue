@@ -214,7 +214,7 @@ const fetchDetailData = async () => {
       liftingInfoId: riggingInfo.value.id,
     });
     
-    if (response && response.code === 200) {
+    if (response && response.code === '0') {
       tableData.value = response.data.records || [];
       detailTotal.value = response.data.total || 0;
       
@@ -335,7 +335,7 @@ const handleSave = async () => {
       details: tableData.value,
     });
     
-    if (response && response.code === 200) {
+    if (response && response.code === '0') {
       ElMessage.success('保存成功');
       
       // 保存后返回列表页
