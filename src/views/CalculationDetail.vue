@@ -783,10 +783,11 @@
                   v-model="activeSlingData.slingType"
                   class="inline-radio-group"
                 >
-                  <el-radio value="magnetic">钢丝绳</el-radio>
-                  <el-radio value="rope">吊索</el-radio>
-                  <el-radio value="shackle">卸扣</el-radio>
-                  <el-radio value="other">其它</el-radio>
+                  <el-radio value="0">钢丝绳</el-radio>
+                  <el-radio value="1">吊索</el-radio>
+                  <el-radio value="2">卸扣</el-radio>
+                  <el-radio value="3">链条</el-radio>
+                  <el-radio value="4">缆绳</el-radio>
                 </el-radio-group>
               </div>
 

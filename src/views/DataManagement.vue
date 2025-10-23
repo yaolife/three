@@ -274,7 +274,8 @@
             <el-option label="钢丝绳" value="0" />
             <el-option label="吊带" value="1" />
             <el-option label="卸扣" value="2" />
-            <el-option label="吊环" value="3" />
+            <el-option label="链条" value="3" />
+           <el-option label="'缆绳" value="4" />
           </el-select>
         </el-form-item>
         <el-form-item label="吊索具名称">
