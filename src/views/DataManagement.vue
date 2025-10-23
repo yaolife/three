@@ -31,8 +31,12 @@
               >
                 <el-table-column type="selection" width="55" />
                 <el-table-column prop="id" label="序号" width="80" />
-                <el-table-column prop="name" label="吊索具名称" min-width="150" />
-                <el-table-column prop="type" label="类型" min-width="120" />
+                <el-table-column prop="deviceName" label="吊索具名称" min-width="150" />
+                <el-table-column prop="liftingType" label="类型" min-width="120">
+                  <template #default="scope">
+                    {{ translateLiftingType(scope.row.liftingType) }}
+                  </template>
+                </el-table-column>
                 <el-table-column prop="manufacturer" label="生产厂家" min-width="150" />
                 <el-table-column prop="creator" label="创建人" width="120" />
                 <el-table-column prop="createTime" label="录入时间" width="180" />
@@ -93,10 +97,14 @@
               >
                 <el-table-column type="selection" width="55" />
                 <el-table-column prop="id" label="序号" width="80" />
-                <el-table-column prop="name" label="吊索具名称" min-width="150" />
-                <el-table-column prop="type" label="类型" min-width="120" />
+                <el-table-column prop="deviceName" label="吊索具名称" min-width="150" />
+                <el-table-column prop="liftingType" label="类型" min-width="120">
+                  <template #default="scope">
+                    {{ translateLiftingType(scope.row.liftingType) }}
+                  </template>
+                </el-table-column>
                 <el-table-column prop="manufacturer" label="生产厂家" min-width="150" />
-                <el-table-column prop="creator" label="创建人" width="120" />
+                <el-table-column prop="createBy" label="创建人" width="120" />
                 <el-table-column prop="createTime" label="录入时间" width="180" />
                 <el-table-column label="操作" width="150" fixed="right">
                   <template #default="scope">
@@ -155,7 +163,11 @@
                 <el-table-column type="selection" width="55" />
                 <el-table-column prop="id" label="序号" width="80" />
                 <el-table-column prop="name" label="吊索具名称" min-width="150" />
-                <el-table-column prop="type" label="类型" min-width="120" />
+                <el-table-column prop="type" label="类型" min-width="120">
+                  <template #default="scope">
+                    {{ translateLiftingType(scope.row.type) }}
+                  </template>
+                </el-table-column>
                 <el-table-column prop="manufacturer" label="生产厂家" min-width="150" />
                 <el-table-column prop="creator" label="创建人" width="120" />
                 <el-table-column prop="createTime" label="录入时间" width="180" />
@@ -235,6 +247,29 @@ import { getLiftingInfoPage, addUpdateLiftingInfo } from '../api/index.js';
 
 const router = useRouter();
 
+// 类型翻译函数
+const translateLiftingType = (type) => {
+  const typeMap = {
+    0: '钢丝绳',
+    1: '吊带',
+    2: '卸扣',
+    3: '其他'
+  };
+  
+  // 如果是数字字符串，直接翻译
+  if (typeMap[type]) {
+    return typeMap[type];
+  }
+  
+  // 如果已经是中文，直接返回
+  if (['钢丝绳', '吊带', '卸扣', '其他'].includes(type)) {
+    return type;
+  }
+  
+  // 默认返回原值
+  return type;
+};
+
 // 当前激活的标签页
 const activeTab = ref('crane');
 
@@ -245,80 +280,80 @@ const craneTotal = ref(6532);
 const craneData = ref([
   {
     id: 1,
-    name: '五',
-    type: '钢丝绳',
+    deviceName: '五',
+    liftingType: '0',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 2,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '1',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 3,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '2',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 4,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '3',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 5,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '0',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 6,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '1',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 7,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '2',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 8,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '3',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 9,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '0',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
   },
   {
     id: 10,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    deviceName: 'XXXXXXXX吊索具',
+    liftingType: '1',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -341,7 +376,7 @@ const equipmentData = ref([
   {
     id: 1,
     name: '五',
-    type: '钢丝绳',
+    type: '0',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -349,7 +384,7 @@ const equipmentData = ref([
   {
     id: 2,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '1',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -357,7 +392,7 @@ const equipmentData = ref([
   {
     id: 3,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '2',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -365,7 +400,7 @@ const equipmentData = ref([
   {
     id: 4,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '3',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -373,7 +408,7 @@ const equipmentData = ref([
   {
     id: 5,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '0',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -381,7 +416,7 @@ const equipmentData = ref([
   {
     id: 6,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '1',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -389,7 +424,7 @@ const equipmentData = ref([
   {
     id: 7,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '2',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -397,7 +432,7 @@ const equipmentData = ref([
   {
     id: 8,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '3',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -405,7 +440,7 @@ const equipmentData = ref([
   {
     id: 9,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '0',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -413,7 +448,7 @@ const equipmentData = ref([
   {
     id: 10,
     name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
+    type: '1',
     manufacturer: 'xxxxxx公司',
     creator: 'admin',
     createTime: '2025-01-01 12:00:00',
@@ -526,8 +561,13 @@ const fetchRiggingData = async () => {
       pageSize: riggingPageSize.value,
     });
     
-    if (response && response.code === 200) {
-      riggingData.value = response.data.records || [];
+    if (response && response.code === '0') {
+      // 对返回的数据进行类型翻译处理
+      const records = response.data.records || [];
+      riggingData.value = records.map(item => ({
+        ...item,
+        liftingType: translateLiftingType(item.liftingType)
+      }));
       riggingTotal.value = response.data.total || 0;
     } else {
       ElMessage.error(response?.message || '获取数据失败');
@@ -567,6 +607,7 @@ onMounted(() => {
     fetchRiggingData();
   }
 });
+
 </script>
 
 <style scoped>
