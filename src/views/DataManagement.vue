@@ -270,7 +270,7 @@
     >
       <el-form :model="riggingForm" label-width="100px">
         <el-form-item label="吊索具类型">
-          <el-select v-model="riggingForm.type" placeholder="请选择吊索具类型">
+          <el-select v-model="riggingForm.liftingType" placeholder="请选择吊索具类型">
             <el-option label="钢丝绳" value="0" />
             <el-option label="吊带" value="1" />
             <el-option label="卸扣" value="2" />
@@ -278,11 +278,11 @@
           </el-select>
         </el-form-item>
         <el-form-item label="吊索具名称">
-          <el-input v-model="riggingForm.name" placeholder="请输入吊索具名称" />
+          <el-input v-model="riggingForm.liftingName" placeholder="请输入吊索具名称" />
         </el-form-item>
         <el-form-item label="生产厂家">
           <el-input
-            v-model="riggingForm.manufacturer"
+            v-model="riggingForm.prodBusiness"
             placeholder="请输入生产厂家"
           />
         </el-form-item>
@@ -498,9 +498,9 @@ const equipmentData = ref([
 // 新建吊索具弹窗
 const riggingDialogVisible = ref(false);
 const riggingForm = ref({
-  type: "",
-  name: "",
-  manufacturer: "",
+  liftingType: "",
+    liftingName: "",
+    prodBusiness: "",
 });
 
 // 新建起重机
@@ -512,9 +512,9 @@ const handleAddCrane = () => {
 const handleAddRigging = () => {
   riggingDialogVisible.value = true;
   riggingForm.value = {
-    type: "",
-    name: "",
-    manufacturer: "",
+    liftingType: "",
+    liftingName: "",
+    prodBusiness: "",
   };
 };
 
@@ -556,15 +556,15 @@ const handleDelete = (row, type) => {
 
 // 吊索具弹窗下一步
 const handleRiggingNext = async () => {
-  if (!riggingForm.value.type) {
+  if (!riggingForm.value.liftingType) {
     ElMessage.warning("请选择吊索具类型");
     return;
   }
-  if (!riggingForm.value.name) {
+  if (!riggingForm.value.liftingName) {
     ElMessage.warning("请输入吊索具名称");
     return;
   }
-  if (!riggingForm.value.manufacturer) {
+  if (!riggingForm.value.prodBusiness) {
     ElMessage.warning("请输入生产厂家");
     return;
   }
@@ -572,7 +572,7 @@ const handleRiggingNext = async () => {
   try {
     const response = await addUpdateLiftingInfo(riggingForm.value);
 
-    if (response && response.code === 200) {
+    if (response && response.code === '0') {
       ElMessage.success("创建成功");
       riggingDialogVisible.value = false;
 
@@ -581,9 +581,9 @@ const handleRiggingNext = async () => {
         path: "/rigging-detail",
         query: {
           id: response.data.id,
-          type: riggingForm.value.type,
-          name: riggingForm.value.name,
-          manufacturer: riggingForm.value.manufacturer,
+          type: riggingForm.value.liftingType,
+          name: riggingForm.value.liftingName,
+          manufacturer: riggingForm.value.prodBusiness,
         },
       });
     } else {
