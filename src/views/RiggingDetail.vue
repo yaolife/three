@@ -257,7 +257,7 @@ onMounted(() => {
   if (route.query.id) {
     riggingInfo.value.id = route.query.id;
   }
-  if (route.query.type) {
+  if (route.query.liftingType) {
     riggingInfo.value.liftingType = route.query.liftingType;
     riggingInfo.value.liftingName = route.query.liftingName;
     riggingInfo.value.prodBusiness = route.query.prodBusiness;

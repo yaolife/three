@@ -581,9 +581,9 @@ const handleRiggingNext = async () => {
         path: "/rigging-detail",
         query: {
           id: response.data.id,
-          type: riggingForm.value.liftingType,
-          name: riggingForm.value.liftingName,
-          manufacturer: riggingForm.value.prodBusiness,
+          liftingType: riggingForm.value.liftingType,
+          liftingName: riggingForm.value.liftingName,
+          prodBusiness: riggingForm.value.prodBusiness,
         },
       });
     } else {
