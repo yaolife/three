@@ -333,7 +333,7 @@ const handleSave = async () => {
   try {
     const response = await addUpdateLiftingDetail({
       liftingInfoId: riggingInfo.value.id,
-      details: tableData.value,
+      sysProjectTemplateLiftingList: tableData.value,
     });
     
     if (response && response.code === '0') {
