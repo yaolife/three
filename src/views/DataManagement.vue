@@ -270,11 +270,21 @@
     >
       <el-form :model="riggingForm" label-width="100px">
         <el-form-item label="吊索具类型">
-          <el-select v-model="riggingForm.liftingType" placeholder="请选择吊索具类型">
+          <el-select v-model="riggingForm.liftingType" placeholder="请选择吊索具类型" @change="handleLiftingTypeChange">
             <el-option label="钢丝绳" value="0" />
             <el-option label="吊带" value="1" />
             <el-option label="卸扣" value="2" />
            <el-option label="缆绳" value="3" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="子类型">
+          <el-select v-model="riggingForm.subType" placeholder="请选择子类型">
+            <el-option
+              v-for="item in subTypeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="吊索具名称">
@@ -499,9 +509,41 @@ const equipmentData = ref([
 const riggingDialogVisible = ref(false);
 const riggingForm = ref({
   liftingType: "",
-    liftingName: "",
-    prodBusiness: "",
+  subType: "",
+  liftingName: "",
+  prodBusiness: "",
 });
+
+// 子类型选项
+const subTypeOptions = ref([]);
+
+// 获取子类型数据
+const fetchSubTypes = async (type) => {
+  if (!type) {
+    subTypeOptions.value = [];
+    return;
+  }
+  
+  try {
+    const response = await getSubType({ subType: type });
+    if (response && response.code === "0") {
+      subTypeOptions.value = response.data || [];
+    } else {
+      subTypeOptions.value = [];
+      ElMessage.error(response?.message || "获取子类型数据失败");
+    }
+  } catch (error) {
+    console.error("获取子类型数据失败:", error);
+    subTypeOptions.value = [];
+    ElMessage.error("获取子类型数据失败，请检查网络连接");
+  }
+};
+
+// 处理吊索具类型变化
+const handleLiftingTypeChange = (value) => {
+  riggingForm.value.subType = "";
+  fetchSubTypes(value);
+};
 
 // 新建起重机
 const handleAddCrane = () => {
@@ -513,9 +555,11 @@ const handleAddRigging = () => {
   riggingDialogVisible.value = true;
   riggingForm.value = {
     liftingType: "",
+    subType: "",
     liftingName: "",
     prodBusiness: "",
   };
+  subTypeOptions.value = [];
 };
 
 // 新建设备
