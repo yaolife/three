@@ -247,28 +247,7 @@ import { getLiftingInfoPage, addUpdateLiftingInfo } from '../api/index.js';
 
 const router = useRouter();
 
-// 类型翻译函数
-const translateLiftingType = (type) => {
-  const typeMap = {
-    0: '钢丝绳',
-    1: '吊带',
-    2: '卸扣',
-    3: '其他'
-  };
-  
-  // 如果是数字字符串，直接翻译
-  if (typeMap[type]) {
-    return typeMap[type];
-  }
-  
-  // 如果已经是中文，直接返回
-  if (['钢丝绳', '吊带', '卸扣', '其他'].includes(type)) {
-    return type;
-  }
-  
-  // 默认返回原值
-  return type;
-};
+import { translateLiftingType } from "../utils/common.js";
 
 // 当前激活的标签页
 const activeTab = ref('crane');
