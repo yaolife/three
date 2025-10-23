@@ -308,7 +308,7 @@ import { getLiftingInfoPage, addUpdateLiftingInfo } from "../api/index.js";
 
 const router = useRouter();
 
-import { translateLiftingType } from "../utils/common.js";
+import { translateLiftingType } from "@/utils/common.js";
 
 // 当前激活的标签页
 const activeTab = ref("crane");

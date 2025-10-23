@@ -165,8 +165,8 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ArrowLeft, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { translateLiftingType } from "../utils/common.js";
-import { getLiftingDetailPage, addUpdateLiftingDetail } from '../api/index.js';
+import { translateLiftingType } from "@/utils/common.js";
+import { getLiftingDetailPage, addUpdateLiftingDetail } from '@/api/index.js';
 
 const router = useRouter();
 const route = useRoute();
