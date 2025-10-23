@@ -30,7 +30,11 @@
                 :header-cell-style="{ background: '#f5f7fa' }"
               >
                 <el-table-column type="selection" width="55" />
-                <el-table-column prop="id" label="序号" width="80" />
+                <el-table-column label="序号" width="80">
+                  <template #default="scope">
+                    {{ scope.$index + 1 }}
+                  </template>
+                </el-table-column>
                 <el-table-column prop="deviceName" label="吊索具名称" min-width="150" />
                 <el-table-column prop="liftingType" label="类型" min-width="120">
                   <template #default="scope">
@@ -96,7 +100,11 @@
                 :header-cell-style="{ background: '#f5f7fa' }"
               >
                 <el-table-column type="selection" width="55" />
-                <el-table-column prop="id" label="序号" width="80" />
+                <el-table-column label="序号" width="80">
+                  <template #default="scope">
+                    {{ scope.$index + 1 + (riggingPage - 1) * riggingPageSize }}
+                  </template>
+                </el-table-column>
                 <el-table-column prop="deviceName" label="吊索具名称" min-width="150" />
                 <el-table-column prop="liftingType" label="类型" min-width="120">
                   <template #default="scope">
@@ -161,7 +169,11 @@
                 :header-cell-style="{ background: '#f5f7fa' }"
               >
                 <el-table-column type="selection" width="55" />
-                <el-table-column prop="id" label="序号" width="80" />
+                <el-table-column label="序号" width="80">
+                  <template #default="scope">
+                    {{ scope.$index + 1 }}
+                  </template>
+                </el-table-column>
                 <el-table-column prop="name" label="吊索具名称" min-width="150" />
                 <el-table-column prop="type" label="类型" min-width="120">
                   <template #default="scope">
