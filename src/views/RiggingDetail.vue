@@ -22,7 +22,7 @@
         <div class="info-section">
           <div class="info-item">
             <span class="label">吊索具类型：</span>
-            <span class="value">{{ riggingInfo.liftingType }}</span>
+            <span class="value">{{ translateLiftingType(riggingInfo.liftingType)}}</span>
           </div>
           <div class="info-item">
             <span class="label">吊索具名称：</span>
@@ -165,6 +165,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ArrowLeft, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { translateLiftingType } from "../utils/common.js";
 import { getLiftingDetailPage, addUpdateLiftingDetail } from '../api/index.js';
 
 const router = useRouter();
