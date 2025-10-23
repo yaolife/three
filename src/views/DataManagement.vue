@@ -77,14 +77,17 @@
                   prefix-icon="Search"
                   style="width: 240px"
                   clearable
+                  @input="handleRiggingSearch"
                 />
                 <el-button type="primary" @click="handleAddRigging">
                   <el-icon><Plus /></el-icon>
                   新建
                 </el-button>
               </div>
+              <!-- Add loading state for table -->
               <el-table
                 :data="riggingData"
+                v-loading="riggingLoading"
                 style="width: 100%"
                 :header-cell-style="{ background: '#f5f7fa' }"
               >
@@ -116,12 +119,14 @@
                   </template>
                 </el-table-column>
               </el-table>
+              <!-- Update pagination to trigger API call on page change -->
               <el-pagination
                 v-model:current-page="riggingPage"
-                :page-size="10"
+                :page-size="riggingPageSize"
                 :total="riggingTotal"
                 layout="total, prev, pager, next"
                 class="pagination"
+                @current-change="handleRiggingPageChange"
               />
             </div>
           </el-tab-pane>
@@ -222,10 +227,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { getLiftingInfoPage, addUpdateLiftingInfo } from '../api/index.js';
 
 const router = useRouter();
 
@@ -322,89 +328,10 @@ const craneData = ref([
 // 吊索具数据
 const riggingSearch = ref('');
 const riggingPage = ref(1);
-const riggingTotal = ref(6532);
-const riggingData = ref([
-  {
-    id: 1,
-    name: '五',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 2,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 3,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 4,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 5,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 6,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 7,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 8,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 9,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-  {
-    id: 10,
-    name: 'XXXXXXXX吊索具',
-    type: '钢丝绳',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
-  },
-]);
+const riggingPageSize = ref(10);
+const riggingTotal = ref(0);
+const riggingData = ref([]);
+const riggingLoading = ref(false);
 
 // 设备数据
 const equipmentSearch = ref('');
@@ -551,7 +478,7 @@ const handleDelete = (row, type) => {
 };
 
 // 吊索具弹窗下一步
-const handleRiggingNext = () => {
+const handleRiggingNext = async () => {
   if (!riggingForm.value.type) {
     ElMessage.warning('请选择吊索具类型');
     return;
@@ -565,17 +492,81 @@ const handleRiggingNext = () => {
     return;
   }
   
-  // 关闭弹窗并跳转到详情页面
-  riggingDialogVisible.value = false;
-  router.push({
-    path: '/rigging-detail',
-    query: {
-      type: riggingForm.value.type,
-      name: riggingForm.value.name,
-      manufacturer: riggingForm.value.manufacturer,
-    },
-  });
+  try {
+    const response = await addUpdateLiftingInfo(riggingForm.value);
+    
+    if (response && response.code === 200) {
+      ElMessage.success('创建成功');
+      riggingDialogVisible.value = false;
+      
+      // 跳转到详情页面，传递新创建的ID
+      router.push({
+        path: '/rigging-detail',
+        query: {
+          id: response.data.id,
+          type: riggingForm.value.type,
+          name: riggingForm.value.name,
+          manufacturer: riggingForm.value.manufacturer,
+        },
+      });
+    } else {
+      ElMessage.error(response?.message || '创建失败');
+    }
+  } catch (error) {
+    console.error('创建吊索具失败:', error);
+    ElMessage.error('创建失败，请检查网络连接');
+  }
 };
+
+const fetchRiggingData = async () => {
+  riggingLoading.value = true;
+  try {
+    const response = await getLiftingInfoPage({
+      pageNum: riggingPage.value,
+      pageSize: riggingPageSize.value,
+    });
+    
+    if (response && response.code === 200) {
+      riggingData.value = response.data.records || [];
+      riggingTotal.value = response.data.total || 0;
+    } else {
+      ElMessage.error(response?.message || '获取数据失败');
+    }
+  } catch (error) {
+    console.error('获取吊索具数据失败:', error);
+    ElMessage.error('获取数据失败，请检查网络连接');
+  } finally {
+    riggingLoading.value = false;
+  }
+};
+
+const handleRiggingPageChange = (page) => {
+  riggingPage.value = page;
+  fetchRiggingData();
+};
+
+let searchTimer = null;
+const handleRiggingSearch = () => {
+  if (searchTimer) {
+    clearTimeout(searchTimer);
+  }
+  searchTimer = setTimeout(() => {
+    riggingPage.value = 1; // Reset to first page on search
+    fetchRiggingData();
+  }, 500);
+};
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'rigging' && riggingData.value.length === 0) {
+    fetchRiggingData();
+  }
+});
+
+onMounted(() => {
+  if (activeTab.value === 'rigging') {
+    fetchRiggingData();
+  }
+});
 </script>
 
 <style scoped>

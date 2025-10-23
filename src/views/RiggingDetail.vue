@@ -11,7 +11,9 @@
             <span class="title">吊索具详情</span>
           </div>
           <div class="header-right">
-            <el-button type="primary" @click="handleSave">确认新增</el-button>
+            <el-button type="primary" @click="handleSave" :loading="saveLoading">
+              确认新增
+            </el-button>
           </div>
         </div>
       </template>
@@ -43,6 +45,7 @@
           </div>
           <el-table
             :data="tableData"
+            v-loading="tableLoading"
             border
             style="width: 100%"
             :header-cell-style="{ background: '#f5f7fa' }"
@@ -142,6 +145,15 @@
               </template>
             </el-table-column>
           </el-table>
+          <!-- 分页 -->
+          <el-pagination
+            v-model:current-page="detailPage"
+            :page-size="detailPageSize"
+            :total="detailTotal"
+            layout="total, prev, pager, next"
+            class="pagination"
+            @current-change="handleDetailPageChange"
+          />
         </div>
       </div>
     </el-card>
@@ -153,72 +165,116 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ArrowLeft, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { getLiftingDetailPage, addUpdateLiftingDetail } from '../api/index.js';
 
 const router = useRouter();
 const route = useRoute();
 
 // 吊索具基本信息
 const riggingInfo = ref({
+  id: '',
   type: '',
   name: '',
   manufacturer: '',
 });
 
-// 表格数据
-const tableData = ref([
-  {
-    deviceName: '',
-    deviceModel: '',
-    deviceCode: '',
-    pq: '',
-    approximateHigh: '',
-    approximateWidth: '',
-    miniLength: '',
-    approximateThickness: '',
-    eyeLength: '',
-  },
-]);
+// 分页和加载状态
+const tableData = ref([]);
+const tableLoading = ref(false);
+const saveLoading = ref(false);
+const detailPage = ref(1);
+const detailPageSize = ref(10);
+const detailTotal = ref(0);
+
+// 从API获取详情数据
+const fetchDetailData = async () => {
+  if (!riggingInfo.value.id) {
+    // 如果是新建模式，初始化一行空数据
+    tableData.value = [
+      {
+        deviceName: '',
+        deviceModel: '',
+        deviceCode: '',
+        pq: '',
+        approximateHigh: '',
+        approximateWidth: '',
+        miniLength: '',
+        approximateThickness: '',
+        eyeLength: '',
+      },
+    ];
+    return;
+  }
+
+  tableLoading.value = true;
+  try {
+    const response = await getLiftingDetailPage({
+      pageNum: detailPage.value,
+      pageSize: detailPageSize.value,
+      liftingInfoId: riggingInfo.value.id,
+    });
+    
+    if (response && response.code === 200) {
+      tableData.value = response.data.records || [];
+      detailTotal.value = response.data.total || 0;
+      
+      // 如果没有数据，初始化一行空数据
+      if (tableData.value.length === 0) {
+        tableData.value = [
+          {
+            deviceName: '',
+            deviceModel: '',
+            deviceCode: '',
+            pq: '',
+            approximateHigh: '',
+            approximateWidth: '',
+            miniLength: '',
+            approximateThickness: '',
+            eyeLength: '',
+          },
+        ];
+      }
+    } else {
+      ElMessage.error(response?.message || '获取详情数据失败');
+    }
+  } catch (error) {
+    console.error('获取详情数据失败:', error);
+    ElMessage.error('获取数据失败，请检查网络连接');
+  } finally {
+    tableLoading.value = false;
+  }
+};
+
+// 处理分页变化
+const handleDetailPageChange = (page) => {
+  detailPage.value = page;
+  fetchDetailData();
+};
 
 // 初始化数据
 onMounted(() => {
   // 从路由参数获取基本信息
+  if (route.query.id) {
+    riggingInfo.value.id = route.query.id;
+  }
   if (route.query.type) {
     riggingInfo.value.type = route.query.type;
     riggingInfo.value.name = route.query.name;
     riggingInfo.value.manufacturer = route.query.manufacturer;
   } else if (route.params.id) {
     // 如果是编辑模式，从后端获取数据
-    // 这里暂时使用模拟数据
+    riggingInfo.value.id = route.params.id;
+    // 这里应该调用API获取基本信息，暂时使用模拟数据
     riggingInfo.value = {
+      id: route.params.id,
       type: '吊装带',
       name: 'W01型（环眼型）',
       manufacturer: '巨力索具股份有限公司',
     };
-    tableData.value = [
-      {
-        deviceName: 'W01-001',
-        deviceModel: 'W01',
-        deviceCode: 'DEV001',
-        pq: '5t',
-        approximateHigh: '100mm',
-        approximateWidth: '50mm',
-        miniLength: '2000mm',
-        approximateThickness: '10mm',
-        eyeLength: '200mm',
-      },
-      {
-        deviceName: 'W01-002',
-        deviceModel: 'W01',
-        deviceCode: 'DEV002',
-        pq: '10t',
-        approximateHigh: '120mm',
-        approximateWidth: '60mm',
-        miniLength: '2500mm',
-        approximateThickness: '12mm',
-        eyeLength: '250mm',
-      },
-    ];
   }
+  
+  // 加载详情数据
+  fetchDetailData();
 });
 
 // 返回
@@ -261,8 +317,8 @@ const handleDeleteRow = (index) => {
     });
 };
 
-// 保存
-const handleSave = () => {
+// 保存数据并调用API
+const handleSave = async () => {
   // 验证数据
   for (let i = 0; i < tableData.value.length; i++) {
     const row = tableData.value[i];
@@ -272,18 +328,29 @@ const handleSave = () => {
     }
   }
 
-  // 保存数据
-  console.log('保存数据：', {
-    riggingInfo: riggingInfo.value,
-    tableData: tableData.value,
-  });
-
-  ElMessage.success('保存成功');
-  
-  // 保存后返回列表页
-  setTimeout(() => {
-    router.push('/data-management');
-  }, 1000);
+  saveLoading.value = true;
+  try {
+    const response = await addUpdateLiftingDetail({
+      liftingInfoId: riggingInfo.value.id,
+      details: tableData.value,
+    });
+    
+    if (response && response.code === 200) {
+      ElMessage.success('保存成功');
+      
+      // 保存后返回列表页
+      setTimeout(() => {
+        router.push('/data-management');
+      }, 1000);
+    } else {
+      ElMessage.error(response?.message || '保存失败');
+    }
+  } catch (error) {
+    console.error('保存失败:', error);
+    ElMessage.error('保存失败，请检查网络连接');
+  } finally {
+    saveLoading.value = false;
+  }
 };
 </script>
 
@@ -356,5 +423,11 @@ const handleSave = () => {
   font-size: 14px;
   font-weight: 500;
   color: #303133;
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
 }
 </style>
