@@ -35,15 +35,31 @@
                     {{ scope.$index + 1 }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="deviceName" label="吊索具名称" min-width="150" />
-                <el-table-column prop="liftingType" label="类型" min-width="120">
+                <el-table-column
+                  prop="deviceName"
+                  label="吊索具名称"
+                  min-width="150"
+                />
+                <el-table-column
+                  prop="liftingType"
+                  label="类型"
+                  min-width="120"
+                >
                   <template #default="scope">
                     {{ translateLiftingType(scope.row.liftingType) }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="manufacturer" label="生产厂家" min-width="150" />
+                <el-table-column
+                  prop="manufacturer"
+                  label="生产厂家"
+                  min-width="150"
+                />
                 <el-table-column prop="creator" label="创建人" width="120" />
-                <el-table-column prop="createTime" label="录入时间" width="180" />
+                <el-table-column
+                  prop="createTime"
+                  label="录入时间"
+                  width="180"
+                />
                 <el-table-column label="操作" width="150" fixed="right">
                   <template #default="scope">
                     <el-button
@@ -105,15 +121,31 @@
                     {{ scope.$index + 1 + (riggingPage - 1) * riggingPageSize }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="deviceName" label="吊索具名称" min-width="150" />
-                <el-table-column prop="liftingType" label="类型" min-width="120">
+                <el-table-column
+                  prop="deviceName"
+                  label="吊索具名称"
+                  min-width="150"
+                />
+                <el-table-column
+                  prop="liftingType"
+                  label="类型"
+                  min-width="120"
+                >
                   <template #default="scope">
                     {{ translateLiftingType(scope.row.liftingType) }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="manufacturer" label="生产厂家" min-width="150" />
+                <el-table-column
+                  prop="manufacturer"
+                  label="生产厂家"
+                  min-width="150"
+                />
                 <el-table-column prop="createBy" label="创建人" width="120" />
-                <el-table-column prop="createTime" label="录入时间" width="180" />
+                <el-table-column
+                  prop="createTime"
+                  label="录入时间"
+                  width="180"
+                />
                 <el-table-column label="操作" width="150" fixed="right">
                   <template #default="scope">
                     <el-button
@@ -174,15 +206,27 @@
                     {{ scope.$index + 1 }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="name" label="吊索具名称" min-width="150" />
+                <el-table-column
+                  prop="name"
+                  label="吊索具名称"
+                  min-width="150"
+                />
                 <el-table-column prop="type" label="类型" min-width="120">
                   <template #default="scope">
                     {{ translateLiftingType(scope.row.type) }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="manufacturer" label="生产厂家" min-width="150" />
+                <el-table-column
+                  prop="manufacturer"
+                  label="生产厂家"
+                  min-width="150"
+                />
                 <el-table-column prop="creator" label="创建人" width="120" />
-                <el-table-column prop="createTime" label="录入时间" width="180" />
+                <el-table-column
+                  prop="createTime"
+                  label="录入时间"
+                  width="180"
+                />
                 <el-table-column label="操作" width="150" fixed="right">
                   <template #default="scope">
                     <el-button
@@ -227,23 +271,28 @@
       <el-form :model="riggingForm" label-width="100px">
         <el-form-item label="吊索具类型">
           <el-select v-model="riggingForm.type" placeholder="请选择吊索具类型">
-            <el-option label="吊装带" value="吊装带" />
-            <el-option label="钢丝绳" value="钢丝绳" />
-            <el-option label="卸扣" value="卸扣" />
-            <el-option label="吊环" value="吊环" />
+            <el-option label="钢丝绳" value="0" />
+            <el-option label="吊带" value="1" />
+            <el-option label="卸扣" value="2" />
+            <el-option label="吊环" value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="吊索具名称">
           <el-input v-model="riggingForm.name" placeholder="请输入吊索具名称" />
         </el-form-item>
         <el-form-item label="生产厂家">
-          <el-input v-model="riggingForm.manufacturer" placeholder="请输入生产厂家" />
+          <el-input
+            v-model="riggingForm.manufacturer"
+            placeholder="请输入生产厂家"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="riggingDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleRiggingNext">下一步</el-button>
+          <el-button type="primary" @click="handleRiggingNext"
+            >下一步</el-button
+          >
         </div>
       </template>
     </el-dialog>
@@ -251,108 +300,108 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { Plus } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { getLiftingInfoPage, addUpdateLiftingInfo } from '../api/index.js';
+import { ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
+import { Plus } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { getLiftingInfoPage, addUpdateLiftingInfo } from "../api/index.js";
 
 const router = useRouter();
 
 import { translateLiftingType } from "../utils/common.js";
 
 // 当前激活的标签页
-const activeTab = ref('crane');
+const activeTab = ref("crane");
 
 // 起重机数据
-const craneSearch = ref('');
+const craneSearch = ref("");
 const cranePage = ref(1);
 const craneTotal = ref(6532);
 const craneData = ref([
   {
     id: 1,
-    deviceName: '五',
-    liftingType: '0',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "五",
+    liftingType: "0",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 2,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '1',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "1",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 3,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '2',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "2",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 4,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '3',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "3",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 5,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '0',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "0",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 6,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '1',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "1",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 7,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '2',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "2",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 8,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '3',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "3",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 9,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '0',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "0",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 10,
-    deviceName: 'XXXXXXXX吊索具',
-    liftingType: '1',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    deviceName: "XXXXXXXX吊索具",
+    liftingType: "1",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
 ]);
 
 // 吊索具数据
-const riggingSearch = ref('');
+const riggingSearch = ref("");
 const riggingPage = ref(1);
 const riggingPageSize = ref(10);
 const riggingTotal = ref(0);
@@ -360,174 +409,176 @@ const riggingData = ref([]);
 const riggingLoading = ref(false);
 
 // 设备数据
-const equipmentSearch = ref('');
+const equipmentSearch = ref("");
 const equipmentPage = ref(1);
 const equipmentTotal = ref(6532);
 const equipmentData = ref([
   {
     id: 1,
-    name: '五',
-    type: '0',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "五",
+    type: "0",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 2,
-    name: 'XXXXXXXX吊索具',
-    type: '1',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "1",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 3,
-    name: 'XXXXXXXX吊索具',
-    type: '2',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "2",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 4,
-    name: 'XXXXXXXX吊索具',
-    type: '3',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "3",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 5,
-    name: 'XXXXXXXX吊索具',
-    type: '0',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "0",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 6,
-    name: 'XXXXXXXX吊索具',
-    type: '1',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "1",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 7,
-    name: 'XXXXXXXX吊索具',
-    type: '2',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "2",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 8,
-    name: 'XXXXXXXX吊索具',
-    type: '3',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "3",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 9,
-    name: 'XXXXXXXX吊索具',
-    type: '0',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "0",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
   {
     id: 10,
-    name: 'XXXXXXXX吊索具',
-    type: '1',
-    manufacturer: 'xxxxxx公司',
-    creator: 'admin',
-    createTime: '2025-01-01 12:00:00',
+    name: "XXXXXXXX吊索具",
+    type: "1",
+    manufacturer: "xxxxxx公司",
+    creator: "admin",
+    createTime: "2025-01-01 12:00:00",
   },
 ]);
 
 // 新建吊索具弹窗
 const riggingDialogVisible = ref(false);
 const riggingForm = ref({
-  type: '',
-  name: '',
-  manufacturer: '',
+  type: "",
+  name: "",
+  manufacturer: "",
 });
 
 // 新建起重机
 const handleAddCrane = () => {
-  ElMessage.info('新建起重机功能待实现');
+  ElMessage.info("新建起重机功能待实现");
 };
 
 // 新建吊索具
 const handleAddRigging = () => {
   riggingDialogVisible.value = true;
   riggingForm.value = {
-    type: '',
-    name: '',
-    manufacturer: '',
+    type: "",
+    name: "",
+    manufacturer: "",
   };
 };
 
 // 新建设备
 const handleAddEquipment = () => {
-  ElMessage.info('新建设备功能待实现');
+  ElMessage.info("新建设备功能待实现");
 };
 
 // 编辑
 const handleEdit = (row, type) => {
-  if (type === 'rigging') {
+  if (type === "rigging") {
     // 跳转到吊索具详情页面
     router.push(`/rigging-detail/${row.id}`);
   } else {
-    ElMessage.info(`编辑${type === 'crane' ? '起重机' : '设备'}功能待实现`);
+    ElMessage.info(`编辑${type === "crane" ? "起重机" : "设备"}功能待实现`);
   }
 };
 
 // 删除
 const handleDelete = (row, type) => {
   ElMessageBox.confirm(
-    `确定要删除这条${type === 'crane' ? '起重机' : type === 'rigging' ? '吊索具' : '设备'}数据吗？`,
-    '提示',
+    `确定要删除这条${
+      type === "crane" ? "起重机" : type === "rigging" ? "吊索具" : "设备"
+    }数据吗？`,
+    "提示",
     {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
     }
   )
     .then(() => {
-      ElMessage.success('删除成功');
+      ElMessage.success("删除成功");
     })
     .catch(() => {
-      ElMessage.info('已取消删除');
+      ElMessage.info("已取消删除");
     });
 };
 
 // 吊索具弹窗下一步
 const handleRiggingNext = async () => {
   if (!riggingForm.value.type) {
-    ElMessage.warning('请选择吊索具类型');
+    ElMessage.warning("请选择吊索具类型");
     return;
   }
   if (!riggingForm.value.name) {
-    ElMessage.warning('请输入吊索具名称');
+    ElMessage.warning("请输入吊索具名称");
     return;
   }
   if (!riggingForm.value.manufacturer) {
-    ElMessage.warning('请输入生产厂家');
+    ElMessage.warning("请输入生产厂家");
     return;
   }
-  
+
   try {
     const response = await addUpdateLiftingInfo(riggingForm.value);
-    
+
     if (response && response.code === 200) {
-      ElMessage.success('创建成功');
+      ElMessage.success("创建成功");
       riggingDialogVisible.value = false;
-      
+
       // 跳转到详情页面，传递新创建的ID
       router.push({
-        path: '/rigging-detail',
+        path: "/rigging-detail",
         query: {
           id: response.data.id,
           type: riggingForm.value.type,
@@ -536,11 +587,11 @@ const handleRiggingNext = async () => {
         },
       });
     } else {
-      ElMessage.error(response?.message || '创建失败');
+      ElMessage.error(response?.message || "创建失败");
     }
   } catch (error) {
-    console.error('创建吊索具失败:', error);
-    ElMessage.error('创建失败，请检查网络连接');
+    console.error("创建吊索具失败:", error);
+    ElMessage.error("创建失败，请检查网络连接");
   }
 };
 
@@ -551,21 +602,21 @@ const fetchRiggingData = async () => {
       pageNum: riggingPage.value,
       pageSize: riggingPageSize.value,
     });
-    
-    if (response && response.code === '0') {
+
+    if (response && response.code === "0") {
       // 对返回的数据进行类型翻译处理
       const records = response.data.records || [];
-      riggingData.value = records.map(item => ({
+      riggingData.value = records.map((item) => ({
         ...item,
-        liftingType: translateLiftingType(item.liftingType)
+        liftingType: translateLiftingType(item.liftingType),
       }));
       riggingTotal.value = response.data.total || 0;
     } else {
-      ElMessage.error(response?.message || '获取数据失败');
+      ElMessage.error(response?.message || "获取数据失败");
     }
   } catch (error) {
-    console.error('获取吊索具数据失败:', error);
-    ElMessage.error('获取数据失败，请检查网络连接');
+    console.error("获取吊索具数据失败:", error);
+    ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     riggingLoading.value = false;
   }
@@ -588,17 +639,16 @@ const handleRiggingSearch = () => {
 };
 
 watch(activeTab, (newTab) => {
-  if (newTab === 'rigging' && riggingData.value.length === 0) {
+  if (newTab === "rigging" && riggingData.value.length === 0) {
     fetchRiggingData();
   }
 });
 
 onMounted(() => {
-  if (activeTab.value === 'rigging') {
+  if (activeTab.value === "rigging") {
     fetchRiggingData();
   }
 });
-
 </script>
 
 <style scoped>
