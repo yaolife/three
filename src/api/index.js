@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://172.10.30.135:18080"
+const API_BASE_URL = "/api"
 
 /**
  * 通用POST请求方法
