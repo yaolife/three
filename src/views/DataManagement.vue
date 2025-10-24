@@ -269,6 +269,9 @@
       :close-on-click-modal="false"
     >
       <el-form :model="riggingForm" label-width="100px">
+            <el-form-item label="吊索具名称">
+          <el-input v-model="riggingForm.liftingName" placeholder="请输入吊索具名称" />
+        </el-form-item>
         <el-form-item label="吊索具类型">
           <el-select v-model="riggingForm.liftingType" placeholder="请选择吊索具类型" @change="handleLiftingTypeChange">
             <el-option label="钢丝绳" value="0" />
@@ -286,9 +289,6 @@
               :value="item.liftingType"
             />
           </el-select>
-        </el-form-item>
-        <el-form-item label="吊索具名称">
-          <el-input v-model="riggingForm.liftingName" placeholder="请输入吊索具名称" />
         </el-form-item>
         <el-form-item label="生产厂家">
           <el-input
