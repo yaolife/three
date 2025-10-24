@@ -281,9 +281,9 @@
           <el-select v-model="riggingForm.subType" placeholder="请选择子类型">
             <el-option
               v-for="item in subTypeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+              :key="item.liftingType"
+              :label="item.liftingTypeName"
+              :value="item.liftingType"
             />
           </el-select>
         </el-form-item>
