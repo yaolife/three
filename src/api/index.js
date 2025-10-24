@@ -65,11 +65,28 @@ export function addUpdateLiftingDetail(data) {
 }
 /**
  * 吊索具数据库新增/子类型
- * @param {object} data - 吊索具基本信息
+ * @param {string|number} type - 父类型ID
  * @returns {Promise} - 返回操作结果
  */
-export function getSubType(data) {
-  return post(`/lifting/type/getByFatherType/${data}`)
+export async function getSubType(type) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/lifting/type/getByFatherType/${type}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+    return result
+  } catch (error) {
+    console.error("获取子类型API请求失败:", error)
+    throw error
+  }
 }
 
 export default {
@@ -77,4 +94,5 @@ export default {
   addUpdateLiftingInfo,
   getLiftingDetailPage,
   addUpdateLiftingDetail,
+  getSubType,
 }
