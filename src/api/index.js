@@ -1,6 +1,32 @@
 const API_BASE_URL = "/api"
 
 /**
+ * 通用GET请求方法
+ * @param {string} url - 接口路径
+ * @returns {Promise} - 返回Promise对象
+ */
+async function get(url) {
+  try {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+    return result
+  } catch (error) {
+    console.error("API请求失败:", error)
+    throw error
+  }
+}
+
+/**
  * 通用POST请求方法
  * @param {string} url - 接口路径
  * @param {object} data - 请求数据
@@ -70,19 +96,8 @@ export function addUpdateLiftingDetail(data) {
  */
 export async function getSubType(type) {
   try {
-    const response = await fetch(`${API_BASE_URL}/lifting/type/getByFatherType/${type}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const result = await response.json()
-    return result
+    const url = `/lifting/type/getByFatherType/${type}`;
+    return await get(url);
   } catch (error) {
     console.error("获取子类型API请求失败:", error)
     throw error
