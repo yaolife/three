@@ -300,22 +300,53 @@ const handleAddRow = () => {
 
 // 删除行
 const handleDeleteRow = (index) => {
-  if (tableData.value.length === 1) {
-    ElMessage.warning('至少保留一行数据');
-    return;
-  }
-  ElMessageBox.confirm('确定要删除这行数据吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
-  })
-    .then(() => {
-      tableData.value.splice(index, 1);
-      ElMessage.success('删除成功');
+  // 获取要删除的行数据
+  const rowData = tableData.value[index];
+  
+  // 如果当前行有id，调用删除接口
+  if (rowData && rowData.id) {
+    ElMessageBox.confirm('确定要删除这行数据吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
     })
-    .catch(() => {
-      ElMessage.info('已取消删除');
-    });
+      .then(async () => {
+        try {
+          const response = await deleteSubItem(rowData.id);
+          if (response && response.code === '0') {
+            // 接口删除成功后，从表格中移除该行
+            tableData.value.splice(index, 1);
+            ElMessage.success('删除成功');
+          } else {
+            ElMessage.error(response?.message || '删除失败');
+          }
+        } catch (error) {
+          console.error('删除失败:', error);
+          ElMessage.error('删除失败，请检查网络连接');
+        }
+      })
+      .catch(() => {
+        ElMessage.info('已取消删除');
+      });
+  } else {
+    // 如果没有id，直接从表格中移除（新增但未保存的行）
+    if (tableData.value.length === 1) {
+      ElMessage.warning('至少保留一行数据');
+      return;
+    }
+    ElMessageBox.confirm('确定要删除这行数据吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+      .then(() => {
+        tableData.value.splice(index, 1);
+        ElMessage.success('删除成功');
+      })
+      .catch(() => {
+        ElMessage.info('已取消删除');
+      });
+  }
 };
 
 // 保存数据并调用API
