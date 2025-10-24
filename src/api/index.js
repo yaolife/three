@@ -104,6 +104,20 @@ export async function getSubType(type) {
   }
 }
 /**
+ * 吊索具数据库/删除模版数据
+ * @param {string|number} id - 模版ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function deleteTemplateItem(id) {
+  try {
+    const url = `/template/liftingInfo/delete/${id}`;
+    return await get(url);
+  } catch (error) {
+    console.error("删除模版数据API请求失败:", error)
+    throw error
+  }
+}
+/**
  * 吊索具数据库/删除子数据
  * @param {string|number} id - 子ID
  * @returns {Promise} - 返回操作结果
