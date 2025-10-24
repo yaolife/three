@@ -51,34 +51,16 @@
             :header-cell-style="{ background: '#f5f7fa' }"
           >
             <el-table-column type="index" label="序号" width="60" />
-            <el-table-column label="设备名称" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.deviceName"
-                  placeholder="请输入设备名称"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="设备型号" min-width="120">
+            <el-table-column label="产品型号" min-width="120">
               <template #default="scope">
                 <el-input
                   v-model="scope.row.deviceModel"
-                  placeholder="请输入设备型号"
+                  placeholder="请输入产品型号"
                   size="small"
                 />
               </template>
             </el-table-column>
-            <el-table-column label="设备编号" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.deviceCode"
-                  placeholder="请输入设备编号"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="额定载荷" min-width="120">
+            <el-table-column label="额定载荷(kg)" min-width="120">
               <template #default="scope">
                 <el-input
                   v-model="scope.row.pq"
@@ -96,7 +78,7 @@
                 />
               </template>
             </el-table-column>
-            <el-table-column label="近似宽度" min-width="120">
+            <el-table-column label="近似宽度(5、6:1)mm" min-width="120">
               <template #default="scope">
                 <el-input
                   v-model="scope.row.approximateWidth"

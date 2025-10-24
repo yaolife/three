@@ -902,7 +902,8 @@
                       placeholder="请选择"
                       class="hanging-method-select"
                     >
-                      <el-option label="拉环" value="loop" />
+                      <el-option label="矩形" value="loop" />
+                       <el-option label="圆形" value="zero" />
                     </el-select>
                   </div>
                   <div class="form-row">
