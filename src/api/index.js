@@ -103,7 +103,20 @@ export async function getSubType(type) {
     throw error
   }
 }
-
+/**
+ * 吊索具数据库/删除子数据
+ * @param {string|number} id - 子ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function deleteSubItem(id) {
+  try {
+    const url = `/template/liftingDetail/detail/${id}`;
+    return await get(url);
+  } catch (error) {
+    console.error("删除子数据API请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,

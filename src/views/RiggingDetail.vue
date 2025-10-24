@@ -37,7 +37,7 @@
         <!-- 可编辑表格 -->
         <div class="table-section">
           <div class="table-toolbar">
-            <span class="table-title">设备详细信息</span>
+            <span class="table-title">吊索具详细信息</span>
             <el-button type="primary" size="small" @click="handleAddRow">
               <el-icon><Plus /></el-icon>
               添加行
@@ -166,7 +166,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { ArrowLeft, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { translateLiftingType } from "@/utils/common.js";
-import { getLiftingDetailPage, addUpdateLiftingDetail } from '@/api/index.js';
+import { getLiftingDetailPage, addUpdateLiftingDetail,deleteSubItem } from '@/api/index.js';
 
 const router = useRouter();
 const route = useRoute();
