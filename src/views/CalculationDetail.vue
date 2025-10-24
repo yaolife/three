@@ -669,7 +669,7 @@
               <div
                 class="form-row"
                 v-if="activeSlingData.liftingType === 'withBeam'"
-                style="margin-left: 50px; display: flex; gap: 20px"
+                style="display: flex; gap: 20px"
               >
                 <div style="display: flex; align-items: center">
                   <label class="form-label">平衡梁重量<span>G1</span></label>
@@ -784,7 +784,7 @@
                   class="inline-radio-group"
                 >
                   <el-radio value="0">钢丝绳</el-radio>
-                  <el-radio value="1">吊索</el-radio>
+                  <el-radio value="1">吊带</el-radio>
                   <el-radio value="2">卸扣</el-radio>
                   <el-radio value="3">缆绳</el-radio>
                 </el-radio-group>
@@ -2997,7 +2997,7 @@ const liftingFormDatas = ref([
     height: 12,
     angle: 45,
     liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
-    slingType: "magnetic", // Initialize slingType, as it's now part of the radio group, default to magnetic (钢丝绳)
+    slingType: "0", // Initialize slingType, as it's now part of the radio group, default to magnetic (钢丝绳)
     isDouble: false, // Added field for "是否打双" checkbox
     isSinglePointLifting: false, // 添加是否单点吊装字段
     isBottomSling: false, // 标识是否为下部吊索具，false为上部，true为下部

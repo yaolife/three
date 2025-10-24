@@ -525,7 +525,7 @@ const fetchSubTypes = async (type) => {
   }
   
   try {
-    const response = await getSubType({ subType: type });
+    const response = await getSubType(type);
     if (response && response.code === "0") {
       subTypeOptions.value = response.data || [];
     } else {

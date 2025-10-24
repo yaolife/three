@@ -69,8 +69,9 @@ export function addUpdateLiftingDetail(data) {
  * @returns {Promise} - 返回操作结果
  */
 export function getSubType(data) {
-  return post("/template/liftingInfo/subType", data)
+  return post(`/lifting/type/getByFatherType/${data}`)
 }
+
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
