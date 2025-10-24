@@ -124,7 +124,7 @@ export async function deleteTemplateItem(id) {
  */
 export async function deleteSubItem(id) {
   try {
-    const url = `/template/liftingDetail/detail/${id}`;
+    const url = `/template/liftingDetail/delete/${id}`;
     return await get(url);
   } catch (error) {
     console.error("删除子数据API请求失败:", error)
