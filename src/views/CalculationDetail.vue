@@ -61,6 +61,24 @@
             </div>
           </template>
         </el-tab-pane>
+        <!-- Added new tab for construction plan and elevation drawing -->
+        <el-tab-pane label="施工平立面图" name="construction">
+          <template #label>
+            <div class="tab-label">
+              <el-image
+                style="width: 22px; height: 22px"
+                :src="
+                  activeTab === 'construction'
+                    ? '/src/images/active_drawing.png'
+                    : '/src/images/drawing.png'
+                "
+                alt=""
+                :fit="'cover'"
+              />
+              施工平立面图
+            </div>
+          </template>
+        </el-tab-pane>
       </el-tabs>
       <el-button type="primary">导出</el-button>
     </div>
@@ -1230,6 +1248,16 @@
           />
         </div>
       </div>
+
+      <!-- Added construction plan content area with embedded method-draw -->
+      <div v-if="activeTab === 'construction'" class="content-wrapper construction-plan-wrapper">
+        <iframe
+          src="/method-draw/index.html"
+          class="method-draw-iframe"
+          frameborder="0"
+          title="施工平立面图编辑器"
+        ></iframe>
+      </div>
     </div>
   </div>
 
@@ -1419,12 +1447,14 @@
               <div class="info-item">生产厂家：{{ sling.manufacturer }}</div>
               <div class="info-item">
                 吊索具类型：{{
-                  sling.slingType === "magnetic"
+                  sling.slingType === "0"
                     ? "钢丝绳"
-                    : sling.slingType === "rope"
-                    ? "吊索"
-                    : sling.slingType === "shackle"
+                    : sling.slingType === "1"
+                    ? "吊带"
+                    : sling.slingType === "2"
                     ? "卸扣"
+                    : sling.slingType === "3"
+                    ? "缆绳"
                     : "其它"
                 }}
               </div>
@@ -1723,12 +1753,14 @@
               <div class="info-item">生产厂家：{{ sling.manufacturer }}</div>
               <div class="info-item">
                 吊索具类型：{{
-                  sling.slingType === "magnetic"
+                  sling.slingType === "0"
                     ? "钢丝绳"
-                    : sling.slingType === "rope"
-                    ? "吊索"
-                    : sling.slingType === "shackle"
+                    : sling.slingType === "1"
+                    ? "吊带"
+                    : sling.slingType === "2"
                     ? "卸扣"
+                    : sling.slingType === "3"
+                    ? "缆绳"
                     : "其它"
                 }}
               </div>
@@ -1971,7 +2003,7 @@
                       : calculateLiftingResult(sling).result.toFixed(2) == 100
                       ? "等于"
                       : "大于") + "100%"
-              }}，同时出厂安全系数满足6倍安全系数,
+              }}
             </template>
             故满足要求。
           </template>
@@ -2045,12 +2077,14 @@
               <div class="info-item">生产厂家：{{ sling.manufacturer }}</div>
               <div class="info-item">
                 吊索具类型：{{
-                  sling.slingType === "magnetic"
+                  sling.slingType === "0"
                     ? "钢丝绳"
-                    : sling.slingType === "rope"
-                    ? "吊索"
-                    : sling.slingType === "shackle"
+                    : sling.slingType === "1"
+                    ? "吊带"
+                    : sling.slingType === "2"
                     ? "卸扣"
+                    : sling.slingType === "3"
+                    ? "缆绳"
                     : "其它"
                 }}
               </div>
@@ -4399,5 +4433,19 @@ T:履带平均接地比压= ${foundationCalculationResult.value.calculationProce
   color: #666;
   font-size: 14px;
   line-height: 1.6;
+}
+
+/* Added styles for construction plan iframe */
+.construction-plan-wrapper {
+  width: 100%;
+  height: calc(100vh - 120px);
+  padding: 0;
+  overflow: hidden;
+}
+
+.method-draw-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 </style>
