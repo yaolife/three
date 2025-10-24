@@ -614,7 +614,24 @@ const handleRiggingNext = async () => {
   }
 
   try {
-    const response = await addUpdateLiftingInfo(riggingForm.value);
+    // 准备请求参数
+    const requestParams = {
+      ...riggingForm.value
+    };
+    
+    // 如果选择了子类型，从subTypeOptions中获取对应的liftingTypeName和liftingType
+    if (riggingForm.value.subType) {
+      const selectedSubType = subTypeOptions.value.find(
+        item => item.liftingType === riggingForm.value.subType
+      );
+      
+      if (selectedSubType) {
+        requestParams.twoLiftingType = selectedSubType.liftingType;
+        requestParams.twoLiftingName = selectedSubType.liftingTypeName;
+      }
+    }
+
+    const response = await addUpdateLiftingInfo(requestParams);
 
     if (response && response.code === '0') {
       ElMessage.success("创建成功");
