@@ -78,7 +78,7 @@
                 />
               </template>
             </el-table-column>
-            <el-table-column label="近似宽度(5、6:1)mm" min-width="120">
+            <el-table-column label="近似宽度(4、5、6:1)mm" min-width="120">
               <template #default="scope">
                 <el-input
                   v-model="scope.row.approximateWidth"
