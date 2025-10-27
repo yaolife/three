@@ -574,7 +574,10 @@ const handleEdit = (row, type) => {
       path: `/rigging-detail/${row.id}`,
       query: {
         liftingType: row.liftingType,
+        liftingName: row.liftingName,
         twoLiftingType: row.twoLiftingType,
+        twoLiftingName: row.twoLiftingName,
+        prodBusiness: row.prodBusiness
       }
     });
   } else {
