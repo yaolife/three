@@ -191,8 +191,8 @@ export const CABLE_COLUMNS = {
     { prop: "kTex", label: "线密度(Ktex)", minWidth: 130 },
     { prop: "deviation", label: "偏差(%)", minWidth: 100 },
     { prop: "weight", label: "理论重量(kg/200M)", minWidth: 150 },
-    { prop: "minBreakingStrengthKN", label: "最低断裂强力(KN)", minWidth: 150 },
-    { prop: "minBreakingStrengthTon", label: "最低断裂强力(Ton)", minWidth: 160 },
+    { prop: "fractureForce", label: "最低断裂强力(KN)", minWidth: 150 },
+    { prop: "fractureForceTwo", label: "最低断裂强力(Ton)", minWidth: 160 },
   ],
   // 107: 高性能牵引绳 (High-performance Traction Rope)
   107: [
