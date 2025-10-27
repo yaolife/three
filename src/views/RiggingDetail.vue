@@ -265,7 +265,7 @@ const handleSave = async () => {
   for (let i = 0; i < tableData.value.length; i++) {
     const row = tableData.value[i];
     if (!row.deviceName || !row.deviceModel || !row.deviceCode) {
-      ElMessage.warning(`第${i + 1}行的设备名称、设备型号、设备编号不能为空`);
+      ElMessage.warning(`第${i + 1}行的存在输入项为空`);
       return;
     }
   }
