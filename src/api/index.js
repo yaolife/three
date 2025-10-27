@@ -89,6 +89,7 @@ export function getLiftingDetailPage(params) {
 export function addUpdateLiftingDetail(data) {
   return post("/template/liftingDetail/addUpdate", data)
 }
+
 /**
  * 吊索具数据库新增/子类型
  * @param {string|number} type - 父类型ID
@@ -96,13 +97,14 @@ export function addUpdateLiftingDetail(data) {
  */
 export async function getSubType(type) {
   try {
-    const url = `/lifting/type/getByFatherType/${type}`;
-    return await get(url);
+    const url = `/lifting/type/getByFatherType/${type}`
+    return await get(url)
   } catch (error) {
     console.error("获取子类型API请求失败:", error)
     throw error
   }
 }
+
 /**
  * 吊索具数据库/删除模版数据
  * @param {string|number} id - 模版ID
@@ -110,13 +112,14 @@ export async function getSubType(type) {
  */
 export async function deleteTemplateItem(id) {
   try {
-    const url = `/template/liftingInfo/delete/${id}`;
-    return await get(url);
+    const url = `/template/liftingInfo/delete/${id}`
+    return await get(url)
   } catch (error) {
     console.error("删除模版数据API请求失败:", error)
     throw error
   }
 }
+
 /**
  * 吊索具数据库/删除子数据
  * @param {string|number} id - 子ID
@@ -124,13 +127,14 @@ export async function deleteTemplateItem(id) {
  */
 export async function deleteSubItem(id) {
   try {
-    const url = `/template/liftingDetail/delete/${id}`;
-    return await get(url);
+    const url = `/template/liftingDetail/delete/${id}`
+    return await get(url)
   } catch (error) {
     console.error("删除子数据API请求失败:", error)
     throw error
   }
 }
+
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,

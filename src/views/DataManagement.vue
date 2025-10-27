@@ -570,8 +570,13 @@ const handleAddEquipment = () => {
 // 编辑
 const handleEdit = (row, type) => {
   if (type === "rigging") {
-    // 跳转到吊索具详情页面
-    router.push(`/rigging-detail/${row.id}`);
+    router.push({
+      path: `/rigging-detail/${row.id}`,
+      query: {
+        liftingType: row.liftingType,
+        twoLiftingType: row.twoLiftingType,
+      }
+    });
   } else {
     ElMessage.info(`编辑${type === "crane" ? "起重机" : "设备"}功能待实现`);
   }

@@ -76,7 +76,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { ArrowLeft, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { translateLiftingType } from "@/utils/common.js";
-import { getLiftingDetailPage, addUpdateLiftingDetail, deleteSubItem } from '@/api/index.js';
+import { getLiftingDetailPage, addUpdateLiftingDetail, deleteSubItem, getLiftingInfoPage } from '@/api/index.js';
 import { getColumnsByType } from '@/config/columnConfig.js';
 import DynamicRiggingTable from '@/components/rigging-tables/DynamicRiggingTable.vue';
 
@@ -127,10 +127,42 @@ const createEmptyRow = () => {
   return emptyRow;
 };
 
+const fetchLiftingInfoFromTable = async (id) => {
+  try {
+    const response = await getLiftingInfoPage({
+      pageNum: 1,
+      pageSize: 10,
+    });
+    
+    if (response && response.code === '0' && response.data && response.data.records) {
+      // Find the record with matching id
+      const record = response.data.records.find(item => item.id == id);
+      
+      if (record) {
+        riggingInfo.value = {
+          id: record.id,
+          liftingType: record.liftingType,
+          liftingName: record.liftingName,
+          prodBusiness: record.prodBusiness,
+          subType: record.twoLiftingType || '',
+          subTypeName: record.twoLiftingName || '',
+        };
+      } else {
+        ElMessage.error('未找到对应的吊索具信息');
+      }
+    } else {
+      ElMessage.error(response?.message || '获取吊索具信息失败');
+    }
+  } catch (error) {
+    console.error('获取吊索具信息失败:', error);
+    ElMessage.error('获取吊索具信息失败，请检查网络连接');
+  }
+};
+
 // 从API获取详情数据
 const fetchDetailData = async () => {
   if (!riggingInfo.value.id) {
-    // 如果是新建模式，初始化一行空数据
+    // 如果是新建模式,初始化一行空数据
     tableData.value = [createEmptyRow()];
     return;
   }
@@ -169,46 +201,14 @@ const handleDetailPageChange = (page) => {
 };
 
 // 初始化数据
-onMounted(() => {
-  // 从路由参数获取基本信息
-  if (route.query.id) {
-    riggingInfo.value.id = route.query.id;
-  }
-  if (route.query.liftingType) {
-    riggingInfo.value.liftingType = route.query.liftingType;
-    riggingInfo.value.liftingName = route.query.liftingName;
-    riggingInfo.value.prodBusiness = route.query.prodBusiness;
-    riggingInfo.value.subType = route.query.subType || '';
-    riggingInfo.value.subTypeName = route.query.subTypeName || '';
-  } else if (route.params.id) {
-    // 如果是编辑模式，从后端获取数据
-    riggingInfo.value.id = route.params.id;
-    // 这里应该调用API获取基本信息，暂时使用模拟数据
-    riggingInfo.value = {
-      id: route.params.id,
-      liftingType: '吊装带',
-      liftingName: 'W01型（环眼型）',
-      prodBusiness: '巨力索具股份有限公司',
-      subType: '',
-      subTypeName: '',
-    };
-  }
-  
-  // 加载详情数据
-  fetchDetailData();
-});
-
-// 返回
 const handleBack = () => {
   router.back();
 };
 
-// 添加行
 const handleAddRow = () => {
   tableData.value.push(createEmptyRow());
 };
 
-// 删除行
 const handleDeleteRow = (index) => {
   // 获取要删除的行数据
   const rowData = tableData.value[index];
@@ -259,15 +259,40 @@ const handleDeleteRow = (index) => {
   }
 };
 
-// 保存数据并调用API
 const handleSave = async () => {
   // 验证数据
+  const emptyFields = [];
+  
   for (let i = 0; i < tableData.value.length; i++) {
     const row = tableData.value[i];
-    if (!row.deviceName || !row.deviceModel || !row.deviceCode) {
-      ElMessage.warning(`第${i + 1}行的输入项存在为空的情况`);
-      return;
+    const rowEmptyFields = [];
+    
+    // Check all required columns
+    currentColumns.value.forEach(column => {
+      const value = row[column.prop];
+      if (!value || (typeof value === 'string' && value.trim() === '')) {
+        rowEmptyFields.push(column.label);
+      }
+    });
+    
+    if (rowEmptyFields.length > 0) {
+      emptyFields.push({
+        rowIndex: i + 1,
+        fields: rowEmptyFields
+      });
     }
+  }
+  
+  if (emptyFields.length > 0) {
+    const messages = emptyFields.map(item => 
+      `第${item.rowIndex}行：${item.fields.join('、')}为空`
+    ).join('\n');
+    ElMessage.warning({
+      message: `以下字段不能为空：\n${messages}`,
+      duration: 5000,
+      dangerouslyUseHTMLString: false,
+    });
+    return;
   }
 
   saveLoading.value = true;
@@ -294,6 +319,39 @@ const handleSave = async () => {
     saveLoading.value = false;
   }
 };
+
+onMounted(async () => {
+  // 从路由参数获取基本信息
+  if (route.query.id) {
+    // 新建模式：从query参数获取
+    riggingInfo.value.id = route.query.id;
+    riggingInfo.value.liftingType = route.query.liftingType;
+    riggingInfo.value.liftingName = route.query.liftingName;
+    riggingInfo.value.prodBusiness = route.query.prodBusiness;
+    riggingInfo.value.subType = route.query.subType || '';
+    riggingInfo.value.subTypeName = route.query.subTypeName || '';
+    
+    // 加载详情数据
+    await fetchDetailData();
+  } else if (route.params.id) {
+    riggingInfo.value.id = route.params.id;
+    
+    // 如果query中有liftingType和twoLiftingType，直接使用
+    if (route.query.liftingType && route.query.twoLiftingType) {
+      riggingInfo.value.liftingType = route.query.liftingType;
+      riggingInfo.value.subType = route.query.twoLiftingType;
+      
+      // 从API获取完整信息（包括名称等）
+      await fetchLiftingInfoFromTable(route.params.id);
+    } else {
+      // 兼容旧方式：从API获取所有信息
+      await fetchLiftingInfoFromTable(route.params.id);
+    }
+    
+    // 再加载详情数据
+    await fetchDetailData();
+  }
+});
 </script>
 
 <style scoped>
