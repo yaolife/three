@@ -328,23 +328,23 @@ onMounted(async () => {
     riggingInfo.value.liftingType = route.query.liftingType;
     riggingInfo.value.liftingName = route.query.liftingName;
     riggingInfo.value.prodBusiness = route.query.prodBusiness;
-    riggingInfo.value.subType = route.query.subType || '';
-    riggingInfo.value.subTypeName = route.query.subTypeName || '';
+    riggingInfo.value.subType = route.query.twoLiftingType || '';
+    riggingInfo.value.subTypeName = route.query.twoLiftingName || '';
     
     // 加载详情数据
     await fetchDetailData();
   } else if (route.params.id) {
     riggingInfo.value.id = route.params.id;
     
-    // 如果query中有liftingType和twoLiftingType，直接使用
-    if (route.query.liftingType && route.query.twoLiftingType) {
+    // 如果query中有足够的信息，直接使用而不再调用API
+    if (route.query.liftingType && route.query.liftingName && route.query.prodBusiness) {
       riggingInfo.value.liftingType = route.query.liftingType;
-      riggingInfo.value.subType = route.query.twoLiftingType;
-      
-      // 从API获取完整信息（包括名称等）
-      await fetchLiftingInfoFromTable(route.params.id);
+      riggingInfo.value.liftingName = route.query.liftingName;
+      riggingInfo.value.prodBusiness = route.query.prodBusiness;
+      riggingInfo.value.subType = route.query.twoLiftingType || '';
+      riggingInfo.value.subTypeName = route.query.twoLiftingName || '';
     } else {
-      // 兼容旧方式：从API获取所有信息
+      // 如果信息不完整，从API获取所有信息
       await fetchLiftingInfoFromTable(route.params.id);
     }
     
