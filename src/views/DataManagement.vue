@@ -122,7 +122,7 @@
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="deviceName"
+                  prop="liftingName"
                   label="吊索具名称"
                   min-width="150"
                 />
@@ -135,8 +135,9 @@
                     {{ translateLiftingType(scope.row.liftingType) }}
                   </template>
                 </el-table-column>
+                      <el-table-column prop="twoLiftingName" label="子类型" width="120" />
                 <el-table-column
-                  prop="manufacturer"
+                  prop="prodBusiness"
                   label="生产厂家"
                   min-width="150"
                 />
