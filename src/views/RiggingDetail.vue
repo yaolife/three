@@ -162,8 +162,8 @@ const fetchLiftingInfoFromTable = async (id) => {
 // 从API获取详情数据
 const fetchDetailData = async () => {
   if (!riggingInfo.value.id) {
-    // 如果是新建模式,初始化一行空数据
-    tableData.value = [createEmptyRow()];
+    // 如果是新建模式,不初始化默认行数据
+    tableData.value = [];
     return;
   }
 
@@ -179,10 +179,7 @@ const fetchDetailData = async () => {
       tableData.value = response.data.records || [];
       detailTotal.value = response.data.total || 0;
       
-      // 如果没有数据，初始化一行空数据
-      if (tableData.value.length === 0) {
-        tableData.value = [createEmptyRow()];
-      }
+      // 如果没有数据，不初始化默认行数据
     } else {
       ElMessage.error(response?.message || '获取详情数据失败');
     }
@@ -240,10 +237,6 @@ const handleDeleteRow = (index) => {
       });
   } else {
     // 如果没有id，直接从表格中移除（新增但未保存的行）
-    if (tableData.value.length === 1) {
-      ElMessage.warning('至少保留一行数据');
-      return;
-    }
     ElMessageBox.confirm('确定要删除这行数据吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
