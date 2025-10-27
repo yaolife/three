@@ -22,7 +22,7 @@
         <div class="info-section">
           <div class="info-item">
             <span class="label">吊索具类型：</span>
-            <span class="value">{{ translateLiftingType(riggingInfo.liftingType)}}</span>
+            <span class="value">{{ translateLiftingType(riggingInfo.liftingType) }}</span>
           </div>
           <div class="info-item">
             <span class="label">吊索具名称：</span>
@@ -31,6 +31,10 @@
           <div class="info-item">
             <span class="label">生产厂家：</span>
             <span class="value">{{ riggingInfo.prodBusiness }}</span>
+          </div>
+          <div class="info-item" v-if="riggingInfo.subTypeName">
+            <span class="label">子类型：</span>
+            <span class="value">{{ riggingInfo.subTypeName }}</span>
           </div>
         </div>
 
@@ -43,90 +47,14 @@
               添加行
             </el-button>
           </div>
-          <el-table
-            :data="tableData"
-            v-loading="tableLoading"
-            border
-            style="width: 100%"
-            :header-cell-style="{ background: '#f5f7fa' }"
-          >
-            <el-table-column type="index" label="序号" width="60" />
-            <el-table-column label="产品型号" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.deviceModel"
-                  placeholder="请输入产品型号"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="额定载荷(kg)" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.pq"
-                  placeholder="请输入额定载荷"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="近似高度" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.approximateHigh"
-                  placeholder="请输入近似高度"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="近似宽度(4、5、6:1)mm" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.approximateWidth"
-                  placeholder="请输入近似宽度"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="最小长度" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.miniLength"
-                  placeholder="请输入最小长度"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="近似厚度" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.approximateThickness"
-                  placeholder="请输入近似厚度"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="环眼长度" min-width="120">
-              <template #default="scope">
-                <el-input
-                  v-model="scope.row.eyeLength"
-                  placeholder="请输入环眼长度"
-                  size="small"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="80" fixed="right">
-              <template #default="scope">
-                <el-button
-                  link
-                  type="danger"
-                  size="small"
-                  @click="handleDeleteRow(scope.$index)"
-                >
-                  删除
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          
+          <DynamicRiggingTable
+            :table-data="tableData"
+            :columns="currentColumns"
+            :loading="tableLoading"
+            @delete="handleDeleteRow"
+          />
+          
           <!-- 分页 -->
           <el-pagination
             v-model:current-page="detailPage"
@@ -143,12 +71,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ArrowLeft, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { translateLiftingType } from "@/utils/common.js";
-import { getLiftingDetailPage, addUpdateLiftingDetail,deleteSubItem } from '@/api/index.js';
+import { getLiftingDetailPage, addUpdateLiftingDetail, deleteSubItem } from '@/api/index.js';
+import { getColumnsByType } from '@/config/columnConfig.js';
+import DynamicRiggingTable from '@/components/rigging-tables/DynamicRiggingTable.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -159,6 +89,8 @@ const riggingInfo = ref({
   liftingType: '',
   liftingName: '',
   prodBusiness: '',
+  subType: '',
+  subTypeName: '',
 });
 
 // 分页和加载状态
@@ -169,23 +101,37 @@ const detailPage = ref(1);
 const detailPageSize = ref(10);
 const detailTotal = ref(0);
 
+const currentColumns = computed(() => {
+  if (!riggingInfo.value.subType) {
+    // Default columns if no subType
+    return [
+      { prop: 'deviceModel', label: '产品型号', minWidth: 120 },
+      { prop: 'ratedLoad', label: '额定载荷', minWidth: 120 },
+    ];
+  }
+  return getColumnsByType(riggingInfo.value.subType);
+});
+
+const createEmptyRow = () => {
+  const emptyRow = {
+    deviceName: '',
+    deviceModel: '',
+    deviceCode: '',
+  };
+  
+  // Add all column properties to the empty row
+  currentColumns.value.forEach(column => {
+    emptyRow[column.prop] = '';
+  });
+  
+  return emptyRow;
+};
+
 // 从API获取详情数据
 const fetchDetailData = async () => {
   if (!riggingInfo.value.id) {
     // 如果是新建模式，初始化一行空数据
-    tableData.value = [
-      {
-        deviceName: '',
-        deviceModel: '',
-        deviceCode: '',
-        pq: '',
-        approximateHigh: '',
-        approximateWidth: '',
-        miniLength: '',
-        approximateThickness: '',
-        eyeLength: '',
-      },
-    ];
+    tableData.value = [createEmptyRow()];
     return;
   }
 
@@ -203,19 +149,7 @@ const fetchDetailData = async () => {
       
       // 如果没有数据，初始化一行空数据
       if (tableData.value.length === 0) {
-        tableData.value = [
-          {
-            deviceName: '',
-            deviceModel: '',
-            deviceCode: '',
-            pq: '',
-            approximateHigh: '',
-            approximateWidth: '',
-            miniLength: '',
-            approximateThickness: '',
-            eyeLength: '',
-          },
-        ];
+        tableData.value = [createEmptyRow()];
       }
     } else {
       ElMessage.error(response?.message || '获取详情数据失败');
@@ -244,15 +178,19 @@ onMounted(() => {
     riggingInfo.value.liftingType = route.query.liftingType;
     riggingInfo.value.liftingName = route.query.liftingName;
     riggingInfo.value.prodBusiness = route.query.prodBusiness;
+    riggingInfo.value.subType = route.query.subType || '';
+    riggingInfo.value.subTypeName = route.query.subTypeName || '';
   } else if (route.params.id) {
     // 如果是编辑模式，从后端获取数据
     riggingInfo.value.id = route.params.id;
     // 这里应该调用API获取基本信息，暂时使用模拟数据
     riggingInfo.value = {
       id: route.params.id,
-      type: '吊装带',
-      name: 'W01型（环眼型）',
-      manufacturer: '巨力索具股份有限公司',
+      liftingType: '吊装带',
+      liftingName: 'W01型（环眼型）',
+      prodBusiness: '巨力索具股份有限公司',
+      subType: '',
+      subTypeName: '',
     };
   }
   
@@ -267,17 +205,7 @@ const handleBack = () => {
 
 // 添加行
 const handleAddRow = () => {
-  tableData.value.push({
-    deviceName: '',
-    deviceModel: '',
-    deviceCode: '',
-    pq: '',
-    approximateHigh: '',
-    approximateWidth: '',
-    miniLength: '',
-    approximateThickness: '',
-    eyeLength: '',
-  });
+  tableData.value.push(createEmptyRow());
 };
 
 // 删除行
@@ -405,6 +333,7 @@ const handleSave = async () => {
   background-color: #f5f7fa;
   border-radius: 4px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .info-item {

@@ -269,7 +269,7 @@
       :close-on-click-modal="false"
     >
       <el-form :model="riggingForm" label-width="100px">
-            <el-form-item label="吊索具名称">
+        <el-form-item label="吊索具名称">
           <el-input v-model="riggingForm.liftingName" placeholder="请输入吊索具名称" />
         </el-form-item>
         <el-form-item label="吊索具类型">
@@ -277,7 +277,7 @@
             <el-option label="钢丝绳" value="0" />
             <el-option label="吊带" value="1" />
             <el-option label="卸扣" value="2" />
-           <el-option label="缆绳" value="3" />
+            <el-option label="缆绳" value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="子类型">
@@ -314,7 +314,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo,getSubType,deleteTemplateItem } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem } from "@/api/index.js";
 
 const router = useRouter();
 
@@ -647,7 +647,6 @@ const handleRiggingNext = async () => {
       ElMessage.success("创建成功");
       riggingDialogVisible.value = false;
 
-      // 跳转到详情页面，传递新创建的ID
       router.push({
         path: "/rigging-detail",
         query: {
@@ -655,6 +654,8 @@ const handleRiggingNext = async () => {
           liftingType: riggingForm.value.liftingType,
           liftingName: riggingForm.value.liftingName,
           prodBusiness: riggingForm.value.prodBusiness,
+          subType: requestParams.twoLiftingType || '',
+          subTypeName: requestParams.twoLiftingName || '',
         },
       });
     } else {
