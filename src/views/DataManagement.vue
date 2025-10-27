@@ -135,7 +135,7 @@
                     {{ translateLiftingType(scope.row.liftingType) }}
                   </template>
                 </el-table-column>
-                      <el-table-column prop="twoLiftingName" label="子类型" width="120" />
+                <el-table-column prop="twoLiftingName" label="子类型" width="120" />
                 <el-table-column
                   prop="prodBusiness"
                   label="生产厂家"
@@ -261,6 +261,40 @@
         </el-tabs>
       </div>
     </el-card>
+
+    <!-- 新建起重机弹窗 -->
+    <el-dialog
+      v-model="craneDialogVisible"
+      title="新建起重机"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="craneForm" label-width="100px">
+        <el-form-item label="起重机名称">
+          <el-input v-model="craneForm.craneName" placeholder="请输入（例如：WDT型）" />
+        </el-form-item>
+        <el-form-item label="起重机类型">
+          <el-select v-model="craneForm.craneType" placeholder="请选择起重机类型">
+            <el-option label="汽车吊" value="汽车吊" />
+            <el-option label="履带吊" value="履带吊" />
+            <el-option label="塔吊" value="塔吊" />
+            <el-option label="门式起重机" value="门式起重机" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="型号">
+          <el-input v-model="craneForm.model" placeholder="请输入型号" />
+        </el-form-item>
+        <el-form-item label="生产厂家">
+          <el-input v-model="craneForm.manufacturer" placeholder="请输入生产厂家（例如：三一重工）" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="craneDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleCraneNext">下一步</el-button>
+        </div>
+      </template>
+    </el-dialog>
 
     <!-- 新建吊索具弹窗 -->
     <el-dialog
@@ -434,6 +468,15 @@ const riggingForm = ref({
   prodBusiness: "",
 });
 
+// 新建起重机弹窗
+const craneDialogVisible = ref(false);
+const craneForm = ref({
+  craneName: "",
+  craneType: "",
+  model: "",
+  manufacturer: "",
+});
+
 // 子类型选项
 const subTypeOptions = ref([]);
 
@@ -467,7 +510,13 @@ const handleLiftingTypeChange = (value) => {
 
 // 新建起重机
 const handleAddCrane = () => {
-  ElMessage.info("新建起重机功能待实现");
+  craneDialogVisible.value = true;
+  craneForm.value = {
+    craneName: "",
+    craneType: "",
+    model: "",
+    manufacturer: "",
+  };
 };
 
 // 新建吊索具
@@ -534,6 +583,38 @@ const handleDelete = (row, type) => {
     .catch(() => {
       ElMessage.info("已取消删除");
     });
+};
+
+// 起重机弹窗下一步
+const handleCraneNext = () => {
+  if (!craneForm.value.craneName) {
+    ElMessage.warning("请输入起重机名称");
+    return;
+  }
+  if (!craneForm.value.craneType) {
+    ElMessage.warning("请选择起重机类型");
+    return;
+  }
+  if (!craneForm.value.model) {
+    ElMessage.warning("请输入型号");
+    return;
+  }
+  if (!craneForm.value.manufacturer) {
+    ElMessage.warning("请输入生产厂家");
+    return;
+  }
+
+  // 跳转到起重机详情页面
+  router.push({
+    path: "/crane-detail",
+    query: {
+      craneName: craneForm.value.craneName,
+      craneType: craneForm.value.craneType,
+      model: craneForm.value.model,
+      manufacturer: craneForm.value.manufacturer,
+    },
+  });
+  craneDialogVisible.value = false;
 };
 
 // 吊索具弹窗下一步

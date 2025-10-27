@@ -10,6 +10,7 @@ const RecycleBin = () => import("../views/RecycleBin.vue")
 const CalculationDetail = () => import("../views/CalculationDetail.vue")
 const DataManagement = () => import("../views/DataManagement.vue")
 const RiggingDetail = () => import("../views/RiggingDetail.vue")
+const CraneDetail = () => import("../views/CraneDetail.vue")
 
 const routes = [
   {
@@ -80,6 +81,14 @@ const routes = [
     component: RiggingDetail,
     meta: {
       title: "吊索具详情",
+    },
+  },
+  {
+    path: "/crane-detail",
+    name: "CraneDetail",
+    component: CraneDetail,
+    meta: {
+      title: "起重机详情",
     },
   },
   {
