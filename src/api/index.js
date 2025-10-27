@@ -137,4 +137,6 @@ export default {
   getLiftingDetailPage,
   addUpdateLiftingDetail,
   getSubType,
+  deleteSubItem,
+  deleteTemplateItem,
 }
