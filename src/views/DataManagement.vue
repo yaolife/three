@@ -141,7 +141,7 @@
                   label="生产厂家"
                   min-width="150"
                 />
-                <el-table-column prop="createBy" label="创建人" width="120" />
+                <el-table-column prop="createName" label="创建人" width="80" />
                 <el-table-column
                   prop="createTime"
                   label="录入时间"
