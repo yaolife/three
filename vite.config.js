@@ -12,10 +12,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": {
+      "/server-api": {
         target: "http://172.10.30.135:18080",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
+        rewrite: (path) => path.replace(/^\/server-api/, ""),
       },
     },
   },
