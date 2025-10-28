@@ -29,10 +29,10 @@
             <span class="value">{{ riggingInfo.liftingName }}</span>
           </div>
           <div class="info-item">
-            <span class="label">生产厂家：</span>
+            <span class="label">生产厂家1：</span>
             <span class="value">{{ riggingInfo.prodBusiness }}</span>
           </div>
-          <div class="info-item" v-if="riggingInfo.subTypeName">
+          <div class="info-item">
             <span class="label">子类型：</span>
             <span class="value">{{ riggingInfo.subTypeName }}</span>
           </div>
@@ -321,8 +321,8 @@ onMounted(async () => {
     riggingInfo.value.liftingType = route.query.liftingType;
     riggingInfo.value.liftingName = route.query.liftingName;
     riggingInfo.value.prodBusiness = route.query.prodBusiness;
-    riggingInfo.value.subType = route.query.twoLiftingType || '';
-    riggingInfo.value.subTypeName = route.query.twoLiftingName || '';
+    riggingInfo.value.subType = route.query.twoLiftingType || route.query.subType || '';
+    riggingInfo.value.subTypeName = route.query.twoLiftingName || route.query.subTypeName || '';
     
     // 加载详情数据
     await fetchDetailData();
@@ -334,8 +334,8 @@ onMounted(async () => {
       riggingInfo.value.liftingType = route.query.liftingType;
       riggingInfo.value.liftingName = route.query.liftingName;
       riggingInfo.value.prodBusiness = route.query.prodBusiness;
-      riggingInfo.value.subType = route.query.twoLiftingType || '';
-      riggingInfo.value.subTypeName = route.query.twoLiftingName || '';
+      riggingInfo.value.subType = route.query.twoLiftingType || route.query.subType || '';
+      riggingInfo.value.subTypeName = route.query.twoLiftingName || route.query.subTypeName || '';
     } else {
       // 如果信息不完整，从API获取所有信息
       await fetchLiftingInfoFromTable(route.params.id);
