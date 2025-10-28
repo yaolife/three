@@ -24,8 +24,8 @@
           </el-row>
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="生产型号">
-                <el-input v-model="craneInfo.model" placeholder="请输入生产型号" />
+              <el-form-item label="型号">
+                <el-input v-model="craneInfo.model" placeholder="请输入型号" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -222,7 +222,7 @@
                   placeholder="请输入主臂角度"
                   size="small"
                 >
-                  <template #append>m</template>
+                  <template #append>°</template>
                 </el-input>
               </template>
             </el-table-column>
@@ -293,7 +293,7 @@
                   placeholder="请输入主臂+副臂角度"
                   size="small"
                 >
-                  <template #append>m</template>
+                  <template #append>°</template>
                 </el-input>
               </template>
             </el-table-column>
@@ -381,9 +381,9 @@ const auxBoomTableData = ref([]);
 // 主臂表格操作函数
 const handleAddMainBoomRow = () => {
   mainBoomTableData.value.push({
-    radius: "",
+    workingRadius: "",
     mainBoomLength: "",
-    ratedLoad: "",
+    liftingCapacity: "",
   });
 };
 
@@ -394,9 +394,9 @@ const handleDeleteMainBoomRow = (index) => {
 // 副臂表格操作函数
 const handleAddAuxBoomRow = () => {
   auxBoomTableData.value.push({
-    radius: "",
-    totalBoomLength: "",
-    ratedLoad: "",
+    workingRadius: "",
+    boomAngle: "",
+    liftingCapacity: "",
   });
 };
 
@@ -419,10 +419,10 @@ onMounted(async () => {
       if (response && response.code === "0" && response.data) {
         // 填充基本信息
         const data = response.data;
-        craneInfo.value.craneName = data.machineName || "";
-        craneInfo.value.manufacturer = data.prodBusiness || "";
-        craneInfo.value.model = data.model || "";
-        craneInfo.value.craneType = data.type || "";
+        craneInfo.value.craneName = data.machineName || route.query.craneName;
+        craneInfo.value.manufacturer = data.prodBusiness || route.query.manufacturer;
+        craneInfo.value.model = data.model || route.query.model;
+        craneInfo.value.craneType = data.type || route.query.craneType;
         
         // 填充规格参数（从sysProjectTemplateCraneDetail中获取）
         if (data.sysProjectTemplateCraneDetail) {
@@ -446,16 +446,16 @@ onMounted(async () => {
               if (item.armType === 0) {
                 // 主臂长度基础编辑表格数据
                 mainBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
-                  radius: performanceData.workingRadius || "",
-                  mainBoomLength: performanceData.boomAngle || "",
-                  ratedLoad: performanceData.liftingCapacity || ""
+                  workingRadius: performanceData.workingRadius || "",
+                  boomAngle: performanceData.boomAngle || "",
+                  liftingCapacity: performanceData.liftingCapacity || ""
                 }));
               } else if (item.armType === 1) {
                 // 主臂+副臂基础编辑表格数据
                 auxBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
-                  radius: performanceData.workingRadius || "",
-                  totalBoomLength: performanceData.boomAngle || "",
-                  ratedLoad: performanceData.liftingCapacity || ""
+                  workingRadius: performanceData.workingRadius || "",
+                  boomAngle: performanceData.boomAngle || "",
+                  liftingCapacity: performanceData.liftingCapacity || ""
                 }));
               }
             }
@@ -502,7 +502,7 @@ const handleConfirm = async () => {
     return;
   }
   if (!craneInfo.value.model) {
-    ElMessage.warning("请输入生产型号");
+    ElMessage.warning("请输入型号");
     return;
   }
   if (!craneInfo.value.craneType) {
@@ -531,7 +531,7 @@ const handleConfirm = async () => {
   // 验证boom表格数据
   for (let i = 0; i < mainBoomTableData.value.length; i++) {
     const row = mainBoomTableData.value[i];
-    if (!row.radius || !row.mainBoomLength || !row.ratedLoad) {
+    if (!row.workingRadius || !row.mainBoomLength || !row.liftingCapacity) {
       ElMessage.warning(`主臂长度基础编辑第${i + 1}行数据不完整，请填写完整`);
       return;
     }
@@ -539,7 +539,7 @@ const handleConfirm = async () => {
 
   for (let i = 0; i < auxBoomTableData.value.length; i++) {
     const row = auxBoomTableData.value[i];
-    if (!row.radius || !row.totalBoomLength || !row.ratedLoad) {
+    if (!row.workingRadius || !row.boomAngle || !row.liftingCapacity) {
       ElMessage.warning(`主臂+副臂基础编辑第${i + 1}行数据不完整，请填写完整`);
       return;
     }
@@ -555,16 +555,16 @@ const handleConfirm = async () => {
 
     // 转换主臂表格数据格式
     const mainBoomPerformanceData = mainBoomTableData.value.map(item => ({
-      workingRadius: item.radius,
+      workingRadius: item.workingRadius,
       boomAngle: item.mainBoomLength,
-      liftingCapacity: item.ratedLoad
+      liftingCapacity: item.liftingCapacity
     }));
 
     // 转换副臂表格数据格式
     const auxBoomPerformanceData = auxBoomTableData.value.map(item => ({
-      workingRadius: item.radius,
-      boomAngle: item.totalBoomLength,
-      liftingCapacity: item.ratedLoad
+      workingRadius: item.workingRadius,
+      boomAngle: item.boomAngle,
+      liftingCapacity: item.liftingCapacity
     }));
 
     // 构造新的请求参数格式
