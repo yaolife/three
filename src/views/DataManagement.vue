@@ -33,7 +33,7 @@
                 <el-table-column type="selection" width="55" />
                 <el-table-column label="序号" width="80">
                   <template #default="scope">
-                    {{ scope.$index + 1 + (cranePage.value - 1) * cranePageSize.value }}
+                      {{ scope.$index + 1 + (riggingPage - 1) * riggingPageSize }}
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -51,7 +51,7 @@
                   </template>
                 </el-table-column>
                   <el-table-column
-                  prop="mode"
+                  prop="model"
                   label="型号"
                   min-width="150"
                 />
@@ -501,8 +501,12 @@ const handleDelete = (row, type) => {
       try {
         if (type === 'rigging') {
           await deleteTemplateItem(row.id);
+          // 删除成功后刷新吊索具数据
+          await fetchRiggingData();
         } else if (type === 'crane') {
           await deleteCraneItem(row.id);
+          // 删除成功后刷新起重机数据
+          await fetchCraneData();
         }
         ElMessage.success("删除成功");
       } catch (error) {
@@ -615,6 +619,8 @@ const fetchCraneData = async () => {
     });
 
     if (response && response.code === "0") {
+
+      console.log(response.data.records,'444444');
       // 对返回的数据进行类型翻译处理
       const records = response.data.records || [];
       craneData.value = records.map((item) => ({
