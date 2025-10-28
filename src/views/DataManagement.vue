@@ -653,8 +653,6 @@ const fetchCraneData = async () => {
     });
 
     if (response && response.code === "0") {
-
-      console.log(response.data.records,'444444');
       // 对返回的数据进行类型翻译处理
       const records = response.data.records || [];
       craneData.value = records.map((item) => ({
