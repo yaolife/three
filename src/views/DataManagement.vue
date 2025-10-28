@@ -280,9 +280,9 @@
         </el-form-item>
         <el-form-item label="起重机类型">
           <el-select v-model="craneForm.craneType" placeholder="请选择起重机类型">
-            <el-option label="汽车式" value="汽车式" />
-            <el-option label="履带式" value="履带式" />
-            <el-option label="塔吊" value="塔吊" />
+            <el-option label="汽车式" value="1" />
+            <el-option label="履带式" value="2" />
+            <el-option label="塔吊" value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="型号">
