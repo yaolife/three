@@ -115,7 +115,7 @@ export async function deleteTemplateItem(id) {
     const url = `/template/liftingInfo/delete/${id}`
     return await get(url)
   } catch (error) {
-    console.error("删除模版数据API请求失败:", error)
+    console.error("删除吊索具模版数据API请求失败:", error)
     throw error
   }
 }
@@ -130,11 +130,41 @@ export async function deleteSubItem(id) {
     const url = `/template/liftingDetail/delete/${id}`
     return await get(url)
   } catch (error) {
-    console.error("删除子数据API请求失败:", error)
+    console.error("删除吊索具子数据API请求失败:", error)
     throw error
   }
 }
+/**
+ * 起重机数据库分页接口
+ * @param {object} params - 分页参数 { pageNum, pageSize, search }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getCraneInfoPage(params) {
+  return post("/template/crane/page", params)
+}
+/**
+ * 起重机数据库新增修改接口
+ * @param {object} params - 分页参数 { id, machineName, type,mode,prodBusiness }
+ * @returns {Promise} - 返回操作结果
+ */
+export function editCraneInfo(params) {
+  return post("/template/crane/addUpdate", params)
+}
 
+/**
+ * 起重机数据库/删除模版数据
+ * @param {string|number} id - 模版ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function deleteCraneItem(id) {
+  try {
+    const url = `/template/crane/delete/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("删除起重机模版数据API请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -143,4 +173,7 @@ export default {
   getSubType,
   deleteSubItem,
   deleteTemplateItem,
+  getCraneInfoPage,
+  editCraneInfo,
+  deleteCraneItem,
 }
