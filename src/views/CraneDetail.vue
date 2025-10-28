@@ -31,12 +31,12 @@
             <el-col :span="12">
               <el-form-item label="类型">
                 <el-select v-model="craneInfo.craneType" placeholder="请选择类型" style="width: 100%">
-                      <el-option
-              v-for="item in getCraneTypeOptions()"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
+                  <el-option
+                    v-for="item in craneTypeOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -121,7 +121,7 @@
             </el-row>
 
             <el-row :gutter="20">
-                 <el-col :span="12">
+              <el-col :span="12">
                 <el-form-item label="最大变幅角度">
                   <el-input v-model="craneSpecs.maxLuffingAngle" placeholder="请输入">
                     <template #append>度</template>
@@ -184,6 +184,148 @@
         </div>
       </div>
 
+      <!-- 主臂长度基础编辑 -->
+      <div class="edit-section">
+        <div class="section-header">
+          <span>主臂长度基础编辑</span>
+          <el-button type="primary" size="small" @click="handleAddMainBoomRow">
+            <el-icon><Plus /></el-icon>
+            添加行
+          </el-button>
+        </div>
+
+        <div class="table-wrapper">
+          <el-table
+            :data="mainBoomTableData"
+            border
+            style="width: 100%"
+            :header-cell-style="{ background: '#f5f7fa' }"
+          >
+            <el-table-column type="index" label="序号" width="60" />
+            
+            <el-table-column prop="radius" label="半径" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.radius"
+                  placeholder="请输入半径"
+                  size="small"
+                >
+                  <template #append>m</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="mainBoomLength" label="主臂长度" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.mainBoomLength"
+                  placeholder="请输入主臂长度"
+                  size="small"
+                >
+                  <template #append>m</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="ratedLoad" label="额定载荷" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.ratedLoad"
+                  placeholder="请输入额定载荷"
+                  size="small"
+                >
+                  <template #append>t</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column label="操作" width="80" fixed="right">
+              <template #default="scope">
+                <el-button
+                  link
+                  type="danger"
+                  size="small"
+                  @click="handleDeleteMainBoomRow(scope.$index)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+
+      <!-- 主臂+副臂基础编辑 -->
+      <div class="edit-section">
+        <div class="section-header">
+          <span>主臂+副臂基础编辑</span>
+          <el-button type="primary" size="small" @click="handleAddAuxBoomRow">
+            <el-icon><Plus /></el-icon>
+            添加行
+          </el-button>
+        </div>
+
+        <div class="table-wrapper">
+          <el-table
+            :data="auxBoomTableData"
+            border
+            style="width: 100%"
+            :header-cell-style="{ background: '#f5f7fa' }"
+          >
+            <el-table-column type="index" label="序号" width="60" />
+            
+            <el-table-column prop="radius" label="半径" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.radius"
+                  placeholder="请输入半径"
+                  size="small"
+                >
+                  <template #append>m</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="totalBoomLength" label="主臂+副臂长度" min-width="180">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.totalBoomLength"
+                  placeholder="请输入主臂+副臂长度"
+                  size="small"
+                >
+                  <template #append>m</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="ratedLoad" label="额定载荷" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.ratedLoad"
+                  placeholder="请输入额定载荷"
+                  size="small"
+                >
+                  <template #append>t</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column label="操作" width="80" fixed="right">
+              <template #default="scope">
+                <el-button
+                  link
+                  type="danger"
+                  size="small"
+                  @click="handleDeleteAuxBoomRow(scope.$index)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+
       <!-- 底部按钮 -->
       <div class="footer-actions">
         <el-button type="primary" size="large" @click="handleConfirm">
@@ -198,8 +340,10 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { getCraneDetail,confirmUpdateCraneDetail } from "@/api/index.js";
-import {  getCraneTypeOptions } from "@/utils/common.js";
+import { Plus } from '@element-plus/icons-vue';
+import { getCraneDetail, confirmUpdateCraneDetail } from "@/api/index.js";
+import { getCraneTypeOptions } from "@/utils/common.js";
+
 const route = useRoute();
 const router = useRouter();
 
@@ -230,6 +374,39 @@ const craneSpecs = ref({
   totalBoomMaxLength: "",
 });
 
+// 表格数据
+const mainBoomTableData = ref([]);
+const auxBoomTableData = ref([]);
+
+// 主臂表格操作函数
+const handleAddMainBoomRow = () => {
+  mainBoomTableData.value.push({
+    radius: "",
+    mainBoomLength: "",
+    ratedLoad: "",
+  });
+};
+
+const handleDeleteMainBoomRow = (index) => {
+  mainBoomTableData.value.splice(index, 1);
+};
+
+// 副臂表格操作函数
+const handleAddAuxBoomRow = () => {
+  auxBoomTableData.value.push({
+    radius: "",
+    totalBoomLength: "",
+    ratedLoad: "",
+  });
+};
+
+const handleDeleteAuxBoomRow = (index) => {
+  auxBoomTableData.value.splice(index, 1);
+};
+
+// 起重机类型选项
+const craneTypeOptions = getCraneTypeOptions();
+
 // 初始化数据
 onMounted(async () => {
   // 从路由参数获取ID
@@ -253,6 +430,14 @@ onMounted(async () => {
             craneSpecs.value[key] = data[key];
           }
         });
+
+        // 填充boom表格数据
+        if (data.mainBoomList && Array.isArray(data.mainBoomList)) {
+          mainBoomTableData.value = data.mainBoomList;
+        }
+        if (data.auxBoomList && Array.isArray(data.auxBoomList)) {
+          auxBoomTableData.value = data.auxBoomList;
+        }
       } else {
         ElMessage.error(response?.message || "获取起重机详情失败");
       }
@@ -320,6 +505,23 @@ const handleConfirm = async () => {
     return;
   }
 
+  // 验证boom表格数据
+  for (let i = 0; i < mainBoomTableData.value.length; i++) {
+    const row = mainBoomTableData.value[i];
+    if (!row.radius || !row.mainBoomLength || !row.ratedLoad) {
+      ElMessage.warning(`主臂长度基础编辑第${i + 1}行数据不完整，请填写完整`);
+      return;
+    }
+  }
+
+  for (let i = 0; i < auxBoomTableData.value.length; i++) {
+    const row = auxBoomTableData.value[i];
+    if (!row.radius || !row.totalBoomLength || !row.ratedLoad) {
+      ElMessage.warning(`主臂+副臂基础编辑第${i + 1}行数据不完整，请填写完整`);
+      return;
+    }
+  }
+
   try {
     // 准备请求参数，包含ID和所有craneSpecs参数
     const id = route.query.id;
@@ -330,7 +532,9 @@ const handleConfirm = async () => {
 
     const requestParams = {
       craneInfoId: id,
-      ...craneSpecs.value
+      sysProjectTemplateCraneDetail:craneSpecs.value,
+      mainBoomList: mainBoomTableData.value,
+      auxBoomList: auxBoomTableData.value,
     };
 
     const response = await confirmUpdateCraneDetail(requestParams);
@@ -393,6 +597,12 @@ const handleConfirm = async () => {
 }
 
 .grid-form {
+  background-color: #fafafa;
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.table-wrapper {
   background-color: #fafafa;
   padding: 20px;
   border-radius: 4px;

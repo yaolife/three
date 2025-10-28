@@ -276,17 +276,17 @@ const handleSave = async () => {
     }
   }
   
-  if (emptyFields.length > 0) {
-    const messages = emptyFields.map(item => 
-      `第${item.rowIndex}行：${item.fields.join('、')}为空`
-    ).join('\n');
-    ElMessage.warning({
-      message: `以下字段不能为空：\n${messages}`,
-      duration: 5000,
-      dangerouslyUseHTMLString: false,
-    });
-    return;
-  }
+  // if (emptyFields.length > 0) {
+  //   const messages = emptyFields.map(item => 
+  //     `第${item.rowIndex}行：${item.fields.join('、')}为空`
+  //   ).join('\n');
+  //   ElMessage.warning({
+  //     message: `以下字段不能为空：\n${messages}`,
+  //     duration: 5000,
+  //     dangerouslyUseHTMLString: false,
+  //   });
+  //   return;
+  // }
 
   saveLoading.value = true;
   try {
