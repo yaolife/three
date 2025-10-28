@@ -29,7 +29,7 @@
             <span class="value">{{ riggingInfo.liftingName }}</span>
           </div>
           <div class="info-item">
-            <span class="label">生产厂家1：</span>
+            <span class="label">生产厂家：</span>
             <span class="value">{{ riggingInfo.prodBusiness }}</span>
           </div>
           <div class="info-item">
