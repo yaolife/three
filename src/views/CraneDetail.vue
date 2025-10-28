@@ -31,10 +31,12 @@
             <el-col :span="12">
               <el-form-item label="类型">
                 <el-select v-model="craneInfo.craneType" placeholder="请选择类型" style="width: 100%">
-                  <el-option label="汽车吊" value="汽车吊" />
-                  <el-option label="履带吊" value="履带吊" />
-                  <el-option label="塔吊" value="塔吊" />
-                  <el-option label="门式起重机" value="门式起重机" />
+                      <el-option
+              v-for="item in getCraneTypeOptions()"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -168,7 +170,7 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { getCraneDetail } from "@/api/index.js";
-
+import {  getCraneTypeOptions } from "@/utils/common.js";
 const route = useRoute();
 const router = useRouter();
 
