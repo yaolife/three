@@ -59,7 +59,7 @@
                   label="生产厂家"
                   min-width="150"
                 />
-                <el-table-column prop="creator" label="创建人" width="120" />
+                <el-table-column prop="createName" label="创建人" width="120" />
                 <el-table-column
                   prop="createTime"
                   label="录入时间"
@@ -280,10 +280,9 @@
         </el-form-item>
         <el-form-item label="起重机类型">
           <el-select v-model="craneForm.craneType" placeholder="请选择起重机类型">
-            <el-option label="汽车吊" value="汽车吊" />
-            <el-option label="履带吊" value="履带吊" />
+            <el-option label="汽车式" value="汽车式" />
+            <el-option label="履带式" value="履带式" />
             <el-option label="塔吊" value="塔吊" />
-            <el-option label="门式起重机" value="门式起重机" />
           </el-select>
         </el-form-item>
         <el-form-item label="型号">

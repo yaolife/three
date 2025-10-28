@@ -136,7 +136,7 @@ export async function deleteSubItem(id) {
 }
 /**
  * 起重机数据库分页接口
- * @param {object} params - 分页参数 { pageNum, pageSize, search }
+ * @param {object} params - 分页参数 { pageNum, pageSize }
  * @returns {Promise} - 返回分页数据
  */
 export function getCraneInfoPage(params) {
