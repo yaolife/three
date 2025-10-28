@@ -36,12 +36,12 @@
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="deviceName"
-                  label="吊索具名称"
+                  prop="machineName"
+                  label="起重机名称"
                   min-width="150"
                 />
                 <el-table-column
-                  prop="liftingType"
+                  prop="type"
                   label="类型"
                   min-width="120"
                 >
@@ -49,8 +49,13 @@
                     {{ translateLiftingType(scope.row.liftingType) }}
                   </template>
                 </el-table-column>
+                  <el-table-column
+                  prop="mode"
+                  label="型号"
+                  min-width="150"
+                />
                 <el-table-column
-                  prop="manufacturer"
+                  prop="prodBusiness"
                   label="生产厂家"
                   min-width="150"
                 />
