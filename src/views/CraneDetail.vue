@@ -255,6 +255,41 @@ onMounted(async () => {
 
 // 确认修改
 const handleConfirm = async () => {
+  // 验证基本信息必填字段
+  if (!craneInfo.value.craneName) {
+    ElMessage.warning("请输入起重机名称");
+    return;
+  }
+  if (!craneInfo.value.manufacturer) {
+    ElMessage.warning("请输入生产厂家");
+    return;
+  }
+  if (!craneInfo.value.model) {
+    ElMessage.warning("请输入生产型号");
+    return;
+  }
+  if (!craneInfo.value.craneType) {
+    ElMessage.warning("请选择类型");
+    return;
+  }
+
+  // 验证起重机规格参数必填字段
+  if (!craneSpecs.value.counterweight) {
+    ElMessage.warning("请输入车体配重");
+    return;
+  }
+  if (!craneSpecs.value.maxLiftingHeight) {
+    ElMessage.warning("请输入最大起升高度");
+    return;
+  }
+  if (!craneSpecs.value.maxLiftingMoment) {
+    ElMessage.warning("请输入最大起重力矩");
+    return;
+  }
+  if (!craneSpecs.value.maxLuffingAngle) {
+    ElMessage.warning("请输入最大变幅角度");
+    return;
+  }
 
   try {
     // 准备请求参数，包含ID和所有craneSpecs参数
