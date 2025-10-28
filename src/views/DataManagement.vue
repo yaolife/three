@@ -356,7 +356,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem } from "@/api/index.js";
 
 const router = useRouter();
 
@@ -494,16 +494,16 @@ const handleDelete = (row, type) => {
     }
   )
     .then(async () => {
-      if (type === 'rigging') {
-        try {
+      try {
+        if (type === 'rigging') {
           await deleteTemplateItem(row.id);
-          ElMessage.success("删除成功");
-        } catch (error) {
-          console.error("删除失败:", error);
-          ElMessage.error("删除失败，请重试");
+        } else if (type === 'crane') {
+          await deleteCraneItem(row.id);
         }
-      } else {
         ElMessage.success("删除成功");
+      } catch (error) {
+        console.error("删除失败:", error);
+        ElMessage.error("删除失败，请重试");
       }
     })
     .catch(() => {

@@ -152,8 +152,8 @@ export function editCraneInfo(params) {
 }
 
 /**
- * 起重机数据库/删除模版数据
- * @param {string|number} id - 模版ID
+ * 起重机数据库/删除数据
+ * @param {string|number} id - 起重机ID
  * @returns {Promise} - 返回操作结果
  */
 export async function deleteCraneItem(id) {
@@ -161,7 +161,7 @@ export async function deleteCraneItem(id) {
     const url = `/template/crane/delete/${id}`
     return await get(url)
   } catch (error) {
-    console.error("删除起重机模版数据API请求失败:", error)
+    console.error("删除起重机数据API请求失败:", error)
     throw error
   }
 }
