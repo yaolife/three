@@ -479,6 +479,18 @@ const handleEdit = (row, type) => {
         prodBusiness: row.prodBusiness
       }
     });
+  } else if (type === "crane") {
+    // 起重机编辑，跳转到起重机详情页面
+    router.push({
+      path: "/crane-detail",
+      query: {
+        id: row.id,
+        craneName: row.machineName,
+        craneType: row.type,
+        model: row.model,
+        manufacturer: row.prodBusiness
+      }
+    });
   } else {
     ElMessage.info(`编辑${type === "crane" ? "起重机" : "设备"}功能待实现`);
   }
