@@ -1,4 +1,4 @@
-const API_BASE_URL = "/api"
+const API_BASE_URL = "/server-api"
 
 /**
  * 通用GET请求方法
