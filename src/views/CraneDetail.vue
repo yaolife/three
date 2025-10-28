@@ -54,7 +54,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="起重机最大长度">
-                  <el-input v-model="craneSpecs.maxLength" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.maxCraneLength" placeholder="请输入" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -67,12 +67,12 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="最大起升高度">
-                  <el-input v-model="craneSpecs.maxLiftHeight" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.maxLiftingMoment" placeholder="请输入" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="最大起重力矩">
-                  <el-input v-model="craneSpecs.maxLiftMoment" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.maxLiftingMoment" placeholder="请输入" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -85,7 +85,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="主钩最大钓重">
-                  <el-input v-model="craneSpecs.mainHookMaxWeight" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.mainHookMaxCapacity" placeholder="请输入" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -98,33 +98,28 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="副钩最大钓重">
-                  <el-input v-model="craneSpecs.auxHookMaxWeight" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.auxHookMaxCapacity" placeholder="请输入" />
                 </el-form-item>
               </el-col>
             </el-row>
 
             <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="变幅角度">
-                  <el-input v-model="craneSpecs.luffingAngle" placeholder="请输入" />
+                 <el-col :span="12">
+                <el-form-item label="最大变幅角度">
+                  <el-input v-model="craneSpecs.maxLuffingAngle" placeholder="请输入" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="主卷钢丝绳">
-                  <el-input v-model="craneSpecs.mainWireRope" placeholder="请输入" />
+                <el-form-item label="最小变幅角度">
+                  <el-input v-model="craneSpecs.minLuffingAngle" placeholder="请输入" />
                 </el-form-item>
               </el-col>
             </el-row>
 
             <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="副卷钢丝绳">
-                  <el-input v-model="craneSpecs.auxWireRope" placeholder="请输入" />
-                </el-form-item>
-              </el-col>
               <el-col :span="12">
                 <el-form-item label="超起平衡重重量">
-                  <el-input v-model="craneSpecs.superLiftWeight" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.superLiftCounterweightWeight" placeholder="请输入" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -132,7 +127,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="超起平衡重回转半径">
-                  <el-input v-model="craneSpecs.superLiftRadius" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.superLiftCounterweightRadius" placeholder="请输入" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -145,7 +140,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="副臂最大长度">
-                  <el-input v-model="craneSpecs.auxBoomMaxLength" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.jibMaxLength" placeholder="请输入" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
