@@ -276,10 +276,10 @@
     >
       <el-form :model="craneForm" label-width="100px">
         <el-form-item label="起重机名称">
-          <el-input v-model="craneForm.craneName" placeholder="请输入（例如：WDT型）" />
+          <el-input v-model="craneForm.machineName" placeholder="请输入（例如：WDT型）" />
         </el-form-item>
         <el-form-item label="起重机类型">
-          <el-select v-model="craneForm.craneType" placeholder="请选择起重机类型">
+          <el-select v-model="craneForm.type" placeholder="请选择起重机类型">
             <el-option
               v-for="item in getCraneTypeOptions()"
               :key="item.value"
@@ -292,7 +292,7 @@
           <el-input v-model="craneForm.model" placeholder="请输入型号" />
         </el-form-item>
         <el-form-item label="生产厂家">
-          <el-input v-model="craneForm.manufacturer" placeholder="请输入生产厂家（例如：三一重工）" />
+          <el-input v-model="craneForm.prodBusiness" placeholder="请输入生产厂家（例如：三一重工）" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -397,10 +397,10 @@ const riggingForm = ref({
 // 新建起重机弹窗
 const craneDialogVisible = ref(false);
 const craneForm = ref({
-  craneName: "",
-  craneType: "",
+  machineName: "",
+  type: "",
   model: "",
-  manufacturer: "",
+  prodBusiness: "",
 });
 
 // 子类型选项
@@ -438,10 +438,10 @@ const handleLiftingTypeChange = (value) => {
 const handleAddCrane = () => {
   craneDialogVisible.value = true;
   craneForm.value = {
-    craneName: "",
-    craneType: "",
+    machineName: "",
+    type: "",
     model: "",
-    manufacturer: "",
+    prodBusiness: "",
   };
 };
 
