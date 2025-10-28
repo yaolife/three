@@ -48,7 +48,6 @@
       <div class="edit-section">
         <div class="section-header">
           <span>起重机基础编辑</span>
-          <el-link type="primary" :underline="false">添加起重性能表</el-link>
         </div>
 
         <div class="grid-form">
