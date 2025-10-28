@@ -179,6 +179,14 @@ export async function getCraneDetail(id) {
     throw error
   }
 }
+/**
+ * 起重机数据库详情确认修改接口
+ * @param {object} params - 参数 { }
+ * @returns {Promise} - 返回操作结果
+ */
+export function confirmUpdateCraneDetail(params) {
+  return post("/template/craneDetail/addUpdate", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -190,4 +198,6 @@ export default {
   getCraneInfoPage,
   editCraneInfo,
   deleteCraneItem,
+  getCraneDetail,
+  confirmUpdateCraneDetail,
 }
