@@ -167,6 +167,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
+import { getCraneDetail } from "@/api/index.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -199,24 +200,54 @@ const craneSpecs = ref({
 });
 
 // 初始化数据
-onMounted(() => {
-  // 从路由参数获取基本信息
-  const craneName = route.query.craneName;
-  const manufacturer = route.query.manufacturer;
-  const model = route.query.model;
-  const craneType = route.query.craneType;
+onMounted(async () => {
+  // 从路由参数获取ID
+  const id = route.query.id;
+  
+  // 如果有ID，调用接口获取详情数据
+  if (id) {
+    try {
+      const response = await getCraneDetail(id);
+      if (response && response.code === "0" && response.data) {
+        // 填充基本信息
+        const data = response.data;
+        craneInfo.value.craneName = data.machineName || "";
+        craneInfo.value.manufacturer = data.prodBusiness || "";
+        craneInfo.value.model = data.model || "";
+        craneInfo.value.craneType = data.type || "";
+        
+        // 填充规格参数
+        Object.keys(craneSpecs.value).forEach(key => {
+          if (data[key] !== undefined) {
+            craneSpecs.value[key] = data[key];
+          }
+        });
+      } else {
+        ElMessage.error(response?.message || "获取起重机详情失败");
+      }
+    } catch (error) {
+      console.error("获取起重机详情失败:", error);
+      ElMessage.error("获取起重机详情失败，请检查网络连接");
+    }
+  } else {
+    // 如果没有ID，从路由参数获取基本信息（兼容旧的跳转方式）
+    const craneName = route.query.craneName;
+    const manufacturer = route.query.manufacturer;
+    const model = route.query.model;
+    const craneType = route.query.craneType;
 
-  if (craneName) {
-    craneInfo.value.craneName = craneName;
-  }
-  if (manufacturer) {
-    craneInfo.value.manufacturer = manufacturer;
-  }
-  if (model) {
-    craneInfo.value.model = model;
-  }
-  if (craneType) {
-    craneInfo.value.craneType = craneType;
+    if (craneName) {
+      craneInfo.value.craneName = craneName;
+    }
+    if (manufacturer) {
+      craneInfo.value.manufacturer = manufacturer;
+    }
+    if (model) {
+      craneInfo.value.model = model;
+    }
+    if (craneType) {
+      craneInfo.value.craneType = craneType;
+    }
   }
 });
 

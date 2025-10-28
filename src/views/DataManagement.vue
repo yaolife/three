@@ -553,8 +553,17 @@ const handleCraneNext = async () => {
       ElMessage.success("创建成功");
       craneDialogVisible.value = false;
       
-      // 创建成功后刷新起重机数据
-      await fetchCraneData();
+      // 创建成功后跳转到起重机详情页面，传递返回的ID
+      router.push({
+        path: "/crane-detail",
+        query: {
+          id: response.data.id,
+          craneName: craneForm.value.machineName,
+          craneType: craneForm.value.type,
+          model: craneForm.value.model,
+          manufacturer: craneForm.value.prodBusiness,
+        },
+      });
     } else {
       ElMessage.error(response?.message || "创建失败");
     }
