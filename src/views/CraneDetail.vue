@@ -222,7 +222,7 @@
                   placeholder="请输入主臂角度"
                   size="small"
                 >
-                  <template #append>°</template>
+                  <template #append>度</template>
                 </el-input>
               </template>
             </el-table-column>
@@ -293,7 +293,7 @@
                   placeholder="请输入主臂+副臂角度"
                   size="small"
                 >
-                  <template #append>°</template>
+                  <template #append>度</template>
                 </el-input>
               </template>
             </el-table-column>
@@ -556,7 +556,7 @@ const handleConfirm = async () => {
     // 转换主臂表格数据格式
     const mainBoomPerformanceData = mainBoomTableData.value.map(item => ({
       workingRadius: item.workingRadius,
-      boomAngle: item.mainBoomLength,
+      boomAngle: item.boomAngle,
       liftingCapacity: item.liftingCapacity
     }));
 
