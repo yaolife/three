@@ -265,7 +265,7 @@ const handleConfirm = async () => {
     }
 
     const requestParams = {
-      id: id,
+      craneInfoId: id,
       ...craneSpecs.value
     };
 
