@@ -424,19 +424,42 @@ onMounted(async () => {
         craneInfo.value.model = data.model || "";
         craneInfo.value.craneType = data.type || "";
         
-        // 填充规格参数
-        Object.keys(craneSpecs.value).forEach(key => {
-          if (data[key] !== undefined) {
-            craneSpecs.value[key] = data[key];
-          }
-        });
-
-        // 填充boom表格数据
-        if (data.mainBoomList && Array.isArray(data.mainBoomList)) {
-          mainBoomTableData.value = data.mainBoomList;
+        // 填充规格参数（从sysProjectTemplateCraneDetail中获取）
+        if (data.sysProjectTemplateCraneDetail) {
+          const detailData = data.sysProjectTemplateCraneDetail;
+          Object.keys(craneSpecs.value).forEach(key => {
+            if (detailData[key] !== undefined) {
+              craneSpecs.value[key] = detailData[key];
+            }
+          });
         }
-        if (data.auxBoomList && Array.isArray(data.auxBoomList)) {
-          auxBoomTableData.value = data.auxBoomList;
+
+        // 填充boom表格数据（从performanceDataVOS中获取）
+        if (data.performanceDataVOS && Array.isArray(data.performanceDataVOS)) {
+          // 清空现有数据
+          mainBoomTableData.value = [];
+          auxBoomTableData.value = [];
+          
+          // 遍历性能数据数组
+          data.performanceDataVOS.forEach(item => {
+            if (item.sysProjectLiftingPerformanceDataList && Array.isArray(item.sysProjectLiftingPerformanceDataList)) {
+              if (item.armType === 0) {
+                // 主臂长度基础编辑表格数据
+                mainBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
+                  radius: performanceData.workingRadius || "",
+                  mainBoomLength: performanceData.boomAngle || "",
+                  ratedLoad: performanceData.liftingCapacity || ""
+                }));
+              } else if (item.armType === 1) {
+                // 主臂+副臂基础编辑表格数据
+                auxBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
+                  radius: performanceData.workingRadius || "",
+                  totalBoomLength: performanceData.boomAngle || "",
+                  ratedLoad: performanceData.liftingCapacity || ""
+                }));
+              }
+            }
+          });
         }
       } else {
         ElMessage.error(response?.message || "获取起重机详情失败");
