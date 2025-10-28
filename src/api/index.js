@@ -165,6 +165,20 @@ export async function deleteCraneItem(id) {
     throw error
   }
 }
+/**
+ * 查询起重机详情
+ * @param {string|number} id - 起重机ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getCraneDetail(id) {
+  try {
+    const url = `/template/craneDetail/detailByCraneInfoId/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取起重机详情API请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,

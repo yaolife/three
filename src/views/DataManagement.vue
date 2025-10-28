@@ -358,7 +358,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo } from "@/api/index.js";
 
 const router = useRouter();
 
@@ -520,7 +520,7 @@ const handleDelete = (row, type) => {
 };
 
 // 起重机弹窗下一步
-const handleCraneNext = () => {
+const handleCraneNext = async () => {
   if (!craneForm.value.machineName) {
     ElMessage.warning("请输入起重机名称");
     return;
@@ -538,17 +538,30 @@ const handleCraneNext = () => {
     return;
   }
 
-  // 跳转到起重机详情页面
-  router.push({
-    path: "/crane-detail",
-    query: {
-      craneName: craneForm.value.machineName,
-      craneType: craneForm.value.type,
+  try {
+    // 准备请求参数
+    const requestParams = {
+      machineName: craneForm.value.machineName,
+      type: craneForm.value.type,
       model: craneForm.value.model,
-      manufacturer: craneForm.value.prodBusiness,
-    },
-  });
-  craneDialogVisible.value = false;
+      prodBusiness: craneForm.value.prodBusiness,
+    };
+
+    const response = await editCraneInfo(requestParams);
+
+    if (response && response.code === '0') {
+      ElMessage.success("创建成功");
+      craneDialogVisible.value = false;
+      
+      // 创建成功后刷新起重机数据
+      await fetchCraneData();
+    } else {
+      ElMessage.error(response?.message || "创建失败");
+    }
+  } catch (error) {
+    console.error("创建起重机失败:", error);
+    ElMessage.error("创建失败，请检查网络连接");
+  }
 };
 
 // 吊索具弹窗下一步
