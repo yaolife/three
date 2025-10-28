@@ -26,13 +26,14 @@
               </div>
               <el-table
                 :data="craneData"
+                v-loading="craneLoading"
                 style="width: 100%"
                 :header-cell-style="{ background: '#f5f7fa' }"
               >
                 <el-table-column type="selection" width="55" />
                 <el-table-column label="序号" width="80">
                   <template #default="scope">
-                    {{ scope.$index + 1 }}
+                    {{ scope.$index + 1 + (cranePage.value - 1) * cranePageSize.value }}
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -88,10 +89,11 @@
               </el-table>
               <el-pagination
                 v-model:current-page="cranePage"
-                :page-size="10"
+                :page-size="cranePageSize"
                 :total="craneTotal"
                 layout="total, prev, pager, next"
                 class="pagination"
+                @current-change="handleCranePageChange"
               />
             </div>
           </el-tab-pane>
@@ -368,8 +370,10 @@ const activeTab = ref("crane");
 // 起重机数据
 const craneSearch = ref("");
 const cranePage = ref(1);
-const craneTotal = ref(6532);
+const cranePageSize = ref(10);
+const craneTotal = ref(0);
 const craneData = ref([]);
+const craneLoading = ref(false);
 
 // 吊索具数据
 const riggingSearch = ref("");
@@ -382,7 +386,7 @@ const riggingLoading = ref(false);
 // 设备数据
 const equipmentSearch = ref("");
 const equipmentPage = ref(1);
-const equipmentTotal = ref(6532);
+const equipmentTotal = ref(0);
 const equipmentData = ref([]);
 
 // 新建吊索具弹窗
@@ -513,11 +517,11 @@ const handleDelete = (row, type) => {
 
 // 起重机弹窗下一步
 const handleCraneNext = () => {
-  if (!craneForm.value.craneName) {
+  if (!craneForm.value.machineName) {
     ElMessage.warning("请输入起重机名称");
     return;
   }
-  if (!craneForm.value.craneType) {
+  if (!craneForm.value.type) {
     ElMessage.warning("请选择起重机类型");
     return;
   }
@@ -525,7 +529,7 @@ const handleCraneNext = () => {
     ElMessage.warning("请输入型号");
     return;
   }
-  if (!craneForm.value.manufacturer) {
+  if (!craneForm.value.prodBusiness) {
     ElMessage.warning("请输入生产厂家");
     return;
   }
@@ -534,10 +538,10 @@ const handleCraneNext = () => {
   router.push({
     path: "/crane-detail",
     query: {
-      craneName: craneForm.value.craneName,
-      craneType: craneForm.value.craneType,
+      craneName: craneForm.value.machineName,
+      craneType: craneForm.value.type,
       model: craneForm.value.model,
-      manufacturer: craneForm.value.manufacturer,
+      manufacturer: craneForm.value.prodBusiness,
     },
   });
   craneDialogVisible.value = false;
@@ -602,6 +606,38 @@ const handleRiggingNext = async () => {
   }
 };
 
+const fetchCraneData = async () => {
+  craneLoading.value = true;
+  try {
+    const response = await getCraneInfoPage({
+      pageNum: cranePage.value,
+      pageSize: cranePageSize.value,
+    });
+
+    if (response && response.code === "0") {
+      // 对返回的数据进行类型翻译处理
+      const records = response.data.records || [];
+      craneData.value = records.map((item) => ({
+        ...item,
+        type: translateCraneType(item.type),
+      }));
+      craneTotal.value = response.data.total || 0;
+    } else {
+      ElMessage.error(response?.message || "获取起重机数据失败");
+    }
+  } catch (error) {
+    console.error("获取起重机数据失败:", error);
+    ElMessage.error("获取数据失败，请检查网络连接");
+  } finally {
+    craneLoading.value = false;
+  }
+};
+
+const handleCranePageChange = (page) => {
+  cranePage.value = page;
+  fetchCraneData();
+};
+
 const fetchRiggingData = async () => {
   riggingLoading.value = true;
   try {
@@ -648,12 +684,16 @@ const handleRiggingSearch = () => {
 watch(activeTab, (newTab) => {
   if (newTab === "rigging" && riggingData.value.length === 0) {
     fetchRiggingData();
+  } else if (newTab === "crane" && craneData.value.length === 0) {
+    fetchCraneData();
   }
 });
 
 onMounted(() => {
   if (activeTab.value === "rigging") {
     fetchRiggingData();
+  } else if (activeTab.value === "crane") {
+    fetchCraneData();
   }
 });
 </script>
