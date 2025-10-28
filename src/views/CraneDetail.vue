@@ -203,10 +203,10 @@
           >
             <el-table-column type="index" label="序号" width="60" />
             
-            <el-table-column prop="radius" label="半径" min-width="150">
+            <el-table-column prop="workingRadius" label="工作半径" min-width="150">
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.radius"
+                  v-model="scope.row.workingRadius"
                   placeholder="请输入半径"
                   size="small"
                 >
@@ -215,11 +215,11 @@
               </template>
             </el-table-column>
             
-            <el-table-column prop="mainBoomLength" label="主臂长度" min-width="150">
+            <el-table-column prop="boomAngle" label="主臂角度" min-width="150">
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.mainBoomLength"
-                  placeholder="请输入主臂长度"
+                  v-model="scope.row.boomAngle"
+                  placeholder="请输入主臂角度"
                   size="small"
                 >
                   <template #append>m</template>
@@ -227,10 +227,10 @@
               </template>
             </el-table-column>
             
-            <el-table-column prop="ratedLoad" label="额定载荷" min-width="150">
+            <el-table-column prop="liftingCapacity" label="额定载荷" min-width="150">
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.ratedLoad"
+                  v-model="scope.row.liftingCapacity"
                   placeholder="请输入额定载荷"
                   size="small"
                 >
@@ -274,10 +274,10 @@
           >
             <el-table-column type="index" label="序号" width="60" />
             
-            <el-table-column prop="radius" label="半径" min-width="150">
+            <el-table-column prop="workingRadius" label="工作半径" min-width="150">
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.radius"
+                  v-model="scope.row.workingRadius"
                   placeholder="请输入半径"
                   size="small"
                 >
@@ -286,11 +286,11 @@
               </template>
             </el-table-column>
             
-            <el-table-column prop="totalBoomLength" label="主臂+副臂长度" min-width="180">
+            <el-table-column prop="boomAngle" label="主臂+副臂角度" min-width="180">
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.totalBoomLength"
-                  placeholder="请输入主臂+副臂长度"
+                  v-model="scope.row.boomAngle"
+                  placeholder="请输入主臂+副臂角度"
                   size="small"
                 >
                   <template #append>m</template>
@@ -298,10 +298,10 @@
               </template>
             </el-table-column>
             
-            <el-table-column prop="ratedLoad" label="额定载荷" min-width="150">
+            <el-table-column prop="liftingCapacity" label="额定载荷" min-width="150">
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.ratedLoad"
+                  v-model="scope.row.liftingCapacity"
                   placeholder="请输入额定载荷"
                   size="small"
                 >
@@ -530,11 +530,36 @@ const handleConfirm = async () => {
       return;
     }
 
+    // 转换主臂表格数据格式
+    const mainBoomPerformanceData = mainBoomTableData.value.map(item => ({
+      workingRadius: item.radius,
+      boomAngle: item.mainBoomLength,
+      liftingCapacity: item.ratedLoad
+    }));
+
+    // 转换副臂表格数据格式
+    const auxBoomPerformanceData = auxBoomTableData.value.map(item => ({
+      workingRadius: item.radius,
+      boomAngle: item.totalBoomLength,
+      liftingCapacity: item.ratedLoad
+    }));
+
+    // 构造新的请求参数格式
     const requestParams = {
       craneInfoId: id,
-      sysProjectTemplateCraneDetail:craneSpecs.value,
-      mainBoomList: mainBoomTableData.value,
-      auxBoomList: auxBoomTableData.value,
+      sysProjectTemplateCraneDetail: craneSpecs.value,
+      performanceInfoAddUpdateList: [
+        {
+          craneType: 0, // 起重机类型，暂时固定为0
+          armType: 0, // 主臂长度基础编辑
+          sysProjectLiftingPerformanceDataList: mainBoomPerformanceData
+        },
+        {
+          craneType: 0, // 起重机类型，暂时固定为0
+          armType: 1, // 主臂+副臂基础编辑
+          sysProjectLiftingPerformanceDataList: auxBoomPerformanceData
+        }
+      ]
     };
 
     const response = await confirmUpdateCraneDetail(requestParams);
