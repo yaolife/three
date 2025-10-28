@@ -531,7 +531,7 @@ const handleConfirm = async () => {
   // 验证boom表格数据
   for (let i = 0; i < mainBoomTableData.value.length; i++) {
     const row = mainBoomTableData.value[i];
-    if (!row.workingRadius || !row.mainBoomLength || !row.liftingCapacity) {
+    if (!row.workingRadius || !row.boomAngle || !row.liftingCapacity) {
       ElMessage.warning(`主臂长度基础编辑第${i + 1}行数据不完整，请填写完整`);
       return;
     }
