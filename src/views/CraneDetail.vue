@@ -67,7 +67,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="最大起升高度">
-                  <el-input v-model="craneSpecs.maxLiftingMoment" placeholder="请输入" />
+                  <el-input v-model="craneSpecs.maxLiftingHeight" placeholder="请输入" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -181,21 +181,20 @@ const craneInfo = ref({
 
 // 起重机规格参数
 const craneSpecs = ref({
-  maxLength: "",
+  maxCraneLength: "",
   counterweight: "",
-  maxLiftHeight: "",
-  maxLiftMoment: "",
+  maxLiftingHeight: "",
+  maxLiftingMoment: "",
   mainHookWeight: "",
-  mainHookMaxWeight: "",
+  mainHookMaxCapacity: "",
   auxHookWeight: "",
-  auxHookMaxWeight: "",
-  luffingAngle: "",
-  mainWireRope: "",
-  auxWireRope: "",
-  superLiftWeight: "",
-  superLiftRadius: "",
+  auxHookMaxCapacity: "",
+  maxLuffingAngle: "",
+  minLuffingAngle: "",
+  superLiftCounterweightWeight: "",
+  superLiftCounterweightRadius: "",
   mainBoomMaxLength: "",
-  auxBoomMaxLength: "",
+  jibMaxLength: "",
   totalBoomMaxLength: "",
 });
 
