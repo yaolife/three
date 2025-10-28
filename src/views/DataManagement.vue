@@ -46,7 +46,7 @@
                   min-width="120"
                 >
                   <template #default="scope">
-                    {{ translateLiftingType(scope.row.liftingType) }}
+                    {{ translateCraneType(scope.row.type) }}
                   </template>
                 </el-table-column>
                   <el-table-column
@@ -223,11 +223,11 @@
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="manufacturer"
+                  prop="prodBusiness"
                   label="生产厂家"
                   min-width="150"
                 />
-                <el-table-column prop="creator" label="创建人" width="120" />
+                <el-table-column prop="createName" label="创建人" width="120" />
                 <el-table-column
                   prop="createTime"
                   label="录入时间"
@@ -280,9 +280,12 @@
         </el-form-item>
         <el-form-item label="起重机类型">
           <el-select v-model="craneForm.craneType" placeholder="请选择起重机类型">
-            <el-option label="汽车式" value="1" />
-            <el-option label="履带式" value="2" />
-            <el-option label="塔吊" value="3" />
+            <el-option
+              v-for="item in getCraneTypeOptions()"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="型号">
@@ -357,7 +360,7 @@ import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateIte
 
 const router = useRouter();
 
-import { translateLiftingType } from "@/utils/common.js";
+import { translateLiftingType, translateCraneType, getCraneTypeOptions } from "@/utils/common.js";
 
 // 当前激活的标签页
 const activeTab = ref("crane");
@@ -380,88 +383,7 @@ const riggingLoading = ref(false);
 const equipmentSearch = ref("");
 const equipmentPage = ref(1);
 const equipmentTotal = ref(6532);
-const equipmentData = ref([
-  {
-    id: 1,
-    name: "五",
-    type: "0",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 2,
-    name: "XXXXXXXX吊索具",
-    type: "1",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 3,
-    name: "XXXXXXXX吊索具",
-    type: "2",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 4,
-    name: "XXXXXXXX吊索具",
-    type: "3",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 5,
-    name: "XXXXXXXX吊索具",
-    type: "0",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 6,
-    name: "XXXXXXXX吊索具",
-    type: "1",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 7,
-    name: "XXXXXXXX吊索具",
-    type: "2",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 8,
-    name: "XXXXXXXX吊索具",
-    type: "3",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 9,
-    name: "XXXXXXXX吊索具",
-    type: "0",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-  {
-    id: 10,
-    name: "XXXXXXXX吊索具",
-    type: "1",
-    manufacturer: "xxxxxx公司",
-    creator: "admin",
-    createTime: "2025-01-01 12:00:00",
-  },
-]);
+const equipmentData = ref([]);
 
 // 新建吊索具弹窗
 const riggingDialogVisible = ref(false);
