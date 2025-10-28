@@ -169,7 +169,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { getCraneDetail } from "@/api/index.js";
+import { getCraneDetail,confirmUpdateCraneDetail } from "@/api/index.js";
 import {  getCraneTypeOptions } from "@/utils/common.js";
 const route = useRoute();
 const router = useRouter();
@@ -254,30 +254,34 @@ onMounted(async () => {
 });
 
 // 确认修改
-const handleConfirm = () => {
-  // 验证必填字段
-  if (!craneInfo.value.craneName) {
-    ElMessage.warning("请输入起重机名称");
-    return;
-  }
-  if (!craneInfo.value.manufacturer) {
-    ElMessage.warning("请输入生产厂家");
-    return;
-  }
-  if (!craneInfo.value.model) {
-    ElMessage.warning("请输入生产型号");
-    return;
-  }
-  if (!craneInfo.value.craneType) {
-    ElMessage.warning("请选择类型");
-    return;
-  }
+const handleConfirm = async () => {
 
-  // TODO: 调用API保存数据
-  ElMessage.success("保存成功");
-  
-  // 返回数据管理页面
-  router.push("/data-management");
+  try {
+    // 准备请求参数，包含ID和所有craneSpecs参数
+    const id = route.query.id;
+    if (!id) {
+      ElMessage.error("缺少起重机ID");
+      return;
+    }
+
+    const requestParams = {
+      id: id,
+      ...craneSpecs.value
+    };
+
+    const response = await confirmUpdateCraneDetail(requestParams);
+
+    if (response && response.code === '0') {
+      ElMessage.success("保存成功");
+      // 返回数据管理页面
+      router.push("/data-management");
+    } else {
+      ElMessage.error(response?.message || "保存失败");
+    }
+  } catch (error) {
+    console.error("保存起重机详情失败:", error);
+    ElMessage.error("保存失败，请检查网络连接");
+  }
 };
 </script>
 
