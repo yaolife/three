@@ -162,7 +162,7 @@ export const SHACKLE_COLUMNS = {
 export const CABLE_COLUMNS = {
   // 104: 八股及十二股缆绳 (8-strand & 12-strand Rope)
   104: [
-     { prop: "deviceModel", label: "产品型号", minWidth: 100 },
+     { prop: "deviceModel", label: "产品型号(L+直径)", minWidth: 100 },
     { prop: "diameter", label: "直径(mm)", minWidth: 100 },
     { prop: "gardenWeek", label: "圆周(INCH)", minWidth: 120 },
     { prop: "kTex", label: "线密度(Ktex)", minWidth: 130 },
@@ -175,7 +175,7 @@ export const CABLE_COLUMNS = {
   ],
   // 105: 三股缆绳 (3-strand Rope)
   105: [
-         { prop: "deviceModel", label: "产品型号", minWidth: 100 },
+         { prop: "deviceModel", label: "产品型号(L+直径)", minWidth: 100 },
     { prop: "diameter", label: "直径(mm)", minWidth: 100 },
     { prop: "gardenWeek", label: "圆周(INCH)", minWidth: 120 },
     { prop: "kTex", label: "线密度(Ktex)", minWidth: 130 },
@@ -188,7 +188,7 @@ export const CABLE_COLUMNS = {
   ],
   // 106: 海工海事双编缆绳 (Marine Double-braid Rope)
   106: [
-         { prop: "deviceModel", label: "产品型号", minWidth: 100 },
+         { prop: "deviceModel", label: "产品型号(L+直径)", minWidth: 100 },
     { prop: "diameter", label: "直径(mm)", minWidth: 100 },
     { prop: "gardenWeek", label: "圆周(INCH)", minWidth: 120 },
     { prop: "kTex", label: "线密度(Ktex)", minWidth: 130 },
@@ -199,8 +199,7 @@ export const CABLE_COLUMNS = {
   ],
   // 107: 高性能牵引绳 (High-performance Traction Rope)
   107: [
-         { prop: "deviceModel", label: "产品型号", minWidth: 100 },
-    { prop: "deviceModel", label: "产品型号", minWidth: 120 },
+         { prop: "deviceModel", label: "产品型号(L+直径)", minWidth: 100 },
     { prop: "pq", label: "破断载荷(kg)", minWidth: 130 },
     { prop: "diameter", label: "近似直径(mm)", minWidth: 130 },
     { prop: "miniLength", label: "最小长度(m)", minWidth: 120 },
