@@ -325,6 +325,77 @@
           </el-table>
         </div>
       </div>
+      
+      <!-- 主臂+副臂(46+16)基础编辑 -->
+      <div class="edit-section">
+        <div class="section-header">
+          <span>主臂+副臂(46+16)基础编辑</span>
+          <el-button type="primary" size="small" @click="handleAddAuxBoomRow2">
+            <el-icon><Plus /></el-icon>
+            添加行
+          </el-button>
+        </div>
+
+        <div class="table-wrapper">
+          <el-table
+            :data="auxBoomTableData2"
+            border
+            style="width: 100%"
+            :header-cell-style="{ background: '#f5f7fa' }"
+          >
+            <el-table-column type="index" label="序号" width="60" />
+            
+            <el-table-column prop="workingRadius" label="工作半径" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.workingRadius"
+                  placeholder="请输入半径"
+                  size="small"
+                >
+                  <template #append>m</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="boomAngle" label="主臂+副臂角度" min-width="180">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.boomAngle"
+                  placeholder="请输入主臂+副臂角度"
+                  size="small"
+                >
+                  <template #append>度</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="liftingCapacity" label="额定载荷" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.liftingCapacity"
+                  placeholder="请输入额定载荷"
+                  size="small"
+                >
+                  <template #append>t</template>
+                </el-input>
+              </template>
+            </el-table-column>
+            
+            <el-table-column label="操作" width="80" fixed="right">
+              <template #default="scope">
+                <el-button
+                  link
+                  type="danger"
+                  size="small"
+                  @click="handleDeleteAuxBoomRow2(scope.$index)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
 
       <!-- 底部按钮 -->
       <div class="footer-actions">
@@ -377,6 +448,7 @@ const craneSpecs = ref({
 // 表格数据
 const mainBoomTableData = ref([]);
 const auxBoomTableData = ref([]);
+const auxBoomTableData2 = ref([]);
 
 // 主臂表格操作函数
 const handleAddMainBoomRow = () => {
@@ -402,6 +474,19 @@ const handleAddAuxBoomRow = () => {
 
 const handleDeleteAuxBoomRow = (index) => {
   auxBoomTableData.value.splice(index, 1);
+};
+
+// 主臂+副臂(46+16)表格操作函数
+const handleAddAuxBoomRow2 = () => {
+  auxBoomTableData2.value.push({
+    workingRadius: "",
+    boomAngle: "",
+    liftingCapacity: "",
+  });
+};
+
+const handleDeleteAuxBoomRow2 = (index) => {
+  auxBoomTableData2.value.splice(index, 1);
 };
 
 // 起重机类型选项
@@ -453,6 +538,13 @@ onMounted(async () => {
               } else if (item.armType === 1) {
                 // 主臂+副臂基础编辑表格数据
                 auxBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
+                  workingRadius: performanceData.workingRadius || "",
+                  boomAngle: performanceData.boomAngle || "",
+                  liftingCapacity: performanceData.liftingCapacity || ""
+                }));
+              } else if (item.armType === 2) {
+                // 主臂+副臂(46+16)基础编辑表格数据
+                auxBoomTableData2.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
                   workingRadius: performanceData.workingRadius || "",
                   boomAngle: performanceData.boomAngle || "",
                   liftingCapacity: performanceData.liftingCapacity || ""
@@ -540,7 +632,15 @@ const handleConfirm = async () => {
   for (let i = 0; i < auxBoomTableData.value.length; i++) {
     const row = auxBoomTableData.value[i];
     if (!row.workingRadius || !row.boomAngle || !row.liftingCapacity) {
-      ElMessage.warning(`主臂+副臂基础编辑第${i + 1}行数据不完整，请填写完整`);
+      ElMessage.warning(`主臂+副臂(46+9.2)基础编辑第${i + 1}行数据不完整，请填写完整`);
+      return;
+    }
+  }
+  
+  for (let i = 0; i < auxBoomTableData2.value.length; i++) {
+    const row = auxBoomTableData2.value[i];
+    if (!row.workingRadius || !row.boomAngle || !row.liftingCapacity) {
+      ElMessage.warning(`主臂+副臂(46+16)基础编辑第${i + 1}行数据不完整，请填写完整`);
       return;
     }
   }
@@ -566,6 +666,13 @@ const handleConfirm = async () => {
       boomAngle: item.boomAngle,
       liftingCapacity: item.liftingCapacity
     }));
+    
+    // 转换主臂+副臂(46+16)表格数据格式
+    const auxBoomPerformanceData2 = auxBoomTableData2.value.map(item => ({
+      workingRadius: item.workingRadius,
+      boomAngle: item.boomAngle,
+      liftingCapacity: item.liftingCapacity
+    }));
 
     // 构造新的请求参数格式
     const requestParams = {
@@ -581,6 +688,11 @@ const handleConfirm = async () => {
           craneType: 0, // 起重机类型，暂时固定为0
           armType: 1, // 主臂+副臂基础编辑
           sysProjectLiftingPerformanceDataList: auxBoomPerformanceData
+        },
+        {
+          craneType: 0, // 起重机类型，暂时固定为0
+          armType: 2, // 主臂+副臂(46+16)基础编辑
+          sysProjectLiftingPerformanceDataList: auxBoomPerformanceData2
         }
       ]
     };
