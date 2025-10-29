@@ -34,13 +34,17 @@
         <el-tab-pane label="吊索具校核计算" name="lifting">
           <template #label>
             <div class="tab-label">
-              <el-image
+               <img
                 style="width: 22px; height: 22px"
-                :src="
-                  activeTab === 'lifting'
-                    ? '/src/images/active_slings.png'
-                    : '/src/images/slings.png'
-                "
+                  v-if="activeTab === 'lifting'"
+                src="@/images/active_slings.png"
+                alt=""
+                :fit="'cover'"
+              />
+              <img
+                v-else
+                style="width: 22px; height: 22px"
+                src="@/images/slings.png"
                 alt=""
                 :fit="'cover'"
               />
@@ -51,16 +55,23 @@
         <el-tab-pane label="地基承载力校核计算" name="foundation">
           <template #label>
             <div class="tab-label">
-              <el-image
+  <img
                 style="width: 22px; height: 22px"
-                :src="
-                  activeTab === 'foundation'
-                    ? '/src/images/active_base.png'
-                    : '/src/images/base.png'
-                "
+                  v-if="activeTab === 'foundation'"
+                src="@/images/active_base.png"
                 alt=""
                 :fit="'cover'"
               />
+              <img
+                v-else
+                style="width: 22px; height: 22px"
+                src="@/images/base.png"
+                alt=""
+                :fit="'cover'"
+              />
+
+
+
               地基承载力校核计算
             </div>
           </template>
