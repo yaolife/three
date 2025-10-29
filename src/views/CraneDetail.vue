@@ -258,7 +258,7 @@
       <!-- 主臂+副臂基础编辑 -->
       <div class="edit-section">
         <div class="section-header">
-          <span>主臂+副臂基础编辑</span>
+          <span>主臂+副臂(46+9.2)基础编辑</span>
           <el-button type="primary" size="small" @click="handleAddAuxBoomRow">
             <el-icon><Plus /></el-icon>
             添加行
