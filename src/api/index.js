@@ -187,6 +187,39 @@ export async function getCraneDetail(id) {
 export function confirmUpdateCraneDetail(params) {
   return post("/template/craneDetail/addUpdate", params)
 }
+
+/**
+ * 设备数据库分页接口
+ * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getDeviceInfoPage(params) {
+  return post("/template/device/page", params)
+}
+/**
+ * 设备数据库新增修改接口
+ * @param {object} params - 分页参数 { id,deviceName,deviceType,prodBusiness,weight,length,width,height }
+ * @returns {Promise} - 返回操作结果
+ */
+export function editDeviceInfo(params) {
+  return post("/template/device/addUpdate", params)
+}
+
+/**
+ * 设备数据库/删除数据
+ * @param {string|number} id - 设备ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function deleteDeviceItem(id) {
+  try {
+    const url = `/template/device/deleteById/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("删除设备数据API请求失败:", error)
+    throw error
+  }
+}
+
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -200,4 +233,7 @@ export default {
   deleteCraneItem,
   getCraneDetail,
   confirmUpdateCraneDetail,
+  getDeviceInfoPage,
+  editDeviceInfo,
+  deleteDeviceItem
 }
