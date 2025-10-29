@@ -13,13 +13,17 @@
         <el-tab-pane label="起重机校核计算" name="crane">
           <template #label>
             <div class="tab-label">
-              <el-image
+              <img
                 style="width: 22px; height: 22px"
-                :src="
-                  activeTab === 'crane'
-                    ? '/src/images/active_crane.png'
-                    : '/src/images/crane.png'
-                "
+                  v-if="activeTab === 'crane'"
+                src="@/images/active_crane.png"
+                alt=""
+                :fit="'cover'"
+              />
+              <img
+                v-else
+                style="width: 22px; height: 22px"
+                src="@/images/crane.png"
                 alt=""
                 :fit="'cover'"
               />
