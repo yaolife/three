@@ -3,7 +3,7 @@
     <div class="header">
       <div class="header-left" @click="openEditTitleDialog">
         <span class="project-title">{{ projectTitle }}</span>
-        <img src="/src/images/hoisting.png" alt="edit" class="edit" />
+        <img src="@/images/hoisting.png" alt="edit" class="edit" />
       </div>
       <el-tabs
         v-model="activeTab"
@@ -612,11 +612,14 @@
       <div v-if="activeTab === 'crane'" class="right-panel">
         <div class="diagram-container">
           <img
-            :src="
-              formData.liftingMethod === 'double'
-                ? '/src/images/machine.png'
-                : '/src/images/cac.png'
-            "
+          v-if="formData.liftingMethod === 'double'"
+            src=" @/images/machine.png"
+            alt="起重机示意图"
+            class="crane-diagram"
+          />
+           <img
+          v-else
+            src=" @/images/cac.png"
             alt="起重机示意图"
             class="crane-diagram"
           />
