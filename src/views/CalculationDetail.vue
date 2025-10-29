@@ -1279,15 +1279,21 @@
       <!-- 吊索具示意图 -->
       <div v-if="activeTab === 'lifting'" class="right-panel">
         <div class="diagram-container">
-          <img
-            :src="
-              activeSlingData.liftingType === 'withBeam'
-                ? '/src/images/beam.png'
-                : '/src/images/lifting.png'
-            "
-            alt="吊索具示意图"
-            class="crane-diagram"
-          />
+
+              <img
+                v-if="activeSlingData.liftingType === 'withBeam'"
+                src="@/images/beam.png"
+                alt="吊索具示意图"
+                  class="crane-diagram"
+                :fit="'cover'"
+              />
+              <img
+                v-else
+                src="@/images/lifting.png"
+                alt="吊索具示意图"
+                  class="crane-diagram"
+                :fit="'cover'"
+              />
         </div>
       </div>
 
