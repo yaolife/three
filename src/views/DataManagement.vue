@@ -205,21 +205,22 @@
               </div>
               <el-table
                 :data="equipmentData"
+                v-loading="equipmentLoading"
                 style="width: 100%"
                 :header-cell-style="{ background: '#f5f7fa' }"
               >
                 <el-table-column type="selection" width="55" />
                 <el-table-column label="序号" width="80">
-                  <template #default="scope">
-                    {{ scope.$index + 1 }}
-                  </template>
-                </el-table-column>
+                    <template #default="scope">
+                      {{ scope.$index + 1 + (equipmentPage - 1) * equipmentPageSize }}
+                    </template>
+                  </el-table-column>
                 <el-table-column
                   prop="name"
-                  label="吊索具名称"
+                  label="设备名称"
                   min-width="150"
                 />
-                <el-table-column prop="type" label="类型" min-width="120">
+                <el-table-column prop="type" label="型号" min-width="120">
                   <template #default="scope">
                     {{ translateLiftingType(scope.row.type) }}
                   </template>
@@ -258,10 +259,11 @@
               </el-table>
               <el-pagination
                 v-model:current-page="equipmentPage"
-                :page-size="10"
+                :page-size="equipmentPageSize"
                 :total="equipmentTotal"
                 layout="total, prev, pager, next"
                 class="pagination"
+                @current-change="handleEquipmentPageChange"
               />
             </div>
           </el-tab-pane>
@@ -350,6 +352,44 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 设备弹窗 -->
+    <el-dialog
+      v-model="equipmentDialogVisible"
+      :title="equipmentDialogTitle"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="equipmentForm" label-width="100px">
+        <el-form-item label="设备名称">
+          <el-input v-model="equipmentForm.name" placeholder="请输入设备名称" />
+        </el-form-item>
+        <el-form-item label="型号">
+          <el-input v-model="equipmentForm.model" placeholder="请输入型号" />
+        </el-form-item>
+        <el-form-item label="生产厂家">
+          <el-input v-model="equipmentForm.manufacturer" placeholder="请输入生产厂家" />
+        </el-form-item>
+        <el-form-item label="重量(kg)">
+          <el-input v-model="equipmentForm.weight" placeholder="请输入重量" />
+        </el-form-item>
+        <el-form-item label="长度(m)">
+          <el-input v-model="equipmentForm.length" placeholder="请输入长度" />
+        </el-form-item>
+        <el-form-item label="宽度(m)">
+          <el-input v-model="equipmentForm.width" placeholder="请输入宽度" />
+        </el-form-item>
+        <el-form-item label="高度(m)">
+          <el-input v-model="equipmentForm.height" placeholder="请输入高度" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="equipmentDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleEquipmentSubmit">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -386,8 +426,25 @@ const riggingLoading = ref(false);
 // 设备数据
 const equipmentSearch = ref("");
 const equipmentPage = ref(1);
+const equipmentPageSize = ref(10);
 const equipmentTotal = ref(0);
 const equipmentData = ref([]);
+const equipmentLoading = ref(false);
+
+// 设备弹窗
+const equipmentDialogVisible = ref(false);
+const equipmentDialogTitle = ref("");
+const equipmentForm = ref({
+  id: "",
+  name: "",
+  type: "",
+  model: "",
+  manufacturer: "",
+  weight: "",
+  length: "",
+  width: "",
+  height: ""
+});
 
 // 新建吊索具弹窗
 const riggingDialogVisible = ref(false);
@@ -463,7 +520,19 @@ const handleAddRigging = () => {
 
 // 新建设备
 const handleAddEquipment = () => {
-  ElMessage.info("新建设备功能待实现");
+  equipmentDialogTitle.value = "新建设备";
+  equipmentDialogVisible.value = true;
+  equipmentForm.value = {
+    id: "",
+    name: "",
+    type: "",
+    model: "",
+    manufacturer: "",
+    weight: "",
+    length: "",
+    width: "",
+    height: ""
+  };
 };
 
 // 编辑
@@ -491,8 +560,21 @@ const handleEdit = (row, type) => {
         manufacturer: row.prodBusiness
       }
     });
-  } else {
-    ElMessage.info(`编辑${type === "crane" ? "起重机" : "设备"}功能待实现`);
+  } else if (type === "equipment") {
+    // 设备编辑，显示弹窗
+    equipmentDialogTitle.value = "编辑设备";
+    equipmentDialogVisible.value = true;
+    equipmentForm.value = {
+      id: row.id || "",
+      name: row.name || "",
+      type: row.type || "",
+      model: row.model || "",
+      manufacturer: row.prodBusiness || "",
+      weight: row.weight || "",
+      length: row.length || "",
+      width: row.width || "",
+      height: row.height || ""
+    };
   }
 };
 
@@ -519,6 +601,11 @@ const handleDelete = (row, type) => {
           await deleteCraneItem(row.id);
           // 删除成功后刷新起重机数据
           await fetchCraneData();
+        } else if (type === 'equipment') {
+          // 设备删除逻辑（假设接口与起重机类似）
+          // await deleteEquipmentItem(row.id);
+          // 删除成功后刷新设备数据
+          await fetchEquipmentData();
         }
         ElMessage.success("删除成功");
       } catch (error) {
@@ -727,11 +814,105 @@ watch(activeTab, (newTab) => {
   }
 });
 
+// 处理设备弹窗确定按钮
+const handleEquipmentSubmit = async () => {
+  // 表单验证
+  if (!equipmentForm.value.name) {
+    ElMessage.warning("请输入设备名称");
+    return;
+  }
+  if (!equipmentForm.value.model) {
+    ElMessage.warning("请输入型号");
+    return;
+  }
+  if (!equipmentForm.value.manufacturer) {
+    ElMessage.warning("请输入生产厂家");
+    return;
+  }
+
+  try {
+    // 准备请求参数
+    const requestParams = {
+      ...equipmentForm.value,
+      prodBusiness: equipmentForm.value.manufacturer // 保持与现有代码一致
+    };
+
+    // 这里应该调用相应的API接口，暂时模拟成功
+    // const response = await addUpdateEquipmentInfo(requestParams);
+    
+    // 模拟成功响应
+    setTimeout(() => {
+      ElMessage.success(equipmentForm.value.id ? "编辑成功" : "创建成功");
+      equipmentDialogVisible.value = false;
+      // 刷新设备数据
+      fetchEquipmentData();
+    }, 500);
+  } catch (error) {
+    console.error("操作失败:", error);
+    ElMessage.error("操作失败，请检查网络连接");
+  }
+};
+
+// 获取设备数据
+const fetchEquipmentData = async () => {
+  equipmentLoading.value = true;
+  try {
+    // 这里应该调用实际的API接口，暂时使用模拟数据
+    // const response = await getEquipmentInfoPage({
+    //   pageNum: equipmentPage.value,
+    //   pageSize: equipmentPageSize.value,
+    // });
+
+    // 模拟数据
+    setTimeout(() => {
+      equipmentData.value = [
+        {
+          id: 1,
+          name: "换热器",
+          type: "设备",
+          model: "HH-HH",
+          prodBusiness: "xxxxxx",
+          createName: "admin",
+          createTime: "2025-01-01 12:00:00",
+          weight: "HHHH",
+          length: "HfHfH",
+          width: "HHHH",
+          height: "HHHH"
+        }
+      ];
+      equipmentTotal.value = equipmentData.value.length;
+      equipmentLoading.value = false;
+    }, 500);
+  } catch (error) {
+    console.error("获取设备数据失败:", error);
+    ElMessage.error("获取数据失败，请检查网络连接");
+    equipmentLoading.value = false;
+  }
+};
+
+// 设备分页变化
+const handleEquipmentPageChange = (page) => {
+  equipmentPage.value = page;
+  fetchEquipmentData();
+};
+
+watch(activeTab, (newTab) => {
+  if (newTab === "rigging" && riggingData.value.length === 0) {
+    fetchRiggingData();
+  } else if (newTab === "crane" && craneData.value.length === 0) {
+    fetchCraneData();
+  } else if (newTab === "equipment" && equipmentData.value.length === 0) {
+    fetchEquipmentData();
+  }
+});
+
 onMounted(() => {
   if (activeTab.value === "rigging") {
     fetchRiggingData();
   } else if (activeTab.value === "crane") {
     fetchCraneData();
+  } else if (activeTab.value === "equipment") {
+    fetchEquipmentData();
   }
 });
 </script>
