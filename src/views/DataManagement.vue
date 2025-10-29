@@ -395,7 +395,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem } from "@/api/index.js";
 
 const router = useRouter();
 
@@ -596,8 +596,8 @@ const handleDelete = (row, type) => {
           // 删除成功后刷新起重机数据
           await fetchCraneData();
         } else if (type === 'equipment') {
-          // 设备删除逻辑（假设接口与起重机类似）
-          // await deleteEquipmentItem(row.id);
+          // 设备删除逻辑
+          await deleteDeviceItem(row.id);
           // 删除成功后刷新设备数据
           await fetchEquipmentData();
         }
@@ -811,15 +811,15 @@ watch(activeTab, (newTab) => {
 // 处理设备弹窗确定按钮
 const handleEquipmentSubmit = async () => {
   // 表单验证
-  if (!equipmentForm.value.name) {
+  if (!equipmentForm.value.deviceName) {
     ElMessage.warning("请输入设备名称");
     return;
   }
-  if (!equipmentForm.value.model) {
+  if (!equipmentForm.value.deviceType) {
     ElMessage.warning("请输入型号");
     return;
   }
-  if (!equipmentForm.value.manufacturer) {
+  if (!equipmentForm.value.prodBusiness) {
     ElMessage.warning("请输入生产厂家");
     return;
   }
@@ -827,20 +827,19 @@ const handleEquipmentSubmit = async () => {
   try {
     // 准备请求参数
     const requestParams = {
-      ...equipmentForm.value,
-      prodBusiness: equipmentForm.value.manufacturer // 保持与现有代码一致
+      ...equipmentForm.value
     };
 
-    // 这里应该调用相应的API接口，暂时模拟成功
-    // const response = await addUpdateEquipmentInfo(requestParams);
+    const response = await editDeviceInfo(requestParams);
     
-    // 模拟成功响应
-    setTimeout(() => {
+    if (response && response.code === '0') {
       ElMessage.success(equipmentForm.value.id ? "编辑成功" : "创建成功");
       equipmentDialogVisible.value = false;
       // 刷新设备数据
       fetchEquipmentData();
-    }, 500);
+    } else {
+      ElMessage.error(response?.message || "操作失败");
+    }
   } catch (error) {
     console.error("操作失败:", error);
     ElMessage.error("操作失败，请检查网络连接");
