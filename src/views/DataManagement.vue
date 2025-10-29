@@ -216,15 +216,12 @@
                     </template>
                   </el-table-column>
                 <el-table-column
-                  prop="name"
+                  prop="deviceName"
                   label="设备名称"
                   min-width="150"
                 />
-                <el-table-column prop="type" label="型号" min-width="120">
-                  <template #default="scope">
-                    {{ translateLiftingType(scope.row.type) }}
-                  </template>
-                </el-table-column>
+                <el-table-column prop="deviceType" label="型号" min-width="120" />
+              
                 <el-table-column
                   prop="prodBusiness"
                   label="生产厂家"
@@ -362,13 +359,13 @@
     >
       <el-form :model="equipmentForm" label-width="100px">
         <el-form-item label="设备名称">
-          <el-input v-model="equipmentForm.name" placeholder="请输入设备名称" />
+          <el-input v-model="equipmentForm.deviceName" placeholder="请输入设备名称" />
         </el-form-item>
         <el-form-item label="型号">
-          <el-input v-model="equipmentForm.model" placeholder="请输入型号" />
+          <el-input v-model="equipmentForm.deviceType" placeholder="请输入型号" />
         </el-form-item>
         <el-form-item label="生产厂家">
-          <el-input v-model="equipmentForm.manufacturer" placeholder="请输入生产厂家" />
+          <el-input v-model="equipmentForm.prodBusiness" placeholder="请输入生产厂家" />
         </el-form-item>
         <el-form-item label="重量(kg)">
           <el-input v-model="equipmentForm.weight" placeholder="请输入重量" />
@@ -436,10 +433,9 @@ const equipmentDialogVisible = ref(false);
 const equipmentDialogTitle = ref("");
 const equipmentForm = ref({
   id: "",
-  name: "",
-  type: "",
-  model: "",
-  manufacturer: "",
+  deviceName: "",
+  deviceType: "",
+  prodBusiness: "",
   weight: "",
   length: "",
   width: "",
@@ -524,10 +520,9 @@ const handleAddEquipment = () => {
   equipmentDialogVisible.value = true;
   equipmentForm.value = {
     id: "",
-    name: "",
-    type: "",
-    model: "",
-    manufacturer: "",
+   deviceName: "",
+  deviceType: "",
+  prodBusiness: "",
     weight: "",
     length: "",
     width: "",
@@ -566,10 +561,9 @@ const handleEdit = (row, type) => {
     equipmentDialogVisible.value = true;
     equipmentForm.value = {
       id: row.id || "",
-      name: row.name || "",
-      type: row.type || "",
-      model: row.model || "",
-      manufacturer: row.prodBusiness || "",
+      deviceName: row.deviceName || "",
+      deviceType: row.deviceType || "",
+      prodBusiness: row.prodBusiness || "",
       weight: row.weight || "",
       length: row.length || "",
       width: row.width || "",
@@ -865,21 +859,7 @@ const fetchEquipmentData = async () => {
 
     // 模拟数据
     setTimeout(() => {
-      equipmentData.value = [
-        {
-          id: 1,
-          name: "换热器",
-          type: "设备",
-          model: "HH-HH",
-          prodBusiness: "xxxxxx",
-          createName: "admin",
-          createTime: "2025-01-01 12:00:00",
-          weight: "HHHH",
-          length: "HfHfH",
-          width: "HHHH",
-          height: "HHHH"
-        }
-      ];
+      equipmentData.value = [];
       equipmentTotal.value = equipmentData.value.length;
       equipmentLoading.value = false;
     }, 500);
