@@ -15,7 +15,7 @@
             <div class="tab-label">
               <img
                 style="width: 22px; height: 22px"
-                  v-if="activeTab === 'crane'"
+                v-if="activeTab === 'crane'"
                 src="@/images/active_crane.png"
                 alt=""
                 :fit="'cover'"
@@ -34,9 +34,9 @@
         <el-tab-pane label="吊索具校核计算" name="lifting">
           <template #label>
             <div class="tab-label">
-               <img
+              <img
                 style="width: 22px; height: 22px"
-                  v-if="activeTab === 'lifting'"
+                v-if="activeTab === 'lifting'"
                 src="@/images/active_slings.png"
                 alt=""
                 :fit="'cover'"
@@ -55,9 +55,9 @@
         <el-tab-pane label="地基承载力校核计算" name="foundation">
           <template #label>
             <div class="tab-label">
-  <img
+              <img
                 style="width: 22px; height: 22px"
-                  v-if="activeTab === 'foundation'"
+                v-if="activeTab === 'foundation'"
                 src="@/images/active_base.png"
                 alt=""
                 :fit="'cover'"
@@ -70,8 +70,6 @@
                 :fit="'cover'"
               />
 
-
-
               地基承载力校核计算
             </div>
           </template>
@@ -80,13 +78,17 @@
         <el-tab-pane label="施工平立面图" name="construction">
           <template #label>
             <div class="tab-label">
-              <el-image
+              <img
                 style="width: 22px; height: 22px"
-                :src="
-                  activeTab === 'construction'
-                    ? '/src/images/active_drawing.png'
-                    : '/src/images/drawing.png'
-                "
+                v-if="activeTab === 'construction'"
+                src="@/images/active_drawing.png"
+                alt=""
+                :fit="'cover'"
+              />
+              <img
+                v-else
+                style="width: 22px; height: 22px"
+                src="@/images/drawing.png"
                 alt=""
                 :fit="'cover'"
               />
@@ -627,13 +629,13 @@
       <div v-if="activeTab === 'crane'" class="right-panel">
         <div class="diagram-container">
           <img
-          v-if="formData.liftingMethod === 'double'"
+            v-if="formData.liftingMethod === 'double'"
             src=" @/images/machine.png"
             alt="起重机示意图"
             class="crane-diagram"
           />
-           <img
-          v-else
+          <img
+            v-else
             src=" @/images/cac.png"
             alt="起重机示意图"
             class="crane-diagram"
@@ -843,7 +845,7 @@
                   class="manufacturer-input"
                 />
               </div>
-              
+
               <!-- Removed standalone radio group row -->
               <div class="form-row" style="margin-left: 50px">
                 <el-radio-group v-model="activeSlingData.loadType">
@@ -921,7 +923,7 @@
                       class="hanging-method-select"
                     >
                       <el-option label="矩形" value="loop" />
-                       <el-option label="圆形" value="zero" />
+                      <el-option label="圆形" value="zero" />
                     </el-select>
                   </div>
                   <div class="form-row">
@@ -1161,11 +1163,16 @@
                 </div>
 
                 <!-- 新增的2列布局 -->
-                <div class="form-grid" style="margin-top: 16px; display: flex; gap: 20px;">
+                <div
+                  class="form-grid"
+                  style="margin-top: 16px; display: flex; gap: 20px"
+                >
                   <!-- 左列 -->
-                  <div style="flex: 1;">
-                    <div class="form-row" style="margin-bottom: 16px;">
-                      <label class="form-label">左或右侧履带板宽度<span>B1</span></label>
+                  <div style="flex: 1">
+                    <div class="form-row" style="margin-bottom: 16px">
+                      <label class="form-label"
+                        >左或右侧履带板宽度<span>B1</span></label
+                      >
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="foundationData.trackWidthB"
@@ -1175,8 +1182,10 @@
                         <span class="unit">m</span>
                       </div>
                     </div>
-                    <div class="form-row" style="margin-bottom: 16px;">
-                      <label class="form-label">履带接地长度<span>L4</span></label>
+                    <div class="form-row" style="margin-bottom: 16px">
+                      <label class="form-label"
+                        >履带接地长度<span>L4</span></label
+                      >
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="foundationData.trackGroundLengthL4"
@@ -1186,8 +1195,10 @@
                         <span class="unit">m</span>
                       </div>
                     </div>
-                    <div class="form-row" style="margin-bottom: 16px;">
-                      <label class="form-label">起重机设计自重<span>W</span></label>
+                    <div class="form-row" style="margin-bottom: 16px">
+                      <label class="form-label"
+                        >起重机设计自重<span>W</span></label
+                      >
                       <div class="input-with-unit">
                         <el-input-number
                           v-model="foundationData.craneWeightW"
@@ -1209,18 +1220,30 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <!-- 右列 -->
                   <div>
                     <div class="form-row">
-                       <label class="form-label">驱动轮</label>
-                      <el-checkbox v-model="foundationData.driveWheelOffGround" />
-                      <label class="form-label" style="text-align: left;margin-left: -35px;">是否离地</label>
+                      <label class="form-label">驱动轮</label>
+                      <el-checkbox
+                        v-model="foundationData.driveWheelOffGround"
+                      />
+                      <label
+                        class="form-label"
+                        style="text-align: left; margin-left: -35px"
+                        >是否离地</label
+                      >
                     </div>
                     <div class="form-row">
-                       <label class="form-label">从动轮</label>
-                      <el-checkbox v-model="foundationData.idlerWheelOffGround" />
-                      <label class="form-label" style="text-align: left;margin-left: -35px;">是否离地</label>
+                      <label class="form-label">从动轮</label>
+                      <el-checkbox
+                        v-model="foundationData.idlerWheelOffGround"
+                      />
+                      <label
+                        class="form-label"
+                        style="text-align: left; margin-left: -35px"
+                        >是否离地</label
+                      >
                     </div>
                   </div>
                 </div>
@@ -1269,7 +1292,10 @@
       </div>
 
       <!-- Added construction plan content area with embedded method-draw -->
-      <div v-if="activeTab === 'construction'" class="content-wrapper construction-plan-wrapper">
+      <div
+        v-if="activeTab === 'construction'"
+        class="content-wrapper construction-plan-wrapper"
+      >
         <iframe
           src="/method-draw/index.html"
           class="method-draw-iframe"
@@ -2555,7 +2581,7 @@
         <div class="section-content calculation-process">
           <div class="process-text">已知两台起重机吊装公式为：</div>
           <div class="process-text">
-                        （单台起重机所承担最大设备重量G0+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
+            （单台起重机所承担最大设备重量G0+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
             <template
               v-for="(factor, index) in doubleResult.selectedFactors"
               :key="index"
@@ -2806,54 +2832,90 @@
       <h3>xxxxx方案项目地基承载力校核计算</h3>
 
       <div class="result-section">
-        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666;">
+        <div
+          class="section-title"
+          style="
+            background-color: #ffeebf;
+            padding: 8px 12px;
+            font-weight: bold;
+            color: #666;
+          "
+        >
           履带信息
         </div>
-        <div class="section-content" style="padding: 12px;">
+        <div class="section-content" style="padding: 12px">
           <div class="info-row">
             <span class="info-label">履带名称：</span>
-            <span class="info-value">{{ foundationCalculationResult.trackInfo.name }}</span>
-            <span class="info-label" style="margin-left: 40px;">型号：</span>
-            <span class="info-value">{{ foundationCalculationResult.trackInfo.model }}</span>
+            <span class="info-value">{{
+              foundationCalculationResult.trackInfo.name
+            }}</span>
+            <span class="info-label" style="margin-left: 40px">型号：</span>
+            <span class="info-value">{{
+              foundationCalculationResult.trackInfo.model
+            }}</span>
           </div>
-          <div class="info-row" style="margin-top: 8px;">
+          <div class="info-row" style="margin-top: 8px">
             <span class="info-label">规格型号：</span>
-            <span class="info-value">{{ foundationCalculationResult.trackInfo.specifications }}</span>
+            <span class="info-value">{{
+              foundationCalculationResult.trackInfo.specifications
+            }}</span>
           </div>
         </div>
       </div>
 
       <div class="result-section">
-        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666;">
+        <div
+          class="section-title"
+          style="
+            background-color: #ffeebf;
+            padding: 8px 12px;
+            font-weight: bold;
+            color: #666;
+          "
+        >
           其它参数
         </div>
-        <div class="section-content" style="padding: 12px;">
+        <div class="section-content" style="padding: 12px">
           <div class="info-row">
             <span class="info-label">接地长度</span>
-            <span class="info-value">{{ foundationCalculationResult.otherParams.groundLength }}</span>
+            <span class="info-value">{{
+              foundationCalculationResult.otherParams.groundLength
+            }}</span>
           </div>
         </div>
       </div>
 
       <div class="result-section">
-        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666;">
+        <div
+          class="section-title"
+          style="
+            background-color: #ffeebf;
+            padding: 8px 12px;
+            font-weight: bold;
+            color: #666;
+          "
+        >
           计算过程
         </div>
-        <div class="section-content calculation-process" style="padding: 12px;">
-          <div class="process-text">第一步：已知履带接地长度和履带宽度，可以计算出接地面积</div>
+        <div class="section-content calculation-process" style="padding: 12px">
+          <div class="process-text">
+            第一步：已知履带接地长度和履带宽度，可以计算出接地面积
+          </div>
           <div class="process-text">接地面积公式为</div>
-          
-          <div class="formula" style="margin: 20px 0; text-align: center;">
-            <div style="font-size: 24px; color: #666;">
-              <span style="font-style: italic; font-weight: bold;">A</span>
-              <span style="margin: 0 10px;">=</span>
-              <span style="font-style: italic; font-weight: bold;">L</span><sub>4</sub>
-              <span style="margin: 0 10px;">×</span>
-              <span style="font-style: italic; font-weight: bold;">2B</span><sub>1</sub>
+
+          <div class="formula" style="margin: 20px 0; text-align: center">
+            <div style="font-size: 24px; color: #666">
+              <span style="font-style: italic; font-weight: bold">A</span>
+              <span style="margin: 0 10px">=</span>
+              <span style="font-style: italic; font-weight: bold">L</span
+              ><sub>4</sub>
+              <span style="margin: 0 10px">×</span>
+              <span style="font-style: italic; font-weight: bold">2B</span
+              ><sub>1</sub>
             </div>
           </div>
 
-          <div class="weight-details" style="margin: 20px 0;">
+          <div class="weight-details" style="margin: 20px 0">
             <div class="weight-item">
               L4：履带接地长度= {{ foundationData.trackGroundLengthL4 }}m
             </div>
@@ -2862,32 +2924,53 @@
             </div>
           </div>
 
-          <div class="info-row" style="margin: 20px 0;">
+          <div class="info-row" style="margin: 20px 0">
             <span class="info-label">履带接地面积计算结果A=</span>
-            <span class="info-value">{{ foundationCalculationResult.calculationProcess.area.toFixed(2) }} m²</span>
+            <span class="info-value"
+              >{{
+                foundationCalculationResult.calculationProcess.area.toFixed(2)
+              }}
+              m²</span
+            >
           </div>
 
-          <div class="process-text" style="margin-top: 30px;">第二步：根据起重机设计自重和重力加速度，以及得出的接地面积计算出平均接地比压</div>
+          <div class="process-text" style="margin-top: 30px">
+            第二步：根据起重机设计自重和重力加速度，以及得出的接地面积计算出平均接地比压
+          </div>
           <div class="process-text">平均接地比压按公式为</div>
 
-          <div class="formula" style="margin: 20px 0; text-align: center;">
-            <div style="font-size: 24px; color: #666; display: flex; align-items: center; justify-content: center;">
-              <span style="font-style: italic; font-weight: bold;">T</span>
-              <span style="margin: 0 10px;">=</span>
-              <div style="display: inline-flex; flex-direction: column; align-items: center;">
-                <div style="padding: 5px 20px; border-bottom: 2px solid #666;">
-                  <span style="font-style: italic; font-weight: bold;">W</span>
-                  <span style="margin: 0 5px;">×</span>
-                  <span style="font-style: italic; font-weight: bold;">g</span>
+          <div class="formula" style="margin: 20px 0; text-align: center">
+            <div
+              style="
+                font-size: 24px;
+                color: #666;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <span style="font-style: italic; font-weight: bold">T</span>
+              <span style="margin: 0 10px">=</span>
+              <div
+                style="
+                  display: inline-flex;
+                  flex-direction: column;
+                  align-items: center;
+                "
+              >
+                <div style="padding: 5px 20px; border-bottom: 2px solid #666">
+                  <span style="font-style: italic; font-weight: bold">W</span>
+                  <span style="margin: 0 5px">×</span>
+                  <span style="font-style: italic; font-weight: bold">g</span>
                 </div>
-                <div style="padding: 5px 20px;">
-                  <span style="font-style: italic; font-weight: bold;">A</span>
+                <div style="padding: 5px 20px">
+                  <span style="font-style: italic; font-weight: bold">A</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="weight-details" style="margin: 20px 0;">
+          <div class="weight-details" style="margin: 20px 0">
             <div class="weight-item">
               W：起重机设计自重={{ foundationData.craneWeightW }}t
             </div>
@@ -2895,42 +2978,74 @@
               g：重力加速度={{ foundationData.gravityAccel }} m/s²
             </div>
             <div class="weight-item">
-              A：履带接地面积={{ foundationCalculationResult.calculationProcess.area.toFixed(2) }} m²
+              A：履带接地面积={{
+                foundationCalculationResult.calculationProcess.area.toFixed(2)
+              }}
+              m²
             </div>
           </div>
         </div>
       </div>
 
       <div class="result-section result-final">
-        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666; display: flex; align-items: center; justify-content: space-between;">
-          <div>T:履带平均接地比压= {{ foundationCalculationResult.calculationProcess.pressure.toFixed(2) }}t</div>
-          <el-button 
-            type="text" 
-            style="color: #666; padding: 0;"
+        <div
+          class="section-title"
+          style="
+            background-color: #ffeebf;
+            padding: 8px 12px;
+            font-weight: bold;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <div>
+            T:履带平均接地比压=
+            {{
+              foundationCalculationResult.calculationProcess.pressure.toFixed(
+                2
+              )
+            }}t
+          </div>
+          <el-button
+            type="text"
+            style="color: #666; padding: 0"
             @click="copyFoundationResult"
           >
-            <el-icon style="font-size: 18px;"><DocumentCopy /></el-icon>
+            <el-icon style="font-size: 18px"><DocumentCopy /></el-icon>
           </el-button>
         </div>
       </div>
 
       <div class="result-section">
-        <div class="section-title" style="background-color: #ffeebf; padding: 8px 12px; font-weight: bold; color: #666;">
+        <div
+          class="section-title"
+          style="
+            background-color: #ffeebf;
+            padding: 8px 12px;
+            font-weight: bold;
+            color: #666;
+          "
+        >
           结论
         </div>
-        <div class="section-content conclusion" style="padding: 12px;">
-          履带平均接地比压计算结果为{{ foundationCalculationResult.calculationProcess.pressure.toFixed(0) }}t
+        <div class="section-content conclusion" style="padding: 12px">
+          履带平均接地比压计算结果为{{
+            foundationCalculationResult.calculationProcess.pressure.toFixed(0)
+          }}t
         </div>
       </div>
     </div>
 
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="foundationResultDialogVisible = false">关闭</el-button>
+        <el-button @click="foundationResultDialogVisible = false"
+          >关闭</el-button
+        >
       </span>
     </template>
   </el-dialog>
-
 </template>
 
 <script setup>
@@ -2944,7 +3059,7 @@ import {
   Histogram,
   DocumentCopy, // 添加复制图标
 } from "@element-plus/icons-vue";
-import { ElMessage } from 'element-plus'; // Corrected import statement for ElMessage
+import { ElMessage } from "element-plus"; // Corrected import statement for ElMessage
 
 const router = useRouter();
 const activeTab = ref("crane");
@@ -3096,23 +3211,23 @@ watch(
       if (templateSling) {
         // 清空当前数据并创建新的上下部吊索具
         liftingFormDatas.value = [];
-        
+
         // 创建上部吊索具01
         const upperSling = JSON.parse(JSON.stringify(templateSling));
         upperSling.id = 1;
         upperSling.isBottomSling = false;
-        upperSling.liftingType = 'withBeam';
-        
+        upperSling.liftingType = "withBeam";
+
         // 创建下部吊索具01，复制上部吊索具内容
         const lowerSling = JSON.parse(JSON.stringify(upperSling));
         lowerSling.id = 2;
         lowerSling.isBottomSling = true;
         lowerSling.bottomPointCount = 4; // 设置下部吊索具的下部吊点数量默认值为4
-        
+
         // 添加到数组中，确保顺序正确
         liftingFormDatas.value.push(upperSling);
         liftingFormDatas.value.push(lowerSling);
-        
+
         // 默认选中第一个（上部吊索具）
         activeSlingIndex.value = 0;
       }
@@ -3120,9 +3235,9 @@ watch(
     // When switching from 'withBeam' to 'noBeam'
     else if (newType === "noBeam" && oldType === "withBeam") {
       // Keep the first sling (assuming it's the primary one) and reset its type
-      const firstSling = liftingFormDatas.value.find(s => s.id === 1); // Or the first one in the current list
+      const firstSling = liftingFormDatas.value.find((s) => s.id === 1); // Or the first one in the current list
       if (firstSling) {
-        firstSling.liftingType = 'noBeam';
+        firstSling.liftingType = "noBeam";
         firstSling.isBottomSling = false; // Reset if it was a lower sling
         liftingFormDatas.value = [firstSling];
         activeSlingIndex.value = 0;
@@ -3130,7 +3245,6 @@ watch(
     }
   }
 );
-
 
 // 添加新的吊索具配置
 const addNewSling = () => {
@@ -3177,12 +3291,12 @@ const confirmAddSling = () => {
     const newSlingData = JSON.parse(JSON.stringify(upperSlingTemplate));
     newSlingData.id = liftingFormDatas.value.length + 1;
     newSlingData.isBottomSling = !isUpper;
-    
+
     // 如果是下部吊索具，设置下部吊点数量默认值为4
     if (!isUpper) {
       newSlingData.bottomPointCount = 4;
     }
-    
+
     // 确保有独立的 liftingSystemItems
     newSlingData.liftingSystemItems = JSON.parse(
       JSON.stringify(
@@ -3209,7 +3323,6 @@ const closeSlingTypeDialog = () => {
   selectedSlingType.value = "";
   showSlingTypeDialog.value = false;
 };
-
 
 // 获取吊索具序号
 const getSlingIndex = (sling, isBottomSling) => {
@@ -3349,12 +3462,12 @@ const calculateLiftingResult = (sling) => {
   let result = 0;
   let isQualified = false;
 
-
   if (sling.liftingType === "noBeam") {
     // 无吊梁情况
     if (sling.topPointCount === 1 && sling.bottomPointCount === 1) {
       // 场景一：无吊梁且上/下部吊点数量均为1
-      forcePerSling = (sling.equipmentWeight / sling.bottomPointCount) * factorProduct;
+      forcePerSling =
+        (sling.equipmentWeight / sling.bottomPointCount) * factorProduct;
 
       if (sling.loadType === "magnetic") {
         // 破断拉力安全系数算法
@@ -3367,7 +3480,9 @@ const calculateLiftingResult = (sling) => {
       }
     } else if (sling.bottomPointCount > 1) {
       // 场景二：无吊梁且下部吊点数量大于1
-      forcePerSling = (sling.equipmentWeight / sling.bottomPointCount) * factorProduct / sinQ;
+      forcePerSling =
+        ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) /
+        sinQ;
       if (sling.loadType === "magnetic") {
         // 破断拉力情况
         result = sling.safetyFactor / forcePerSling;
@@ -3382,7 +3497,9 @@ const calculateLiftingResult = (sling) => {
     // 有吊梁情况，需要区分上部吊索具和下部吊索具
     if (sling.isBottomSling) {
       // 下部吊索具
-      forcePerSling = ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) / sinQ;
+      forcePerSling =
+        ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) /
+        sinQ;
       if (sling.loadType === "magnetic") {
         // 下部吊索具且为破断拉力
         result = sling.safetyFactor / forcePerSling;
@@ -3394,8 +3511,10 @@ const calculateLiftingResult = (sling) => {
       }
     } else {
       // 上部吊索具
-      const totalWeight = sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
-      forcePerSling = ((totalWeight / sling.bottomPointCount) * factorProduct) / sinQ;
+      const totalWeight =
+        sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
+      forcePerSling =
+        ((totalWeight / sling.bottomPointCount) * factorProduct) / sinQ;
       if (sling.loadType === "magnetic") {
         // 上部吊索具且为破断拉力
         result = sling.safetyFactor / forcePerSling;
@@ -3407,7 +3526,6 @@ const calculateLiftingResult = (sling) => {
       }
     }
   }
-
 
   // 默认返回
   return {
@@ -3656,43 +3774,52 @@ const foundationData = ref({
 // 地基承载力计算结果弹窗数据
 const foundationCalculationResult = ref({
   trackInfo: {
-    name: '',
-    model: '',
-    specifications: ''
+    name: "",
+    model: "",
+    specifications: "",
   },
   otherParams: {
-    groundLength: ''
+    groundLength: "",
   },
   calculationProcess: {
     area: 0,
-    pressure: 0
-  }
+    pressure: 0,
+  },
 });
 
 // 地基承载力计算方法
 const calculateFoundation = () => {
   // 计算接地面积 A = L4 × 2B1
-  const groundArea = foundationData.value.trackGroundLengthL4 * 2 * foundationData.value.trackWidthB;
-  
+  const groundArea =
+    foundationData.value.trackGroundLengthL4 *
+    2 *
+    foundationData.value.trackWidthB;
+
   // 计算平均接地比压 T = W × g / A
-  const averagePressure = (foundationData.value.craneWeightW * foundationData.value.gravityAccel) / groundArea;
-  
+  const averagePressure =
+    (foundationData.value.craneWeightW * foundationData.value.gravityAccel) /
+    groundArea;
+
   // 准备计算结果数据
   foundationCalculationResult.value = {
     trackInfo: {
-      name: foundationData.value.trackName || 'S',
-      model: foundationData.value.trackModel || 'HS-0000',
-      specifications: `左侧履带宽度${foundationData.value.trackWidthB || 26}m、右侧履带宽度${foundationData.value.trackWidthB || 26}m、起重机设计自重、重力加速度。`
+      name: foundationData.value.trackName || "S",
+      model: foundationData.value.trackModel || "HS-0000",
+      specifications: `左侧履带宽度${
+        foundationData.value.trackWidthB || 26
+      }m、右侧履带宽度${
+        foundationData.value.trackWidthB || 26
+      }m、起重机设计自重、重力加速度。`,
     },
     otherParams: {
-      groundLength: `${foundationData.value.trackGroundLengthL4 || 6}m`
+      groundLength: `${foundationData.value.trackGroundLengthL4 || 6}m`,
     },
     calculationProcess: {
       area: groundArea,
-      pressure: averagePressure
-    }
+      pressure: averagePressure,
+    },
   };
-  
+
   // 显示计算结果弹窗
   foundationResultDialogVisible.value = true;
 };
@@ -3730,7 +3857,9 @@ const copyFoundationResult = () => {
 xxxxx方案项目地基承载力校核计算
 
 履带信息
-履带名称：${foundationCalculationResult.value.trackInfo.name}  型号：${foundationCalculationResult.value.trackInfo.model}
+履带名称：${foundationCalculationResult.value.trackInfo.name}  型号：${
+    foundationCalculationResult.value.trackInfo.model
+  }
 规格型号：${foundationCalculationResult.value.trackInfo.specifications}
 
 其它参数
@@ -3744,7 +3873,9 @@ A = L4 × 2B1
 L4：履带接地长度=${foundationData.value.trackGroundLengthL4}m
 B1：左或右侧履带板宽度=${foundationData.value.trackWidthB}m
 
-履带接地面积计算结果A= ${foundationCalculationResult.value.calculationProcess.area.toFixed(2)} m²
+履带接地面积计算结果A= ${foundationCalculationResult.value.calculationProcess.area.toFixed(
+    2
+  )} m²
 
 第二步：根据起重机设计自重和重力加速度，以及得出的接地面积计算出平均接地比压
 平均接地比压按公式为
@@ -3752,22 +3883,30 @@ T = W × g / A
 
 W：起重机设计自重=${foundationData.value.craneWeightW}t
 g：重力加速度=${foundationData.value.gravityAccel} m/s²
-A：履带接地面积=${foundationCalculationResult.value.calculationProcess.area.toFixed(2)} m²
+A：履带接地面积=${foundationCalculationResult.value.calculationProcess.area.toFixed(
+    2
+  )} m²
 
-T:履带平均接地比压= ${foundationCalculationResult.value.calculationProcess.pressure.toFixed(0)}t
+T:履带平均接地比压= ${foundationCalculationResult.value.calculationProcess.pressure.toFixed(
+    0
+  )}t
 
 结论
-履带平均接地比压计算结果为${foundationCalculationResult.value.calculationProcess.pressure.toFixed(0)}t
+履带平均接地比压计算结果为${foundationCalculationResult.value.calculationProcess.pressure.toFixed(
+    0
+  )}t
   `.trim();
 
   // 复制到剪贴板
-  navigator.clipboard.writeText(resultText).then(() => {
-    ElMessage.success('计算结果已复制到剪贴板');
-  }).catch(() => {
-    ElMessage.error('复制失败，请手动复制');
-  });
+  navigator.clipboard
+    .writeText(resultText)
+    .then(() => {
+      ElMessage.success("计算结果已复制到剪贴板");
+    })
+    .catch(() => {
+      ElMessage.error("复制失败，请手动复制");
+    });
 };
-
 </script>
 
 <style scoped>
