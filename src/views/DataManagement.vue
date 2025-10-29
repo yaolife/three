@@ -395,7 +395,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage } from "@/api/index.js";
 
 const router = useRouter();
 
@@ -851,21 +851,21 @@ const handleEquipmentSubmit = async () => {
 const fetchEquipmentData = async () => {
   equipmentLoading.value = true;
   try {
-    // 这里应该调用实际的API接口，暂时使用模拟数据
-    // const response = await getEquipmentInfoPage({
-    //   pageNum: equipmentPage.value,
-    //   pageSize: equipmentPageSize.value,
-    // });
+    const response = await getDeviceInfoPage({
+      pageNum: equipmentPage.value,
+      pageSize: equipmentPageSize.value,
+    });
 
-    // 模拟数据
-    setTimeout(() => {
-      equipmentData.value = [];
-      equipmentTotal.value = equipmentData.value.length;
-      equipmentLoading.value = false;
-    }, 500);
+    if (response && response.code === "0") {
+      equipmentData.value = response.data.records || [];
+      equipmentTotal.value = response.data.total || 0;
+    } else {
+      ElMessage.error(response?.message || "获取设备数据失败");
+    }
   } catch (error) {
     console.error("获取设备数据失败:", error);
     ElMessage.error("获取数据失败，请检查网络连接");
+  } finally {
     equipmentLoading.value = false;
   }
 };
