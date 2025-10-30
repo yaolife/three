@@ -332,7 +332,7 @@
 
                     <div class="form-row">
                       <label class="form-label">设备型号</label>
-                      <el-input v-model="formData.equipmentType2" />
+                      <el-input v-model="formData.equipmentType2" placeholder="请输入设备型号"/>
                     </div>
                   </div>
                 </div>
@@ -3168,7 +3168,8 @@ import {
   getLiftingMenuThree,
   getDeviceList,
   getDeviceDetail,
-  getCraneList
+  getCraneList,
+  getLiftingDetail
 } from "@/api/index.js";
 
 const router = useRouter();
@@ -3341,9 +3342,9 @@ const formData = ref({
 const liftingFormDatas = ref([
   {
     id: 1,
-    equipmentName: "xxxx设备",
-    equipmentNumber: "H-00000",
-    equipmentModel: "SCC13000TM",
+    equipmentName: "",
+    equipmentNumber: "",
+    equipmentModel: "",
     equipmentWeight: 15,
     isUnbalanced: false,
     hasRope: false,
@@ -4211,42 +4212,85 @@ const selectModel = (model) => {
 };
 
 // 确认选择
-const confirmLiftingEquipmentSelection = () => {
+const confirmLiftingEquipmentSelection = async () => {
   if (!selectedModel.value) {
     ElMessage.warning("请选择完整的吊索具配置");
     return;
   }
 
-  // 将选中的型号名称填充到吊索具名称输入框
-  activeSlingData.value.deviceName =
-    selectedModel.value.modelName || selectedModel.value.liftingName;
+  try {
+    // 调用getLiftingDetail接口获取详细数据
+    const response = await getLiftingDetail(selectedModel.value.id);
+    if (response.code === '0' && response.data) {
+      const liftingDetail = response.data;
+      
+      // 将选中的型号名称填充到吊索具名称输入框
+      activeSlingData.value.deviceName =
+        selectedModel.value.modelName || selectedModel.value.liftingName || liftingDetail.liftingName;
 
-  // 如果有其他需要填充的字段，可以在这里添加
-  // 例如：生产厂家、产品型号等
-  if (selectedProduct.value) {
-    activeSlingData.value.manufacturer =
-      selectedProduct.value.manufacturer || "";
-    activeSlingData.value.productModel =
-      selectedProduct.value.productModel || "";
+      // 将接口返回的数据回显到吊索具配置输入框
+      if (liftingDetail) {
+        // 回显设备相关信息
+        activeSlingData.value.manufacturer = liftingDetail.manufacturer || (selectedProduct.value ? selectedProduct.value.manufacturer : "");
+        activeSlingData.value.productModel = liftingDetail.productModel || (selectedProduct.value ? selectedProduct.value.productModel : "");
+        
+        // 回显其他可能的字段
+        if (liftingDetail.liftingType !== undefined) {
+          // 根据分类ID映射到slingType值
+          // 0: 钢丝绳, 1: 吊带, 2: 卸扣, 3: 缆绳
+          const typeMap = {
+            0: "0", // 钢丝绳
+            1: "1", // 吊带
+            2: "2", // 卸扣
+            3: "3", // 缆绳
+          };
+          activeSlingData.value.slingType = typeMap[liftingDetail.liftingType] || "0";
+        } else if (selectedCategory.value) {
+          // 如果接口没有返回类型，使用已选择的分类
+          const typeMap = {
+            0: "0", // 钢丝绳
+            1: "1", // 吊带
+            2: "2", // 卸扣
+            3: "3", // 缆绳
+          };
+          activeSlingData.value.slingType = typeMap[selectedCategory.value.liftingType] || "0";
+        }
+        
+        // 回显其他可能的吊索具配置字段
+        activeSlingData.value.loadCapacity = liftingDetail.loadCapacity || activeSlingData.value.loadCapacity;
+        activeSlingData.value.length = liftingDetail.length || activeSlingData.value.length;
+        activeSlingData.value.diameter = liftingDetail.diameter || activeSlingData.value.diameter;
+        activeSlingData.value.material = liftingDetail.material || activeSlingData.value.material;
+      }
+
+      ElMessage.success("吊索具配置选择成功并加载详情");
+    }
+  } catch (error) {
+    console.error("获取吊索具详情失败:", error);
+    ElMessage.error("获取吊索具详情失败，请重试");
+    
+    // 如果接口调用失败，仍然使用原来的逻辑填充基本信息
+    activeSlingData.value.deviceName =
+      selectedModel.value.modelName || selectedModel.value.liftingName;
+
+    if (selectedProduct.value) {
+      activeSlingData.value.manufacturer =
+        selectedProduct.value.manufacturer || "";
+      activeSlingData.value.productModel =
+        selectedProduct.value.productModel || "";
+    }
+
+    if (selectedCategory.value) {
+      const typeMap = {
+        0: "0", // 钢丝绳
+        1: "1", // 吊带
+        2: "2", // 卸扣
+        3: "3", // 缆绳
+      };
+      activeSlingData.value.slingType =
+        typeMap[selectedCategory.value.liftingType] || "0";
+    }
   }
-
-  // 根据选择的类型匹配选中的部分类型
-  if (selectedCategory.value) {
-    // 根据分类ID映射到slingType值
-    // 0: 钢丝绳, 1: 吊带, 2: 卸扣, 3: 缆绳
-    const typeMap = {
-      0: "0", // 钢丝绳
-      1: "1", // 吊带
-      2: "2", // 卸扣
-      3: "3", // 缆绳
-    };
-
-    // 设置slingType，如果分类ID在映射中则使用映射值，否则默认为"0"(钢丝绳)
-    activeSlingData.value.slingType =
-      typeMap[selectedCategory.value.liftingType] || "0";
-  }
-
-  ElMessage.success("吊索具配置选择成功");
   closeLiftingEquipmentDialog();
 };
 
