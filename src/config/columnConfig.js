@@ -36,10 +36,15 @@ export const WIRE_ROPE_COLUMNS = {
   108: [
     { prop: "deviceModel", label: "产品型号", minWidth: 120 },
     { prop: "diameter", label: "直径(mm)", minWidth: 100 },
+        { prop: "diameterTwo", label: "子绳直径(mm)", minWidth: 100 },
+          { prop: "diameterThree", label: "成品直径(mm)", minWidth: 100 },
     { prop: "smalPull", label: "最小破断力(KN)", minWidth: 130 },
+      { prop: "pqFour", label: "额定载荷(KN)", minWidth: 130 },
+        { prop: "smalPullTwo", label: "破断载荷(KN)", minWidth: 130 },
     { prop: "pq", label: "单只额定载荷(KN)", minWidth: 150 },
     { prop: "pqTwo", label: "双只额定载荷(KN,a=45°)", minWidth: 180 },
-    { prop: "pqThre", label: "双只额定载荷(KN,a=90°)", minWidth: 180 },
+    { prop: "pqThree", label: "双只额定载荷(KN,a=90°)", minWidth: 180 },
+            { prop: "size", label: "环眼尺寸(mm)", minWidth: 130 },
     { prop: "weight", label: "近似重量(kg/m)", minWidth: 130 },
   ],
   // 109: 吊装工程锁具（压制锁具）(Hoisting Lock - Compression)
@@ -178,8 +183,11 @@ export const CABLE_COLUMNS = {
   105: [
          { prop: "deviceModel", label: "产品型号(L+直径)", minWidth: 100 },
     { prop: "diameter", label: "直径(mm)", minWidth: 100 },
+     { prop: "spec", label: "规格型号", minWidth: 100 },
+       { prop: "traction", label: "牵引力(KN)", minWidth: 100 },
     { prop: "gardenWeek", label: "圆周(INCH)", minWidth: 120 },
     { prop: "kTex", label: "线密度(Ktex)", minWidth: 130 },
+     { prop: "effLength", label: "有效程度(m)", minWidth: 130 },
     { prop: "deviation", label: "偏差(%)", minWidth: 100 },
     { prop: "weight", label: "理论重量(kg/200M)", minWidth: 150 },
     { prop: "fractureForce", label: "最低断裂强力(KN)", minWidth: 150 },
