@@ -4037,7 +4037,7 @@ const selectCategory = async (category) => {
 const fetchProducts = async (liftingType) => {
   try {
     const response = await getLiftingMenuTwo({
-      pageNum: 1,
+      pageNum: -1,
       pageSize: -1,
       liftingType: liftingType,
     });
@@ -4063,7 +4063,7 @@ const selectProduct = async (product) => {
 const fetchModels = async (liftingInfoId) => {
   try {
     const response = await getLiftingMenuThree({
-      pageNum: 1,
+      pageNum: -1,
       pageSize: -1,
       liftingInfoId: liftingInfoId,
     });
