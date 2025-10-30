@@ -247,7 +247,7 @@ export function getLiftingMenuTwo(params) {
  * @returns {Promise} - 返回分页数据
  */
 export function getLiftingMenuThree(params) {
-  return post("/template/liftingInfo/page", params)
+  return post("/template/liftingDetail/page", params)
 }
 /**
  * 通过第三级菜单返回的id查询吊索具详情

@@ -2801,7 +2801,7 @@
             :class="{ active: selectedModel?.id === model.id }"
             @click="selectModel(model)"
           >
-            {{ model.modelName || model.liftingName }}
+            {{ model.deviceModel }}
           </div>
         </div>
       </div>
