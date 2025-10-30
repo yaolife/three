@@ -3370,7 +3370,7 @@ const liftingFormDatas = ref([
     enableL3: false, // Added new field
     enableL4: false, // Added new field
     enableLa: false, // 添加enableLa字段
-    ropeLength: 12,
+    ropeLength: 1,
     height: 12,
     angle: 45,
     liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
@@ -4231,7 +4231,8 @@ const confirmLiftingEquipmentSelection = async () => {
       if (liftingDetail) {
         // 回显设备相关信息，使用第二级菜单的prodBusiness作为生产厂家
         activeSlingData.value.manufacturer = (selectedProduct.value && selectedProduct.value.prodBusiness) || liftingDetail.manufacturer || (selectedProduct.value ? selectedProduct.value.manufacturer : "");
-        activeSlingData.value.productModel = liftingDetail.productModel || (selectedProduct.value ? selectedProduct.value.productModel : "");
+        // 使用接口返回的deviceModel作为产品型号
+        activeSlingData.value.productModel = liftingDetail.deviceModel || liftingDetail.productModel || (selectedProduct.value ? selectedProduct.value.productModel : "");
         
         // 回显其他可能的字段
         if (liftingDetail.liftingType !== undefined) {
@@ -4257,7 +4258,8 @@ const confirmLiftingEquipmentSelection = async () => {
         
         // 回显其他可能的吊索具配置字段
         activeSlingData.value.loadCapacity = liftingDetail.loadCapacity || activeSlingData.value.loadCapacity;
-        activeSlingData.value.length = liftingDetail.length || activeSlingData.value.length;
+        // 使用接口返回的miniLength作为绳索长度
+        activeSlingData.value.ropeLength = liftingDetail.miniLength !== undefined ? liftingDetail.miniLength : (liftingDetail.length || activeSlingData.value.length);
         activeSlingData.value.diameter = liftingDetail.diameter || activeSlingData.value.diameter;
         activeSlingData.value.material = liftingDetail.material || activeSlingData.value.material;
       }
