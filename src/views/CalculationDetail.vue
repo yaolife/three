@@ -3257,17 +3257,17 @@ const handleDeviceChange = (deviceId, isSlingTab = false) => {
 // 处理起重机选择变化
 const handleCraneChange = (craneId, isSecondCrane = false) => {
   const crane = craneList.value.find(c => c.id === craneId);
-  if (crane) {
-    if (isSecondCrane) {
-      formData.value.craneName2 = crane.craneName || '';
-      formData.value.manufacturer2 = crane.manufacturer || '';
-      formData.value.model2 = crane.model || '';
-    } else {
-      formData.value.craneName = crane.craneName || '';
-      formData.value.manufacturer = crane.manufacturer || '';
-      formData.value.model = crane.model || '';
-    }
-  }
+  // if (crane) {
+  //   if (isSecondCrane) {
+  //     formData.value.craneName2 = crane.craneName || '';
+  //     formData.value.manufacturer2 = crane.manufacturer || '';
+  //     formData.value.model2 = crane.model || '';
+  //   } else {
+  //     formData.value.craneName = crane.craneName || '';
+  //     formData.value.manufacturer = crane.manufacturer || '';
+  //     formData.value.model = crane.model || '';
+  //   }
+  // }
 };
 
 // 初始化时加载列表
@@ -3378,7 +3378,7 @@ const liftingFormDatas = ref([
     isSinglePointLifting: false, // 添加是否单点吊装字段
     isBottomSling: false, // 标识是否为下部吊索具，false为上部，true为下部
     liftingSystemItems: [
-      { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+      { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
       { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
       { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
       { id: 4, order: 4, name: "", value: null, checked: false },
@@ -3517,7 +3517,7 @@ const confirmAddSling = () => {
     newSlingData.liftingSystemItems = JSON.parse(
       JSON.stringify(
         newSlingData.liftingSystemItems || [
-          { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+          { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
           { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
           { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
           { id: 4, order: 4, name: "", value: null, checked: false },
@@ -3568,7 +3568,7 @@ const removeSling = (index) => {
 };
 
 const weightItems = ref([
-  { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
   { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
   { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
   { id: 4, order: 4, name: "", value: null, checked: false },
@@ -3576,7 +3576,7 @@ const weightItems = ref([
 
 // 吊索具系统设备表单数据
 const liftingSystemItems = ref([
-  { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
   { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
   { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
   { id: 4, order: 4, name: "", value: null, checked: false },
