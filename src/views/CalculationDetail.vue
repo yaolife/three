@@ -126,20 +126,20 @@
                     </div>
                     <div class="form-row">
                       <label class="form-label">设备名称</label>
-                      <el-input v-model="formData.equipmentName" disabled />
+                      <div class="form-input-group">
+                        <el-input
+                          v-model="formData.equipmentName"
+                          placeholder="请选择"
+                        />
+                        <el-button type="primary" size="default"
+                          >选择</el-button
+                        >
+                      </div>
                     </div>
 
                     <div class="form-row">
                       <label class="form-label">生产厂家</label>
                       <el-input v-model="formData.manufacturer" />
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">设备编号</label>
-                      <el-input
-                        v-model="formData.equipmentNumber"
-                        placeholder="请输入设备编号"
-                      />
                     </div>
 
                     <div class="form-row">
@@ -662,13 +662,6 @@
                   </div>
                 </div>
                 <div class="form-row"></div>
-                <div class="form-row">
-                  <label class="form-label">设备编号</label>
-                  <el-input
-                    v-model="activeSlingData.equipmentNumber"
-                    placeholder="H-00000"
-                  />
-                </div>
 
                 <div class="form-row">
                   <label class="form-label">设备型号</label>
@@ -721,7 +714,9 @@
                   </div>
                 </div>
 
-                <div style="display: flex; align-items: center;margin-left: -60px">
+                <div
+                  style="display: flex; align-items: center; margin-left: -60px"
+                >
                   <label class="form-label">平衡梁长度</label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -734,7 +729,8 @@
                 </div>
 
                 <div style="display: flex; align-items: center">
-                  <label class="form-label"  style="max-width: 150px;">吊梁下部吊具重量<span>G2</span></label
+                  <label class="form-label" style="max-width: 150px"
+                    >吊梁下部吊具重量<span>G2</span></label
                   >
                   <div class="input-with-unit">
                     <el-input-number
@@ -814,7 +810,12 @@
                     class="manufacturer-input"
                   />
                   <!-- Added click handler to open three-level selection dialog -->
-                  <el-button type="primary" size="default" @click="openLiftingEquipmentDialog">选择</el-button>
+                  <el-button
+                    type="primary"
+                    size="default"
+                    @click="openLiftingEquipmentDialog"
+                    >选择</el-button
+                  >
                 </div>
                 <!-- Added radio buttons inline with name field -->
                 <el-radio-group
@@ -1279,21 +1280,20 @@
       <!-- 吊索具示意图 -->
       <div v-if="activeTab === 'lifting'" class="right-panel">
         <div class="diagram-container">
-
-              <img
-                v-if="activeSlingData.liftingType === 'withBeam'"
-                src="@/images/beam.png"
-                alt="吊索具示意图"
-                  class="crane-diagram"
-                :fit="'cover'"
-              />
-              <img
-                v-else
-                src="@/images/lifting.png"
-                alt="吊索具示意图"
-                  class="crane-diagram"
-                :fit="'cover'"
-              />
+          <img
+            v-if="activeSlingData.liftingType === 'withBeam'"
+            src="@/images/beam.png"
+            alt="吊索具示意图"
+            class="crane-diagram"
+            :fit="'cover'"
+          />
+          <img
+            v-else
+            src="@/images/lifting.png"
+            alt="吊索具示意图"
+            class="crane-diagram"
+            :fit="'cover'"
+          />
         </div>
       </div>
 
@@ -2810,7 +2810,9 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="closeLiftingEquipmentDialog">取消</el-button>
-        <el-button type="primary" @click="confirmLiftingEquipmentSelection">确定</el-button>
+        <el-button type="primary" @click="confirmLiftingEquipmentSelection"
+          >确定</el-button
+        >
       </span>
     </template>
   </el-dialog>
@@ -3135,7 +3137,7 @@ import { ElMessage } from "element-plus"; // Corrected import statement for ElMe
 import {
   getLiftingMenuOne,
   getLiftingMenuTwo,
-  getLiftingMenuThree
+  getLiftingMenuThree,
 } from "@/api/index.js";
 
 const router = useRouter();
@@ -3284,7 +3286,6 @@ const equipmentModels = ref([]);
 const selectedCategory = ref(null);
 const selectedProduct = ref(null);
 const selectedModel = ref(null);
-
 
 // 监听吊装类型变化，切换时重置吊索具配置到默认初始状态
 watch(
@@ -3994,7 +3995,6 @@ T:履带平均接地比压= ${foundationCalculationResult.value.calculationProce
     });
 };
 
-
 // 打开吊索具配置选择弹窗
 const openLiftingEquipmentDialog = async () => {
   showLiftingEquipmentDialog.value = true;
@@ -4039,7 +4039,7 @@ const fetchProducts = async (liftingType) => {
     const response = await getLiftingMenuTwo({
       pageNum: 1,
       pageSize: -1,
-      liftingType: liftingType
+      liftingType: liftingType,
     });
     if (response && response.data && response.data.records) {
       equipmentProducts.value = response.data.records;
@@ -4065,7 +4065,7 @@ const fetchModels = async (liftingInfoId) => {
     const response = await getLiftingMenuThree({
       pageNum: 1,
       pageSize: -1,
-      liftingInfoId: liftingInfoId
+      liftingInfoId: liftingInfoId,
     });
     if (response && response.data && response.data.records) {
       equipmentModels.value = response.data.records;
@@ -4089,13 +4089,16 @@ const confirmLiftingEquipmentSelection = () => {
   }
 
   // 将选中的型号名称填充到吊索具名称输入框
-  activeSlingData.value.deviceName = selectedModel.value.modelName || selectedModel.value.liftingName;
+  activeSlingData.value.deviceName =
+    selectedModel.value.modelName || selectedModel.value.liftingName;
 
   // 如果有其他需要填充的字段，可以在这里添加
   // 例如：生产厂家、产品型号等
   if (selectedProduct.value) {
-    activeSlingData.value.manufacturer = selectedProduct.value.manufacturer || "";
-    activeSlingData.value.productModel = selectedProduct.value.productModel || "";
+    activeSlingData.value.manufacturer =
+      selectedProduct.value.manufacturer || "";
+    activeSlingData.value.productModel =
+      selectedProduct.value.productModel || "";
   }
 
   // 根据选择的类型匹配选中的部分类型
@@ -4106,11 +4109,12 @@ const confirmLiftingEquipmentSelection = () => {
       0: "0", // 钢丝绳
       1: "1", // 吊带
       2: "2", // 卸扣
-      3: "3"  // 缆绳
+      3: "3", // 缆绳
     };
-    
+
     // 设置slingType，如果分类ID在映射中则使用映射值，否则默认为"0"(钢丝绳)
-    activeSlingData.value.slingType = typeMap[selectedCategory.value.liftingType] || "0";
+    activeSlingData.value.slingType =
+      typeMap[selectedCategory.value.liftingType] || "0";
   }
 
   ElMessage.success("吊索具配置选择成功");
@@ -4126,7 +4130,6 @@ const closeLiftingEquipmentDialog = () => {
   equipmentProducts.value = [];
   equipmentModels.value = [];
 };
-
 </script>
 
 <style scoped>
