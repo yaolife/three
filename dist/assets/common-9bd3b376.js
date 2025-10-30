@@ -1,0 +1,1 @@
+const a=n=>{const r={0:"钢丝绳",1:"吊带",2:"卸扣",3:"缆绳"};return r[n]?r[n]:(["钢丝绳","吊带","卸扣","缆绳"].includes(n),n)},e=n=>{const r={1:"汽车式",2:"履带式",3:"塔吊"};return r[n]?r[n]:(["汽车式","履带式","塔吊"].includes(n),n)},t=()=>[{label:"汽车式",value:"1"},{label:"履带式",value:"2"},{label:"塔吊",value:"3"}];export{a,t as g,e as t};

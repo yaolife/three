@@ -4227,11 +4227,10 @@ const confirmLiftingEquipmentSelection = async () => {
       // 将选中的第二级菜单名称填充到吊索具名称输入框
       activeSlingData.value.deviceName =
         selectedProduct.value.liftingName  || selectedProduct.value.modelName;
-
       // 将接口返回的数据回显到吊索具配置输入框
       if (liftingDetail) {
-        // 回显设备相关信息
-        activeSlingData.value.manufacturer = liftingDetail.manufacturer || (selectedProduct.value ? selectedProduct.value.manufacturer : "");
+        // 回显设备相关信息，使用第二级菜单的prodBusiness作为生产厂家
+        activeSlingData.value.manufacturer = (selectedProduct.value && selectedProduct.value.prodBusiness) || liftingDetail.manufacturer || (selectedProduct.value ? selectedProduct.value.manufacturer : "");
         activeSlingData.value.productModel = liftingDetail.productModel || (selectedProduct.value ? selectedProduct.value.productModel : "");
         
         // 回显其他可能的字段
@@ -4272,10 +4271,10 @@ const confirmLiftingEquipmentSelection = async () => {
     // 如果接口调用失败，仍然使用第三级菜单名称填充基本信息
     activeSlingData.value.deviceName =
       selectedProduct.value.liftingName  || selectedProduct.value.modelName;
-
     if (selectedProduct.value) {
+      // 使用第二级菜单的prodBusiness作为生产厂家
       activeSlingData.value.manufacturer =
-        selectedProduct.value.manufacturer || "";
+        (selectedProduct.value && selectedProduct.value.prodBusiness) || selectedProduct.value.manufacturer || "";
       activeSlingData.value.productModel =
         selectedProduct.value.productModel || "";
     }
