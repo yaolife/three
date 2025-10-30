@@ -115,13 +115,21 @@
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
                       <div class="form-input-group">
-                        <el-input
-                          v-model="formData.craneName"
-                          placeholder="请输入起重机名称"
+                        <el-select
+                        v-model="selectedCraneId"
+                        placeholder="请选择起重机名称"
+                        filterable
+                        clearable
+                        :loading="craneLoading"
+                        @change="(val) => handleCraneChange(val, false)"
+                      >
+                        <el-option
+                          v-for="crane in craneList"
+                          :key="crane.id"
+                          :label="crane.machineName"
+                          :value="crane.id"
                         />
-                        <el-button type="primary" size="default"
-                          >选择</el-button
-                        >
+                      </el-select>
                       </div>
                     </div>
                     <div class="form-row">
@@ -146,13 +154,13 @@
                     </div>
 
                     <div class="form-row">
-                      <label class="form-label">生产厂家</label>
+                      <label class="form-label"> 设备生产厂家</label>
                       <el-input v-model="formData.manufacturer"     placeholder="请输入生产厂家" />
                     </div>
 
                     <div class="form-row">
                       <label class="form-label">设备型号</label>
-                      <el-input v-model="formData.equipmentType" />
+                      <el-input v-model="formData.equipmentType" placeholder="请输入设备型号"/>
                     </div>
                   </div>
                 </div>
@@ -285,13 +293,21 @@
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
                       <div class="form-input-group">
-                        <el-input
-                          v-model="formData.craneName2"
-                          placeholder="SCC13000TM履带起重机"
-                        />
-                        <el-button type="primary" size="default"
-                          >选择</el-button
+                        <el-select
+                          v-model="selectedCraneId2"
+                          placeholder="请选择起重机名称"
+                          filterable
+                          clearable
+                          :loading="craneLoading"
+                          @change="(val) => handleCraneChange(val, true)"
                         >
+                          <el-option
+                            v-for="crane in craneList"
+                            :key="crane.id"
+                            :label="crane.machineName"
+                            :value="crane.id"
+                          />
+                        </el-select>
                       </div>
                     </div>
                     <div class="form-row">
@@ -3151,7 +3167,8 @@ import {
   getLiftingMenuTwo,
   getLiftingMenuThree,
   getDeviceList,
-  getDeviceDetail
+  getDeviceDetail,
+  getCraneList
 } from "@/api/index.js";
 
 const router = useRouter();
@@ -3163,6 +3180,12 @@ const deviceList = ref([]);
 const deviceLoading = ref(false);
 const selectedDeviceId = ref('');
 const selectedSlingDeviceId = ref('');
+
+// 起重机列表相关
+const craneList = ref([]);
+const craneLoading = ref(false);
+const selectedCraneId = ref('');
+const selectedCraneId2 = ref('');
 
 // 加载设备列表
 const loadDeviceList = async () => {
@@ -3177,6 +3200,22 @@ const loadDeviceList = async () => {
     console.error('获取设备列表失败:', error);
   } finally {
     deviceLoading.value = false;
+  }
+};
+
+// 加载起重机列表
+const loadCraneList = async () => {
+  try {
+    craneLoading.value = true;
+    const response = await getCraneList({ pageNum: -1, pageSize: -1 });
+    if (response.code === '0' && response.data && response.data.records) {
+      craneList.value = response.data.records;
+    }
+  } catch (error) {
+    ElMessage.error('获取起重机列表失败');
+    console.error('获取起重机列表失败:', error);
+  } finally {
+    craneLoading.value = false;
   }
 };
 
@@ -3215,8 +3254,25 @@ const handleDeviceChange = (deviceId, isSlingTab = false) => {
   }
 };
 
-// 初始化时加载设备列表
+// 处理起重机选择变化
+const handleCraneChange = (craneId, isSecondCrane = false) => {
+  const crane = craneList.value.find(c => c.id === craneId);
+  if (crane) {
+    if (isSecondCrane) {
+      formData.value.craneName2 = crane.craneName || '';
+      formData.value.manufacturer2 = crane.manufacturer || '';
+      formData.value.model2 = crane.model || '';
+    } else {
+      formData.value.craneName = crane.craneName || '';
+      formData.value.manufacturer = crane.manufacturer || '';
+      formData.value.model = crane.model || '';
+    }
+  }
+};
+
+// 初始化时加载列表
 loadDeviceList();
+loadCraneList();
 
 const handleTabChange = (tabName) => {
   // 处理标签页切换逻辑

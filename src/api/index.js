@@ -273,7 +273,7 @@ export function getDeviceList(params) {
 }
 /**
  * 通过设备列表返回的id查询设备详情
- * @param {string|number}  
+ * @param {string|number}  id
  * @returns {Promise} - 返回操作结果
  */
 export async function getDeviceDetail(id) {
@@ -292,6 +292,21 @@ export async function getDeviceDetail(id) {
  */
 export function getCraneList(params) {
   return post("/template/crane/page", params)
+}
+
+/**
+ * 通过起重列表返回的id查询起重机详情
+ * @param {string|number}  id
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getCraneDataDetail(id) {
+  try {
+    const url = `/template/crane/detail/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取起重机详情请求失败:", error)
+    throw error
+  }
 }
 export default {
   getLiftingInfoPage,
@@ -315,5 +330,6 @@ export default {
   getLiftingDetail,
   getDeviceList,
   getDeviceDetail,
-  getCraneList
+  getCraneList,
+  getCraneDataDetail,
 }
