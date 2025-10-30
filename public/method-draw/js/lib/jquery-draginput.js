@@ -1,4 +1,4 @@
-﻿// Mark MacKay http://method.ac MIT License
+// Mark MacKay http://method.ac MIT License
 
 
 $.fn.dragInput = function(cfg){
@@ -202,4 +202,3 @@ $.fn.dragInput.updateCursor = function(el){
   var cursor = el.parentNode.lastChild
   if (cursor.className === "draginput_cursor") cursor.style.top = pos;
 }
-

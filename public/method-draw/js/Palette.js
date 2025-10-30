@@ -65,5 +65,3 @@ MD.Palette = function(){
     }
   }).bind('contextmenu', function(e) {e.preventDefault()});
 };
-
-

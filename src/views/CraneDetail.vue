@@ -531,23 +531,23 @@ onMounted(async () => {
               if (item.armType === 0) {
                 // 主臂长度基础编辑表格数据
                 mainBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
-                  workingRadius: performanceData.workingRadius !== undefined && performanceData.workingRadius !== null ? performanceData.workingRadius : "",
-                  boomAngle: performanceData.boomAngle !== undefined && performanceData.boomAngle !== null ? performanceData.boomAngle : "",
-                  liftingCapacity: performanceData.liftingCapacity !== undefined && performanceData.liftingCapacity !== null ? performanceData.liftingCapacity : ""
+                  workingRadius: performanceData.workingRadius || "",
+                  boomAngle: performanceData.boomAngle || "",
+                  liftingCapacity: performanceData.liftingCapacity || ""
                 }));
               } else if (item.armType === 1) {
                 // 主臂+副臂基础编辑表格数据
                 auxBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
-                  workingRadius: performanceData.workingRadius !== undefined && performanceData.workingRadius !== null ? performanceData.workingRadius : "",
-                  boomAngle: performanceData.boomAngle !== undefined && performanceData.boomAngle !== null ? performanceData.boomAngle : "",
-                  liftingCapacity: performanceData.liftingCapacity !== undefined && performanceData.liftingCapacity !== null ? performanceData.liftingCapacity : ""
+                  workingRadius: performanceData.workingRadius || "",
+                  boomAngle: performanceData.boomAngle || "",
+                  liftingCapacity: performanceData.liftingCapacity || ""
                 }));
               } else if (item.armType === 2) {
                 // 主臂+副臂(46+16)基础编辑表格数据
                 auxBoomTableData2.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
-                  workingRadius: performanceData.workingRadius !== undefined && performanceData.workingRadius !== null ? performanceData.workingRadius : "",
-                  boomAngle: performanceData.boomAngle !== undefined && performanceData.boomAngle !== null ? performanceData.boomAngle : "",
-                  liftingCapacity: performanceData.liftingCapacity !== undefined && performanceData.liftingCapacity !== null ? performanceData.liftingCapacity : ""
+                  workingRadius: performanceData.workingRadius || "",
+                  boomAngle: performanceData.boomAngle || "",
+                  liftingCapacity: performanceData.liftingCapacity || ""
                 }));
               }
             }
@@ -603,19 +603,19 @@ const handleConfirm = async () => {
   }
 
   // 验证起重机规格参数必填字段
-  if (craneSpecs.value.counterweight === "" || craneSpecs.value.counterweight === undefined) {
+  if (!craneSpecs.value.counterweight) {
     ElMessage.warning("请输入车体配重");
     return;
   }
-  if (craneSpecs.value.maxLiftingHeight === "" || craneSpecs.value.maxLiftingHeight === undefined) {
+  if (!craneSpecs.value.maxLiftingHeight) {
     ElMessage.warning("请输入最大起升高度");
     return;
   }
-  if (craneSpecs.value.maxLiftingMoment === "" || craneSpecs.value.maxLiftingMoment === undefined) {
+  if (!craneSpecs.value.maxLiftingMoment) {
     ElMessage.warning("请输入最大起重力矩");
     return;
   }
-  if (craneSpecs.value.maxLuffingAngle === "" || craneSpecs.value.maxLuffingAngle === undefined) {
+  if (!craneSpecs.value.maxLuffingAngle) {
     ElMessage.warning("请输入最大变幅角度");
     return;
   }
@@ -623,9 +623,7 @@ const handleConfirm = async () => {
   // 验证boom表格数据
   for (let i = 0; i < mainBoomTableData.value.length; i++) {
     const row = mainBoomTableData.value[i];
-    if ((row.workingRadius === "" || row.workingRadius === undefined) || 
-        (row.boomAngle === "" || row.boomAngle === undefined) || 
-        (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
+    if (!row.workingRadius || !row.boomAngle || !row.liftingCapacity) {
       ElMessage.warning(`主臂长度基础编辑第${i + 1}行数据不完整，请填写完整`);
       return;
     }
@@ -633,9 +631,7 @@ const handleConfirm = async () => {
 
   for (let i = 0; i < auxBoomTableData.value.length; i++) {
     const row = auxBoomTableData.value[i];
-    if ((row.workingRadius === "" || row.workingRadius === undefined) || 
-        (row.boomAngle === "" || row.boomAngle === undefined) || 
-        (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
+    if (!row.workingRadius || !row.boomAngle || !row.liftingCapacity) {
       ElMessage.warning(`主臂+副臂(46+9.2)基础编辑第${i + 1}行数据不完整，请填写完整`);
       return;
     }
@@ -643,9 +639,7 @@ const handleConfirm = async () => {
   
   for (let i = 0; i < auxBoomTableData2.value.length; i++) {
     const row = auxBoomTableData2.value[i];
-    if ((row.workingRadius === "" || row.workingRadius === undefined) || 
-        (row.boomAngle === "" || row.boomAngle === undefined) || 
-        (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
+    if (!row.workingRadius || !row.boomAngle || !row.liftingCapacity) {
       ElMessage.warning(`主臂+副臂(46+16)基础编辑第${i + 1}行数据不完整，请填写完整`);
       return;
     }
@@ -661,23 +655,23 @@ const handleConfirm = async () => {
 
     // 转换主臂表格数据格式
     const mainBoomPerformanceData = mainBoomTableData.value.map(item => ({
-      workingRadius: item.workingRadius !== undefined && item.workingRadius !== null ? item.workingRadius : "",
-      boomAngle: item.boomAngle !== undefined && item.boomAngle !== null ? item.boomAngle : "",
-      liftingCapacity: item.liftingCapacity !== undefined && item.liftingCapacity !== null ? item.liftingCapacity : ""
+      workingRadius: item.workingRadius,
+      boomAngle: item.boomAngle,
+      liftingCapacity: item.liftingCapacity
     }));
 
     // 转换副臂表格数据格式
     const auxBoomPerformanceData = auxBoomTableData.value.map(item => ({
-      workingRadius: item.workingRadius !== undefined && item.workingRadius !== null ? item.workingRadius : "",
-      boomAngle: item.boomAngle !== undefined && item.boomAngle !== null ? item.boomAngle : "",
-      liftingCapacity: item.liftingCapacity !== undefined && item.liftingCapacity !== null ? item.liftingCapacity : ""
+      workingRadius: item.workingRadius,
+      boomAngle: item.boomAngle,
+      liftingCapacity: item.liftingCapacity
     }));
     
     // 转换主臂+副臂(46+16)表格数据格式
     const auxBoomPerformanceData2 = auxBoomTableData2.value.map(item => ({
-      workingRadius: item.workingRadius !== undefined && item.workingRadius !== null ? item.workingRadius : "",
-      boomAngle: item.boomAngle !== undefined && item.boomAngle !== null ? item.boomAngle : "",
-      liftingCapacity: item.liftingCapacity !== undefined && item.liftingCapacity !== null ? item.liftingCapacity : ""
+      workingRadius: item.workingRadius,
+      boomAngle: item.boomAngle,
+      liftingCapacity: item.liftingCapacity
     }));
 
     // 构造新的请求参数格式

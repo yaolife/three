@@ -1,5 +1,4 @@
-
-  var orig_source = false;
+var orig_source = false;
 
   $("button.cancel, .overlay").on("click", cancelOverlays);
   $("#tool_source").on("click", viewSource);
