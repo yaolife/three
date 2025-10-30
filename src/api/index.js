@@ -271,7 +271,20 @@ export async function getLiftingDetail(id) {
 export function getDeviceList(params) {
   return post("/template/device/page", params)
 }
-
+/**
+ * 通过设备列表返回的id查询设备详情
+ * @param {string|number}  
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getDeviceDetail(id) {
+  try {
+    const url = `/template/device/detailById/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取设备详情请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -292,5 +305,6 @@ export default {
   getLiftingMenuTwo,
   getLiftingMenuThree,
   getLiftingDetail,
-  getDeviceList
+  getDeviceList,
+  getDeviceDetail
 }
