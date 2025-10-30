@@ -127,24 +127,27 @@
                     <div class="form-row">
                       <label class="form-label">设备名称</label>
                       <div class="form-input-group">
-                        <el-input
-                          v-model="formData.equipmentName"
-                          placeholder="请选择"
+                        <el-select
+                        v-model="selectedDeviceId"
+                        placeholder="请选择设备名称"
+                        filterable
+                        clearable
+                        :loading="deviceLoading"
+                        @change="(val) => handleDeviceChange(val, false)"
+                      >
+                        <el-option
+                          v-for="device in deviceList"
+                          :key="device.id"
+                          :label="device.deviceName"
+                          :value="device.id"
                         />
-                        <el-button type="primary" size="default"
-                          >选择</el-button
-                        >
+                      </el-select>
                       </div>
                     </div>
 
                     <div class="form-row">
                       <label class="form-label">生产厂家</label>
                       <el-input v-model="formData.manufacturer" />
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">型号</label>
-                      <el-input v-model="formData.model" />
                     </div>
 
                     <div class="form-row">
@@ -654,11 +657,21 @@
                 <div class="form-row">
                   <label class="form-label">设备名称</label>
                   <div class="form-input-group">
-                    <el-input
-                      v-model="activeSlingData.equipmentName"
-                      placeholder="xxxx设备"
-                    />
-                    <el-button type="primary" size="default">选择</el-button>
+                    <el-select
+                        v-model="selectedSlingDeviceId"
+                        placeholder="请选择设备名称"
+                        filterable
+                        clearable
+                        :loading="deviceLoading"
+                        @change="(val) => handleDeviceChange(val, true)"
+                      >
+                        <el-option
+                          v-for="device in deviceList"
+                          :key="device.id"
+                          :label="device.deviceName"
+                          :value="device.id"
+                        />
+                      </el-select>
                   </div>
                 </div>
                 <div class="form-row"></div>
@@ -3138,11 +3151,73 @@ import {
   getLiftingMenuOne,
   getLiftingMenuTwo,
   getLiftingMenuThree,
+  getDeviceList,
+  getDeviceDetail
 } from "@/api/index.js";
 
 const router = useRouter();
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
+
+// 设备列表相关
+const deviceList = ref([]);
+const deviceLoading = ref(false);
+const selectedDeviceId = ref('');
+const selectedSlingDeviceId = ref('');
+
+// 加载设备列表
+const loadDeviceList = async () => {
+  try {
+    deviceLoading.value = true;
+    const response = await getDeviceList({ pageNum: -1, pageSize: -1 });
+    if (response.code === '0' && response.data && response.data.records) {
+      deviceList.value = response.data.records;
+    }
+  } catch (error) {
+    ElMessage.error('获取设备列表失败');
+    console.error('获取设备列表失败:', error);
+  } finally {
+    deviceLoading.value = false;
+  }
+};
+
+// 获取设备详情并回显数据
+const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
+  try {
+    const response = await getDeviceDetail(deviceId);
+    if (response.code === '0' && response.data) {
+      const deviceData = response.data;
+      if (isSlingTab) {
+        // 吊索具tab回显
+        activeSlingData.value.equipmentName = deviceData.deviceName || '';
+        activeSlingData.value.equipmentModel = deviceData.deviceModel || '';
+        activeSlingData.value.equipmentNumber = deviceData.deviceNumber || '';
+        // 如果设备重量有值，也进行回显
+        if (deviceData.weight) {
+          activeSlingData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
+        }
+      } else {
+        // 起重机tab回显
+        formData.value.equipmentName = deviceData.deviceName || '';
+        formData.value.equipmentType = deviceData.deviceModel || '';
+        formData.value.equipmentNumber = deviceData.deviceNumber || '';
+      }
+    }
+  } catch (error) {
+    ElMessage.error('获取设备详情失败');
+    console.error('获取设备详情失败:', error);
+  }
+};
+
+// 处理设备选择变化
+const handleDeviceChange = (deviceId, isSlingTab = false) => {
+  if (deviceId) {
+    getDeviceDetailAndEcho(deviceId, isSlingTab);
+  }
+};
+
+// 初始化时加载设备列表
+loadDeviceList();
 
 const handleTabChange = (tabName) => {
   // 处理标签页切换逻辑
