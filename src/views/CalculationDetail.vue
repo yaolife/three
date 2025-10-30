@@ -4262,6 +4262,22 @@ const confirmLiftingEquipmentSelection = async () => {
         activeSlingData.value.ropeLength = liftingDetail.miniLength !== undefined ? liftingDetail.miniLength : (liftingDetail.length || activeSlingData.value.length);
         activeSlingData.value.diameter = liftingDetail.diameter || activeSlingData.value.diameter;
         activeSlingData.value.material = liftingDetail.material || activeSlingData.value.material;
+        
+        // 处理额定载荷(pq)相关逻辑
+        if (liftingDetail.pq !== undefined && liftingDetail.pq !== null) {
+          // 选中额定载荷选项
+          activeSlingData.value.loadType = 'rope';
+     
+          // 设置额定载荷值
+          activeSlingData.value.ratedLoad = liftingDetail.pq;
+        }
+        // 处理破断拉力(smalPull)相关逻辑
+        if (liftingDetail.smalPull !== undefined && liftingDetail.smalPull !== null) {
+          // 选中破断拉力选项
+         activeSlingData.value.loadType = 'magnetic';
+          // 设置出厂安全系数值
+          activeSlingData.value.safetyFactor = liftingDetail.smalPull;
+        }
       }
 
       ElMessage.success("吊索具配置选择成功并加载详情");
