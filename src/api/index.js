@@ -249,6 +249,20 @@ export function getLiftingMenuTwo(params) {
 export function getLiftingMenuThree(params) {
   return post("/template/liftingInfo/page", params)
 }
+/**
+ * 通过第三级菜单返回的id查询吊索具详情
+ * @param {string|number}  
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getLiftingDetail(id) {
+  try {
+    const url = `/template/liftingDetail/detail/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取吊索具详情请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -267,5 +281,6 @@ export default {
   deleteDeviceItem,
   getLiftingMenuOne,
   getLiftingMenuTwo,
-  getLiftingMenuThree
+  getLiftingMenuThree,
+  getLiftingDetail
 }

@@ -813,7 +813,8 @@
                     placeholder="请输入吊索具名称"
                     class="manufacturer-input"
                   />
-                  <el-button type="primary" size="default">选择</el-button>
+                  <!-- Added click handler to open three-level selection dialog -->
+                  <el-button type="primary" size="default" @click="openLiftingEquipmentDialog">选择</el-button>
                 </div>
                 <!-- Added radio buttons inline with name field -->
                 <el-radio-group
@@ -2748,6 +2749,72 @@
     </template>
   </el-dialog>
 
+  <!-- Added three-level lifting equipment selection dialog -->
+  <el-dialog
+    v-model="showLiftingEquipmentDialog"
+    title="吊索具选择"
+    width="900px"
+    append-to-body
+    @close="closeLiftingEquipmentDialog"
+  >
+    <div class="lifting-equipment-selector">
+      <!-- 第一级：自定义分类 -->
+      <div class="selector-column">
+        <div class="column-header">请选择</div>
+        <div class="column-content">
+          <div
+            v-for="category in equipmentCategories"
+            :key="category.id"
+            class="selector-item"
+            :class="{ active: selectedCategory?.id === category.id }"
+            @click="selectCategory(category)"
+          >
+            {{ category.liftingTypeName }}
+          </div>
+        </div>
+      </div>
+
+      <!-- 第二级：选择产品 -->
+      <div class="selector-column">
+        <div class="column-header">选择产品</div>
+        <div class="column-content">
+          <div
+            v-for="product in equipmentProducts"
+            :key="product.id"
+            class="selector-item"
+            :class="{ active: selectedProduct?.id === product.id }"
+            @click="selectProduct(product)"
+          >
+            {{ product.liftingName }}
+          </div>
+        </div>
+      </div>
+
+      <!-- 第三级：选择型号 -->
+      <div class="selector-column">
+        <div class="column-header">选择型号</div>
+        <div class="column-content">
+          <div
+            v-for="model in equipmentModels"
+            :key="model.id"
+            class="selector-item"
+            :class="{ active: selectedModel?.id === model.id }"
+            @click="selectModel(model)"
+          >
+            {{ model.modelName || model.liftingName }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="closeLiftingEquipmentDialog">取消</el-button>
+        <el-button type="primary" @click="confirmLiftingEquipmentSelection">确定</el-button>
+      </span>
+    </template>
+  </el-dialog>
+
   <!-- 吊索具类型选择弹窗 -->
   <el-dialog
     v-model="showSlingTypeDialog"
@@ -3065,6 +3132,11 @@ import {
   DocumentCopy, // 添加复制图标
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus"; // Corrected import statement for ElMessage
+import {
+  getLiftingMenuOne,
+  getLiftingMenuTwo,
+  getLiftingMenuThree
+} from "@/api/index.js";
 
 const router = useRouter();
 const activeTab = ref("crane");
@@ -3204,6 +3276,15 @@ const foundationResultDialogVisible = ref(false);
 // 弹窗可见性状态
 const showSlingTypeDialog = ref(false);
 const selectedSlingType = ref(""); // 'upper' or 'lower'
+
+const showLiftingEquipmentDialog = ref(false);
+const equipmentCategories = ref([]);
+const equipmentProducts = ref([]);
+const equipmentModels = ref([]);
+const selectedCategory = ref(null);
+const selectedProduct = ref(null);
+const selectedModel = ref(null);
+
 
 // 监听吊装类型变化，切换时重置吊索具配置到默认初始状态
 watch(
@@ -3912,6 +3993,125 @@ T:履带平均接地比压= ${foundationCalculationResult.value.calculationProce
       ElMessage.error("复制失败，请手动复制");
     });
 };
+
+
+// 打开吊索具配置选择弹窗
+const openLiftingEquipmentDialog = async () => {
+  showLiftingEquipmentDialog.value = true;
+  // 重置选择状态
+  selectedCategory.value = null;
+  selectedProduct.value = null;
+  selectedModel.value = null;
+  equipmentProducts.value = [];
+  equipmentModels.value = [];
+
+  // 加载一级分类数据
+  await fetchCategories();
+};
+
+// 获取一级分类数据
+const fetchCategories = async () => {
+  try {
+    const response = await getLiftingMenuOne(0);
+    if (response && response.data) {
+      equipmentCategories.value = response.data;
+    }
+  } catch (error) {
+    console.error("获取吊索具分类失败:", error);
+    ElMessage.error("获取吊索具分类失败");
+  }
+};
+
+// 选择一级分类
+const selectCategory = async (category) => {
+  selectedCategory.value = category;
+  selectedProduct.value = null;
+  selectedModel.value = null;
+  equipmentModels.value = [];
+
+  // 加载二级产品数据
+  await fetchProducts(category.liftingType);
+};
+
+// 获取二级产品数据
+const fetchProducts = async (liftingType) => {
+  try {
+    const response = await getLiftingMenuTwo({
+      pageNum: 1,
+      pageSize: -1,
+      liftingType: liftingType
+    });
+    if (response && response.data && response.data.records) {
+      equipmentProducts.value = response.data.records;
+    }
+  } catch (error) {
+    console.error("获取吊索具产品失败:", error);
+    ElMessage.error("获取吊索具产品失败");
+  }
+};
+
+// 选择二级产品
+const selectProduct = async (product) => {
+  selectedProduct.value = product;
+  selectedModel.value = null;
+
+  // 加载三级型号数据
+  await fetchModels(product.id);
+};
+
+// 获取三级型号数据
+const fetchModels = async (liftingInfoId) => {
+  try {
+    const response = await getLiftingMenuThree({
+      pageNum: 1,
+      pageSize: -1,
+      liftingInfoId: liftingInfoId
+    });
+    if (response && response.data && response.data.records) {
+      equipmentModels.value = response.data.records;
+    }
+  } catch (error) {
+    console.error("获取吊索具型号失败:", error);
+    ElMessage.error("获取吊索具型号失败");
+  }
+};
+
+// 选择三级型号
+const selectModel = (model) => {
+  selectedModel.value = model;
+};
+
+// 确认选择
+const confirmLiftingEquipmentSelection = () => {
+  if (!selectedModel.value) {
+    ElMessage.warning("请选择完整的吊索具配置");
+    return;
+  }
+
+  // 将选中的型号名称填充到吊索具名称输入框
+  activeSlingData.value.deviceName = selectedModel.value.modelName || selectedModel.value.liftingName;
+
+  // 如果有其他需要填充的字段，可以在这里添加
+  // 例如：生产厂家、产品型号等
+  if (selectedProduct.value) {
+    activeSlingData.value.manufacturer = selectedProduct.value.manufacturer || "";
+    activeSlingData.value.productModel = selectedProduct.value.productModel || "";
+  }
+
+  ElMessage.success("吊索具配置选择成功");
+  closeLiftingEquipmentDialog();
+};
+
+// 关闭弹窗
+const closeLiftingEquipmentDialog = () => {
+  showLiftingEquipmentDialog.value = false;
+  selectedCategory.value = null;
+  selectedProduct.value = null;
+  selectedModel.value = null;
+  equipmentProducts.value = [];
+  equipmentModels.value = [];
+};
+
 </script>
 
 <style scoped>
@@ -4610,5 +4810,71 @@ T:履带平均接地比压= ${foundationCalculationResult.value.calculationProce
   width: 100%;
   height: 100%;
   border: none;
+}
+
+/* Added styles for three-level lifting equipment selection dialog */
+.lifting-equipment-selector {
+  display: flex;
+  gap: 1px;
+  height: 500px;
+  background-color: #e7e7e7;
+}
+
+.selector-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+.column-header {
+  padding: 12px 16px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e7e7e7;
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+.column-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.selector-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 14px;
+  color: #666;
+}
+
+.selector-item:hover {
+  background-color: #f5f5f5;
+}
+
+.selector-item.active {
+  background-color: #e6f7ff;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+/* 滚动条样式 */
+.column-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.column-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.column-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.column-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>
