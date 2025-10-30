@@ -4224,9 +4224,9 @@ const confirmLiftingEquipmentSelection = async () => {
     if (response.code === '0' && response.data) {
       const liftingDetail = response.data;
       
-      // 将选中的型号名称填充到吊索具名称输入框
+      // 将选中的第三级菜单名称填充到吊索具名称输入框
       activeSlingData.value.deviceName =
-        selectedModel.value.modelName || selectedModel.value.liftingName || liftingDetail.liftingName;
+        selectedModel.value.deviceModel || selectedModel.value.modelName ;
 
       // 将接口返回的数据回显到吊索具配置输入框
       if (liftingDetail) {
@@ -4269,9 +4269,9 @@ const confirmLiftingEquipmentSelection = async () => {
     console.error("获取吊索具详情失败:", error);
     ElMessage.error("获取吊索具详情失败，请重试");
     
-    // 如果接口调用失败，仍然使用原来的逻辑填充基本信息
+    // 如果接口调用失败，仍然使用第三级菜单名称填充基本信息
     activeSlingData.value.deviceName =
-      selectedModel.value.modelName || selectedModel.value.liftingName;
+      selectedModel.value.deviceModel || selectedModel.value.modelName;
 
     if (selectedProduct.value) {
       activeSlingData.value.manufacturer =
