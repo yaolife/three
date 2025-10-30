@@ -263,6 +263,15 @@ export async function getLiftingDetail(id) {
     throw error
   }
 }
+/**
+ * 获取设备名称的接口
+ * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getDeviceList(params) {
+  return post("/template/device/page", params)
+}
+
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -282,5 +291,6 @@ export default {
   getLiftingMenuOne,
   getLiftingMenuTwo,
   getLiftingMenuThree,
-  getLiftingDetail
+  getLiftingDetail,
+  getDeviceList
 }
