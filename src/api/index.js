@@ -285,6 +285,14 @@ export async function getDeviceDetail(id) {
     throw error
   }
 }
+/**
+ * 获取起重机名称的接口
+ * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getCraneList(params) {
+  return post("/template/crane/page", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -306,5 +314,6 @@ export default {
   getLiftingMenuThree,
   getLiftingDetail,
   getDeviceList,
-  getDeviceDetail
+  getDeviceDetail,
+  getCraneList
 }
