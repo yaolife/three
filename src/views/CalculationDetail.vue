@@ -2760,7 +2760,7 @@
     <div class="lifting-equipment-selector">
       <!-- 第一级：自定义分类 -->
       <div class="selector-column">
-        <div class="column-header">请选择</div>
+        <div class="column-header">请选择类型</div>
         <div class="column-content">
           <div
             v-for="category in equipmentCategories"
