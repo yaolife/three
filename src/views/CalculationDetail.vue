@@ -809,7 +809,7 @@
                 <label class="form-label">吊索具名称</label>
                 <div class="form-input-group">
                   <el-input
-                    v-model="activeSlingData.slingName"
+                    v-model="activeSlingData.deviceName"
                     placeholder="请输入吊索具名称"
                     class="manufacturer-input"
                   />
@@ -1493,7 +1493,7 @@
           <div class="section-title">吊索具信息</div>
           <div class="section-content">
             <div class="equipment-info">
-              <div class="info-item">吊索具名称：{{ sling.slingName }}</div>
+              <div class="info-item">吊索具名称：{{ sling.deviceName }}</div>
               <div class="info-item">生产厂家：{{ sling.manufacturer }}</div>
               <div class="info-item">
                 吊索具类型：{{
@@ -1799,7 +1799,7 @@
           <div class="section-title">吊索具信息</div>
           <div class="section-content">
             <div class="equipment-info">
-              <div class="info-item">吊索具名称：{{ sling.slingName }}</div>
+              <div class="info-item">吊索具名称：{{ sling.deviceName }}</div>
               <div class="info-item">生产厂家：{{ sling.manufacturer }}</div>
               <div class="info-item">
                 吊索具类型：{{
@@ -2123,7 +2123,7 @@
           <div class="section-title">吊索具信息</div>
           <div class="section-content">
             <div class="equipment-info">
-              <div class="info-item">吊索具名称：{{ sling.slingName }}</div>
+              <div class="info-item">吊索具名称：{{ sling.deviceName }}</div>
               <div class="info-item">生产厂家：{{ sling.manufacturer }}</div>
               <div class="info-item">
                 吊索具类型：{{
@@ -3144,7 +3144,7 @@ const liftingFormDatas = ref([
     equipmentWeight: 15,
     isUnbalanced: false,
     hasRope: false,
-    slingName: "",
+    deviceName: "",
     manufacturer: "",
     productModel: "", // 添加产品型号字段，默认值为SCC13000TM
     loadType: "magnetic", // New field for radio button selection, default to "magnetic" (破断拉力)

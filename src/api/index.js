@@ -219,7 +219,36 @@ export async function deleteDeviceItem(id) {
     throw error
   }
 }
-
+/**
+ * 获取吊索具名称一级菜单
+ * @param {string|number} id - 固定传0
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getLiftingMenuOne(id) {
+  try {
+    const url = `/lifting/type/getByFaterId/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取吊索具名称一级菜单API请求失败:", error)
+    throw error
+  }
+}
+/**
+ * 获取吊索具名称二级菜单
+ * @param {object} params - 分页参数 { pageNum, pageSize,liftingType }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getLiftingMenuTwo(params) {
+  return post("/template/liftingInfo/page", params)
+}
+/**
+ * 获取吊索具名称 三级菜单
+ * @param {object} params - 分页参数 { pageNum, pageSize,liftingInfoId }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getLiftingMenuThree(params) {
+  return post("/template/liftingInfo/page", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -235,5 +264,8 @@ export default {
   confirmUpdateCraneDetail,
   getDeviceInfoPage,
   editDeviceInfo,
-  deleteDeviceItem
+  deleteDeviceItem,
+  getLiftingMenuOne,
+  getLiftingMenuTwo,
+  getLiftingMenuThree
 }
