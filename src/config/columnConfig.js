@@ -23,9 +23,10 @@ export const SLING_COLUMNS = {
   103: [
     { prop: "deviceModel", label: "产品型号", minWidth: 120 },
     { prop: "pq", label: "额定载荷(kg)", minWidth: 120 },
-    { prop: "approximateThickness", label: "近似厚度(mm)", minWidth: 120 },
     { prop: "approximateWidth", label: "近似宽度(mm)", minWidth: 120 },
     { prop: "miniLength", label: "最小长度L(m)", minWidth: 120 },
+    { prop: "eyeLength", label: "环眼长度(mm)", minWidth: 120 },
+   { prop: "weight", label: "环重(kg)", minWidth: 120 },
   ],
 }
 
