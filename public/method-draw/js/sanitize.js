@@ -277,4 +277,3 @@ svgedit.sanitize.sanitizeSvg = function(node) {
 };
 
 })();
-

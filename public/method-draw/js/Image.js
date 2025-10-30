@@ -84,5 +84,4 @@ MD.Image = function(){
 
 
   this.importImage = importImage;
-}         
-
+}

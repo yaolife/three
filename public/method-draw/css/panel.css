@@ -1,4 +1,4 @@
- #panels {
+#panels {
   position: absolute;
   box-sizing: border-box;
   width: var(--panel-width);
