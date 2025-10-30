@@ -26,11 +26,10 @@
           </el-dropdown>
         </div>
         <div v-else class="login-prompt" @click="handleLoginClick">
-            <el-image
-            src="/src/images/user.png"
+            <img
+            src="@/images/user.png"
             alt="user"
             class="logo"
-            :fit="'cover'"
           />
           <span class="login-text">未登录，<span>点击登录</span></span>
         </div>

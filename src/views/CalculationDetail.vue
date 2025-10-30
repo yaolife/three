@@ -780,19 +780,19 @@
                   }}
                 </el-button>
                 <!-- Delete图标，只在非默认吊索具上显示 -->
-                <el-image
+                <img
                   v-if="index > 0 && !(sling.isBottomSling && index === 1)"
                   class="remove-sling-button"
-                  src="/src/images/delete.png"
+                  src="@/images/delete.png"
                   alt="删除"
                   :fit="'cover'"
                   @click="removeSling(index)"
                 />
               </div>
-              <el-image
+              <img
                 class="add-sling-button"
-                src="/src/images/add.png"
-                alt=""
+                src="@/images/add.png"
+                alt="新增按钮"
                 :fit="'cover'"
                 @click="addNewSling"
                 v-if="
