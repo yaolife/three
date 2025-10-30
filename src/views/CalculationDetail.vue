@@ -4098,6 +4098,21 @@ const confirmLiftingEquipmentSelection = () => {
     activeSlingData.value.productModel = selectedProduct.value.productModel || "";
   }
 
+  // 根据选择的类型匹配选中的部分类型
+  if (selectedCategory.value) {
+    // 根据分类ID映射到slingType值
+    // 0: 钢丝绳, 1: 吊带, 2: 卸扣, 3: 缆绳
+    const typeMap = {
+      0: "0", // 钢丝绳
+      1: "1", // 吊带
+      2: "2", // 卸扣
+      3: "3"  // 缆绳
+    };
+    
+    // 设置slingType，如果分类ID在映射中则使用映射值，否则默认为"0"(钢丝绳)
+    activeSlingData.value.slingType = typeMap[selectedCategory.value.liftingType] || "0";
+  }
+
   ElMessage.success("吊索具配置选择成功");
   closeLiftingEquipmentDialog();
 };
