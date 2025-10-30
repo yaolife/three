@@ -147,7 +147,7 @@
 
                     <div class="form-row">
                       <label class="form-label">生产厂家</label>
-                      <el-input v-model="formData.manufacturer" />
+                      <el-input v-model="formData.manufacturer"     placeholder="请输入生产厂家" />
                     </div>
 
                     <div class="form-row">
@@ -2170,7 +2170,6 @@
           <div class="section-title">设备信息</div>
           <div class="section-content">
             <div class="info-item">设备名称：{{ sling.equipmentName }}</div>
-            <div class="info-item">设备编号：{{ sling.equipmentNumber }}</div>
             <div class="info-item">设备型号：{{ sling.equipmentModel }}</div>
             <div class="info-item">设备重量：{{ sling.equipmentWeight }} t</div>
           </div>
@@ -3190,8 +3189,8 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
       if (isSlingTab) {
         // 吊索具tab回显
         activeSlingData.value.equipmentName = deviceData.deviceName || '';
-        activeSlingData.value.equipmentModel = deviceData.deviceModel || '';
-        activeSlingData.value.equipmentNumber = deviceData.deviceNumber || '';
+        activeSlingData.value.equipmentModel = deviceData.deviceType || '';
+        activeSlingData.value.manufacturer2 = deviceData.prodBusiness || '';
         // 如果设备重量有值，也进行回显
         if (deviceData.weight) {
           activeSlingData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
@@ -3199,8 +3198,8 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
       } else {
         // 起重机tab回显
         formData.value.equipmentName = deviceData.deviceName || '';
-        formData.value.equipmentType = deviceData.deviceModel || '';
-        formData.value.equipmentNumber = deviceData.deviceNumber || '';
+        formData.value.equipmentType = deviceData.deviceType || '';
+        formData.value.manufacturer = deviceData.prodBusiness || '';
       }
     }
   } catch (error) {
@@ -3227,12 +3226,11 @@ const handleTabChange = (tabName) => {
 const formData = ref({
   // 起重机1参数
   craneName: "",
-  equipmentName: "xxxxxx设备",
-  manufacturer: "三一重工",
+  equipmentName: "",
+  manufacturer: "",
   equipmentNumber: "",
   model: "SCC13000TM",
   equipmentType: "",
-  equipmentType: "H000000",
   ratedLoad: 12,
   mainBoomLength: 12,
   auxBoomLength: 12,
