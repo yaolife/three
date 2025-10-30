@@ -301,7 +301,7 @@ export function getCraneList(params) {
  */
 export async function getCraneDataDetail(id) {
   try {
-    const url = `/template/crane/detail/${id}`
+    const url = `/template/craneDetail/detailByCraneInfoId/${id}`
     return await get(url)
   } catch (error) {
     console.error("获取起重机详情请求失败:", error)
