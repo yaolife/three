@@ -721,7 +721,7 @@
                   </div>
                 </div>
 
-                <div style="display: flex; align-items: center">
+                <div style="display: flex; align-items: center;margin-left: -60px">
                   <label class="form-label">平衡梁长度</label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -734,8 +734,7 @@
                 </div>
 
                 <div style="display: flex; align-items: center">
-                  <label class="form-label"
-                    >吊梁下部吊具重量<span>G2</span></label
+                  <label class="form-label"  style="max-width: 150px;">吊梁下部吊具重量<span>G2</span></label
                   >
                   <div class="input-with-unit">
                     <el-input-number
