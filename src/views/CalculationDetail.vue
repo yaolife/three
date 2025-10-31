@@ -4448,7 +4448,7 @@ const closeLiftingEquipmentDialog = () => {
   display: flex;
   align-items: center;
   margin-bottom: 16px;
-  gap: 20px;
+  gap: 10px;
 }
 
 .form-row .form-label {
