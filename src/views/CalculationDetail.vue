@@ -3263,7 +3263,7 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
     try {
       // 调用起重机详情接口获取详细数据
       const response = await getCraneDataDetail(craneId);
-      const craneData = response.data || {};
+      const craneData = response.data.sysProjectTemplateCraneDetail || {};
       
       // 将接口返回的mainHookWeight赋值给重量计算设置版块的吊钩重量G1
       formData.value.hookWeightG1 = craneData.mainHookWeight !== undefined ? craneData.mainHookWeight : formData.value.hookWeightG1;
@@ -3276,7 +3276,6 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         doubleResult.equipmentWeight = craneData.mainHookMaxCapacity;
         doubleResult.G0 = craneData.mainHookMaxCapacity;
       }
-      
       // 根据是否为第二台起重机，填充对应的参数
       if (isSecondCrane) {
         // 填充第二台起重机参数
