@@ -3934,8 +3934,8 @@ const showCalculationResult = () => {
 
     singleCraneDialogVisible.value = true;
   } else {
-    // 双机吊装计算，使用用户输入的G0值或默认值65
-    const G0 = 65;
+    // 双机吊装计算，使用formData中的G0值，如果不存在则使用默认值65
+    const G0 = formData.value.G0 !== undefined ? formData.value.G0 : 65;
     const calculationResult1 =
       (((G0 +
         hookWeightG1 +
