@@ -3169,7 +3169,8 @@ import {
   getDeviceList,
   getDeviceDetail,
   getCraneList,
-  getLiftingDetail
+  getLiftingDetail,
+  getCraneDataDetail
 } from "@/api/index.js";
 
 const router = useRouter();

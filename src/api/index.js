@@ -166,7 +166,7 @@ export async function deleteCraneItem(id) {
   }
 }
 /**
- * 查询起重机详情
+ * 查询起重机详情(新建的起重机详情)
  * @param {string|number} id - 起重机ID
  * @returns {Promise} - 返回操作结果
  */
@@ -295,7 +295,7 @@ export function getCraneList(params) {
 }
 
 /**
- * 通过起重列表返回的id查询起重机详情
+ * 通过起重列表选择后返回的id查询起重机详情
  * @param {string|number}  id
  * @returns {Promise} - 返回操作结果
  */
