@@ -3268,6 +3268,15 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
       // 将接口返回的mainHookWeight赋值给重量计算设置版块的吊钩重量G1
       formData.value.hookWeightG1 = craneData.mainHookWeight !== undefined ? craneData.mainHookWeight : formData.value.hookWeightG1;
       
+      // 将接口返回的mainHookMaxCapacity赋值给默认值G0字段
+      formData.value.G0 = craneData.mainHookMaxCapacity !== undefined ? craneData.mainHookMaxCapacity : formData.value.G0;
+      
+      // 同时更新doubleResult对象中的equipmentWeight和G0字段
+      if (craneData.mainHookMaxCapacity !== undefined) {
+        doubleResult.equipmentWeight = craneData.mainHookMaxCapacity;
+        doubleResult.G0 = craneData.mainHookMaxCapacity;
+      }
+      
       // 根据是否为第二台起重机，填充对应的参数
       if (isSecondCrane) {
         // 填充第二台起重机参数
@@ -3321,7 +3330,7 @@ const formData = ref({
   equipmentName: "",
   manufacturer: "",
   equipmentNumber: "",
-  model: "SCC13000TM",
+  model: "",
   equipmentType: "",
   ratedLoad: 12,
   mainBoomLength: 12,
