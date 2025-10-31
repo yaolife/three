@@ -3257,19 +3257,66 @@ const handleDeviceChange = (deviceId, isSlingTab = false) => {
 };
 
 // 处理起重机选择变化
-const handleCraneChange = (craneId, isSecondCrane = false) => {
+const handleCraneChange = async (craneId, isSecondCrane = false) => {
   const crane = craneList.value.find(c => c.id === craneId);
-  // if (crane) {
-  //   if (isSecondCrane) {
-  //     formData.value.craneName2 = crane.craneName || '';
-  //     formData.value.manufacturer2 = crane.manufacturer || '';
-  //     formData.value.model2 = crane.model || '';
-  //   } else {
-  //     formData.value.craneName = crane.craneName || '';
-  //     formData.value.manufacturer = crane.manufacturer || '';
-  //     formData.value.model = crane.model || '';
-  //   }
-  // }
+  if (crane) {
+    try {
+      // 调用起重机详情接口获取详细数据
+      const response = await getCraneDataDetail(craneId);
+      const craneData = response.data || {};
+      
+      // 根据是否为第二台起重机，填充对应的参数
+      if (isSecondCrane) {
+        // 填充第二台起重机参数
+        formData.value.craneName2 = crane.craneName || '';
+        formData.value.manufacturer2 = crane.manufacturer || '';
+        formData.value.model2 = crane.model || '';
+        formData.value.equipmentName2 = craneData.equipmentName || '';
+        formData.value.equipmentNumber2 = craneData.equipmentNumber || '';
+        formData.value.equipmentType2 = craneData.equipmentType || '';
+        formData.value.ratedLoad2 = craneData.ratedLoad !== undefined ? craneData.ratedLoad : 12;
+        formData.value.mainBoomLength2 = craneData.mainBoomLength !== undefined ? craneData.mainBoomLength : 12;
+        formData.value.auxBoomLength2 = craneData.auxBoomLength !== undefined ? craneData.auxBoomLength : 12;
+        formData.value.workRadius2 = craneData.workRadius !== undefined ? craneData.workRadius : 12;
+        formData.value.mainBoomAngle2 = craneData.mainBoomAngle !== undefined ? craneData.mainBoomAngle : 12;
+        formData.value.auxBoomAngle2 = craneData.auxBoomAngle !== undefined ? craneData.auxBoomAngle : 12;
+        formData.value.hookWeight2 = craneData.hookWeight !== undefined ? craneData.hookWeight : 12;
+        formData.value.hookHeight2 = craneData.hookHeight !== undefined ? craneData.hookHeight : 12;
+        formData.value.superLiftWeight2 = craneData.superLiftWeight !== undefined ? craneData.superLiftWeight : 12;
+        formData.value.superLiftRadius2 = craneData.superLiftRadius !== undefined ? craneData.superLiftRadius : 12;
+      } else {
+        // 填充第一台起重机参数
+        formData.value.craneName = crane.craneName || '';
+        formData.value.manufacturer = crane.manufacturer || '';
+        formData.value.model = crane.model || '';
+        formData.value.equipmentName = craneData.equipmentName || '';
+        formData.value.equipmentNumber = craneData.equipmentNumber || '';
+        formData.value.equipmentType = craneData.equipmentType || '';
+        formData.value.ratedLoad = craneData.ratedLoad !== undefined ? craneData.ratedLoad : 12;
+        formData.value.mainBoomLength = craneData.mainBoomLength !== undefined ? craneData.mainBoomLength : 12;
+        formData.value.auxBoomLength = craneData.auxBoomLength !== undefined ? craneData.auxBoomLength : 12;
+        formData.value.workRadius = craneData.workRadius !== undefined ? craneData.workRadius : 12;
+        formData.value.mainBoomAngle = craneData.mainBoomAngle !== undefined ? craneData.mainBoomAngle : 12;
+        formData.value.auxBoomAngle = craneData.auxBoomAngle !== undefined ? craneData.auxBoomAngle : 12;
+        formData.value.hookWeight = craneData.hookWeight !== undefined ? craneData.hookWeight : 12;
+        formData.value.hookHeight = craneData.hookHeight !== undefined ? craneData.hookHeight : 12;
+        formData.value.superLiftWeight = craneData.superLiftWeight !== undefined ? craneData.superLiftWeight : 12;
+        formData.value.superLiftRadius = craneData.superLiftRadius !== undefined ? craneData.superLiftRadius : 12;
+      }
+    } catch (error) {
+      console.error('获取起重机详情失败:', error);
+      // 如果接口调用失败，使用基础数据填充
+      if (isSecondCrane) {
+        formData.value.craneName2 = crane.craneName || '';
+        formData.value.manufacturer2 = crane.manufacturer || '';
+        formData.value.model2 = crane.model || '';
+      } else {
+        formData.value.craneName = crane.craneName || '';
+        formData.value.manufacturer = crane.manufacturer || '';
+        formData.value.model = crane.model || '';
+      }
+    }
+  }
 };
 
 // 初始化时加载列表

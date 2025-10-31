@@ -50,13 +50,9 @@
           <el-icon><VideoPlay /></el-icon>
           <span>虚拟仿真项目</span>
         </el-menu-item>
-        <el-menu-item index="/check-calculation">
-              <el-icon><Document /></el-icon>
-          <span>校核计算项目</span>
-        </el-menu-item>
         <el-menu-item index="/construction-plans">
           <el-icon><Document /></el-icon>
-          <span>施工平立面图项目</span>
+          <span>总平规划项目</span>
         </el-menu-item>
         <!-- Added Data Management menu item -->
         <el-menu-item index="/data-management">
