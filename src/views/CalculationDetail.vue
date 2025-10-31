@@ -3241,6 +3241,10 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
         formData.value.equipmentName = deviceData.deviceName || '';
         formData.value.equipmentType = deviceData.deviceType || '';
         formData.value.manufacturer = deviceData.prodBusiness || '';
+        // 将设备重量赋值给起重机的设备重量(G)
+        if (deviceData.weight) {
+          formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
+        }
       }
     }
   } catch (error) {
