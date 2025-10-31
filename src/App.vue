@@ -71,31 +71,33 @@
       <!-- 顶部导航栏 -->
       <el-header v-if="!shouldHideHeader" class="header-container">
         <div class="header-left">
-          <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span>
-        </div>
-        <div class="header-right">
-          <el-button type="primary" size="small" @click="createProject">
-            <el-icon><Plus /></el-icon>
+          <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
+        <el-button type="primary" size="large" @click="createProject">
+            <el-icon style="font-size: 10px; margin-right: 5px;background-color: white;color: #06F;padding: 2px;"><Plus /></el-icon>
             创建项目
           </el-button>
           <div class="search-box">
-            <el-input placeholder="搜索" prefix-icon="Search" size="small" />
-            <el-button type="default" size="small" style="margin-left: 8px">
+            <el-input placeholder="搜索" prefix-icon="Search" size="large" />
+            <el-button type="default" size="large" style="margin-left: 8px">
               搜索
             </el-button>
           </div>
+        </div>
+        <div class="header-right">
+     
           <el-button v-if="userStore.userState.isLoggedIn" type="default" size="small" @click="handleLogout" style="margin-left: 12px">
             退出登录
           </el-button>
           <el-button type="default" size="small" style="margin-left: 12px">
             云数据同步
           </el-button>
+           <el-button type="default" size="small" style="margin-left: 12px">
+            复制
+          </el-button>
           <el-button type="default" size="small" style="margin-left: 12px">
             更新
           </el-button>
-          <el-button type="default" size="small" style="margin-left: 12px">
-            帮助
-          </el-button>
+        
         </div>
       </el-header>
       

@@ -187,7 +187,7 @@ export const CABLE_COLUMNS = {
        { prop: "traction", label: "牵引力(KN)", minWidth: 100 },
     { prop: "gardenWeek", label: "圆周(INCH)", minWidth: 120 },
     { prop: "kTex", label: "线密度(Ktex)", minWidth: 130 },
-     { prop: "effLength", label: "有效程度(m)", minWidth: 130 },
+     { prop: "effLength", label: "有效长度(m)", minWidth: 130 },
     { prop: "deviation", label: "偏差(%)", minWidth: 100 },
     { prop: "weight", label: "理论重量(kg/200M)", minWidth: 150 },
     { prop: "fractureForce", label: "最低断裂强力(KN)", minWidth: 150 },

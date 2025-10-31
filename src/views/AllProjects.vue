@@ -206,7 +206,7 @@ const handleCurrentChange = (current) => {
 
 <style scoped>
 .all-projects-container {
-  padding: 20px 0;
+  padding: 5px 0;
 }
 
 .project-table-card {
