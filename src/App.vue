@@ -88,14 +88,32 @@
           <el-button v-if="userStore.userState.isLoggedIn" type="default" size="small" @click="handleLogout" style="margin-left: 12px">
             退出登录
           </el-button>
-          <el-button type="default" size="small" style="margin-left: 12px">
-            云数据同步
+          <el-button type="default" size="large" style="margin-left: 12px">
+             <img
+                 style="width: 22px; height: 22px;margin-right: 5px;"
+                src="@/images/synchronize.png"
+                alt="数据同步"
+                :fit="'cover'"
+              />
+            <span>云端数据同步</span>
           </el-button>   
-          <el-button type="default" size="small" style="margin-left: 12px">
-            更新
+          <el-button type="default" size="large" style="margin-left: 12px">
+              <img
+                 style="width: 22px; height: 22px;margin-right: 5px;"
+                src="@/images/refresh.png"
+                alt="更新"
+                :fit="'cover'"
+              />
+              <span>更新</span>
           </el-button>
-              <el-button type="default" size="small" style="margin-left: 12px">
-            复制
+              <el-button type="default" size="large" style="margin-left: 12px">
+                  <img
+                 style="width: 22px; height: 22px;margin-right: 5px;"
+                src="@/images/copy.png"
+                alt="复制"
+                :fit="'cover'"
+              />
+             <span>复制</span>
           </el-button>
         </div>
       </el-header>
