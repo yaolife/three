@@ -90,14 +90,13 @@
           </el-button>
           <el-button type="default" size="small" style="margin-left: 12px">
             云数据同步
-          </el-button>
-           <el-button type="default" size="small" style="margin-left: 12px">
-            复制
-          </el-button>
+          </el-button>   
           <el-button type="default" size="small" style="margin-left: 12px">
             更新
           </el-button>
-        
+              <el-button type="default" size="small" style="margin-left: 12px">
+            复制
+          </el-button>
         </div>
       </el-header>
       
