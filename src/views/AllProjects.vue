@@ -64,23 +64,23 @@
     
     <!-- 创建/编辑项目弹窗 -->
     <el-dialog v-model="showCreateDialog" title="创建项目" width="500px" :close-on-click-modal="false">
-      <el-form ref="formRef" :model="formData" label-width="100px">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-form-item label="选择类型">
           <div class="project-type-container">
-            <div class="project-type-item" @click="formData.projectType = 0; formData.fileType = 0">
-              <div class="project-type-icon">
+            <div class="project-type-item" :class="{ 'active': formData.projectType === 0 }" @click="formData.projectType = 0; formData.fileType = 0">
+              <div class="project-type-icon" :class="{ 'active': formData.projectType === 0 }">
                 <span>校核计算</span>
               </div>
               <div class="project-type-label">新建校核计算</div>
             </div>
-            <div class="project-type-item" @click="formData.projectType = 1; formData.fileType = 1">
-              <div class="project-type-icon">
+            <div class="project-type-item" :class="{ 'active': formData.projectType === 1 }" @click="formData.projectType = 1; formData.fileType = 1">
+              <div class="project-type-icon" :class="{ 'active': formData.projectType === 1 }">
                 <span>三维仿真</span>
               </div>
               <div class="project-type-label">新建三维仿真</div>
             </div>
-            <div class="project-type-item" @click="formData.projectType = 2; formData.fileType = 2">
-              <div class="project-type-icon">
+            <div class="project-type-item" :class="{ 'active': formData.projectType === 2 }" @click="formData.projectType = 2; formData.fileType = 2">
+              <div class="project-type-icon" :class="{ 'active': formData.projectType === 2 }">
                 <span>总平规划</span>
               </div>
               <div class="project-type-label">总平规划</div>
@@ -92,7 +92,7 @@
           <el-input v-model="formData.title" placeholder="请输入项目标题" />
         </el-form-item>
         
-        <el-form-item label="创建部门">
+        <el-form-item label="创建部门" prop="belongingDept" :rules="[{ required: true, message: '请输入创建部门', trigger: 'blur' }]">
           <el-input v-model="formData.belongingDept" placeholder="请输入创建部门" />
         </el-form-item>
         
@@ -132,13 +132,19 @@ const total = ref(0)
 const showCreateDialog = ref(false)
 const formRef = ref(null)
 const formData = ref({
-  id: '',
-  title: '',
-  projectType: 0,
-  fileType: 0,
-  belongingProject: '',
-  belongingDept: ''
-})
+    id: '',
+    title: '',
+    projectType: 0,
+    fileType: 0,
+    belongingProject: '',
+    belongingDept: ''
+  })
+  
+  // 表单验证规则
+  const formRules = ref({
+    title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
+    belongingDept: [{ required: true, message: '请输入创建部门', trigger: 'blur' }]
+  })
 
 // 初始化加载数据
 onMounted(() => {
@@ -237,34 +243,39 @@ const handleDelete = async (row) => {
 }
 
 // 提交表单
-const submitForm = async () => {
-  try {
-    // 准备提交数据
-    const submitData = {
-      id: formData.value.id,
-      title: formData.value.title,
-      projectType: formData.value.projectType,
-      fileType: formData.value.fileType,
-      belongingProject: formData.value.belongingProject
+  const submitForm = async () => {
+    try {
+      // 验证表单
+      await formRef.value.validate()
+      
+      // 准备提交数据
+      const submitData = {
+        id: formData.value.id,
+        title: formData.value.title,
+        projectType: formData.value.projectType,
+        fileType: formData.value.fileType,
+        belongingProject: formData.value.belongingProject,
+        belongingDept: formData.value.belongingDept
+      }
+      
+      const response = await handleEditProject(submitData)
+      
+      if (response.code === '0') {
+        ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
+        showCreateDialog.value = false
+        // 重置表单
+        resetForm()
+        // 重新加载数据
+        loadProjectData()
+      } else {
+        ElMessage.error(response.msg || '操作失败')
+      }
+    } catch (error) {
+      if (error !== 'cancel') {
+        console.error('提交表单失败:', error)
+      }
     }
-    
-    const response = await handleEditProject(submitData)
-    
-    if (response.code === '0') {
-      ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
-      showCreateDialog.value = false
-      // 重置表单
-      resetForm()
-      // 重新加载数据
-      loadProjectData()
-    } else {
-      ElMessage.error(response.msg || '操作失败')
-    }
-  } catch (error) {
-    console.error('提交表单失败:', error)
-    ElMessage.error('提交表单失败')
   }
-}
 
 // 重置表单
 const resetForm = () => {
@@ -322,37 +333,49 @@ const handleCurrentChange = (current) => {
 }
 
 /* 项目类型选择样式 */
-.project-type-container {
-  display: flex;
-  gap: 20px;
-}
+  .project-type-container {
+    display: flex;
+    gap: 20px;
+  }
 
-.project-type-item {
-  cursor: pointer;
-  text-align: center;
-  width: 120px;
-}
+  .project-type-item {
+    cursor: pointer;
+    text-align: center;
+    width: 120px;
+  }
 
-.project-type-icon {
-  width: 80px;
-  height: 80px;
-  background-color: #e6f7ff;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 10px;
-  color: #1890ff;
-  font-size: 14px;
-  border: 2px solid transparent;
-}
+  .project-type-icon {
+    width: 80px;
+    height: 80px;
+    background-color: #e6f7ff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    color: #1890ff;
+    font-size: 14px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+  }
 
-.project-type-item:hover .project-type-icon {
-  border-color: #1890ff;
-}
+  .project-type-icon.active {
+    background-color: #1890ff;
+    color: white;
+    border-color: #1890ff;
+  }
 
-.project-type-label {
-  font-size: 12px;
-  color: #333;
-}
+  .project-type-item:hover .project-type-icon {
+    border-color: #1890ff;
+  }
+
+  .project-type-label {
+    font-size: 12px;
+    color: #333;
+  }
+
+  .project-type-item.active .project-type-label {
+    color: #1890ff;
+    font-weight: 500;
+  }
 </style>
