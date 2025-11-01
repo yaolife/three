@@ -65,8 +65,9 @@
     <!-- 创建/编辑项目弹窗 -->
     <el-dialog v-model="showCreateDialog" title="创建项目" width="500px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-form-item label="选择类型">
-          <div class="project-type-container">
+         <el-form-item label="选择类型">   </el-form-item>
+        <el-form-item label="">
+          <div class="project-type-container" style="margin-left: -80px;">
             <div class="project-type-item" :class="{ 'active': formData.projectType === 0 }" @click="formData.projectType = 0; formData.fileType = 0">
               <div class="project-type-icon" :class="{ 'active': formData.projectType === 0 }">
                 <span>校核计算</span>
@@ -132,7 +133,7 @@ const total = ref(0)
 const showCreateDialog = ref(false)
 const formRef = ref(null)
 const formData = ref({
-    id: '',
+    id: null,
     title: '',
     projectType: 0,
     fileType: 0,
@@ -280,7 +281,7 @@ const handleDelete = async (row) => {
 // 重置表单
 const resetForm = () => {
   formData.value = {
-    id: '',
+    id: null,
     title: '',
     projectType: 0,
     fileType: 0,
@@ -335,7 +336,7 @@ const handleCurrentChange = (current) => {
 /* 项目类型选择样式 */
   .project-type-container {
     display: flex;
-    gap: 20px;
+    gap: 40px;
   }
 
   .project-type-item {
@@ -345,8 +346,8 @@ const handleCurrentChange = (current) => {
   }
 
   .project-type-icon {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     background-color: #e6f7ff;
     border-radius: 4px;
     display: flex;
@@ -355,6 +356,7 @@ const handleCurrentChange = (current) => {
     margin: 0 auto 10px;
     color: #1890ff;
     font-size: 14px;
+    border-radius: 11px;
     border: 2px solid transparent;
     transition: all 0.3s ease;
   }
