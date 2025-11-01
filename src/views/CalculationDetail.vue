@@ -115,41 +115,52 @@
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
                       <div class="form-input-group">
-                        <el-input
-                          v-model="formData.craneName"
-                          placeholder="请输入起重机名称"
+                        <el-select
+                        v-model="selectedCraneId"
+                        placeholder="请选择起重机名称"
+                        filterable
+                        clearable
+                        :loading="craneLoading"
+                        @change="(val) => handleCraneChange(val, false)"
+                      >
+                        <el-option
+                          v-for="crane in craneList"
+                          :key="crane.id"
+                          :label="crane.machineName"
+                          :value="crane.id"
                         />
-                        <el-button type="primary" size="default"
-                          >选择</el-button
-                        >
+                      </el-select>
                       </div>
                     </div>
                     <div class="form-row">
                       <label class="form-label">设备名称</label>
-                      <el-input v-model="formData.equipmentName" disabled />
+                      <div class="form-input-group">
+                        <el-select
+                        v-model="selectedDeviceId"
+                        placeholder="请选择设备名称"
+                        filterable
+                        clearable
+                        :loading="deviceLoading"
+                        @change="(val) => handleDeviceChange(val, false)"
+                      >
+                        <el-option
+                          v-for="device in deviceList"
+                          :key="device.id"
+                          :label="device.deviceName"
+                          :value="device.id"
+                        />
+                      </el-select>
+                      </div>
                     </div>
 
                     <div class="form-row">
-                      <label class="form-label">生产厂家</label>
-                      <el-input v-model="formData.manufacturer" />
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">设备编号</label>
-                      <el-input
-                        v-model="formData.equipmentNumber"
-                        placeholder="请输入设备编号"
-                      />
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">型号</label>
-                      <el-input v-model="formData.model" />
+                      <label class="form-label"> 设备生产厂家</label>
+                      <el-input v-model="formData.manufacturer"     placeholder="请输入生产厂家" />
                     </div>
 
                     <div class="form-row">
                       <label class="form-label">设备型号</label>
-                      <el-input v-model="formData.equipmentType" />
+                      <el-input v-model="formData.equipmentType" placeholder="请输入设备型号"/>
                     </div>
                   </div>
                 </div>
@@ -282,13 +293,21 @@
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
                       <div class="form-input-group">
-                        <el-input
-                          v-model="formData.craneName2"
-                          placeholder="SCC13000TM履带起重机"
-                        />
-                        <el-button type="primary" size="default"
-                          >选择</el-button
+                        <el-select
+                          v-model="selectedCraneId2"
+                          placeholder="请选择起重机名称"
+                          filterable
+                          clearable
+                          :loading="craneLoading"
+                          @change="(val) => handleCraneChange(val, true)"
                         >
+                          <el-option
+                            v-for="crane in craneList"
+                            :key="crane.id"
+                            :label="crane.machineName"
+                            :value="crane.id"
+                          />
+                        </el-select>
                       </div>
                     </div>
                     <div class="form-row">
@@ -313,7 +332,7 @@
 
                     <div class="form-row">
                       <label class="form-label">设备型号</label>
-                      <el-input v-model="formData.equipmentType2" />
+                      <el-input v-model="formData.equipmentType2" placeholder="请输入设备型号"/>
                     </div>
                   </div>
                 </div>
@@ -654,11 +673,21 @@
                 <div class="form-row">
                   <label class="form-label">设备名称</label>
                   <div class="form-input-group">
-                    <el-input
-                      v-model="activeSlingData.equipmentName"
-                      placeholder="xxxx设备"
-                    />
-                    <el-button type="primary" size="default">选择</el-button>
+                    <el-select
+                        v-model="selectedSlingDeviceId"
+                        placeholder="请选择设备名称"
+                        filterable
+                        clearable
+                        :loading="deviceLoading"
+                        @change="(val) => handleDeviceChange(val, true)"
+                      >
+                        <el-option
+                          v-for="device in deviceList"
+                          :key="device.id"
+                          :label="device.deviceName"
+                          :value="device.id"
+                        />
+                      </el-select>
                   </div>
                 </div>
                 <div class="form-row"></div>
@@ -2157,7 +2186,6 @@
           <div class="section-title">设备信息</div>
           <div class="section-content">
             <div class="info-item">设备名称：{{ sling.equipmentName }}</div>
-            <div class="info-item">设备编号：{{ sling.equipmentNumber }}</div>
             <div class="info-item">设备型号：{{ sling.equipmentModel }}</div>
             <div class="info-item">设备重量：{{ sling.equipmentWeight }} t</div>
           </div>
@@ -3135,12 +3163,162 @@ import { ElMessage } from "element-plus"; // Corrected import statement for ElMe
 import {
   getLiftingMenuOne,
   getLiftingMenuTwo,
-  getLiftingMenuThree
+  getLiftingMenuThree,
+  getDeviceList,
+  getDeviceDetail,
+  getCraneList,
+  getLiftingDetail,
+  getCraneDataDetail
 } from "@/api/index.js";
 
 const router = useRouter();
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
+
+// 设备列表相关
+const deviceList = ref([]);
+const deviceLoading = ref(false);
+const selectedDeviceId = ref('');
+const selectedSlingDeviceId = ref('');
+
+// 起重机列表相关
+const craneList = ref([]);
+const craneLoading = ref(false);
+const selectedCraneId = ref('');
+const selectedCraneId2 = ref('');
+
+// 加载设备列表
+const loadDeviceList = async () => {
+  try {
+    deviceLoading.value = true;
+    const response = await getDeviceList({ pageNum: -1, pageSize: -1 });
+    if (response.code === '0' && response.data && response.data.records) {
+      deviceList.value = response.data.records;
+    }
+  } catch (error) {
+    ElMessage.error('获取设备列表失败');
+    console.error('获取设备列表失败:', error);
+  } finally {
+    deviceLoading.value = false;
+  }
+};
+
+// 加载起重机列表
+const loadCraneList = async () => {
+  try {
+    craneLoading.value = true;
+    const response = await getCraneList({ pageNum: -1, pageSize: -1 });
+    if (response.code === '0' && response.data && response.data.records) {
+      craneList.value = response.data.records;
+    }
+  } catch (error) {
+    ElMessage.error('获取起重机列表失败');
+    console.error('获取起重机列表失败:', error);
+  } finally {
+    craneLoading.value = false;
+  }
+};
+
+// 获取设备详情并回显数据
+const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
+  try {
+    const response = await getDeviceDetail(deviceId);
+    if (response.code === '0' && response.data) {
+      const deviceData = response.data;
+      if (isSlingTab) {
+        // 吊索具tab回显
+        activeSlingData.value.equipmentName = deviceData.deviceName || '';
+        activeSlingData.value.equipmentModel = deviceData.deviceType || '';
+        activeSlingData.value.manufacturer2 = deviceData.prodBusiness || '';
+        // 如果设备重量有值，也进行回显
+        if (deviceData.weight) {
+          activeSlingData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
+        }
+      } else {
+        // 起重机tab回显
+        formData.value.equipmentName = deviceData.deviceName || '';
+        formData.value.equipmentType = deviceData.deviceType || '';
+        formData.value.manufacturer = deviceData.prodBusiness || '';
+        // 将设备重量赋值给起重机的设备重量(G)
+        if (deviceData.weight) {
+          formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
+        }
+      }
+    }
+  } catch (error) {
+    ElMessage.error('获取设备详情失败');
+    console.error('获取设备详情失败:', error);
+  }
+};
+
+// 处理设备选择变化
+const handleDeviceChange = (deviceId, isSlingTab = false) => {
+  if (deviceId) {
+    getDeviceDetailAndEcho(deviceId, isSlingTab);
+  }
+};
+
+// 处理起重机选择变化
+const handleCraneChange = async (craneId, isSecondCrane = false) => {
+  const crane = craneList.value.find(c => c.id === craneId);
+  if (crane) {
+    try {
+      // 调用起重机详情接口获取详细数据
+      const response = await getCraneDataDetail(craneId);
+      const craneData = response.data.sysProjectTemplateCraneDetail || {};
+      
+      // 将接口返回的mainHookWeight赋值给重量计算设置版块的吊钩重量G1
+      formData.value.hookWeightG1 = craneData.mainHookWeight !== undefined ? craneData.mainHookWeight : formData.value.hookWeightG1;
+      
+      // 将接口返回的mainHookMaxCapacity赋值给默认值G0字段
+      formData.value.G0 = craneData.mainHookMaxCapacity !== undefined ? craneData.mainHookMaxCapacity : formData.value.G0;
+      
+      // 同时更新doubleResult对象中的equipmentWeight和G0字段
+      if (craneData.mainHookMaxCapacity !== undefined) {
+        doubleResult.equipmentWeight = craneData.mainHookMaxCapacity;
+        doubleResult.G0 = craneData.mainHookMaxCapacity;
+      }
+      // 根据是否为第二台起重机，填充对应的参数
+      if (isSecondCrane) {
+        // 填充第二台起重机参数
+         //车体配重重量
+        formData.value.hookWeight = craneData.counterweight !== undefined ? craneData.counterweight : 1;
+        //吊钩最大起升吊高度
+        formData.value.hookHeight = craneData.maxLiftingHeight !== undefined ? craneData.maxLiftingHeight : 12;
+        //超起平衡重量
+        formData.value.superLiftWeight = craneData.superLiftCounterweightWeight !== undefined ? craneData.superLiftCounterweightWeight : 12;
+        //超起平衡回转半径
+        formData.value.superLiftRadius = craneData.superLiftCounterweightRadius !== undefined ? craneData.superLiftCounterweightRadius : 12;
+      } else {
+        // 填充第一台起重机参数
+         //车体配重重量
+        formData.value.hookWeight = craneData.counterweight !== undefined ? craneData.counterweight : 1;
+        //吊钩最大起升吊高度
+        formData.value.hookHeight = craneData.maxLiftingHeight !== undefined ? craneData.maxLiftingHeight : 12;
+        //超起平衡重量
+        formData.value.superLiftWeight = craneData.superLiftCounterweightWeight !== undefined ? craneData.superLiftCounterweightWeight : 12;
+        //超起平衡回转半径
+        formData.value.superLiftRadius = craneData.superLiftCounterweightRadius !== undefined ? craneData.superLiftCounterweightRadius : 12;
+      }
+    } catch (error) {
+      console.error('获取起重机详情失败:', error);
+      // 如果接口调用失败，使用基础数据填充
+      if (isSecondCrane) {
+        formData.value.craneName2 = crane.craneName || '';
+        formData.value.manufacturer2 = crane.manufacturer || '';
+        formData.value.model2 = crane.model || '';
+      } else {
+        formData.value.craneName = crane.craneName || '';
+        formData.value.manufacturer = crane.manufacturer || '';
+        formData.value.model = crane.model || '';
+      }
+    }
+  }
+};
+
+// 初始化时加载列表
+loadDeviceList();
+loadCraneList();
 
 const handleTabChange = (tabName) => {
   // 处理标签页切换逻辑
@@ -3150,12 +3328,11 @@ const handleTabChange = (tabName) => {
 const formData = ref({
   // 起重机1参数
   craneName: "",
-  equipmentName: "xxxxxx设备",
-  manufacturer: "三一重工",
+  equipmentName: "",
+  manufacturer: "",
   equipmentNumber: "",
-  model: "SCC13000TM",
+  model: "",
   equipmentType: "",
-  equipmentType: "H000000",
   ratedLoad: 12,
   mainBoomLength: 12,
   auxBoomLength: 12,
@@ -3210,9 +3387,9 @@ const formData = ref({
 const liftingFormDatas = ref([
   {
     id: 1,
-    equipmentName: "xxxx设备",
-    equipmentNumber: "H-00000",
-    equipmentModel: "SCC13000TM",
+    equipmentName: "",
+    equipmentNumber: "",
+    equipmentModel: "",
     equipmentWeight: 15,
     isUnbalanced: false,
     hasRope: false,
@@ -3238,7 +3415,7 @@ const liftingFormDatas = ref([
     enableL3: false, // Added new field
     enableL4: false, // Added new field
     enableLa: false, // 添加enableLa字段
-    ropeLength: 12,
+    ropeLength: 1,
     height: 12,
     angle: 45,
     liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
@@ -3247,7 +3424,7 @@ const liftingFormDatas = ref([
     isSinglePointLifting: false, // 添加是否单点吊装字段
     isBottomSling: false, // 标识是否为下部吊索具，false为上部，true为下部
     liftingSystemItems: [
-      { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+      { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
       { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
       { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
       { id: 4, order: 4, name: "", value: null, checked: false },
@@ -3387,7 +3564,7 @@ const confirmAddSling = () => {
     newSlingData.liftingSystemItems = JSON.parse(
       JSON.stringify(
         newSlingData.liftingSystemItems || [
-          { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+          { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
           { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
           { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
           { id: 4, order: 4, name: "", value: null, checked: false },
@@ -3438,7 +3615,7 @@ const removeSling = (index) => {
 };
 
 const weightItems = ref([
-  { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
   { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
   { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
   { id: 4, order: 4, name: "", value: null, checked: false },
@@ -3446,7 +3623,7 @@ const weightItems = ref([
 
 // 吊索具系统设备表单数据
 const liftingSystemItems = ref([
-  { id: 1, order: 1, name: "动载系数", value: 0.8, checked: false },
+  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
   { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
   { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
   { id: 4, order: 4, name: "", value: null, checked: false },
@@ -3759,8 +3936,8 @@ const showCalculationResult = () => {
 
     singleCraneDialogVisible.value = true;
   } else {
-    // 双机吊装计算，使用用户输入的G0值或默认值65
-    const G0 = 65;
+    // 双机吊装计算，使用formData中的G0值，如果不存在则使用默认值65
+    const G0 = formData.value.G0 !== undefined ? formData.value.G0 : 65;
     const calculationResult1 =
       (((G0 +
         hookWeightG1 +
@@ -4082,23 +4259,102 @@ const selectModel = (model) => {
 };
 
 // 确认选择
-const confirmLiftingEquipmentSelection = () => {
+const confirmLiftingEquipmentSelection = async () => {
   if (!selectedModel.value) {
     ElMessage.warning("请选择完整的吊索具配置");
     return;
   }
 
-  // 将选中的型号名称填充到吊索具名称输入框
-  activeSlingData.value.deviceName = selectedModel.value.modelName || selectedModel.value.liftingName;
+  try {
+    // 调用getLiftingDetail接口获取详细数据
+    const response = await getLiftingDetail(selectedModel.value.id);
+    if (response.code === '0' && response.data) {
+      const liftingDetail = response.data;
+      
+      // 将选中的第二级菜单名称填充到吊索具名称输入框
+      activeSlingData.value.deviceName =
+        selectedProduct.value.liftingName  || selectedProduct.value.modelName;
+      // 将接口返回的数据回显到吊索具配置输入框
+      if (liftingDetail) {
+        // 回显设备相关信息，使用第二级菜单的prodBusiness作为生产厂家
+        activeSlingData.value.manufacturer = (selectedProduct.value && selectedProduct.value.prodBusiness) || liftingDetail.manufacturer || (selectedProduct.value ? selectedProduct.value.manufacturer : "");
+        // 使用接口返回的deviceModel作为产品型号
+        activeSlingData.value.productModel = liftingDetail.deviceModel || liftingDetail.productModel || (selectedProduct.value ? selectedProduct.value.productModel : "");
+        
+        // 回显其他可能的字段
+        if (liftingDetail.liftingType !== undefined) {
+          // 根据分类ID映射到slingType值
+          // 0: 钢丝绳, 1: 吊带, 2: 卸扣, 3: 缆绳
+          const typeMap = {
+            0: "0", // 钢丝绳
+            1: "1", // 吊带
+            2: "2", // 卸扣
+            3: "3", // 缆绳
+          };
+          activeSlingData.value.slingType = typeMap[liftingDetail.liftingType] || "0";
+        } else if (selectedCategory.value) {
+          // 如果接口没有返回类型，使用已选择的分类
+          const typeMap = {
+            0: "0", // 钢丝绳
+            1: "1", // 吊带
+            2: "2", // 卸扣
+            3: "3", // 缆绳
+          };
+          activeSlingData.value.slingType = typeMap[selectedCategory.value.liftingType] || "0";
+        }
+        
+        // 回显其他可能的吊索具配置字段
+        activeSlingData.value.loadCapacity = liftingDetail.loadCapacity || activeSlingData.value.loadCapacity;
+        // 使用接口返回的miniLength作为绳索长度
+        activeSlingData.value.ropeLength = liftingDetail.miniLength !== undefined ? liftingDetail.miniLength : (liftingDetail.length || activeSlingData.value.length);
+        activeSlingData.value.diameter = liftingDetail.diameter || activeSlingData.value.diameter;
+        activeSlingData.value.material = liftingDetail.material || activeSlingData.value.material;
+        
+        // 处理额定载荷(pq)相关逻辑
+        if (liftingDetail.pq !== undefined && liftingDetail.pq !== null) {
+          // 选中额定载荷选项
+          activeSlingData.value.loadType = 'rope';
+     
+          // 设置额定载荷值
+          activeSlingData.value.ratedLoad = liftingDetail.pq;
+        }
+        // 处理破断拉力(smalPull)相关逻辑
+        if (liftingDetail.smalPull !== undefined && liftingDetail.smalPull !== null) {
+          // 选中破断拉力选项
+         activeSlingData.value.loadType = 'magnetic';
+          // 设置出厂安全系数值
+          activeSlingData.value.safetyFactor = liftingDetail.smalPull;
+        }
+      }
 
-  // 如果有其他需要填充的字段，可以在这里添加
-  // 例如：生产厂家、产品型号等
-  if (selectedProduct.value) {
-    activeSlingData.value.manufacturer = selectedProduct.value.manufacturer || "";
-    activeSlingData.value.productModel = selectedProduct.value.productModel || "";
+      ElMessage.success("吊索具配置选择成功并加载详情");
+    }
+  } catch (error) {
+    console.error("获取吊索具详情失败:", error);
+    ElMessage.error("获取吊索具详情失败，请重试");
+    
+    // 如果接口调用失败，仍然使用第三级菜单名称填充基本信息
+    activeSlingData.value.deviceName =
+      selectedProduct.value.liftingName  || selectedProduct.value.modelName;
+    if (selectedProduct.value) {
+      // 使用第二级菜单的prodBusiness作为生产厂家
+      activeSlingData.value.manufacturer =
+        (selectedProduct.value && selectedProduct.value.prodBusiness) || selectedProduct.value.manufacturer || "";
+      activeSlingData.value.productModel =
+        selectedProduct.value.productModel || "";
+    }
+
+    if (selectedCategory.value) {
+      const typeMap = {
+        0: "0", // 钢丝绳
+        1: "1", // 吊带
+        2: "2", // 卸扣
+        3: "3", // 缆绳
+      };
+      activeSlingData.value.slingType =
+        typeMap[selectedCategory.value.liftingType] || "0";
+    }
   }
-
-  ElMessage.success("吊索具配置选择成功");
   closeLiftingEquipmentDialog();
 };
 
@@ -4240,7 +4496,7 @@ const closeLiftingEquipmentDialog = () => {
   display: flex;
   align-items: center;
   margin-bottom: 16px;
-  gap: 20px;
+  gap: 10px;
 }
 
 .form-row .form-label {

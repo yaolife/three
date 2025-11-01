@@ -4,7 +4,6 @@ import { createRouter, createWebHistory } from "vue-router"
 const Login = () => import("../views/Login.vue")
 const AllProjects = () => import("../views/AllProjects.vue")
 const VirtualSimulation = () => import("../views/VirtualSimulation.vue")
-const CheckCalculation = () => import("../views/CheckCalculation.vue")
 const ConstructionPlans = () => import("../views/ConstructionPlans.vue")
 const RecycleBin = () => import("../views/RecycleBin.vue")
 const CalculationDetail = () => import("../views/CalculationDetail.vue")
@@ -39,14 +38,6 @@ const routes = [
     component: VirtualSimulation,
     meta: {
       title: "虚拟仿真项目",
-    },
-  },
-  {
-    path: "/check-calculation",
-    name: "CheckCalculation",
-    component: CheckCalculation,
-    meta: {
-      title: "校核计算",
     },
   },
   {

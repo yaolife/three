@@ -166,7 +166,7 @@ export async function deleteCraneItem(id) {
   }
 }
 /**
- * 查询起重机详情
+ * 查询起重机详情(新建的起重机详情)
  * @param {string|number} id - 起重机ID
  * @returns {Promise} - 返回操作结果
  */
@@ -273,7 +273,7 @@ export function getDeviceList(params) {
 }
 /**
  * 通过设备列表返回的id查询设备详情
- * @param {string|number}  
+ * @param {string|number}  id
  * @returns {Promise} - 返回操作结果
  */
 export async function getDeviceDetail(id) {
@@ -282,6 +282,73 @@ export async function getDeviceDetail(id) {
     return await get(url)
   } catch (error) {
     console.error("获取设备详情请求失败:", error)
+    throw error
+  }
+}
+/**
+ * 获取起重机名称的接口
+ * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getCraneList(params) {
+  return post("/template/crane/page", params)
+}
+
+/**
+ * 通过起重列表选择后返回的id查询起重机详情
+ * @param {string|number}  id
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getCraneDataDetail(id) {
+  try {
+    const url = `/template/craneDetail/detailByCraneInfoId/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取起重机详情请求失败:", error)
+    throw error
+  }
+}
+/**
+ * 全部项目分页接口
+ * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getAllProject(params) {
+  return post("/projectInfo/page", params)
+}
+/**
+ * 新增/修改项目（有id修改，没有新增）
+ * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @returns {Promise} - 返回分页数据
+ */
+export function handleEditProject(params) {
+  return post("/projectInfo/addUpdate", params)
+}
+/**
+ * 通过项目id查询项目详情
+ * @param {string|number}  id
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getProjectDetail(id) {
+  try {
+    const url = `/projectInfo/detailById/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取项目详情请求失败:", error)
+    throw error
+  }
+}
+/**
+ * 项目列表/删除数据
+ * @param {string|number} id - 相目ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function deleteProjectItem(id) {
+  try {
+    const url = `/projectInfo/deleteById/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("删除项目数据API请求失败:", error)
     throw error
   }
 }
@@ -306,5 +373,11 @@ export default {
   getLiftingMenuThree,
   getLiftingDetail,
   getDeviceList,
-  getDeviceDetail
+  getDeviceDetail,
+  getCraneList,
+  getCraneDataDetail,
+  getAllProject,
+  handleEditProject,
+  getProjectDetail,
+  deleteProjectItem
 }

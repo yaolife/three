@@ -50,13 +50,9 @@
           <el-icon><VideoPlay /></el-icon>
           <span>虚拟仿真项目</span>
         </el-menu-item>
-        <el-menu-item index="/check-calculation">
-              <el-icon><Document /></el-icon>
-          <span>校核计算项目</span>
-        </el-menu-item>
         <el-menu-item index="/construction-plans">
           <el-icon><Document /></el-icon>
-          <span>施工平立面图项目</span>
+          <span>总平规划项目</span>
         </el-menu-item>
         <!-- Added Data Management menu item -->
         <el-menu-item index="/data-management">
@@ -75,30 +71,49 @@
       <!-- 顶部导航栏 -->
       <el-header v-if="!shouldHideHeader" class="header-container">
         <div class="header-left">
-          <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span>
-        </div>
-        <div class="header-right">
-          <el-button type="primary" size="small" @click="createProject">
-            <el-icon><Plus /></el-icon>
+          <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
+        <el-button type="primary" size="large" @click="createProject">
+            <el-icon style="font-size: 10px; margin-right: 5px;background-color: white;color: #06F;padding: 2px;"><Plus /></el-icon>
             创建项目
           </el-button>
           <div class="search-box">
-            <el-input placeholder="搜索" prefix-icon="Search" size="small" />
-            <el-button type="default" size="small" style="margin-left: 8px">
+            <el-input placeholder="搜索" prefix-icon="Search" size="large" />
+            <el-button type="default" size="large" style="margin-left: 8px">
               搜索
             </el-button>
           </div>
+        </div>
+        <div class="header-right">
+     
           <el-button v-if="userStore.userState.isLoggedIn" type="default" size="small" @click="handleLogout" style="margin-left: 12px">
             退出登录
           </el-button>
-          <el-button type="default" size="small" style="margin-left: 12px">
-            云数据同步
+          <el-button type="default" size="large" style="margin-left: 12px">
+             <img
+                 style="width: 22px; height: 22px;margin-right: 5px;"
+                src="@/images/synchronize.png"
+                alt="数据同步"
+                :fit="'cover'"
+              />
+            <span>云端数据同步</span>
+          </el-button>   
+          <el-button type="default" size="large" style="margin-left: 12px">
+              <img
+                 style="width: 22px; height: 22px;margin-right: 5px;"
+                src="@/images/refresh.png"
+                alt="更新"
+                :fit="'cover'"
+              />
+              <span>更新</span>
           </el-button>
-          <el-button type="default" size="small" style="margin-left: 12px">
-            更新
-          </el-button>
-          <el-button type="default" size="small" style="margin-left: 12px">
-            帮助
+              <el-button type="default" size="large" style="margin-left: 12px">
+                  <img
+                 style="width: 22px; height: 22px;margin-right: 5px;"
+                src="@/images/copy.png"
+                alt="复制"
+                :fit="'cover'"
+              />
+             <span>复制</span>
           </el-button>
         </div>
       </el-header>

@@ -3,18 +3,18 @@
     <el-card class="page-card">
       <template #header>
         <div class="card-header">
-          <span>施工平立面图</span>
+          <span>总平规划</span>
         </div>
       </template>
       <div class="page-content">
-        <el-empty description="暂无施工平立面图项目数据" />
+        <el-empty description="暂无总平规划项目数据" />
       </div>
     </el-card>
   </div>
 </template>
 
 <script setup>
-// 施工平立面图页面组件
+// 总平规划页面组件
 </script>
 
 <style scoped>

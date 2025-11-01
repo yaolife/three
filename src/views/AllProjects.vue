@@ -4,7 +4,7 @@
       <!-- 项目列表表格 -->
       <el-table :data="projectData" style="width: 100%">
         <el-table-column prop="id" align="center" label="序号" width="70" />
-        <el-table-column prop="title" align="center" label="方案标题" min-width="130" />
+        <el-table-column prop="title" align="center" label="项目标题" min-width="130" />
         <el-table-column prop="fileType" align="center" label="文件类型" width="100" />
         <el-table-column prop="type" align="center" label="类型" width="100" />
         <el-table-column prop="relatedProject" align="center" label="所属项目" width="170" />
@@ -206,7 +206,7 @@ const handleCurrentChange = (current) => {
 
 <style scoped>
 .all-projects-container {
-  padding: 20px 0;
+  padding: 5px 0;
 }
 
 .project-table-card {
