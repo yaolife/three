@@ -155,9 +155,32 @@ const shouldHideHeader = computed(() => {
 
 const activeMenu = computed(() => route.path || "/all-projects");
 
+// 创建项目全局状态，用于在组件间传递
+window.createProjectFlag = false;
+
 const createProject = () => {
-  // 创建项目的逻辑将在这里实现
-  console.log("创建新项目");
+  console.log('Create project button clicked');
+  // 设置创建项目标志，确保全局可访问
+  window.createProjectFlag = true;
+  
+  // 检查当前是否已经在全部项目页面
+  if (route.path === '/all-projects') {
+    // 直接使用全局方法打开弹窗，更可靠
+    if (window.openProjectDialogDirect) {
+      console.log('Using direct method to open project dialog');
+      window.openProjectDialogDirect();
+    } else {
+      // 备用方案：使用setTimeout确保事件正确派发
+      console.log('Falling back to event dispatch method');
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('openProjectDialog'));
+      }, 100);
+    }
+  } else {
+    // 导航到全部项目页面，路由变化会触发AllProjects组件的onMounted或watch
+    console.log('Navigating to all-projects page');
+    router.push('/all-projects');
+  }
 };
 
 const handleLoginClick = () => {

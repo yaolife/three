@@ -1,10 +1,6 @@
 <template>
   <div class="all-projects-container">
     <el-card class="project-table-card">
-      <!-- 创建项目按钮 -->
-      <div class="create-project-btn-container">
-        <el-button type="primary" @click="showCreateDialog = true">创建项目</el-button>
-      </div>
       
       <!-- 项目列表表格 -->
       <el-table :data="projectData" style="width: 100%">
@@ -25,8 +21,8 @@
           </template>
         </el-table-column>
         <el-table-column prop="belongingProject" align="center" label="所属项目" width="170" />
-            <el-table-column prop="belongingDept" align="center" label="创建部门" width="170" />
-                <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
+        <el-table-column prop="belongingDept" align="center" label="创建部门" width="170" />
+        <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
         <el-table-column align="center" label="操作" width="160" fixed="right">
           <template #default="scope">
             <el-button
@@ -117,13 +113,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAllProject, handleEditProject, deleteProjectItem } from '../api/index.js'
 
-// 初始化 router
+// 初始化 router 和 route
 const router = useRouter()
+const route = useRoute()
 
 // 项目数据
 const projectData = ref([])
@@ -137,24 +134,64 @@ const total = ref(0)
 const showCreateDialog = ref(false)
 const formRef = ref(null)
 const formData = ref({
-    id: null,
-    title: '',
-    projectType: 0,
-    fileType: 0,
-    belongingProject: '',
-    belongingDept: ''
-  })
-  
-  // 表单验证规则
-  const formRules = ref({
-    title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
-    belongingDept: [{ required: true, message: '请输入创建部门', trigger: 'blur' }]
-  })
+  id: null,
+  title: '',
+  projectType: 0,
+  fileType: 0,
+  belongingProject: '',
+  belongingDept: ''
+})
+
+const formRules = ref({
+  title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
+  belongingDept: [{ required: true, message: '请输入创建部门', trigger: 'blur' }]
+})
 
 // 初始化加载数据
 onMounted(() => {
   loadProjectData()
+  
+  // 检查是否需要打开创建项目弹窗（从App.vue触发）
+  checkCreateFlag()
+  
+  // 监听自定义事件，当用户已在全部项目页面时打开创建弹窗
+console.log('Adding openProjectDialog event listener');
+window.addEventListener('openProjectDialog', checkCreateFlag)
+
+// 添加全局方法，方便直接从App.vue调用
+window.openProjectDialogDirect = () => {
+  console.log('Direct open project dialog called');
+  // 确保在DOM更新后执行
+  nextTick(() => {
+    openCreateDialog();
+  });
+}
 })
+
+// 组件卸载时清理事件监听器
+onUnmounted(() => {
+  console.log('Removing openProjectDialog event listener');
+  window.removeEventListener('openProjectDialog', checkCreateFlag)
+  // 移除全局方法
+  delete window.openProjectDialogDirect;
+})
+
+// 监听路由变化，确保在页面内也能检测到创建标志
+watch(() => route.fullPath, () => {
+  checkCreateFlag()
+})
+
+// 检查并处理创建项目标志的函数
+const checkCreateFlag = () => {
+  console.log('checkCreateFlag called, createProjectFlag:', window.createProjectFlag);
+  if (window.createProjectFlag) {
+    // 重置标志
+    window.createProjectFlag = false
+    // 打开创建项目弹窗
+    console.log('Opening create project dialog');
+    openCreateDialog()
+  }
+}
 
 // 加载项目数据
 const loadProjectData = async () => {
@@ -180,7 +217,7 @@ const loadProjectData = async () => {
 const getFileTypeText = (type) => {
   const typeMap = {
     0: '本地',
-    1: '云端',
+    1: '云端'
   }
   return typeMap[type] || type
 }
@@ -247,39 +284,39 @@ const handleDelete = async (row) => {
 }
 
 // 提交表单
-  const submitForm = async () => {
-    try {
-      // 验证表单
-      await formRef.value.validate()
-      
-      // 准备提交数据
-      const submitData = {
-        id: formData.value.id,
-        title: formData.value.title,
-        projectType: formData.value.projectType,
-        fileType: formData.value.fileType,
-        belongingProject: formData.value.belongingProject,
-        belongingDept: formData.value.belongingDept
-      }
-      
-      const response = await handleEditProject(submitData)
-      
-      if (response.code === '0') {
-        ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
-        showCreateDialog.value = false
-        // 重置表单
-        resetForm()
-        // 重新加载数据
-        loadProjectData()
-      } else {
-        ElMessage.error(response.msg || '操作失败')
-      }
-    } catch (error) {
-      if (error !== 'cancel') {
-        console.error('提交表单失败:', error)
-      }
+const submitForm = async () => {
+  try {
+    // 验证表单
+    await formRef.value.validate()
+    
+    // 准备提交数据
+    const submitData = {
+      id: formData.value.id,
+      title: formData.value.title,
+      projectType: formData.value.projectType,
+      fileType: formData.value.fileType,
+      belongingProject: formData.value.belongingProject,
+      belongingDept: formData.value.belongingDept
+    }
+    
+    const response = await handleEditProject(submitData)
+    
+    if (response.code === '0') {
+      ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
+      showCreateDialog.value = false
+      // 重置表单
+      resetForm()
+      // 重新加载数据
+      loadProjectData()
+    } else {
+      ElMessage.error(response.msg || '操作失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('提交表单失败:', error)
     }
   }
+}
 
 // 重置表单
 const resetForm = () => {
@@ -296,6 +333,14 @@ const resetForm = () => {
   }
 }
 
+// 打开创建项目弹窗的方法，供父组件调用
+const openCreateDialog = () => {
+  // 重置表单
+  resetForm()
+  // 打开弹窗
+  showCreateDialog.value = true
+}
+
 // 分页事件处理
 const handleSizeChange = (size) => {
   pageSize.value = size
@@ -307,6 +352,11 @@ const handleCurrentChange = (current) => {
   currentPage.value = current
   loadProjectData()
 }
+
+// 暴露方法给父组件
+defineExpose({
+  openCreateDialog
+})
 </script>
 
 <style scoped>
@@ -337,50 +387,50 @@ const handleCurrentChange = (current) => {
 }
 
 /* 项目类型选择样式 */
-  .project-type-container {
-    display: flex;
-    gap: 40px;
-  }
+.project-type-container {
+  display: flex;
+  gap: 40px;
+}
 
-  .project-type-item {
-    cursor: pointer;
-    text-align: center;
-    width: 120px;
-  }
+.project-type-item {
+  cursor: pointer;
+  text-align: center;
+  width: 120px;
+}
 
-  .project-type-icon {
-    width: 100px;
-    height: 100px;
-    background-color: #e6f7ff;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 10px;
-    color: #1890ff;
-    font-size: 14px;
-    border-radius: 11px;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-  }
+.project-type-icon {
+  width: 100px;
+  height: 100px;
+  background-color: #e6f7ff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  color: #1890ff;
+  font-size: 14px;
+  border-radius: 11px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
 
-  .project-type-icon.active {
-    background-color: #1890ff;
-    color: white;
-    border-color: #1890ff;
-  }
+.project-type-icon.active {
+  background-color: #1890ff;
+  color: white;
+  border-color: #1890ff;
+}
 
-  .project-type-item:hover .project-type-icon {
-    border-color: #1890ff;
-  }
+.project-type-item:hover .project-type-icon {
+  border-color: #1890ff;
+}
 
-  .project-type-label {
-    font-size: 12px;
-    color: #333;
-  }
+.project-type-label {
+  font-size: 12px;
+  color: #333;
+}
 
-  .project-type-item.active .project-type-label {
-    color: #1890ff;
-    font-weight: 500;
-  }
+.project-type-item.active .project-type-label {
+  color: #1890ff;
+  font-weight: 500;
+}
 </style>
