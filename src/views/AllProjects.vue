@@ -175,9 +175,8 @@ const loadProjectData = async () => {
 // 获取文件类型文本
 const getFileTypeText = (type) => {
   const typeMap = {
-    0: '校核计算',
-    1: '三维仿真',
-    2: '总平规划'
+    0: '本地',
+    1: '云端',
   }
   return typeMap[type] || type
 }
