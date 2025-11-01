@@ -71,18 +71,21 @@
             <div class="project-type-item" :class="{ 'active': formData.projectType === 0 }" @click="formData.projectType = 0; formData.fileType = 0">
               <div class="project-type-icon" :class="{ 'active': formData.projectType === 0 }">
                 <span>校核计算</span>
+                <img src="@/images/verification.png" alt="校核计算" style="width: 30px;height: 30px;">
               </div>
               <div class="project-type-label">新建校核计算</div>
             </div>
             <div class="project-type-item" :class="{ 'active': formData.projectType === 1 }" @click="formData.projectType = 1; formData.fileType = 1">
               <div class="project-type-icon" :class="{ 'active': formData.projectType === 1 }">
                 <span>三维仿真</span>
+                 <img src="@/images/three_dimensional.png" alt="三维仿真" style="width: 30px;height: 30px;">
               </div>
               <div class="project-type-label">新建三维仿真</div>
             </div>
             <div class="project-type-item" :class="{ 'active': formData.projectType === 2 }" @click="formData.projectType = 2; formData.fileType = 2">
               <div class="project-type-icon" :class="{ 'active': formData.projectType === 2 }">
                 <span>总平规划</span>
+                 <img src="@/images/site_plan.png" alt="总平规划" style="width: 30px;height: 30px;">
               </div>
               <div class="project-type-label">总平规划</div>
             </div>
@@ -401,7 +404,7 @@ defineExpose({
 .project-type-icon {
   width: 100px;
   height: 100px;
-  background-color: #e6f7ff;
+  background-color: #B8D4EF;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -423,7 +426,14 @@ defineExpose({
 .project-type-item:hover .project-type-icon {
   border-color: #1890ff;
 }
-
+.project-type-item .project-type-icon {
+  position: relative;
+}
+.project-type-item .project-type-icon img{
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
 .project-type-label {
   font-size: 12px;
   color: #333;
