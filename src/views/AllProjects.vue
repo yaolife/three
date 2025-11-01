@@ -8,7 +8,11 @@
       
       <!-- 项目列表表格 -->
       <el-table :data="projectData" style="width: 100%">
-        <el-table-column prop="id" align="center" label="序号" width="70" />
+        <el-table-column type="index" align="center" label="序号" width="70">
+          <template #default="{ $index }">
+            {{ $index + 1 }}
+          </template>
+        </el-table-column>
         <el-table-column prop="title" align="center" label="项目标题" max-width="130" />
         <el-table-column prop="fileType" align="center" label="文件类型" width="120">
           <template #default="scope">
