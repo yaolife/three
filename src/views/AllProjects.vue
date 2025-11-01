@@ -34,7 +34,7 @@
               @click="handleEdit(scope.row)"
               style="margin-left: 8px"
             >
-              打开
+              编辑
             </el-button>
             <el-button
               type="danger"
@@ -76,88 +76,7 @@ import { ElMessage } from 'element-plus'
 const router = useRouter()
 
 // 模拟项目数据
-const projectData = ref([
-  {
-    id: 1,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 2,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 3,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 4,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '云端',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'cloud'
-  },
-  {
-    id: 5,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '平立面图',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 6,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '云端',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'cloud'
-  },
-  {
-    id: 7,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '三维仿真',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 8,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '云端',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'cloud'
-  }
-])
+const projectData = ref([])
 
 // 分页数据
 const currentPage = ref(1)
