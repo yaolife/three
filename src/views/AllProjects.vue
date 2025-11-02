@@ -87,7 +87,7 @@
                 <span>总平规划</span>
                  <img src="@/images/site_plan.png" alt="总平规划" style="width: 30px;height: 30px;">
               </div>
-              <div class="project-type-label">总平规划</div>
+              <div class="project-type-label">新建总平规划</div>
             </div>
           </div>
         </el-form-item>
