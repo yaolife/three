@@ -3158,7 +3158,7 @@
   <el-dialog
     v-model="intelligentSelectionDialogVisible"
     title="起重机智能选型"
-    width="700px"
+    width="800px"
     :before-close="() => { intelligentSelectionDialogVisible = false; }"
   >
     <div class="intelligent-selection-content">
@@ -3166,22 +3166,35 @@
         <div class="selection-info">
         <el-form label-width="120px">
           <el-form-item label="设备名称">
-            <el-select
-              v-model="selectedDeviceId"
-              placeholder="请选择设备名称"
-              filterable
-              clearable
-              :loading="deviceLoading"
-              @change="(val) => handleDeviceChange(val, false)"
-              style="width: 100%;"
-            >
-              <el-option
-                v-for="device in deviceList"
-                :key="device.id"
-                :label="device.deviceName"
-                :value="device.id"
-              />
-            </el-select>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <el-select
+                v-model="selectedDeviceId"
+                placeholder="请选择设备名称"
+                filterable
+                clearable
+                :loading="deviceLoading"
+                @change="(val) => handleDeviceChange(val, false)"
+              >
+                <el-option
+                  v-for="device in deviceList"
+                  :key="device.id"
+                  :label="device.deviceName"
+                  :value="device.id"
+                />
+              </el-select>
+              <div style="display: flex; align-items: center; width: 300px;">
+                <label style="min-width: 80px; text-align: right; margin-right: 12px;">设备重量</label>
+                <el-input-number
+                  v-model="formData.equipmentWeight"
+                  :min="0"
+                  :precision="2"
+                  controls-position="right"
+                  placeholder="请输入设备重量"
+                  style="flex: 1;"
+                />
+                <span style="margin-left: 10px;">t</span>
+              </div>
+            </div>
           </el-form-item>
           
           <el-form-item label="设备型号">
@@ -3197,23 +3210,11 @@
               placeholder="请输入设备生产厂家"
             />
           </el-form-item>
-          
-          <el-form-item label="设备重量">
-            <div style="display: flex; align-items: center;">
-              <el-input-number
-                v-model="formData.equipmentWeight"
-                :min="0"
-                :precision="2"
-                    controls-position="right"
-                placeholder="请输入设备重量"
-                style="flex: 1;"
-              />
-              <span style="margin-left: 10px;">t</span>
-            </div>
-          </el-form-item>
         </el-form>
         </div>
-        <div class="selection-params_button" @click="executeIntelligentSelection" :loading="intelligentSelectionLoading" >智能选型</div>
+        <div class="selection-params_button" @click="executeIntelligentSelection" :loading="intelligentSelectionLoading" >
+          <div>智能选型</div>
+        </div>
       </div>
       
       <div class="selection-results" v-if="selectionResults.length > 0">
@@ -5370,25 +5371,33 @@ font-weight: 500;
 }
 .selection-params{
   display: flex;
+  align-items: end;
 }
 .selection-params .selection-info{
-  width: 70%;
+  width: 60%;
   box-sizing: border-box;
   padding-right: 10%;
 }
 .selection-params .selection-params_button{
-  display: flex;
-width: 110px;
-height: 56px;
+
+display: flex;
+flex: 1;
 padding: 10px 16px;
-justify-content: center;
+justify-content: end;
 align-items: center;
 gap: 10px;
 flex-shrink: 0;
-
-  border-radius: 9px;
+}
+.selection-params .selection-params_button>div{
+    border-radius: 9px;
+    background: #EDF6FF;
 border: 1px solid #9DD0FF;
-background: #EDF6FF;
+    display: flex;
+    align-items: center;
+  justify-content: center;
+width: 110px;
+height: 56px;
+color: #0775DB;
 }
 .selection-params .selection-params_button:hover{
   cursor: pointer;
