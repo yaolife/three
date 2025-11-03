@@ -3163,18 +3163,57 @@
   >
     <div class="intelligent-selection-content">
       <div class="selection-params">
-        <el-form label-width="80px">
-          <el-form-item label="设备重量">
-            <el-input-number
-              v-model="formData.equipmentWeight"
-              :min="0"
-              :precision="2"
-              placeholder="请输入设备重量"
+        <div class="selection-info">
+        <el-form label-width="120px">
+          <el-form-item label="设备名称">
+            <el-select
+              v-model="selectedDeviceId"
+              placeholder="请选择设备名称"
+              filterable
+              clearable
+              :loading="deviceLoading"
+              @change="(val) => handleDeviceChange(val, false)"
+              style="width: 100%;"
+            >
+              <el-option
+                v-for="device in deviceList"
+                :key="device.id"
+                :label="device.deviceName"
+                :value="device.id"
+              />
+            </el-select>
+          </el-form-item>
+          
+          <el-form-item label="设备型号">
+            <el-input
+              v-model="formData.equipmentType"
+              placeholder="请输入设备型号"
             />
-            <span style="margin-left: 10px;">吨</span>
+          </el-form-item>
+          
+          <el-form-item label="设备生产厂家">
+            <el-input
+              v-model="formData.manufacturer"
+              placeholder="请输入设备生产厂家"
+            />
+          </el-form-item>
+          
+          <el-form-item label="设备重量">
+            <div style="display: flex; align-items: center;">
+              <el-input-number
+                v-model="formData.equipmentWeight"
+                :min="0"
+                :precision="2"
+                    controls-position="right"
+                placeholder="请输入设备重量"
+                style="flex: 1;"
+              />
+              <span style="margin-left: 10px;">t</span>
+            </div>
           </el-form-item>
         </el-form>
-        <el-button type="primary" @click="executeIntelligentSelection" :loading="intelligentSelectionLoading">智能选型</el-button>
+        </div>
+        <div class="selection-params_button" @click="executeIntelligentSelection" :loading="intelligentSelectionLoading" >智能选型</div>
       </div>
       
       <div class="selection-results" v-if="selectionResults.length > 0">
@@ -5328,5 +5367,30 @@ color: #000;
 font-size: 14px;
 font-weight: 500;
 
+}
+.selection-params{
+  display: flex;
+}
+.selection-params .selection-info{
+  width: 70%;
+  box-sizing: border-box;
+  padding-right: 10%;
+}
+.selection-params .selection-params_button{
+  display: flex;
+width: 110px;
+height: 56px;
+padding: 10px 16px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+flex-shrink: 0;
+
+  border-radius: 9px;
+border: 1px solid #9DD0FF;
+background: #EDF6FF;
+}
+.selection-params .selection-params_button:hover{
+  cursor: pointer;
 }
 </style>
