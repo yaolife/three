@@ -110,7 +110,7 @@
               <!-- 基本信息 -->
               <div class="section crane-parameters-section">
                 <div class="section-title">基本信息</div>
-                <div class="form-content">
+                <div class="form-content" style="margin-left: -20px;">
                   <div class="form-grid">
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
