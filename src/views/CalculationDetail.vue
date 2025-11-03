@@ -3383,9 +3383,21 @@ const openIntelligentSelection = (craneIndex) => {
 
 // 执行智能选型
 const executeIntelligentSelection = async () => {
+  // 先判断是否选择了设备名称
+  if (!selectedDeviceId.value) {
+    ElMessage.warning('请先选择设备名称');
+    return;
+  }
+  
+  // 判断设备重量是否有值且大于0
+  if (!formData.value.equipmentWeight || formData.value.equipmentWeight <= 0) {
+    ElMessage.warning('设备重量必须大于0');
+    return;
+  }
+  
   try {
     intelligentSelectionLoading.value = true;
-    const weight = formData.value.equipmentWeight || 10; // 使用设备重量，如果没有则使用默认值10
+    const weight = formData.value.equipmentWeight; // 使用设备重量，如果没有则使用默认值10
     const response = await intelligentCraneSelection({ mainHookMaxCapacity: weight });
     if (response.code === '0' && response.data) {
       selectionResults.value = response.data;
