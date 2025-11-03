@@ -114,7 +114,6 @@
                   <div class="form-grid">
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
-                       <span class="intelligent-selection-link" @click="openIntelligentSelection(0)">起重机智能选型</span>
                       <div class="form-input-group">
                         <el-select
                         v-model="selectedCraneId"
@@ -123,7 +122,6 @@
                         clearable
                         :loading="craneLoading"
                         @change="(val) => handleCraneChange(val, false)"
-                        style="width: calc(100% - 90px);"
                       >
                         <el-option
                           v-for="crane in craneList"
@@ -132,7 +130,12 @@
                           :value="crane.id"
                         />
                       </el-select>
-                    
+                     <el-button
+                    type="primary"
+                    size="default"
+                   @click="openIntelligentSelection(0)"
+                    >智能选型</el-button
+                  >
                       </div>
                        
                     </div>
@@ -313,7 +316,13 @@
                               :value="crane.id"
                             />
                           </el-select>
-                          <span class="intelligent-selection-link" @click="openIntelligentSelection(1)">起重机智能选型>></span>
+                               <el-button
+                    type="primary"
+                    size="default"
+                   @click="openIntelligentSelection(1)"
+                    >智能选型</el-button
+                  >
+                        
                       </div>
                     </div>
                     <div class="form-row">
