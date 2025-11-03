@@ -676,6 +676,11 @@ const handleRiggingNext = async () => {
     ElMessage.warning("请输入吊索具名称");
     return;
   }
+  // 添加子类型必填校验
+  if (!riggingForm.value.subType) {
+    ElMessage.warning("请选择子类型");
+    return;
+  }
   if (!riggingForm.value.prodBusiness) {
     ElMessage.warning("请输入生产厂家");
     return;
