@@ -3417,7 +3417,8 @@ const executeIntelligentSelection = async () => {
 // 选择起重机结果
 const selectCraneResult = async (result) => {
   // 查找对应的起重机ID
-  const crane = craneList.value.find(c => c.machineName === result.craneName);
+  const crane = craneList.value.find(c => c.id === result.craneInfoId);
+  
   if (crane) {
     // 根据当前起重机索引设置选中的起重机
     if (currentCraneIndex.value === 0) {
