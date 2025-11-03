@@ -5414,4 +5414,8 @@ color: #0775DB;
 .selection-params .selection-params_button:hover{
   cursor: pointer;
 }
+.no-results{
+  display: flex;
+  justify-content: center;
+}
 </style>
