@@ -3185,23 +3185,31 @@
           class="selection-result-item"
           @click="selectCraneResult(result)"
         >
-          <div class="crane-title">{{ result.craneName }}</div>
-          <div class="crane-info">
-            <span>最大臂长度: {{ result.maxCraneLength || '--' }}m</span>
-            <span>主臂长度: {{ result.mainBoomLength || '--' }}m</span>
+          <div class="crane-title">
+            <div>{{ result.machineName }}</div>
+             <div class="crane-title_info"><span>厂家:{{ result.prodBusiness }}</span><span>型号:{{ result.model }}</span></div>
+          </div>
+          <div class="crane-content">
+            <div class="crane-info">
+            <label>主臂最大长度</label>
+            <span>{{ result.mainBoomMaxLength || '--' }}m</span>
+          </div>
+         <div class="crane-info">
+            <label>副臂最大长度</label>
+            <span>{{ result.jibMaxLength || '--' }}m</span>
           </div>
           <div class="crane-info">
-            <span>主臂角度: {{ result.mainBoomAngle || '--' }}°</span>
-            <span>工作半径: {{ result.workRadius || '--' }}m</span>
+            <label>最大承载重量</label>
+            <span>{{ result.mainHookMaxCapacity || '--' }}t</span>
           </div>
-          <div class="crane-info">
-            <span>最大起重量: {{ result.maxLiftingCapacity || '--' }}t</span>
-            <span>力矩: {{ result.maxLiftingMoment || '--' }}kN·m</span>
+          <div class="crane-info" style="border: none">
+            <label>车体配重重量</label>
+            <span>{{ result.counterweight || '--' }}t</span>
           </div>
-          <div class="crane-info">
-            <span>厂家: {{ result.manufacturer || '--' }}</span>
-            <span>型号: {{ result.model || '--' }}</span>
+            <div class="crane-info" style="border: none">
+             <el-button type="primary">选择</el-button>
           </div>
+          </div>  
         </div>
       </div>
       
@@ -5268,11 +5276,13 @@ const closeLiftingEquipmentDialog = () => {
 /* 智能选型弹窗样式 */
 .selection-result-item {
   padding: 12px;
-  border: 1px solid #e8e8e8;
   margin-bottom: 10px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s;
+border: 1px solid #DEDEDE;
+background: #FFF;
+box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.07);
 }
 
 .selection-result-item:hover {
@@ -5284,13 +5294,39 @@ const closeLiftingEquipmentDialog = () => {
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
 }
-
+.selection-result-item .crane-title .crane-title_info span{
+  margin-left: 40px;
+    font-weight: 400;
+}
 .selection-result-item .crane-info {
   font-size: 14px;
   color: #666;
   margin-bottom: 4px;
   display: flex;
   justify-content: space-between;
+}
+.selection-result-item .crane-content{
+ display: flex;
+ justify-content: space-between;
+}
+.selection-result-item .crane-content .crane-info{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  border-right: 1px solid #D7D7D7;
+}
+.selection-result-item .crane-content .crane-info label{
+margin-bottom: 10px;
+}
+.selection-result-item .crane-content .crane-info span{
+color: #000;
+font-size: 14px;
+font-weight: 500;
+
 }
 </style>
