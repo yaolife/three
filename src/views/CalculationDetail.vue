@@ -325,7 +325,7 @@
                               :value="crane.id"
                             />
                           </el-select>
-                               <el-button
+                      <el-button
                     type="primary"
                     size="default"
                    @click="openIntelligentSelection(1)"
@@ -336,7 +336,23 @@
                     </div>
                     <div class="form-row">
                       <label class="form-label">设备名称</label>
-                      <el-input v-model="formData.equipmentName2" placeholder="请选择设备名称" />
+                      <div class="form-input-group">
+                        <el-select
+                          v-model="selectedDeviceId2"
+                          placeholder="请选择设备名称"
+                          filterable
+                          clearable
+                          :loading="deviceLoading"
+                          @change="(val) => handleDeviceChange(val, false, true)"
+                        >
+                          <el-option
+                            v-for="device in deviceList"
+                            :key="device.id"
+                            :label="device.deviceName"
+                            :value="device.id"
+                          />
+                        </el-select>
+                      </div>
                     </div>
 
                     <div class="form-row">
@@ -3315,6 +3331,7 @@ const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一
 const deviceList = ref([]);
 const deviceLoading = ref(false);
 const selectedDeviceId = ref('');
+const selectedDeviceId2 = ref('');
 const selectedSlingDeviceId = ref('');
 
 // 起重机列表相关
@@ -3357,7 +3374,7 @@ const loadCraneList = async () => {
 };
 
 // 获取设备详情并回显数据
-const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
+const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = false) => {
   try {
     const response = await getDeviceDetail(deviceId);
     if (response.code === '0' && response.data) {
@@ -3371,12 +3388,21 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
         if (deviceData.weight) {
           activeSlingData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
         }
+      } else if (isCrane2) {
+        // 起重机2参数tab回显
+        formData.value.equipmentName2 = deviceData.deviceName || '';
+        formData.value.equipmentType2 = deviceData.deviceType || '';
+        formData.value.manufacturer2 = deviceData.prodBusiness || '';
+        // 将设备重量赋值给起重机2的设备重量(G)
+        if (deviceData.weight) {
+          formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
+        }
       } else {
-        // 起重机tab回显
+        // 起重机1参数tab回显
         formData.value.equipmentName = deviceData.deviceName || '';
         formData.value.equipmentType = deviceData.deviceType || '';
         formData.value.manufacturer = deviceData.prodBusiness || '';
-        // 将设备重量赋值给起重机的设备重量(G)
+        // 将设备重量赋值给起重机1的设备重量(G)
         if (deviceData.weight) {
           formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
         }
@@ -3389,9 +3415,9 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
 };
 
 // 处理设备选择变化
-const handleDeviceChange = (deviceId, isSlingTab = false) => {
+const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
   if (deviceId) {
-    getDeviceDetailAndEcho(deviceId, isSlingTab);
+    getDeviceDetailAndEcho(deviceId, isSlingTab, isCrane2);
   }
 };
 
