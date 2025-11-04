@@ -3418,6 +3418,27 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
 const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
   if (deviceId) {
     getDeviceDetailAndEcho(deviceId, isSlingTab, isCrane2);
+  } else {
+    // 当清空设备名称时，清除相应的回显信息
+    if (isSlingTab) {
+      // 清除吊索具tab回显信息
+      activeSlingData.value.equipmentName = '';
+      activeSlingData.value.equipmentModel = '';
+      activeSlingData.value.manufacturer2 = '';
+      activeSlingData.value.equipmentWeight = 0;
+    } else if (isCrane2) {
+      // 清除起重机2参数tab回显信息
+      formData.value.equipmentName2 = '';
+      formData.value.equipmentType2 = '';
+      formData.value.manufacturer2 = '';
+      formData.value.equipmentWeight = 0;
+    } else {
+      // 清除起重机1参数tab回显信息
+      formData.value.equipmentName = '';
+      formData.value.equipmentType = '';
+      formData.value.manufacturer = '';
+      formData.value.equipmentWeight = 0;
+    }
   }
 };
 
