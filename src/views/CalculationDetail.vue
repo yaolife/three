@@ -217,7 +217,7 @@
                       />
                       <span class="unit">m</span>
                     </div>
-                    <label class="form-label">作业半径<span>(r)</span></label>
+                    <label class="form-label" style="margin-left: -15px;">作业半径<span>(r)</span></label>
                     <div class="input-with-unit error">
                       <el-input-number
                         v-model="formData.workRadius"
@@ -406,7 +406,7 @@
                       />
                       <span class="unit">m</span>
                     </div>
-                    <label class="form-label">作业半径<span>(r)</span></label>
+                    <label class="form-label" style="margin-left: -15px;">作业半径<span>(r)</span></label>
                     <div class="input-with-unit error">
                       <el-input-number
                         v-model="formData.workRadius2"
@@ -3312,9 +3312,10 @@ import {
   getCraneList,
   getLiftingDetail,
   getCraneDataDetail,
-  intelligentCraneSelection
+  intelligentCraneSelection,
+  getCalculateInfo
 } from "@/api/index.js";
-import {  getBoomType } from "@/utils/common.js";
+import {  getBoomType, craneType} from "@/utils/common.js";
 
 const router = useRouter();
 const activeTab = ref("crane");
@@ -3590,6 +3591,84 @@ const formData = ref({
   isOtherWeightChecked: false,
   otherWeightG4: 0,
 });
+
+// 监听起重机1参数变化，自动调用getCalculateInfo接口
+watch(
+  () => [
+    formData.value.mainBoomLength,
+    formData.value.mainBoomAngle,
+    formData.value.auxBoomLength,
+    formData.value.auxBoomAngle,
+    formData.value.boomType
+  ],
+  async (newValues) => {
+    // 确保所有必要参数都有值
+    if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
+      try {
+        const response = await getCalculateInfo({
+          l1: formData.value.mainBoomLength,
+          theta1: formData.value.mainBoomAngle,
+          l2: formData.value.auxBoomLength,
+          theta2: formData.value.auxBoomAngle,
+          craneType: craneType,// 起重机类型
+          armType: formData.value.boomType//吊臂类型
+        });
+        
+        if (response.code === '0' && response.data) {
+          // 更新作业半径和额定载荷
+          formData.value.workRadius = response.data.workRadius;
+          // 从cranePerformanceData中获取liftingCapacity
+          if (response.data.cranePerformanceData && response.data.cranePerformanceData.liftingCapacity) {
+            formData.value.ratedLoad = response.data.cranePerformanceData.liftingCapacity;
+          }
+        }
+      } catch (error) {
+        console.error('调用getCalculateInfo接口失败:', error);
+        // 错误处理：可以选择显示提示或者忽略，不影响用户操作
+      }
+    }
+  },
+  { immediate: false, deep: true }
+);
+
+// 监听起重机2参数变化，自动调用getCalculateInfo接口
+watch(
+  () => [
+    formData.value.mainBoomLength2,
+    formData.value.mainBoomAngle2,
+    formData.value.auxBoomLength2,
+    formData.value.auxBoomAngle2,
+    formData.value.boomType2
+  ],
+  async (newValues) => {
+    // 确保所有必要参数都有值
+    if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
+      try {
+        const response = await getCalculateInfo({
+          l1: formData.value.mainBoomLength2,
+          theta1: formData.value.mainBoomAngle2,
+          l2: formData.value.auxBoomLength2,
+          theta2: formData.value.auxBoomAngle2,
+           craneType: craneType,// 起重机类型
+          armType: formData.value.boomType2//吊臂类型
+        });
+        
+        if (response.code === '0' && response.data) {
+          // 更新作业半径和额定载荷
+          formData.value.workRadius2 = response.data.workRadius;
+          // 从cranePerformanceData中获取liftingCapacity
+          if (response.data.cranePerformanceData && response.data.cranePerformanceData.liftingCapacity) {
+            formData.value.ratedLoad2 = response.data.cranePerformanceData.liftingCapacity;
+          }
+        }
+      } catch (error) {
+        console.error('调用getCalculateInfo接口失败(起重机2):', error);
+        // 错误处理：可以选择显示提示或者忽略，不影响用户操作
+      }
+    }
+  },
+  { immediate: false, deep: true }
+);
 
 // 吊索具校核计算表单数据数组，用于存储多个吊索具配置
 const liftingFormDatas = ref([
