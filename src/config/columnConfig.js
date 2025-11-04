@@ -51,6 +51,7 @@ export const WIRE_ROPE_COLUMNS = {
   109: [
     { prop: "deviceModel", label: "产品型号", minWidth: 140 },
     { prop: "deviceModelTwo", label: "产品型号(麻芯/钢芯)", minWidth: 160 },
+      { prop: "pqFour", label: "额定载荷(KN)", minWidth: 130 },
     { prop: "diameter", label: "钢丝绳直径(mm)", minWidth: 140 },
     { prop: "axBxd", label: "吊环参数AxBxd(mm)", minWidth: 160 },
     { prop: "pq", label: "额定载荷(麻芯)(kn)", minWidth: 150 },
