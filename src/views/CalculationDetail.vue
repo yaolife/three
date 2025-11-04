@@ -516,7 +516,7 @@
                     />
                     <span class="unit">m</span>
                   </div>
-                  <label class="form-label error">起重机1承担重量</label>
+                  <label class="form-label error">起重机1承载重量</label>
                   <div class="input-with-unit">
                     <el-input-number
                       v-model="formData.crane1Weight"
@@ -538,7 +538,7 @@
                     />
                     <span class="unit">m</span>
                   </div>
-                  <label class="form-label error">起重机2承担重量</label>
+                  <label class="form-label error">起重机2承载重量</label>
                   <div class="input-with-unit">
                     <el-input-number
                       v-model="formData.crane2Weight"
