@@ -181,7 +181,7 @@
                     <label class="form-label">额定载荷PQ</label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.ratedLoad2"
+                        v-model="formData.ratedLoad"
                         controls-position="right"
                         :precision="2"
                       />
@@ -336,22 +336,12 @@
                     </div>
                     <div class="form-row">
                       <label class="form-label">设备名称</label>
-                      <el-input v-model="formData.equipmentName2" disabled />
+                      <el-input v-model="formData.equipmentName2" placeholder="请选择设备名称" />
                     </div>
 
                     <div class="form-row">
                       <label class="form-label">生产厂家</label>
-                      <el-input v-model="formData.manufacturer2" />
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">设备编号</label>
-                      <el-input v-model="formData.equipmentNumber2" />
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">型号</label>
-                      <el-input v-model="formData.model2" />
+                      <el-input v-model="formData.manufacturer2" placeholder="请输入生产厂家"/>
                     </div>
 
                     <div class="form-row">
