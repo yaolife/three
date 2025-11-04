@@ -181,12 +181,21 @@
                     <label class="form-label">额定载荷PQ</label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.ratedLoad"
+                        v-model="formData.ratedLoad2"
                         controls-position="right"
                         :precision="2"
                       />
                       <span class="unit">pq</span>
                     </div>
+                    <label class="form-label">吊臂类型</label>
+                    <el-select v-model="formData.boomType" placeholder="请选择吊臂类型" style="width: 150px; margin-left: 20px;">
+                      <el-option
+                        v-for="item in getBoomType()"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
                   </div>
 
                   <div class="form-row">
@@ -367,6 +376,15 @@
                       />
                       <span class="unit">pq</span>
                     </div>
+                    <label class="form-label">吊臂类型</label>
+                    <el-select v-model="formData.boomType2" placeholder="请选择吊臂类型" style="width: 150px; margin-left: 20px;">
+                      <el-option
+                        v-for="item in getBoomType()"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
                   </div>
 
                   <div class="form-row">
@@ -3296,6 +3314,7 @@ import {
   getCraneDataDetail,
   intelligentCraneSelection
 } from "@/api/index.js";
+import {  getBoomType } from "@/utils/common.js";
 
 const router = useRouter();
 const activeTab = ref("crane");
@@ -3309,6 +3328,7 @@ const selectedSlingDeviceId = ref('');
 
 // 起重机列表相关
 const craneList = ref([]);
+
 const craneLoading = ref(false);
 const selectedCraneId = ref('');
 const selectedCraneId2 = ref('');
@@ -3520,6 +3540,7 @@ const formData = ref({
   model: "",
   equipmentType: "",
   ratedLoad: 12,
+  boomType: 0, // 添加吊臂类型字段，默认值为主臂
   mainBoomLength: 12,
   auxBoomLength: 12,
   workRadius: 12,
@@ -3538,6 +3559,7 @@ const formData = ref({
   model2: "",
   equipmentType2: "",
   ratedLoad2: 12,
+  boomType2: 0, // 添加吊臂类型字段，默认值为主臂
   mainBoomLength2: 12,
   auxBoomLength2: 12,
   workRadius2: 12,
