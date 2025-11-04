@@ -217,7 +217,7 @@
                       />
                       <span class="unit">m</span>
                     </div>
-                    <label class="form-label" style="margin-left: -15px;">作业半径<span>(r)</span></label>
+                    <label class="form-label" style="margin-left: -20px;">作业半径<span>(r)</span></label>
                     <div class="input-with-unit error">
                       <el-input-number
                         v-model="formData.workRadius"
@@ -406,7 +406,7 @@
                       />
                       <span class="unit">m</span>
                     </div>
-                    <label class="form-label" style="margin-left: -15px;">作业半径<span>(r)</span></label>
+                    <label class="form-label" style="margin-left: -20px;">作业半径<span>(r)</span></label>
                     <div class="input-with-unit error">
                       <el-input-number
                         v-model="formData.workRadius2"
