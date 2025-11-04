@@ -51,4 +51,4 @@ export const getCraneTypeOptions = () => {
     { label: '塔吊', value: '3' },
   ];
 };
-export const craneType=0
+export const craneType=0;//三一重工550型起重机
