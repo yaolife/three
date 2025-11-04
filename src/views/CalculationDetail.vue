@@ -188,7 +188,7 @@
                       <span class="unit">pq</span>
                     </div>
                     <label class="form-label">吊臂类型</label>
-                    <el-select v-model="formData.boomType" placeholder="请选择吊臂类型" style="width: 150px; margin-left: 20px;">
+                    <el-select v-model="formData.boomType" placeholder="请选择吊臂类型" style="width: 150px; ">
                       <el-option
                         v-for="item in getBoomType()"
                         :key="item.value"
@@ -377,7 +377,7 @@
                       <span class="unit">pq</span>
                     </div>
                     <label class="form-label">吊臂类型</label>
-                    <el-select v-model="formData.boomType2" placeholder="请选择吊臂类型" style="width: 150px; margin-left: 20px;">
+                    <el-select v-model="formData.boomType2" placeholder="请选择吊臂类型" style="width: 150px;">
                       <el-option
                         v-for="item in getBoomType()"
                         :key="item.value"
