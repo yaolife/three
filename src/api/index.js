@@ -361,6 +361,14 @@ export async function deleteProjectItem(id) {
 export function intelligentCraneSelection(params) {
   return post("/template/crane/getTemplateCraneInfo", params)
 }
+/**
+ * 通过起重机信息获取作业半径与额定载荷信息
+ * @param {object} params - 参数 { }
+ * @returns {Promise} - 返回智能选型结果
+ */
+export function getCalculateInfo(params) {
+  return post("/crane/detail/calculate", params)
+}
 
 export default {
   getLiftingInfoPage,
@@ -391,4 +399,5 @@ export default {
   getProjectDetail,
   deleteProjectItem,
   intelligentCraneSelection,
+  getCalculateInfo,
 }
