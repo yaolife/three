@@ -161,8 +161,8 @@
                     </div>
 
                     <div class="form-row">
-                      <label class="form-label"> 设备生产厂家</label>
-                      <el-input v-model="formData.manufacturer"     placeholder="请输入生产厂家" />
+                      <label class="form-label">设备生产厂家</label>
+                      <el-input v-model="formData.manufacturer"  placeholder="请输入生产厂家" />
                     </div>
 
                     <div class="form-row">
