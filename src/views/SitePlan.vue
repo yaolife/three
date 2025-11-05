@@ -56,7 +56,7 @@
           <img :src="importedImage" alt="施工平面图" class="plan-image">
         </div>
         <div v-else-if="!dialogVisible" class="empty-content">
-          <div class="empty-text">请添加施工平面图</div>
+          <div class="empty-text">请添加施工场景图</div>
           <el-button type="primary" @click="dialogVisible = true">添加</el-button>
         </div>
       </div>
