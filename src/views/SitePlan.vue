@@ -53,7 +53,8 @@
         
         <!-- 右侧内容区域 - 显示导入的图片 -->
         <div v-if="importedImage" class="image-container">
-          <img :src="importedImage" alt="施工平面图" class="plan-image">
+          <!-- <img :src="importedImage" alt="总平规划图" class="plan-image"> -->
+           <img src="@/images/planning.png" alt="总平规划图" class="plan-image">
         </div>
         <div v-else-if="!dialogVisible" class="empty-content">
           <div class="empty-text">请添加施工场景图</div>
