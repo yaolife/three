@@ -287,8 +287,6 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: auto;
-  padding: 20px;
   box-sizing: border-box;
 }
 
