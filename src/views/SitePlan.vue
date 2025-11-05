@@ -6,7 +6,7 @@
         <el-button type="text" class="back-btn" @click="handleBack">
           <el-icon><ArrowLeft /></el-icon>
         </el-button>
-        <h2>总平规划</h2>
+        <div class="project_title">总平规划xxx项目</div>
       </div>
     </div>
     
@@ -15,7 +15,7 @@
       <!-- 左侧导航菜单 -->
       <div class="left-sidebar">
         <div class="sidebar-header">
-          <div class="project-name">项目名称</div>
+          <div class="project_name">起重机列表</div>
           <el-button type="primary" size="small" class="add-btn">添加</el-button>
         </div>
         <div class="search-box">
@@ -35,6 +35,7 @@
           v-model="dialogVisible"
           title="添加施工场景"
           width="360px"   
+          top="20%"
           :close-on-click-modal="false"
           :close-on-press-escape="false"
           class="site-plan-dialog"
@@ -118,16 +119,22 @@ const handleImportPlan = () => {
 }
 
 .page-header {
-  background-color: #001529;
-  color: white;
+  color:  #303030;
+  border-bottom: 1px solid #E4E4E4;
+background: #FFF;
+box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
   padding: 0 24px;
-  height: 64px;
+  height: 36px;
   display: flex;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   flex-shrink: 0;
 }
-
+.project_title {
+  font-size: 14px;
+  border-right: 1px solid #9D9D9D;
+  padding-right: 60px;
+}
 .header-content {
   display: flex;
   align-items: center;
@@ -135,13 +142,14 @@ const handleImportPlan = () => {
 }
 
 .back-btn {
-  color: white;
+  color: #000000;
   margin-right: 16px;
   font-size: 20px;
 }
 
 .back-btn:hover {
-  color: #e6f7ff;
+  color: #000000;
+  cursor: pointer;
 }
 
 .page-header h2 {
@@ -173,9 +181,8 @@ const handleImportPlan = () => {
   margin-bottom: 16px;
 }
 
-.project-name {
-  font-size: 16px;
-  font-weight: 500;
+.project_name {
+  font-size: 14px;
   color: #303133;
 }
 
@@ -200,16 +207,15 @@ const handleImportPlan = () => {
 .right-content {
   flex: 1;
   display: flex;
-  height: 100%;
   align-items: center;
   justify-content: center;
   padding: 0 24px;
-  overflow: auto;
   background-color: #f0f2f5;
 }
 
 /* 确保Dialog弹窗水平垂直居中 */
 .site-plan-dialog {
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
