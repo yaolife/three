@@ -82,7 +82,7 @@
               </div>
               <div class="project-type-label">新建三维仿真</div>
             </div>
-            <div class="project-type-item" :class="{ 'active': formData.projectType === 2 }" @click="formData.projectType = 2; formData.fileType = 2">
+            <div class="project-type-item" :class="{ 'active': formData.projectType === 2 }" @click="formData.projectType = 2; formData.fileType = 1">
               <div class="project-type-icon" :class="{ 'active': formData.projectType === 2 }">
                 <span>总平规划</span>
                  <img src="@/images/site_plan.png" alt="总平规划" style="width: 30px;height: 30px;">
