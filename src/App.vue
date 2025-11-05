@@ -1,7 +1,7 @@
 <template>
   <el-container class="app-container">
-    <!-- 侧边栏 -->
-    <el-aside width="200px" class="sidebar-container">
+    <!-- 侧边栏 - 不在SitePlan页面显示 -->
+    <el-aside v-if="!shouldHideSidebar" width="200px" class="sidebar-container">
       <div class="logo-container">
         <div v-if="userStore.userState.isLoggedIn" class="user-info">
           <el-image
@@ -119,7 +119,7 @@
       </el-header>
       
       <!-- 路由视图 -->
-      <el-main class="main-container">
+      <el-main :class="['main-container', shouldHideSidebar ? 'full-width' : '']">
         <router-view />
       </el-main>
     </el-container>
@@ -300,5 +300,10 @@ const handleCommand = (command) => {
   padding: 20px;
   background-color: #f0f2f5;
   overflow-y: auto;
+}
+
+.main-container.full-width {
+  padding: 0;
+  background-color: #ffffff;
 }
 </style>

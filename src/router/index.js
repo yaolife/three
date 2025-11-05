@@ -10,6 +10,7 @@ const CalculationDetail = () => import("../views/CalculationDetail.vue")
 const DataManagement = () => import("../views/DataManagement.vue")
 const RiggingDetail = () => import("../views/RiggingDetail.vue")
 const CraneDetail = () => import("../views/CraneDetail.vue")
+const SitePlan = () => import("../views/SitePlan.vue")
 
 const routes = [
   {
@@ -88,6 +89,16 @@ const routes = [
     component: RecycleBin,
     meta: {
       title: "回收站",
+    },
+  },
+  {
+    path: "/site-plan/:id",
+    name: "SitePlan",
+    component: SitePlan,
+    meta: {
+      title: "总平规划",
+      hideSidebar: true,
+      hideHeader: true,
     },
   },
 ]

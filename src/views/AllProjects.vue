@@ -112,6 +112,8 @@
         </span>
       </template>
     </el-dialog>
+    
+    
   </div>
 </template>
 
@@ -243,8 +245,14 @@ const handleEdit = (row) => {
       name: 'CalculationDetail',
       params: { id: row.id }
     })
+  } else if (row.projectType === 2) {
+    // 总平规划类型跳转到总平规划页面
+    router.push({
+      name: 'SitePlan',
+      params: { id: row.id }
+    })
   } else {
-    // 其他类型打开编辑对话框
+    // 其他类型打开通用编辑对话框
     formData.value = {
       id: row.id,
       title: row.title,
@@ -335,6 +343,8 @@ const resetForm = () => {
     formRef.value.resetFields()
   }
 }
+
+
 
 // 打开创建项目弹窗的方法，供父组件调用
 const openCreateDialog = () => {
