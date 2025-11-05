@@ -50,6 +50,15 @@
             </span>
           </template>
         </el-dialog>
+        
+        <!-- 右侧内容区域 - 显示导入的图片 -->
+        <div v-if="importedImage" class="image-container">
+          <img :src="importedImage" alt="施工平面图" class="plan-image">
+        </div>
+        <div v-else-if="!dialogVisible" class="empty-content">
+          <div class="empty-text">请添加施工平面图</div>
+          <el-button type="primary" @click="dialogVisible = true">添加</el-button>
+        </div>
       </div>
     </div>
   </div>
@@ -68,6 +77,10 @@ const router = useRouter()
 const projectId = ref('')
 // 控制Dialog显示
 const dialogVisible = ref(true)
+// 存储导入的图片URL
+const importedImage = ref(null)
+// 用于文件上传的input元素引用
+const fileInput = ref(null)
 
 onMounted(() => {
   // 从路由参数获取项目ID
@@ -99,9 +112,28 @@ const handleCloseModal = () => {
 
 // 处理导入平面图
 const handleImportPlan = () => {
-  console.log('导入平面图功能')
-  // 这里可以实现文件上传逻辑
-  ElMessage.info('平面图导入功能待实现')
+  // 创建隐藏的文件输入元素
+  if (!fileInput.value) {
+    fileInput.value = document.createElement('input')
+    fileInput.value.type = 'file'
+    fileInput.value.accept = 'image/*'
+    fileInput.value.onchange = (event) => {
+      const file = event.target.files[0]
+      if (file) {
+        // 创建图片预览URL
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          importedImage.value = e.target.result
+          console.log('已导入图片:', importedImage.value)
+          // 关闭弹窗
+          dialogVisible.value = false
+        }
+        reader.readAsDataURL(file)
+      }
+    }
+  }
+  // 触发文件选择对话框
+  fileInput.value.click()
 }
 </script>
 
@@ -123,7 +155,6 @@ const handleImportPlan = () => {
   border-bottom: 1px solid #E4E4E4;
 background: #FFF;
 box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
-  padding: 0 24px;
   height: 36px;
   display: flex;
   align-items: center;
@@ -133,7 +164,7 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
 .project_title {
   font-size: 14px;
   border-right: 1px solid #9D9D9D;
-  padding-right: 60px;
+  padding-right: 80px;
 }
 .header-content {
   display: flex;
@@ -246,5 +277,37 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
 :deep(.el-button--primary) {
   background-color: #1890ff;
   border-color: #1890ff;
+}
+
+/* 图片容器样式 */
+.image-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.plan-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+/* 空内容状态样式 */
+.empty-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
 }
 </style>
