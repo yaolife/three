@@ -109,7 +109,7 @@
           :top="calculateDialogTop()"
           :close-on-click-modal="false"
           :close-on-press-escape="false"
-          class="add-point-dialog adjacent-dialog"
+          custom-class="add-point-dialog adjacent-dialog"
         >
           <div class="point-form">
             <div class="property-item">
@@ -248,7 +248,7 @@
           :top="calculateDialogTop()"
           :close-on-click-modal="false"
           :close-on-press-escape="false"
-          class="edit-point-dialog adjacent-dialog"
+          custom-class="edit-point-dialog adjacent-dialog"
         >
           <div class="point-form">
             <div class="property-item">
@@ -601,15 +601,16 @@ const setCranePosition = () => {
   addPointDialogVisible.value = true;
 };
 
-// 计算弹窗顶部位置，使其与属性面板顶部对齐
+// 计算弹窗顶部位置，使其比属性面板顶部少30px
   const calculateDialogTop = () => {
     // 获取属性面板的位置信息
     const propertyPanel = document.querySelector('.property-panel');
     if (propertyPanel) {
+      console.log('属性面板位置：', propertyPanel.getBoundingClientRect());
       const rect = propertyPanel.getBoundingClientRect();
-      return `${rect.top - 8}px`; // 减去对话框自身的边距调整
+      return `${rect.top + 30}px`; // 顶部比属性面板顶部少30px
     }
-    return '1%'; // 默认值
+    return '5%'; // 默认值
   };
 
   // 添加防范站位
@@ -1120,6 +1121,7 @@ const handleImportPlan = () => {
   position: fixed;
   height: auto;
   width: 400px;
+  max-height: calc(100vh - 60px); /* 限制最大高度，底部少30px */
   right: calc(280px + 10px); /* 右侧面板宽度 + 间距 */
   top: auto; /* 让top属性生效 */
   bottom: auto; /* 让top属性生效 */
