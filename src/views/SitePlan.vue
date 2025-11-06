@@ -197,6 +197,42 @@
                 />
                   <span class="unit">度</span>
               </div>
+              
+              <!-- 吊装区域 -->
+              <div class="section-title">吊装区域</div>
+              <div class="property-item">
+                <label>作业半径</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.radius"
+                  :min="0"
+                  :step="0.1"
+                  placeholder="16"
+                />
+                <span class="unit">m</span>
+              </div>
+              <div class="property-item">
+                <label>幅度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.amplitude"
+                  :min="0"
+                  :step="1"
+                  placeholder="126"
+                />
+                <span class="unit">度</span>
+              </div>
+              <div class="property-item">
+                <label>回转</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.rotation"
+                  :min="0"
+                  :step="1"
+                  placeholder="90"
+                />
+                <span class="unit">度</span>
+              </div>
             </template>
             
             <!-- 移动点位特有字段 -->
@@ -221,6 +257,7 @@
                   :step="1"
                   placeholder="10"
                 />
+                  <span class="unit">度</span>
               </div>
               <div class="property-item">
                 <label>仰角</label>
@@ -297,6 +334,42 @@
                   <el-option label="已完成" value="completed" />
                   <el-option label="未完成" value="pending" />
                 </el-select>
+              </div>
+              
+              <!-- 吊装区域 -->
+              <div class="section-title">吊装区域</div>
+              <div class="property-item">
+                <label>作业半径</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.radius"
+                  :min="0"
+                  :step="0.1"
+                  placeholder="16"
+                />
+                <span class="unit">m</span>
+              </div>
+              <div class="property-item">
+                <label>幅度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.amplitude"
+                  :min="0"
+                  :step="1"
+                  placeholder="126"
+                />
+                <span class="unit">°</span>
+              </div>
+              <div class="property-item">
+                <label>回转</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.rotation"
+                  :min="0"
+                  :step="1"
+                  placeholder="90"
+                />
+                <span class="unit">°</span>
               </div>
             </template>
             
