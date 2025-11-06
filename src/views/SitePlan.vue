@@ -16,9 +16,9 @@
             </div>
       </div>
     </div>
-    
-    <!-- 主要内容区域 -->
-    <div class="main-layout">
+      
+      <!-- 主要内容区域 -->
+      <div class="main-layout">
       <!-- 左侧导航菜单 -->
       <div class="left-sidebar">
         <div class="sidebar-header">
@@ -128,9 +128,6 @@
               <el-button type="primary" size="small" @click="addNewPosition">添加防范站位</el-button>
             </div>
           </div>
-          <div class="panel-footer">
-            <el-button type="primary" @click="saveCraneProperties">保存</el-button>
-          </div>
         </div>
       </div>
     </div>
@@ -222,17 +219,7 @@ const addNewPosition = () => {
 }
 
 // 保存起重机属性
-const saveCraneProperties = () => {
-  if (!selectedCrane.value) return
-  
-  // 更新原数据中的起重机信息
-  const index = cranes.value.findIndex(crane => crane.id === selectedCrane.value.id)
-  if (index !== -1) {
-    cranes.value[index] = { ...selectedCrane.value }
-  }
-  
-  ElMessage.success('属性已保存')
-}
+
 
 // 加载项目数据
 const loadProjectData = () => {
@@ -359,6 +346,7 @@ const handleImportPlan = () => {
 .main-layout {
   display: flex;
   flex: 1;
+  margin-left: 200px; /* 为固定的左侧导航留出空间 */
 }
 
 .left-sidebar {
@@ -369,6 +357,11 @@ const handleImportPlan = () => {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  position: fixed;
+  left: 0;
+  top: 36px;
+  bottom: 0;
+  z-index: 900;
 }
 
 .sidebar-header {
@@ -469,19 +462,22 @@ const handleImportPlan = () => {
   padding: 0 24px;
   background-color: #f0f2f5;
   position: relative;
+  overflow: hidden;
 }
 
 /* 属性面板样式 */
 .property-panel {
-  position: absolute;
+  position: fixed;
   right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 36px;
+  bottom: 0;
   width: 280px;
   background-color: white;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .panel-header {
@@ -498,6 +494,8 @@ const handleImportPlan = () => {
 
 .panel-content {
   padding: 16px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .property-item {
