@@ -500,19 +500,24 @@ const handleImportPlan = () => {
 
 .property-item {
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .property-item label {
-  display: block;
   font-size: 12px;
   color: #606266;
-  margin-bottom: 8px;
+  width: 70px;
+  flex-shrink: 0;
+  text-align: left;
 }
 
 .color-input-wrapper {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
 }
 
 .color-preview {
@@ -528,12 +533,24 @@ const handleImportPlan = () => {
   color: #909399;
 }
 
+.el-input-number {
+  width: 120px;
+}
+
+.property-item .el-input {
+  width: 120px;
+}
+
 .panel-footer {
   padding: 12px 16px;
   background-color: #fafafa;
   border-top: 1px solid #ebeef5;
   display: flex;
   justify-content: flex-end;
+}
+
+.property-item .el-button {
+  margin-left: 0;
 }
 
 /* 确保Dialog弹窗水平垂直居中 */
