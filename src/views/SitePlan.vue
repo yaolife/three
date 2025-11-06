@@ -450,7 +450,7 @@
                 <!-- 根据点位类型显示不同图标 -->
                 <img 
                   v-if="point.type === 'lifting'" 
-                  src="@/images/point.png" 
+                  src="@/images/crane_point.png" 
                   alt="吊装点位" 
                   style="width: 16px; height: 16px; margin-right: 8px"
                 />
@@ -660,7 +660,13 @@ const setCranePosition = () => {
 
 // 点位类型变化处理
 const onPointTypeChange = () => {
-  // 可以在这里添加类型变化时的处理逻辑
+  // 当点位类型变化时，更新点位名称前缀
+  const pointCount = selectedCrane.value && selectedCrane.value.points ? selectedCrane.value.points.length : 0;
+  if (newPoint.value.name.includes("点位") || newPoint.value.name.includes("吊装点位") || newPoint.value.name.includes("移动点位")) {
+    newPoint.value.name = newPoint.value.type === 'lifting' 
+      ? `吊装点位${pointCount}` 
+      : `移动点位${pointCount}`;
+  }
   console.log("点位类型变为:", newPoint.value.type);
 };
 
@@ -682,6 +688,15 @@ const confirmAddPoint = () => {
   // 如果是第一个点位，设置为起点
   if (selectedCrane.value.points.length === 0) {
     pointToAdd.name = "起点1";
+  } else {
+    // 根据点位类型设置正确的名称前缀
+    const pointCount = selectedCrane.value.points.length;
+    // 只有当名称是系统生成的格式时才自动更新
+    if (pointToAdd.name.includes("点位") || pointToAdd.name.includes("吊装点位") || pointToAdd.name.includes("移动点位")) {
+      pointToAdd.name = newPoint.value.type === 'lifting' 
+        ? `吊装点位${pointCount}` 
+        : `移动点位${pointCount}`;
+    }
   }
   
   // 添加点位
