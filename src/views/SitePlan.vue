@@ -105,11 +105,12 @@
         <el-dialog
           v-model="addPointDialogVisible"
           title="添加点位"
-          width="400px"
+          width="330px"
           :top="calculateDialogTop()"
           :close-on-click-modal="false"
           :close-on-press-escape="false"
           custom-class="add-point-dialog adjacent-dialog"
+          style="height: 100vh;"
         >
           <div class="point-form">
             <div class="property-item">
@@ -134,6 +135,7 @@
             
             <!-- 吊装点位特有字段 -->
             <template v-if="newPoint.type === 'lifting'">
+                <div class="point_title">占点设置</div>
               <div class="property-item">
                 <label>地面承载力</label>
                 <el-input-number
@@ -148,6 +150,7 @@
               <div class="property-item">
                 <label>区域场地</label>
                 <el-input v-model="newPoint.area" placeholder="区域场地" />
+                  <span class="unit">m²</span>
               </div>
               <div class="property-item">
                 <label>开始时间</label>
@@ -244,7 +247,7 @@
         <el-dialog
           v-model="editPointDialogVisible"
           title="修改点位"
-          width="400px"
+          width="330px"
           :top="calculateDialogTop()"
           :close-on-click-modal="false"
           :close-on-press-escape="false"
@@ -266,6 +269,7 @@
             
             <!-- 吊装点位特有字段 -->
             <template v-if="editingPoint.type === 'lifting'">
+              <div class="point_title">占点设置</div>
               <div class="property-item">
                 <label>地面承载力</label>
                 <el-input-number
@@ -386,8 +390,9 @@
             <div class="property-item">
               <label>路径使用宽度</label>
               <el-input-number
+
                 controls-position="right"
-                precision="2"
+                :precision="2"
                 v-model="selectedCrane.width"
                 :min="0"
                 :step="1"
@@ -410,7 +415,7 @@
               <label>地面承载力</label>
               <el-input-number
                 controls-position="right"
-                precision="2"
+                :precision="2"
                 v-model="selectedCrane.load"
                 :min="0"
                 :step="1"
@@ -1052,10 +1057,10 @@ const handleImportPlan = () => {
   color: #005ce6;
 }
 .property-item {
-  margin-bottom: 16px;
+  margin-bottom: 5px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
 }
 
 .property-item label {
@@ -1065,7 +1070,11 @@ const handleImportPlan = () => {
   flex-shrink: 0;
   text-align: left;
 }
-
+.point_title {
+  margin-bottom: 15px;
+  color: #303133;
+    font-weight: 500;
+}
 .color-input-wrapper {
   display: flex;
   align-items: center;
@@ -1242,7 +1251,6 @@ const handleImportPlan = () => {
 
 /* 点位表单样式 */
 .point-form {
-  max-height: 400px;
   overflow-y: auto;
 }
 
@@ -1252,7 +1260,7 @@ const handleImportPlan = () => {
 }
 
 .section-title {
-  font-size: 12px;
+  font-size: 14px;
   color: #303133;
   font-weight: 500;
   margin-top: 16px;
