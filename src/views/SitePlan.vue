@@ -101,6 +101,245 @@
           </template>
         </el-dialog>
 
+        <!-- 添加起点弹窗 - 修改样式使其紧靠着属性编辑框左侧 -->
+        <el-dialog
+          v-model="addPointDialogVisible"
+          title="添加点位"
+          width="400px"
+          :top="calculateDialogTop()"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+          class="add-point-dialog adjacent-dialog"
+        >
+          <div class="point-form">
+            <div class="property-item">
+              <label>点位名称</label>
+              <el-input v-model="newPoint.name" placeholder="点位名称" />
+            </div>
+            <div class="property-item">
+              <label>X轴</label>
+              <el-input v-model="newPoint.x" placeholder="X坐标" />
+            </div>
+            <div class="property-item">
+              <label>Y轴</label>
+              <el-input v-model="newPoint.y" placeholder="Y坐标" />
+            </div>
+            <div class="property-item">
+              <label>占点类型</label>
+              <div class="radio-group">
+                <el-radio v-model="newPoint.type" label="lifting" @change="onPointTypeChange">吊装点位</el-radio>
+                <el-radio v-model="newPoint.type" label="moving" @change="onPointTypeChange">移动点位</el-radio>
+              </div>
+            </div>
+            
+            <!-- 吊装点位特有字段 -->
+            <template v-if="newPoint.type === 'lifting'">
+              <div class="property-item">
+                <label>地面承载力</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.groundLoad"
+                  :min="0"
+                  :step="1"
+                  placeholder="10"
+                />
+                <span class="unit">t</span>
+              </div>
+              <div class="property-item">
+                <label>区域场地</label>
+                <el-input v-model="newPoint.area" placeholder="区域场地" />
+              </div>
+              <div class="property-item">
+                <label>开始时间</label>
+                <el-input v-model="newPoint.startTime" placeholder="开始时间" />
+              </div>
+              <div class="property-item">
+                <label>结束时间</label>
+                <el-input v-model="newPoint.endTime" placeholder="结束时间" />
+              </div>
+              <div class="property-item">
+                <label>完成状态</label>
+                <el-select v-model="newPoint.status" placeholder="完成状态">
+                  <el-option label="已完成" value="completed" />
+                  <el-option label="未完成" value="pending" />
+                </el-select>
+              </div>
+              
+              <!-- 占位设置 -->
+              <div class="section-title">占位设置</div>
+              <div class="property-item">
+                <label>占位长度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.occupyLength"
+                  :min="0"
+                  :step="0.1"
+                  placeholder="16"
+                />
+              </div>
+              <div class="property-item">
+                <label>占位宽度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.occupyWidth"
+                  :min="0"
+                  :step="0.1"
+                  placeholder="0.5"
+                />
+              </div>
+              <div class="property-item">
+                <label>旋转角度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.rotateAngle"
+                  :step="1"
+                  placeholder="-30"
+                />
+              </div>
+            </template>
+            
+            <!-- 移动点位特有字段 -->
+            <template v-if="newPoint.type === 'moving'">
+              <div class="section-title">作业范围</div>
+              <div class="property-item">
+                <label>作业半径</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.radius"
+                  :min="0"
+                  :step="1"
+                  placeholder="10"
+                />
+              </div>
+              <div class="property-item">
+                <label>幅度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.amplitude"
+                  :min="0"
+                  :step="1"
+                  placeholder="10"
+                />
+              </div>
+              <div class="property-item">
+                <label>仰角</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.angle"
+                  :step="1"
+                  placeholder="60"
+                />
+              </div>
+            </template>
+          </div>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="addPointDialogVisible = false">重新标点</el-button>
+              <el-button type="primary" @click="confirmAddPoint">确认添加</el-button>
+            </span>
+          </template>
+        </el-dialog>
+        
+        <!-- 修改点位弹窗 - 修改样式使其紧靠着属性编辑框左侧 -->
+        <el-dialog
+          v-model="editPointDialogVisible"
+          title="修改点位"
+          width="400px"
+          :top="calculateDialogTop()"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+          class="edit-point-dialog adjacent-dialog"
+        >
+          <div class="point-form">
+            <div class="property-item">
+              <label>点位名称</label>
+              <el-input v-model="editingPoint.name" placeholder="点位名称" />
+            </div>
+            <div class="property-item">
+              <label>X轴</label>
+              <el-input v-model="editingPoint.x" placeholder="X坐标" />
+            </div>
+            <div class="property-item">
+              <label>Y轴</label>
+              <el-input v-model="editingPoint.y" placeholder="Y坐标" />
+            </div>
+            
+            <!-- 吊装点位特有字段 -->
+            <template v-if="editingPoint.type === 'lifting'">
+              <div class="property-item">
+                <label>地面承载力</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.groundLoad"
+                  :min="0"
+                  :step="1"
+                  placeholder="10"
+                />
+                <span class="unit">t</span>
+              </div>
+              <div class="property-item">
+                <label>区域场地</label>
+                <el-input v-model="editingPoint.area" placeholder="区域场地" />
+              </div>
+              <div class="property-item">
+                <label>开始时间</label>
+                <el-input v-model="editingPoint.startTime" placeholder="开始时间" />
+              </div>
+              <div class="property-item">
+                <label>结束时间</label>
+                <el-input v-model="editingPoint.endTime" placeholder="结束时间" />
+              </div>
+              <div class="property-item">
+                <label>完成状态</label>
+                <el-select v-model="editingPoint.status" placeholder="完成状态">
+                  <el-option label="已完成" value="completed" />
+                  <el-option label="未完成" value="pending" />
+                </el-select>
+              </div>
+            </template>
+            
+            <!-- 移动点位特有字段 -->
+            <template v-if="editingPoint.type === 'moving'">
+              <div class="section-title">作业范围</div>
+              <div class="property-item">
+                <label>作业半径</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.radius"
+                  :min="0"
+                  :step="1"
+                  placeholder="10"
+                />
+              </div>
+              <div class="property-item">
+                <label>幅度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.amplitude"
+                  :min="0"
+                  :step="1"
+                  placeholder="10"
+                />
+              </div>
+              <div class="property-item">
+                <label>仰角</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.angle"
+                  :step="1"
+                  placeholder="60"
+                />
+              </div>
+            </template>
+          </div>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="editPointDialogVisible = false">取消</el-button>
+              <el-button type="primary" @click="confirmEditPoint">确认修改</el-button>
+            </span>
+          </template>
+        </el-dialog>
+
         <!-- 右侧内容区域 - 显示导入的图片 -->
         <div v-if="importedImage" class="image-container">
           <!-- <img :src="importedImage" alt="总平规划图" class="plan-image"> -->
@@ -182,13 +421,38 @@
           </div>
           <div class="point_setting">
             <div>点位设置</div>
-            <div class="setting_start">
+            <!-- 如果没有起点，显示设置起点按钮 -->
+            <div v-if="!hasStartPoint" class="setting_start">
               <img
                 src="@/images/point.png"
                 alt="设置起点"
                 style="width: 16px; height: 16px"
               />
               <span @click="setCranePosition">设置起点+</span>
+            </div>
+            <!-- 显示点位列表 -->
+            <div v-for="(point, index) in selectedCrane.points" :key="point.id" class="point-item">
+              <div class="point-info">
+                <!-- 根据点位类型显示不同图标 -->
+                <img 
+                  v-if="point.type === 'lifting'" 
+                  src="@/images/point.png" 
+                  alt="吊装点位" 
+                  style="width: 16px; height: 16px; margin-right: 8px"
+                />
+                <img 
+                  v-else 
+                  src="@/images/point.png" 
+                  alt="移动点位" 
+                  style="width: 16px; height: 16px; margin-right: 8px"
+                />
+                <span>{{ point.name }}</span>
+              </div>
+              <div class="point-actions">
+                <span class="action-btn edit" @click="editPoint(point)">修改</span>
+                <!-- 只有非起点才可以删除 -->
+                <span v-if="index > 0" class="action-btn delete" @click="deletePoint(index)">删除</span>
+              </div>
             </div>
           </div>
           <div class="add_path_point">
@@ -198,7 +462,7 @@
                 style="width: 22px; height: 22px"
               />
             <span  @click="addNewPosition"
-              >添加路径点位</span
+              >添加路径点位</span>
             >
           </div>
         </div>
@@ -231,6 +495,34 @@ const selectedCrane = ref(null);
 const searchQuery = ref("");
 const craneCounter = ref(0); // 用于生成起重机名称
 
+// 点位相关数据
+const addPointDialogVisible = ref(false);
+const editPointDialogVisible = ref(false);
+const newPoint = ref({
+  name: "点位1",
+  x: 112.00000000,
+  y: 38.00000000,
+  type: "lifting", // lifting: 吊装点位, moving: 移动点位
+  groundLoad: 10,
+  area: "",
+  startTime: "",
+  endTime: "",
+  status: "completed",
+  occupyLength: 16,
+  occupyWidth: 0.5,
+  rotateAngle: -30,
+  radius: 10,
+  amplitude: 10,
+  angle: 60
+});
+const editingPoint = ref({});
+const editingPointIndex = ref(-1);
+
+// 计算属性：是否有起点
+const hasStartPoint = computed(() => {
+  return selectedCrane.value && selectedCrane.value.points && selectedCrane.value.points.length > 0;
+});
+
 onMounted(() => {
   // 从路由参数获取项目ID
   projectId.value = route.params.id || "";
@@ -260,6 +552,7 @@ const addCrane = () => {
     width: 10,
     time: 10,
     load: 10,
+    points: [], // 添加点位数组
     position: null,
   };
   cranes.value.push(newCrane);
@@ -277,26 +570,184 @@ const deleteCrane = (id) => {
 
 // 选择起重机
 const selectCrane = (crane) => {
+  // 确保每个起重机都有点位数组
+  if (!crane.points) {
+    crane.points = [];
+  }
   selectedCrane.value = { ...crane };
 };
 
-// 设置起重机点位
+// 设置起重机点位（打开添加起点弹窗）
 const setCranePosition = () => {
-  // 这里可以实现点击图片设置点位的逻辑
-  ElMessage.info("请在场景图中点击设置点位");
+  // 重置新点位数据
+  newPoint.value = {
+    name: "点位1",
+    x: 112.00000000,
+    y: 38.00000000,
+    type: "lifting",
+    groundLoad: 10,
+    area: "",
+    startTime: "",
+    endTime: "",
+    status: "completed",
+    occupyLength: 16,
+    occupyWidth: 0.5,
+    rotateAngle: -30,
+    radius: 10,
+    amplitude: 10,
+    angle: 60
+  };
+  // 打开添加点位弹窗
+  addPointDialogVisible.value = true;
 };
 
-// 添加防范站位
-const addNewPosition = () => {
-  ElMessage.success("已添加防范站位");
+// 计算弹窗顶部位置，使其与属性面板顶部对齐
+  const calculateDialogTop = () => {
+    // 获取属性面板的位置信息
+    const propertyPanel = document.querySelector('.property-panel');
+    if (propertyPanel) {
+      const rect = propertyPanel.getBoundingClientRect();
+      return `${rect.top - 8}px`; // 减去对话框自身的边距调整
+    }
+    return '1%'; // 默认值
+  };
+
+  // 添加防范站位
+  const addNewPosition = () => {
+  if (!selectedCrane.value) return;
+  
+  // 重置新点位数据
+  const pointCount = selectedCrane.value.points ? selectedCrane.value.points.length : 0;
+  newPoint.value = {
+    name: selectedCrane.value.points && selectedCrane.value.points[0] ? 
+           (selectedCrane.value.points[0].type === 'lifting' ? 
+            `吊装点位${pointCount}` : `移动点位${pointCount - 1}`) : 
+           "点位1",
+    x: 112.00000000,
+    y: 38.00000000,
+    type: pointCount === 0 ? "lifting" : 
+          (Math.random() > 0.5 ? "lifting" : "moving"),
+    groundLoad: 10,
+    area: "",
+    startTime: "",
+    endTime: "",
+    status: "completed",
+    occupyLength: 16,
+    occupyWidth: 0.5,
+    rotateAngle: -30,
+    radius: 10,
+    amplitude: 10,
+    angle: 60
+  };
+  // 打开添加点位弹窗
+  addPointDialogVisible.value = true;
 };
 
-// 保存起重机属性
+// 点位类型变化处理
+const onPointTypeChange = () => {
+  // 可以在这里添加类型变化时的处理逻辑
+  console.log("点位类型变为:", newPoint.value.type);
+};
+
+// 确认添加点位
+const confirmAddPoint = () => {
+  if (!selectedCrane.value) return;
+  
+  // 确保点位数组存在
+  if (!selectedCrane.value.points) {
+    selectedCrane.value.points = [];
+  }
+  
+  // 创建新点位对象
+  const pointToAdd = {
+    id: Date.now(),
+    ...newPoint.value
+  };
+  
+  // 如果是第一个点位，设置为起点
+  if (selectedCrane.value.points.length === 0) {
+    pointToAdd.name = "起点1";
+  }
+  
+  // 添加点位
+  selectedCrane.value.points.push(pointToAdd);
+  
+  // 更新原数据中的对应起重机
+  const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+  if (craneIndex !== -1) {
+    cranes.value[craneIndex].points = [...selectedCrane.value.points];
+  }
+  
+  // 关闭弹窗
+  addPointDialogVisible.value = false;
+  ElMessage.success("点位已添加");
+};
+
+// 编辑点位
+const editPoint = (point) => {
+  // 找到要编辑的点位索引
+  editingPointIndex.value = selectedCrane.value.points.findIndex(p => p.id === point.id);
+  // 深拷贝点位数据用于编辑
+  editingPoint.value = JSON.parse(JSON.stringify(point));
+  // 打开编辑弹窗
+  editPointDialogVisible.value = true;
+};
+
+// 确认编辑点位
+const confirmEditPoint = () => {
+  if (!selectedCrane.value || editingPointIndex.value === -1) return;
+  
+  // 更新点位数据
+  selectedCrane.value.points[editingPointIndex.value] = {
+    ...editingPoint.value
+  };
+  
+  // 更新原数据中的对应起重机
+  const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+  if (craneIndex !== -1) {
+    cranes.value[craneIndex].points = [...selectedCrane.value.points];
+  }
+  
+  // 关闭弹窗
+  editPointDialogVisible.value = false;
+  editingPointIndex.value = -1;
+  ElMessage.success("点位已更新");
+};
+
+// 删除点位
+const deletePoint = (index) => {
+  if (!selectedCrane.value || index === 0) return; // 不能删除起点
+  
+  // 删除点位
+  selectedCrane.value.points.splice(index, 1);
+  
+  // 更新原数据中的对应起重机
+  const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+  if (craneIndex !== -1) {
+    cranes.value[craneIndex].points = [...selectedCrane.value.points];
+  }
+  
+  ElMessage.success("点位已删除");
+};
 
 // 加载项目数据
 const loadProjectData = () => {
   console.log("加载项目数据，项目ID:", projectId.value);
-  // 这里可以添加加载项目数据的逻辑
+  // 模拟加载一些起重机数据用于演示
+  const mockCranes = [
+    {
+      id: 1,
+      name: "起重机1",
+      type: "xxx履带式起重机",
+      color: "#26256B",
+      width: 10,
+      time: 10,
+      load: 10,
+      points: [],
+      position: null,
+    }
+  ];
+  cranes.value = mockCranes;
 };
 
 // 处理返回按钮点击
@@ -570,6 +1021,8 @@ const handleImportPlan = () => {
 .point_setting {
   border-top: 1px solid #c8c8c8;
   padding: 16px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 .setting_start{
   margin-top: 15px;
@@ -578,6 +1031,10 @@ const handleImportPlan = () => {
   align-items: center;
   gap: 8px;
   color: #006FFF;
+  cursor: pointer;
+}
+.setting_start:hover {
+  color: #005ce6;
 }
 .add_path_point{
   display: flex;
@@ -587,7 +1044,11 @@ const handleImportPlan = () => {
   border-top: 1px solid #c8c8c8;
    border-bottom: 1px solid #c8c8c8;
   gap: 8px;
-    color: #006FFF;
+  color: #006FFF;
+  cursor: pointer;
+}
+.add_path_point:hover {
+  color: #005ce6;
 }
 .property-item {
   margin-bottom: 16px;
@@ -645,18 +1106,36 @@ const handleImportPlan = () => {
 }
 
 /* 确保Dialog弹窗水平垂直居中 */
-.site-plan-dialog {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.add-point-dialog,
+.edit-point-dialog {
+  position: absolute;
+  right: calc(280px + 10px); /* 右侧面板宽度 + 间距 */
+  top: auto; /* 让top属性生效 */
+  bottom: auto; /* 让top属性生效 */
+  left: auto; /* 让right属性生效 */
 }
 
-:deep(.el-dialog__wrapper) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+/* 让弹窗紧靠着属性编辑框左侧 */
+.adjacent-dialog :deep(.el-dialog__wrapper) {
+  position: fixed;
+  height: auto;
+  width: 400px;
+  right: calc(280px + 10px); /* 右侧面板宽度 + 间距 */
+  top: auto; /* 让top属性生效 */
+  bottom: auto; /* 让top属性生效 */
+  left: auto; /* 让right属性生效 */
+  display: block;
+  margin: 0;
+  transform: none; /* 移除默认的居中变换 */
+  z-index: 1005; /* 确保与属性面板在同一层级 */
+}
+
+.adjacent-dialog :deep(.el-dialog) {
+  margin: 0;
+  position: static;
+  width: 100%;
+  max-width: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15); /* 添加阴影使其看起来更自然 */
 }
 
 .empty-state {
@@ -707,5 +1186,84 @@ const handleImportPlan = () => {
   align-items: center;
   text-align: center;
   padding: 20px;
+}
+
+/* 点位项样式 */
+.point-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin-top: 10px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.point-item:hover {
+  background-color: #e6e8eb;
+}
+
+.point-info {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #303133;
+}
+
+.point-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.action-btn.edit {
+  color: #006FFF;
+}
+
+.action-btn.edit:hover {
+  color: #005ce6;
+}
+
+.action-btn.delete {
+  color: #f56c6c;
+}
+
+.action-btn.delete:hover {
+  color: #d32f2f;
+}
+
+/* 点位表单样式 */
+.point-form {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.radio-group {
+  display: flex;
+  gap: 16px;
+}
+
+.section-title {
+  font-size: 12px;
+  color: #303133;
+  font-weight: 500;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+/* 确保单选按钮的样式 */
+:deep(.el-radio) {
+  margin-right: 10px;
+}
+
+/* 确保选择框的宽度 */
+.property-item .el-select {
+  width: 120px;
 }
 </style>
