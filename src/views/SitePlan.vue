@@ -94,11 +94,6 @@
               >点击添加</el-button
             >
           </div>
-          <template #footer>
-            <span class="dialog-footer">
-              <!-- 可以在这里添加其他操作按钮 -->
-            </span>
-          </template>
         </el-dialog>
 
         <!-- 添加起点弹窗 - 修改样式使其紧靠着属性编辑框左侧 -->
@@ -237,7 +232,7 @@
           </div>
           <template #footer>
             <span class="dialog-footer">
-              <el-button @click="addPointDialogVisible = false">重新标点</el-button>
+              <el-button class="punctuation" @click="addPointDialogVisible = false">重新标点</el-button>
               <el-button type="primary" @click="confirmAddPoint">确认添加</el-button>
             </span>
           </template>
@@ -1248,7 +1243,17 @@ const handleImportPlan = () => {
 .action-btn.delete:hover {
   color: #d32f2f;
 }
-
+.dialog-footer{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px 16px;
+}
+.punctuation{
+  color: #FFF;
+  border-radius: 3px;
+background: #FF8A37;
+}
 /* 点位表单样式 */
 .point-form {
   overflow-y: auto;
