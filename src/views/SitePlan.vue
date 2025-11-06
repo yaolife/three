@@ -8,6 +8,13 @@
         </el-button>
         <div class="project_title">总平规划xxx项目</div>
       </div>
+        <div class="header-content_right">
+          <div> <img src="@/images/add_text.png" alt="添加文字" style="width: 20px; height: 20px;"/></div>
+            <div class="handle_btn">
+              <div class="handle_btn_item"><img src="@/images/report.png" alt="生成报告" style="width: 20px; height: 20px; margin-right: 5px;"/><span>生成报告</span></div>
+               <div class="handle_btn_item"><img src="@/images/preview.png" alt="预览" style="width: 20px; height: 20px; margin-right: 5px;" /><span>预览</span></div>
+            </div>
+      </div>
     </div>
     
     <!-- 主要内容区域 -->
@@ -170,8 +177,26 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
 .header-content {
   display: flex;
   align-items: center;
-  width: 100%;
 }
+.header-content_right{
+  display: flex;
+  padding: 0 20px;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-content_right .handle_btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-content_right .handle_btn .handle_btn_item{ 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 30px;
+}
+ 
 
 .back-btn {
   color: #000000;
