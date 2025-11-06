@@ -23,15 +23,31 @@
       <div class="left-sidebar">
         <div class="sidebar-header">
           <div class="project_name">起重机列表</div>
-          <span class="add-btn">添加</span>
+          <span class="add-btn" @click="addCrane">添加</span>
         </div>
         <div class="search-box">
           <el-input
+            v-model="searchQuery"
             placeholder="搜索列表"
             prefix-icon="Search"
             size="small"
           />
           <div class="search-btn">搜索</div>
+        </div>
+        
+        <!-- 起重机列表 -->
+        <div class="crane-list">
+          <div 
+            v-for="crane in filteredCranes" 
+            :key="crane.id"
+            :class="['crane-item', { 'selected': selectedCrane && selectedCrane.id === crane.id }]"
+            @click="selectCrane(crane)"
+          >
+            <span class="crane-name">{{ crane.name }}</span>
+            <el-icon class="delete-icon" @click.stop="deleteCrane(crane.id)">
+              <Close />
+            </el-icon>
+          </div>
         </div>
       </div>
       
@@ -67,13 +83,62 @@
           <div class="empty-text">请添加施工场景图</div>
           <el-button type="primary" @click="dialogVisible = true">添加</el-button>
         </div>
+        
+        <!-- 任务属性编辑悬浮框 -->
+        <div v-if="selectedCrane" class="property-panel">
+          <div class="panel-header">
+            <div class="panel-title">任务属性编辑</div>
+          </div>
+          <div class="panel-content">
+            <div class="property-item">
+              <label>名称</label>
+              <el-input v-model="selectedCrane.name" placeholder="请输入名称" />
+            </div>
+            <div class="property-item">
+              <label>起重机</label>
+              <el-input v-model="selectedCrane.type" placeholder="xxx履带式起重机" />
+            </div>
+            <div class="property-item">
+              <label>防范颜色</label>
+              <div class="color-input-wrapper">
+                <el-input v-model="selectedCrane.color" placeholder="#26256B" />
+                <div class="color-preview" :style="{ backgroundColor: selectedCrane.color }"></div>
+              </div>
+            </div>
+            <div class="property-item">
+              <label>场地使用宽度</label>
+              <el-input-number v-model="selectedCrane.width" :min="0" :step="1" placeholder="10" />
+              <span class="unit">m</span>
+            </div>
+            <div class="property-item">
+              <label>使用时间</label>
+              <el-input-number v-model="selectedCrane.time" :min="0" :step="1" placeholder="10" />
+              <span class="unit">d</span>
+            </div>
+            <div class="property-item">
+              <label>地面承载力</label>
+              <el-input-number v-model="selectedCrane.load" :min="0" :step="1" placeholder="10" />
+              <span class="unit">t</span>
+            </div>
+            <div class="property-item">
+              <label>点位设置</label>
+              <el-button type="primary" size="small" @click="setCranePosition">设置点位</el-button>
+            </div>
+            <div class="property-item">
+              <el-button type="primary" size="small" @click="addNewPosition">添加防范站位</el-button>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <el-button type="primary" @click="saveCraneProperties">保存</el-button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Search, Close } from '@element-plus/icons-vue'
@@ -90,6 +155,12 @@ const importedImage = ref(null)
 // 用于文件上传的input元素引用
 const fileInput = ref(null)
 
+// 起重机相关数据
+const cranes = ref([])
+const selectedCrane = ref(null)
+const searchQuery = ref('')
+const craneCounter = ref(0) // 用于生成起重机名称
+
 onMounted(() => {
   // 从路由参数获取项目ID
   projectId.value = route.params.id || ''
@@ -99,6 +170,69 @@ onMounted(() => {
   // 自动显示Dialog
   dialogVisible.value = false
 })
+
+// 计算属性：过滤后的起重机列表
+const filteredCranes = computed(() => {
+  if (!searchQuery.value) return cranes.value
+  return cranes.value.filter(crane => 
+    crane.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+// 添加起重机
+const addCrane = () => {
+  craneCounter.value++
+  const newCrane = {
+    id: Date.now(),
+    name: `起重机${craneCounter.value}`,
+    type: 'xxx履带式起重机',
+    color: '#26256B',
+    width: 10,
+    time: 10,
+    load: 10,
+    position: null
+  }
+  cranes.value.push(newCrane)
+  ElMessage.success('起重机已添加')
+}
+
+// 删除起重机
+const deleteCrane = (id) => {
+  cranes.value = cranes.value.filter(crane => crane.id !== id)
+  if (selectedCrane.value && selectedCrane.value.id === id) {
+    selectedCrane.value = null
+  }
+  ElMessage.success('起重机已删除')
+}
+
+// 选择起重机
+const selectCrane = (crane) => {
+  selectedCrane.value = { ...crane }
+}
+
+// 设置起重机点位
+const setCranePosition = () => {
+  // 这里可以实现点击图片设置点位的逻辑
+  ElMessage.info('请在场景图中点击设置点位')
+}
+
+// 添加防范站位
+const addNewPosition = () => {
+  ElMessage.success('已添加防范站位')
+}
+
+// 保存起重机属性
+const saveCraneProperties = () => {
+  if (!selectedCrane.value) return
+  
+  // 更新原数据中的起重机信息
+  const index = cranes.value.findIndex(crane => crane.id === selectedCrane.value.id)
+  if (index !== -1) {
+    cranes.value[index] = { ...selectedCrane.value }
+  }
+  
+  ElMessage.success('属性已保存')
+}
 
 // 加载项目数据
 const loadProjectData = () => {
@@ -156,18 +290,24 @@ const handleImportPlan = () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding-top: 36px; /* 为固定的头部留出空间 */
 }
 
 .page-header {
   color:  #303030;
   border-bottom: 1px solid #E4E4E4;
-background: #FFF;
-box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
+  background: #FFF;
+  box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
   height: 36px;
   display: flex;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 .project_title {
   font-size: 14px;
@@ -195,6 +335,7 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
   align-items: center;
   justify-content: center;
   margin-right: 30px;
+  cursor: pointer;
 }
  
 
@@ -218,7 +359,6 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
 .main-layout {
   display: flex;
   flex: 1;
-  overflow: hidden;
 }
 
 .left-sidebar {
@@ -255,19 +395,70 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 16px;
 }
 
 .search-btn {
-    display: flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   color: #FFF;
   border-radius: 3px;
-background: #0775DB;
+  background: #0775DB;
   width: 48px;
   height: 26px;
   padding: 0 12px;
   font-size: 12px;
+  cursor: pointer;
+}
+
+.add-btn {
+  cursor: pointer;
+}
+
+/* 起重机列表样式 */
+.crane-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.crane-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.crane-item:hover {
+  background-color: #e6e8eb;
+}
+
+.crane-item.selected {
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+}
+
+.crane-name {
+  font-size: 12px;
+  color: #303133;
+}
+
+.delete-icon {
+  font-size: 12px;
+  color: #909399;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.delete-icon:hover {
+  color: #f56c6c;
 }
 
 .right-content {
@@ -277,6 +468,74 @@ background: #0775DB;
   justify-content: center;
   padding: 0 24px;
   background-color: #f0f2f5;
+  position: relative;
+}
+
+/* 属性面板样式 */
+.property-panel {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 280px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.panel-header {
+  background-color: #fafafa;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.panel-content {
+  padding: 16px;
+}
+
+.property-item {
+  margin-bottom: 16px;
+}
+
+.property-item label {
+  display: block;
+  font-size: 12px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.color-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+}
+
+.unit {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.panel-footer {
+  padding: 12px 16px;
+  background-color: #fafafa;
+  border-top: 1px solid #ebeef5;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* 确保Dialog弹窗水平垂直居中 */
