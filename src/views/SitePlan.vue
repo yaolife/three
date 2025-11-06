@@ -174,6 +174,7 @@
                   :step="0.1"
                   placeholder="16"
                 />
+                <span class="unit">m</span>
               </div>
               <div class="property-item">
                 <label>占位宽度</label>
@@ -184,6 +185,7 @@
                   :step="0.1"
                   placeholder="0.5"
                 />
+                  <span class="unit">m</span>
               </div>
               <div class="property-item">
                 <label>旋转角度</label>
@@ -193,6 +195,7 @@
                   :step="1"
                   placeholder="-30"
                 />
+                  <span class="unit">度</span>
               </div>
             </template>
             
