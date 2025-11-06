@@ -56,6 +56,7 @@
           />
           
           <!-- 分页 -->
+          <!--
           <el-pagination
             v-model:current-page="detailPage"
             :page-size="detailPageSize"
@@ -64,6 +65,7 @@
             class="pagination"
             @current-change="handleDetailPageChange"
           />
+          -->
         </div>
       </div>
     </el-card>
@@ -97,8 +99,8 @@ const riggingInfo = ref({
 const tableData = ref([]);
 const tableLoading = ref(false);
 const saveLoading = ref(false);
-const detailPage = ref(1);
-const detailPageSize = ref(10);
+const detailPage = ref(-1);
+const detailPageSize = ref(-1);
 const detailTotal = ref(0);
 
 const currentColumns = computed(() => {

@@ -413,7 +413,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { Plus } from '@element-plus/icons-vue';
 import { getCraneDetail, confirmUpdateCraneDetail } from "@/api/index.js";
-import { getCraneTypeOptions } from "@/utils/common.js";
+import { getCraneTypeOptions, craneType } from "@/utils/common.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -680,17 +680,17 @@ const handleConfirm = async () => {
       sysProjectTemplateCraneDetail: craneSpecs.value,
       performanceInfoAddUpdateList: [
         {
-          craneType: 0, // 起重机类型，暂时固定为0
+          craneType: craneType, // 起重机类型，引用common.js里的craneType
           armType: 0, // 主臂长度基础编辑
           sysProjectLiftingPerformanceDataList: mainBoomPerformanceData
         },
         {
-          craneType: 0, // 起重机类型，暂时固定为0
+          craneType: craneType, // 起重机类型，引用common.js里的craneType
           armType: 1, // 主臂+副臂基础编辑
           sysProjectLiftingPerformanceDataList: auxBoomPerformanceData
         },
         {
-          craneType: 0, // 起重机类型，暂时固定为0
+          craneType: craneType, // 起重机类型，引用common.js里的craneType
           armType: 2, // 主臂+副臂(46+16)基础编辑
           sysProjectLiftingPerformanceDataList: auxBoomPerformanceData2
         }

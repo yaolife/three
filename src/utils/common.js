@@ -51,3 +51,12 @@ export const getCraneTypeOptions = () => {
     { label: '塔吊', value: '3' },
   ];
 };
+export const craneType=0;//三一重工550型起重机
+// 起重机吊臂类型
+export const getBoomType= () => {
+  return [
+    { label: '主壁', value: 0 },
+    { label: '主臂+副臂(46+16)', value: 1 },
+    { label: '主臂+副臂(46+9.2)', value: 2 },
+  ];
+};

@@ -251,7 +251,7 @@ export function getLiftingMenuThree(params) {
 }
 /**
  * 通过第三级菜单返回的id查询吊索具详情
- * @param {string|number}  
+ * @param {string|number}
  * @returns {Promise} - 返回操作结果
  */
 export async function getLiftingDetail(id) {
@@ -352,6 +352,24 @@ export async function deleteProjectItem(id) {
     throw error
   }
 }
+
+/**
+ * 起重机智能选型接口
+ * @param {object} params - 参数 { deviceName, deviceModel, deviceNumber, deviceWeight }
+ * @returns {Promise} - 返回智能选型结果
+ */
+export function intelligentCraneSelection(params) {
+  return post("/template/crane/getTemplateCraneInfo", params)
+}
+/**
+ * 通过起重机信息获取作业半径与额定载荷信息
+ * @param {object} params - 参数 { }
+ * @returns {Promise} - 返回智能选型结果
+ */
+export function getCalculateInfo(params) {
+  return post("/crane/detail/calculate", params)
+}
+
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -379,5 +397,7 @@ export default {
   getAllProject,
   handleEditProject,
   getProjectDetail,
-  deleteProjectItem
+  deleteProjectItem,
+  intelligentCraneSelection,
+  getCalculateInfo,
 }

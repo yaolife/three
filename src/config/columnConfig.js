@@ -49,11 +49,15 @@ export const WIRE_ROPE_COLUMNS = {
   ],
   // 109: 吊装工程锁具（压制锁具）(Hoisting Lock - Compression)
   109: [
-    { prop: "deviceModel", label: "产品型号(麻芯)", minWidth: 140 },
-    { prop: "deviceModelTwo", label: "产品型号(钢芯)", minWidth: 140 },
+    { prop: "deviceModel", label: "产品型号", minWidth: 140 },
+    { prop: "deviceModelTwo", label: "产品型号(麻芯/钢芯)", minWidth: 160 },
+      { prop: "pqFour", label: "额定载荷(KN)", minWidth: 130 },
     { prop: "diameter", label: "钢丝绳直径(mm)", minWidth: 140 },
+    { prop: "axBxd", label: "吊环参数AxBxd(mm)", minWidth: 160 },
     { prop: "pq", label: "额定载荷(麻芯)(kn)", minWidth: 150 },
     { prop: "pqTwo", label: "额定载荷(钢芯)(kn)", minWidth: 150 },
+      { prop: "hookType", label: "吊钩型号(t)", minWidth: 120 },
+    { prop: "hookLoad", label: "吊钩载荷(t)", minWidth: 120 },
     { prop: "setLength", label: "近似套长(A)(mm)", minWidth: 140 },
   ],
   // 110: 吊装工程锁具（插遍锁具）(Hoisting Lock - Splice)

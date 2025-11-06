@@ -1,40 +1,37 @@
 <template>
   <div class="all-projects-container">
     <el-card class="project-table-card">
+      
       <!-- 项目列表表格 -->
       <el-table :data="projectData" style="width: 100%">
-        <el-table-column prop="id" align="center" label="序号" width="70" />
-        <el-table-column prop="title" align="center" label="项目标题" min-width="130" />
-        <el-table-column prop="fileType" align="center" label="文件类型" width="100" />
-        <el-table-column prop="type" align="center" label="类型" width="100" />
-        <el-table-column prop="relatedProject" align="center" label="所属项目" width="170" />
-        <el-table-column prop="creator" align="center" label="创建人" width="100" />
-        <el-table-column prop="createTime" align="center" label="创建时间" width="180" />
-        <el-table-column align="center" label="操作" width="240" fixed="right">
+        <el-table-column type="index" align="center" label="序号" width="70">
+          <template #default="{ $index }">
+            {{ $index + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="title" align="center" label="项目标题" max-width="130" />
+        <el-table-column prop="fileType" align="center" label="文件类型" width="120">
           <template #default="scope">
-            <el-button
-              v-if="scope.row.status === 'local'"
-              type="primary"
-              size="small"
-              @click="handleUpload(scope.row)"
-            >
-              上传
-            </el-button>
-            <el-button
-              v-else
-              type="primary"
-              size="small"
-              @click="handleReUpload(scope.row)"
-            >
-              重新上传
-            </el-button>
+            {{ getFileTypeText(scope.row.fileType) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="projectType" align="center" label="项目类型" width="100">
+          <template #default="scope">
+            {{ getProjectTypeText(scope.row.projectType) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="belongingProject" align="center" label="所属项目" width="170" />
+        <el-table-column prop="belongingDept" align="center" label="创建部门" width="170" />
+        <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
+        <el-table-column align="center" label="操作" width="160" fixed="right">
+          <template #default="scope">
             <el-button
               type="default"
               size="small"
               @click="handleEdit(scope.row)"
               style="margin-left: 8px"
             >
-              打开
+              编辑
             </el-button>
             <el-button
               type="danger"
@@ -64,144 +61,315 @@
         />
       </div>
     </el-card>
+    
+    <!-- 创建/编辑项目弹窗 -->
+    <el-dialog v-model="showCreateDialog" title="创建项目" width="500px" :close-on-click-modal="false">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
+         <el-form-item label="选择类型">   </el-form-item>
+        <el-form-item label="">
+          <div class="project-type-container" style="margin-left: -80px;">
+            <div class="project-type-item" :class="{ 'active': formData.projectType === 0 }" @click="formData.projectType = 0; formData.fileType = 0">
+              <div class="project-type-icon" :class="{ 'active': formData.projectType === 0 }">
+                <span>校核计算</span>
+                <img src="@/images/verification.png" alt="校核计算" style="width: 30px;height: 30px;">
+              </div>
+              <div class="project-type-label">新建校核计算</div>
+            </div>
+            <div class="project-type-item" :class="{ 'active': formData.projectType === 1 }" @click="formData.projectType = 1; formData.fileType = 1">
+              <div class="project-type-icon" :class="{ 'active': formData.projectType === 1 }">
+                <span>三维仿真</span>
+                 <img src="@/images/three_dimensional.png" alt="三维仿真" style="width: 30px;height: 30px;">
+              </div>
+              <div class="project-type-label">新建三维仿真</div>
+            </div>
+            <div class="project-type-item" :class="{ 'active': formData.projectType === 2 }" @click="formData.projectType = 2; formData.fileType = 1">
+              <div class="project-type-icon" :class="{ 'active': formData.projectType === 2 }">
+                <span>总平规划</span>
+                 <img src="@/images/site_plan.png" alt="总平规划" style="width: 30px;height: 30px;">
+              </div>
+              <div class="project-type-label">新建总平规划</div>
+            </div>
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="项目标题" prop="title" :rules="[{ required: true, message: '请输入项目标题', trigger: 'blur' }]">
+          <el-input v-model="formData.title" placeholder="请输入项目标题" />
+        </el-form-item>
+        
+        <el-form-item label="创建部门" prop="belongingDept" :rules="[{ required: true, message: '请输入创建部门', trigger: 'blur' }]">
+          <el-input v-model="formData.belongingDept" placeholder="请输入创建部门" />
+        </el-form-item>
+        
+        <el-form-item label="所属项目">
+          <el-input v-model="formData.belongingProject" placeholder="请输入所属项目" />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showCreateDialog = false">取消</el-button>
+          <el-button type="primary" @click="submitForm">确认创建</el-button>
+        </span>
+      </template>
+    </el-dialog>
+    
+    
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getAllProject, handleEditProject, deleteProjectItem } from '../api/index.js'
 
-// 初始化 router
+// 初始化 router 和 route
 const router = useRouter()
+const route = useRoute()
 
-// 模拟项目数据
-const projectData = ref([
-  {
-    id: 1,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 2,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 3,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 4,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '云端',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'cloud'
-  },
-  {
-    id: 5,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '平立面图',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 6,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '云端',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'cloud'
-  },
-  {
-    id: 7,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '本地',
-    type: '三维仿真',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'local'
-  },
-  {
-    id: 8,
-    title: 'XXXXXXXX设备吊装项目方案',
-    fileType: '云端',
-    type: '校核计算',
-    relatedProject: 'xxxxxxx集热器吊装项目',
-    creator: 'xxxxxxx公司',
-    createTime: '2025-01-01 12:00:00',
-    status: 'cloud'
-  }
-])
+// 项目数据
+const projectData = ref([])
 
 // 分页数据
 const currentPage = ref(1)
 const pageSize = ref(10)
-const total = ref(6532) // 模拟总数
+const total = ref(0)
 
-// 操作方法
-const handleUpload = (row) => {
-  ElMessage({ message: '正在上传项目...', type: 'info' })
-  // 实际上传逻辑将在这里实现
+// 创建项目弹窗相关
+const showCreateDialog = ref(false)
+const formRef = ref(null)
+const formData = ref({
+  id: null,
+  title: '',
+  projectType: 0,
+  fileType: 0,
+  belongingProject: '',
+  belongingDept: ''
+})
+
+const formRules = ref({
+  title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
+  belongingDept: [{ required: true, message: '请输入创建部门', trigger: 'blur' }]
+})
+
+// 初始化加载数据
+onMounted(() => {
+  loadProjectData()
+  
+  // 检查是否需要打开创建项目弹窗（从App.vue触发）
+  checkCreateFlag()
+  
+  // 监听自定义事件，当用户已在全部项目页面时打开创建弹窗
+console.log('Adding openProjectDialog event listener');
+window.addEventListener('openProjectDialog', checkCreateFlag)
+
+// 添加全局方法，方便直接从App.vue调用
+window.openProjectDialogDirect = () => {
+  console.log('Direct open project dialog called');
+  // 确保在DOM更新后执行
+  nextTick(() => {
+    openCreateDialog();
+  });
+}
+})
+
+// 组件卸载时清理事件监听器
+onUnmounted(() => {
+  console.log('Removing openProjectDialog event listener');
+  window.removeEventListener('openProjectDialog', checkCreateFlag)
+  // 移除全局方法
+  delete window.openProjectDialogDirect;
+})
+
+// 监听路由变化，确保在页面内也能检测到创建标志
+watch(() => route.fullPath, () => {
+  checkCreateFlag()
+})
+
+// 检查并处理创建项目标志的函数
+const checkCreateFlag = () => {
+  console.log('checkCreateFlag called, createProjectFlag:', window.createProjectFlag);
+  if (window.createProjectFlag) {
+    // 重置标志
+    window.createProjectFlag = false
+    // 打开创建项目弹窗
+    console.log('Opening create project dialog');
+    openCreateDialog()
+  }
 }
 
-const handleReUpload = (row) => {
-  ElMessage({ message: '正在重新上传项目...', type: 'info' })
-  // 实际重新上传逻辑将在这里实现
+// 加载项目数据
+const loadProjectData = async () => {
+  try {
+    const response = await getAllProject({
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
+    })
+    
+    if (response.code === '0' && response.data) {
+      projectData.value = response.data.records || []
+      total.value = response.data.total || 0
+    } else {
+      ElMessage.error(response.msg || '获取项目列表失败')
+    }
+  } catch (error) {
+    console.error('获取项目列表失败:', error)
+    ElMessage.error('获取项目列表失败')
+  }
 }
 
+// 获取文件类型文本
+const getFileTypeText = (type) => {
+  const typeMap = {
+    0: '本地',
+    1: '云端'
+  }
+  return typeMap[type] || type
+}
+
+// 获取项目类型文本
+const getProjectTypeText = (type) => {
+  const typeMap = {
+    0: '校核计算',
+    1: '三维仿真',
+    2: '总平规划'
+  }
+  return typeMap[type] || type
+}
+
+// 打开编辑对话框
 const handleEdit = (row) => {
-  if (row.type === '校核计算') {
+  if (row.projectType === 0) {
+    // 校核计算类型跳转到详情页
     router.push({
       name: 'CalculationDetail',
       params: { id: row.id }
     })
+  } else if (row.projectType === 2) {
+    // 总平规划类型跳转到总平规划页面
+    router.push({
+      name: 'SitePlan',
+      params: { id: row.id }
+    })
   } else {
-    ElMessage({ message: '正在编辑项目...', type: 'info' })
-    // 实际编辑逻辑将在这里实现
+    // 其他类型打开通用编辑对话框
+    formData.value = {
+      id: row.id,
+      title: row.title,
+      projectType: row.projectType,
+      fileType: row.fileType,
+      belongingProject: row.belongingProject,
+      belongingDept: row.belongingDept || ''
+    }
+    showCreateDialog.value = true
   }
 }
 
-const handleDelete = (row) => {
-  ElMessage({ message: '正在删除项目...', type: 'info' })
-  // 实际删除逻辑将在这里实现
+// 处理删除
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除该项目吗？',
+      '确认删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    const response = await deleteProjectItem(row.id)
+    
+    if (response.code === '0') {
+      ElMessage.success('删除成功')
+      // 重新加载数据
+      loadProjectData()
+    } else {
+      ElMessage.error(response.msg || '删除失败')
+    }
+  } catch (error) {
+    if (error === 'cancel') return
+    console.error('删除项目失败:', error)
+    ElMessage.error('删除项目失败')
+  }
+}
+
+// 提交表单
+const submitForm = async () => {
+  try {
+    // 验证表单
+    await formRef.value.validate()
+    
+    // 准备提交数据
+    const submitData = {
+      id: formData.value.id,
+      title: formData.value.title,
+      projectType: formData.value.projectType,
+      fileType: formData.value.fileType,
+      belongingProject: formData.value.belongingProject,
+      belongingDept: formData.value.belongingDept
+    }
+    
+    const response = await handleEditProject(submitData)
+    
+    if (response.code === '0') {
+      ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
+      showCreateDialog.value = false
+      // 重置表单
+      resetForm()
+      // 重新加载数据
+      loadProjectData()
+    } else {
+      ElMessage.error(response.msg || '操作失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('提交表单失败:', error)
+    }
+  }
+}
+
+// 重置表单
+const resetForm = () => {
+  formData.value = {
+    id: null,
+    title: '',
+    projectType: 0,
+    fileType: 0,
+    belongingProject: '',
+    belongingDept: ''
+  }
+  if (formRef.value) {
+    formRef.value.resetFields()
+  }
+}
+
+
+
+// 打开创建项目弹窗的方法，供父组件调用
+const openCreateDialog = () => {
+  // 重置表单
+  resetForm()
+  // 打开弹窗
+  showCreateDialog.value = true
 }
 
 // 分页事件处理
 const handleSizeChange = (size) => {
   pageSize.value = size
-  // 实际数据加载逻辑将在这里实现
+  currentPage.value = 1
+  loadProjectData()
 }
 
 const handleCurrentChange = (current) => {
   currentPage.value = current
-  // 实际数据加载逻辑将在这里实现
+  loadProjectData()
 }
+
+// 暴露方法给父组件
+defineExpose({
+  openCreateDialog
+})
 </script>
 
 <style scoped>
@@ -211,6 +379,11 @@ const handleCurrentChange = (current) => {
 
 .project-table-card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.create-project-btn-container {
+  margin-bottom: 20px;
+  text-align: right;
 }
 
 .pagination-container {
@@ -224,5 +397,60 @@ const handleCurrentChange = (current) => {
 .pagination-info {
   color: #606266;
   font-size: 14px;
+}
+
+/* 项目类型选择样式 */
+.project-type-container {
+  display: flex;
+  gap: 40px;
+}
+
+.project-type-item {
+  cursor: pointer;
+  text-align: center;
+  width: 120px;
+}
+
+.project-type-icon {
+  width: 100px;
+  height: 100px;
+  background-color: #B8D4EF;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  color: #1890ff;
+  font-size: 14px;
+  border-radius: 11px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.project-type-icon.active {
+  background-color: #1890ff;
+  color: white;
+  border-color: #1890ff;
+}
+
+.project-type-item:hover .project-type-icon {
+  border-color: #1890ff;
+}
+.project-type-item .project-type-icon {
+  position: relative;
+}
+.project-type-item .project-type-icon img{
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+.project-type-label {
+  font-size: 12px;
+  color: #333;
+}
+
+.project-type-item.active .project-type-label {
+  color: #1890ff;
+  font-weight: 500;
 }
 </style>

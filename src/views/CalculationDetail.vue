@@ -110,7 +110,7 @@
               <!-- 基本信息 -->
               <div class="section crane-parameters-section">
                 <div class="section-title">基本信息</div>
-                <div class="form-content">
+                <div class="form-content" style="margin-left: -20px;">
                   <div class="form-grid">
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
@@ -130,7 +130,14 @@
                           :value="crane.id"
                         />
                       </el-select>
+                     <el-button
+                    type="primary"
+                    size="default"
+                   @click="openIntelligentSelection(0)"
+                    >智能选型</el-button
+                  >
                       </div>
+                       
                     </div>
                     <div class="form-row">
                       <label class="form-label">设备名称</label>
@@ -154,8 +161,8 @@
                     </div>
 
                     <div class="form-row">
-                      <label class="form-label"> 设备生产厂家</label>
-                      <el-input v-model="formData.manufacturer"     placeholder="请输入生产厂家" />
+                      <label class="form-label">设备生产厂家</label>
+                      <el-input v-model="formData.manufacturer"  placeholder="请输入生产厂家" />
                     </div>
 
                     <div class="form-row">
@@ -180,6 +187,15 @@
                       />
                       <span class="unit">pq</span>
                     </div>
+                    <label class="form-label">吊臂类型</label>
+                    <el-select v-model="formData.boomType" placeholder="请选择吊臂类型" style="width: 150px; ">
+                      <el-option
+                        v-for="item in getBoomType()"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
                   </div>
 
                   <div class="form-row">
@@ -201,7 +217,7 @@
                       />
                       <span class="unit">m</span>
                     </div>
-                    <label class="form-label">作业半径<span>(r)</span></label>
+                    <label class="form-label" style="margin-left: -20px;">作业半径<span>(r)</span></label>
                     <div class="input-with-unit error">
                       <el-input-number
                         v-model="formData.workRadius"
@@ -294,40 +310,54 @@
                       <label class="form-label">起重机名称</label>
                       <div class="form-input-group">
                         <el-select
-                          v-model="selectedCraneId2"
-                          placeholder="请选择起重机名称"
-                          filterable
-                          clearable
-                          :loading="craneLoading"
-                          @change="(val) => handleCraneChange(val, true)"
-                        >
-                          <el-option
-                            v-for="crane in craneList"
-                            :key="crane.id"
-                            :label="crane.machineName"
-                            :value="crane.id"
-                          />
-                        </el-select>
+                            v-model="selectedCraneId2"
+                            placeholder="请选择起重机名称"
+                            filterable
+                            clearable
+                            :loading="craneLoading"
+                            @change="(val) => handleCraneChange(val, true)"
+                            style="width: calc(100% - 90px);"
+                          >
+                            <el-option
+                              v-for="crane in craneList"
+                              :key="crane.id"
+                              :label="crane.machineName"
+                              :value="crane.id"
+                            />
+                          </el-select>
+                      <el-button
+                    type="primary"
+                    size="default"
+                   @click="openIntelligentSelection(1)"
+                    >智能选型</el-button
+                  >
+                        
                       </div>
                     </div>
                     <div class="form-row">
                       <label class="form-label">设备名称</label>
-                      <el-input v-model="formData.equipmentName2" disabled />
+                      <div class="form-input-group">
+                        <el-select
+                          v-model="selectedDeviceId2"
+                          placeholder="请选择设备名称"
+                          filterable
+                          clearable
+                          :loading="deviceLoading"
+                          @change="(val) => handleDeviceChange(val, false, true)"
+                        >
+                          <el-option
+                            v-for="device in deviceList"
+                            :key="device.id"
+                            :label="device.deviceName"
+                            :value="device.id"
+                          />
+                        </el-select>
+                      </div>
                     </div>
 
                     <div class="form-row">
                       <label class="form-label">生产厂家</label>
-                      <el-input v-model="formData.manufacturer2" />
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">设备编号</label>
-                      <el-input v-model="formData.equipmentNumber2" />
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">型号</label>
-                      <el-input v-model="formData.model2" />
+                      <el-input v-model="formData.manufacturer2" placeholder="请输入生产厂家"/>
                     </div>
 
                     <div class="form-row">
@@ -352,6 +382,15 @@
                       />
                       <span class="unit">pq</span>
                     </div>
+                    <label class="form-label">吊臂类型</label>
+                    <el-select v-model="formData.boomType2" placeholder="请选择吊臂类型" style="width: 150px;">
+                      <el-option
+                        v-for="item in getBoomType()"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
                   </div>
 
                   <div class="form-row">
@@ -373,7 +412,7 @@
                       />
                       <span class="unit">m</span>
                     </div>
-                    <label class="form-label">作业半径<span>(r)</span></label>
+                    <label class="form-label" style="margin-left: -20px;">作业半径<span>(r)</span></label>
                     <div class="input-with-unit error">
                       <el-input-number
                         v-model="formData.workRadius2"
@@ -483,7 +522,7 @@
                     />
                     <span class="unit">m</span>
                   </div>
-                  <label class="form-label error">起重机1承担重量</label>
+                  <label class="form-label error">起重机1承载重量</label>
                   <div class="input-with-unit">
                     <el-input-number
                       v-model="formData.crane1Weight"
@@ -505,7 +544,7 @@
                     />
                     <span class="unit">m</span>
                   </div>
-                  <label class="form-label error">起重机2承担重量</label>
+                  <label class="form-label error">起重机2承载重量</label>
                   <div class="input-with-unit">
                     <el-input-number
                       v-model="formData.crane2Weight"
@@ -3146,6 +3185,114 @@
       </span>
     </template>
   </el-dialog>
+  <!-- 智能选型弹窗 -->
+  <el-dialog
+    v-model="intelligentSelectionDialogVisible"
+    title="起重机智能选型"
+    width="800px"
+    :before-close="() => { intelligentSelectionDialogVisible = false; }"
+  >
+    <div class="intelligent-selection-content">
+      <div class="selection-params">
+        <div class="selection-info">
+        <el-form label-width="120px">
+          <el-form-item label="设备名称">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <el-select
+                v-model="selectedDeviceId"
+                placeholder="请选择设备名称"
+                filterable
+                clearable
+                :loading="deviceLoading"
+                @change="(val) => handleDeviceChange(val, false)"
+              >
+                <el-option
+                  v-for="device in deviceList"
+                  :key="device.id"
+                  :label="device.deviceName"
+                  :value="device.id"
+                />
+              </el-select>
+              <div style="display: flex; align-items: center; width: 300px;">
+                <label style="min-width: 80px; text-align: right; margin-right: 12px;">设备重量</label>
+                <el-input-number
+                  v-model="formData.equipmentWeight"
+                  :min="0"
+                  :precision="2"
+                  controls-position="right"
+                  placeholder="请输入设备重量"
+                  style="flex: 1;"
+                />
+                <span style="margin-left: 10px;">t</span>
+              </div>
+            </div>
+          </el-form-item>
+          
+          <el-form-item label="设备型号">
+            <el-input
+              v-model="formData.equipmentType"
+              placeholder="请输入设备型号"
+            />
+          </el-form-item>
+          
+          <el-form-item label="设备生产厂家">
+            <el-input
+              v-model="formData.manufacturer"
+              placeholder="请输入设备生产厂家"
+            />
+          </el-form-item>
+        </el-form>
+        </div>
+        <div class="selection-params_button" @click="executeIntelligentSelection" :loading="intelligentSelectionLoading" >
+          <div>智能选型</div>
+        </div>
+      </div>
+      
+      <div class="selection-results" v-if="selectionResults.length > 0">
+        <h3>选型结果</h3>
+        <div
+          v-for="(result, index) in selectionResults"
+          :key="index"
+          class="selection-result-item"
+          @click="selectCraneResult(result)"
+        >
+          <div class="crane-title">
+            <div>{{ result.machineName }}</div>
+             <div class="crane-title_info"><span>厂家:{{ result.prodBusiness }}</span><span>型号:{{ result.model }}</span></div>
+          </div>
+          <div class="crane-content">
+            <div class="crane-info">
+            <label>主臂最大长度</label>
+            <span>{{ result.mainBoomMaxLength || '--' }}m</span>
+          </div>
+         <div class="crane-info">
+            <label>副臂最大长度</label>
+            <span>{{ result.jibMaxLength || '--' }}m</span>
+          </div>
+          <div class="crane-info">
+            <label>最大承载重量</label>
+            <span>{{ result.mainHookMaxCapacity || '--' }}t</span>
+          </div>
+          <div class="crane-info" style="border: none">
+            <label>车体配重重量</label>
+            <span>{{ result.counterweight || '--' }}t</span>
+          </div>
+            <div class="crane-info" style="border: none">
+             <el-button type="primary">选择</el-button>
+          </div>
+          </div>  
+        </div>
+      </div>
+      
+      <div v-else-if="!intelligentSelectionLoading" class="no-results">
+        暂无选型结果，请点击"智能选型"按钮获取结果
+      </div>
+    </div>
+    
+    <template #footer>
+      <el-button @click="intelligentSelectionDialogVisible = false">关闭</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -3168,8 +3315,11 @@ import {
   getDeviceDetail,
   getCraneList,
   getLiftingDetail,
-  getCraneDataDetail
+  getCraneDataDetail,
+  intelligentCraneSelection,
+  getCalculateInfo
 } from "@/api/index.js";
+import {  getBoomType, craneType} from "@/utils/common.js";
 
 const router = useRouter();
 const activeTab = ref("crane");
@@ -3179,10 +3329,12 @@ const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一
 const deviceList = ref([]);
 const deviceLoading = ref(false);
 const selectedDeviceId = ref('');
+const selectedDeviceId2 = ref('');
 const selectedSlingDeviceId = ref('');
 
 // 起重机列表相关
 const craneList = ref([]);
+
 const craneLoading = ref(false);
 const selectedCraneId = ref('');
 const selectedCraneId2 = ref('');
@@ -3220,7 +3372,7 @@ const loadCraneList = async () => {
 };
 
 // 获取设备详情并回显数据
-const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
+const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = false) => {
   try {
     const response = await getDeviceDetail(deviceId);
     if (response.code === '0' && response.data) {
@@ -3234,12 +3386,21 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
         if (deviceData.weight) {
           activeSlingData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
         }
+      } else if (isCrane2) {
+        // 起重机2参数tab回显
+        formData.value.equipmentName2 = deviceData.deviceName || '';
+        formData.value.equipmentType2 = deviceData.deviceType || '';
+        formData.value.manufacturer2 = deviceData.prodBusiness || '';
+        // 将设备重量赋值给起重机2的设备重量(G)
+        if (deviceData.weight) {
+          formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
+        }
       } else {
-        // 起重机tab回显
+        // 起重机1参数tab回显
         formData.value.equipmentName = deviceData.deviceName || '';
         formData.value.equipmentType = deviceData.deviceType || '';
         formData.value.manufacturer = deviceData.prodBusiness || '';
-        // 将设备重量赋值给起重机的设备重量(G)
+        // 将设备重量赋值给起重机1的设备重量(G)
         if (deviceData.weight) {
           formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
         }
@@ -3252,9 +3413,90 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false) => {
 };
 
 // 处理设备选择变化
-const handleDeviceChange = (deviceId, isSlingTab = false) => {
+const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
   if (deviceId) {
-    getDeviceDetailAndEcho(deviceId, isSlingTab);
+    getDeviceDetailAndEcho(deviceId, isSlingTab, isCrane2);
+  } else {
+    // 当清空设备名称时，清除相应的回显信息
+    if (isSlingTab) {
+      // 清除吊索具tab回显信息
+      activeSlingData.value.equipmentName = '';
+      activeSlingData.value.equipmentModel = '';
+      activeSlingData.value.manufacturer2 = '';
+      activeSlingData.value.equipmentWeight = 0;
+    } else if (isCrane2) {
+      // 清除起重机2参数tab回显信息
+      formData.value.equipmentName2 = '';
+      formData.value.equipmentType2 = '';
+      formData.value.manufacturer2 = '';
+      formData.value.equipmentWeight = 0;
+    } else {
+      // 清除起重机1参数tab回显信息
+      formData.value.equipmentName = '';
+      formData.value.equipmentType = '';
+      formData.value.manufacturer = '';
+      formData.value.equipmentWeight = 0;
+    }
+  }
+};
+
+// 打开智能选型弹窗
+const openIntelligentSelection = (craneIndex) => {
+  currentCraneIndex.value = craneIndex;
+  intelligentSelectionDialogVisible.value = true;
+};
+
+// 执行智能选型
+const executeIntelligentSelection = async () => {
+  // 先判断是否选择了设备名称
+  if (!selectedDeviceId.value) {
+    ElMessage.warning('请先选择设备名称');
+    return;
+  }
+  
+  // 判断设备重量是否有值且大于0
+  if (!formData.value.equipmentWeight || formData.value.equipmentWeight <= 0) {
+    ElMessage.warning('设备重量必须大于0');
+    return;
+  }
+  
+  try {
+    intelligentSelectionLoading.value = true;
+    const weight = formData.value.equipmentWeight; // 使用设备重量，如果没有则使用默认值10
+    const response = await intelligentCraneSelection({ mainHookMaxCapacity: weight });
+    if (response.code === '0' && response.data) {
+      selectionResults.value = response.data;
+    } else {
+      ElMessage.error('获取智能选型结果失败');
+      selectionResults.value = [];
+    }
+  } catch (error) {
+    ElMessage.error('智能选型失败');
+    console.error('智能选型失败:', error);
+    selectionResults.value = [];
+  } finally {
+    intelligentSelectionLoading.value = false;
+  }
+};
+
+// 选择起重机结果
+const selectCraneResult = async (result) => {
+  // 查找对应的起重机ID
+  const crane = craneList.value.find(c => c.id === result.craneInfoId);
+  
+  if (crane) {
+    // 根据当前起重机索引设置选中的起重机
+    if (currentCraneIndex.value === 0) {
+      selectedCraneId.value = crane.id;
+      await handleCraneChange(crane.id, false);
+    } else {
+      selectedCraneId2.value = crane.id;
+      await handleCraneChange(crane.id, true);
+    }
+    intelligentSelectionDialogVisible.value = false;
+    ElMessage.success('起重机选择成功');
+  } else {
+    ElMessage.error('未找到对应的起重机');
   }
 };
 
@@ -3334,6 +3576,7 @@ const formData = ref({
   model: "",
   equipmentType: "",
   ratedLoad: 12,
+  boomType: 0, // 添加吊臂类型字段，默认值为主臂
   mainBoomLength: 12,
   auxBoomLength: 12,
   workRadius: 12,
@@ -3352,6 +3595,7 @@ const formData = ref({
   model2: "",
   equipmentType2: "",
   ratedLoad2: 12,
+  boomType2: 0, // 添加吊臂类型字段，默认值为主臂
   mainBoomLength2: 12,
   auxBoomLength2: 12,
   workRadius2: 12,
@@ -3382,6 +3626,84 @@ const formData = ref({
   isOtherWeightChecked: false,
   otherWeightG4: 0,
 });
+
+// 监听起重机1参数变化，自动调用getCalculateInfo接口
+watch(
+  () => [
+    formData.value.mainBoomLength,
+    formData.value.mainBoomAngle,
+    formData.value.auxBoomLength,
+    formData.value.auxBoomAngle,
+    formData.value.boomType
+  ],
+  async (newValues) => {
+    // 确保所有必要参数都有值
+    if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
+      try {
+        const response = await getCalculateInfo({
+          l1: formData.value.mainBoomLength,
+          theta1: formData.value.mainBoomAngle,
+          l2: formData.value.auxBoomLength,
+          theta2: formData.value.auxBoomAngle,
+          craneType: craneType,// 起重机类型
+          armType: formData.value.boomType//吊臂类型
+        });
+        
+        if (response.code === '0' && response.data) {
+          // 更新作业半径和额定载荷
+          formData.value.workRadius = response.data.workRadius;
+          // 从cranePerformanceData中获取liftingCapacity
+          if (response.data.cranePerformanceData && response.data.cranePerformanceData.liftingCapacity) {
+            formData.value.ratedLoad = response.data.cranePerformanceData.liftingCapacity;
+          }
+        }
+      } catch (error) {
+        console.error('调用getCalculateInfo接口失败:', error);
+        // 错误处理：可以选择显示提示或者忽略，不影响用户操作
+      }
+    }
+  },
+  { immediate: false, deep: true }
+);
+
+// 监听起重机2参数变化，自动调用getCalculateInfo接口
+watch(
+  () => [
+    formData.value.mainBoomLength2,
+    formData.value.mainBoomAngle2,
+    formData.value.auxBoomLength2,
+    formData.value.auxBoomAngle2,
+    formData.value.boomType2
+  ],
+  async (newValues) => {
+    // 确保所有必要参数都有值
+    if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
+      try {
+        const response = await getCalculateInfo({
+          l1: formData.value.mainBoomLength2,
+          theta1: formData.value.mainBoomAngle2,
+          l2: formData.value.auxBoomLength2,
+          theta2: formData.value.auxBoomAngle2,
+           craneType: craneType,// 起重机类型
+          armType: formData.value.boomType2//吊臂类型
+        });
+        
+        if (response.code === '0' && response.data) {
+          // 更新作业半径和额定载荷
+          formData.value.workRadius2 = response.data.workRadius;
+          // 从cranePerformanceData中获取liftingCapacity
+          if (response.data.cranePerformanceData && response.data.cranePerformanceData.liftingCapacity) {
+            formData.value.ratedLoad2 = response.data.cranePerformanceData.liftingCapacity;
+          }
+        }
+      } catch (error) {
+        console.error('调用getCalculateInfo接口失败(起重机2):', error);
+        // 错误处理：可以选择显示提示或者忽略，不影响用户操作
+      }
+    }
+  },
+  { immediate: false, deep: true }
+);
 
 // 吊索具校核计算表单数据数组，用于存储多个吊索具配置
 const liftingFormDatas = ref([
@@ -3446,6 +3768,11 @@ const doubleCraneDialogVisible = ref(false);
 // 吊索具计算结果弹窗状态
 const liftingResultDialog1Visible = ref(false);
 const liftingResultDialog2Visible = ref(false);
+// 智能选型弹窗状态
+const intelligentSelectionDialogVisible = ref(false);
+const currentCraneIndex = ref(0); // 0表示第一台起重机，1表示第二台起重机
+const selectionResults = ref([]); // 智能选型结果列表
+const intelligentSelectionLoading = ref(false); // 智能选型加载状态
 const liftingResultDialog3Visible = ref(false);
 // 地基承载力计算结果弹窗状态
 const foundationResultDialogVisible = ref(false);
@@ -5132,5 +5459,112 @@ const closeLiftingEquipmentDialog = () => {
 
 .column-content::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* 智能选型链接样式 */
+.intelligent-selection-link {
+  color: #1890ff;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+.intelligent-selection-link:hover {
+  color: #40a9ff;
+}
+
+/* 智能选型弹窗样式 */
+.selection-result-item {
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+border: 1px solid #DEDEDE;
+background: #FFF;
+box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.07);
+}
+
+.selection-result-item:hover {
+  border-color: #1890ff;
+  background-color: #f5f5f5;
+}
+
+.selection-result-item .crane-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.selection-result-item .crane-title .crane-title_info span{
+  margin-left: 40px;
+    font-weight: 400;
+}
+.selection-result-item .crane-info {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+.selection-result-item .crane-content{
+ display: flex;
+ justify-content: space-between;
+}
+.selection-result-item .crane-content .crane-info{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  border-right: 1px solid #D7D7D7;
+}
+.selection-result-item .crane-content .crane-info label{
+margin-bottom: 10px;
+}
+.selection-result-item .crane-content .crane-info span{
+color: #000;
+font-size: 14px;
+font-weight: 500;
+
+}
+.selection-params{
+  display: flex;
+  align-items: end;
+}
+.selection-params .selection-info{
+  width: 60%;
+  box-sizing: border-box;
+  padding-right: 10%;
+}
+.selection-params .selection-params_button{
+
+display: flex;
+flex: 1;
+padding: 10px 16px;
+justify-content: end;
+align-items: center;
+gap: 10px;
+flex-shrink: 0;
+}
+.selection-params .selection-params_button>div{
+    border-radius: 9px;
+    background: #EDF6FF;
+border: 1px solid #9DD0FF;
+    display: flex;
+    align-items: center;
+  justify-content: center;
+width: 110px;
+height: 56px;
+color: #0775DB;
+}
+.selection-params .selection-params_button:hover{
+  cursor: pointer;
+}
+.no-results{
+  display: flex;
+  justify-content: center;
 }
 </style>
