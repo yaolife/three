@@ -99,25 +99,25 @@
               <el-input v-model="selectedCrane.type" placeholder="xxx履带式起重机" />
             </div>
             <div class="property-item">
-              <label>防范颜色</label>
+              <label>路径颜色</label>
               <div class="color-input-wrapper">
                 <el-input v-model="selectedCrane.color" placeholder="#26256B" />
                 <div class="color-preview" :style="{ backgroundColor: selectedCrane.color }"></div>
               </div>
             </div>
             <div class="property-item">
-              <label>场地使用宽度</label>
-              <el-input-number v-model="selectedCrane.width" :min="0" :step="1" placeholder="10" />
+              <label>路径使用宽度</label>
+              <el-input-number controls-position="right" precision='2' v-model="selectedCrane.width" :min="0" :step="1" placeholder="10" />
               <span class="unit">m</span>
             </div>
             <div class="property-item">
               <label>使用时间</label>
-              <el-input-number v-model="selectedCrane.time" :min="0" :step="1" placeholder="10" />
+              <el-input-number controls-position="right" v-model="selectedCrane.time" :min="0" :step="1" placeholder="10" />
               <span class="unit">d</span>
             </div>
             <div class="property-item">
               <label>地面承载力</label>
-              <el-input-number v-model="selectedCrane.load" :min="0" :step="1" placeholder="10" />
+              <el-input-number controls-position="right" precision='2' v-model="selectedCrane.load" :min="0" :step="1" placeholder="10" />
               <span class="unit">t</span>
             </div>
             <div class="property-item">
