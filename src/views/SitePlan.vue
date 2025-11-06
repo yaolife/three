@@ -165,7 +165,9 @@
               
               <!-- 占位设置 -->
               <div class="section-title">占位设置</div>
-              <div class="property-item">
+              <div class="stub-config">
+                <div class="stub-img"> <img src="@/images/configurations.png" alt="设置" style="width: 46px; height: 20px"></div>
+                <div> <div class="property-item">
                 <label>占位长度</label>
                 <el-input-number
                   controls-position="right"
@@ -196,7 +198,9 @@
                   placeholder="-30"
                 />
                   <span class="unit">度</span>
+              </div></div>
               </div>
+             
               
               <!-- 吊装区域 -->
               <div class="section-title">吊装区域</div>
@@ -235,40 +239,6 @@
               </div>
             </template>
             
-            <!-- 移动点位特有字段 -->
-            <template v-if="newPoint.type === 'moving'">
-              <div class="section-title">作业范围</div>
-              <div class="property-item">
-                <label>作业半径</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.radius"
-                  :min="0"
-                  :step="1"
-                  placeholder="10"
-                />
-              </div>
-              <div class="property-item">
-                <label>幅度</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.amplitude"
-                  :min="0"
-                  :step="1"
-                  placeholder="10"
-                />
-                  <span class="unit">度</span>
-              </div>
-              <div class="property-item">
-                <label>仰角</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.angle"
-                  :step="1"
-                  placeholder="60"
-                />
-              </div>
-            </template>
           </div>
           <template #footer>
             <span class="dialog-footer">
@@ -373,39 +343,6 @@
               </div>
             </template>
             
-            <!-- 移动点位特有字段 -->
-            <template v-if="editingPoint.type === 'moving'">
-              <div class="section-title">作业范围</div>
-              <div class="property-item">
-                <label>作业半径</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="editingPoint.radius"
-                  :min="0"
-                  :step="1"
-                  placeholder="10"
-                />
-              </div>
-              <div class="property-item">
-                <label>幅度</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="editingPoint.amplitude"
-                  :min="0"
-                  :step="1"
-                  placeholder="10"
-                />
-              </div>
-              <div class="property-item">
-                <label>仰角</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="editingPoint.angle"
-                  :step="1"
-                  placeholder="60"
-                />
-              </div>
-            </template>
           </div>
           <template #footer>
             <span class="dialog-footer">
@@ -1169,7 +1106,20 @@ const handleImportPlan = () => {
 .el-input-number {
   width: 120px;
 }
-
+.stub-config{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stub-img{ 
+  background: #D9D9D9;
+  width: 80px;
+  height: 90px;
+    display: flex;
+  align-items: center;
+  padding: 0 7px;
+  margin-right: 10px;
+}
 .property-item .el-input {
   width: 120px;
 }
@@ -1231,9 +1181,7 @@ const handleImportPlan = () => {
   margin-bottom: 20px;
 }
 
-:deep(.el-dialog__body) {
-  padding: 20px;
-}
+
 
 :deep(.el-button--primary) {
   background-color: #1890ff;
