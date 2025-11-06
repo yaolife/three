@@ -16,7 +16,7 @@
       <div class="left-sidebar">
         <div class="sidebar-header">
           <div class="project_name">起重机列表</div>
-          <el-button type="primary" size="small" class="add-btn">添加</el-button>
+          <span class="add-btn">添加</span>
         </div>
         <div class="search-box">
           <el-input
@@ -24,7 +24,7 @@
             prefix-icon="Search"
             size="small"
           />
-          <el-button type="primary" size="small" class="search-btn">搜索</el-button>
+          <div class="search-btn">搜索</div>
         </div>
       </div>
       
@@ -219,8 +219,10 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .add-btn {
+  display: flex;
+  align-items: center;
   height: 32px;
-  padding: 0 12px;
+  color: #0081F9;
   font-size: 12px;
 }
 
@@ -231,7 +233,14 @@ box-shadow: 0 3px 4.2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .search-btn {
-  height: 32px;
+    display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFF;
+  border-radius: 3px;
+background: #0775DB;
+  width: 48px;
+  height: 26px;
   padding: 0 12px;
   font-size: 12px;
 }
