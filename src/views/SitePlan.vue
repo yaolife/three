@@ -105,7 +105,7 @@
           :close-on-click-modal="false"
           :close-on-press-escape="false"
           custom-class="add-point-dialog adjacent-dialog"
-          style="height: 100vh;"
+          style="position: fixed;right: 320px;height: 93%;"
         >
           <div class="point-form">
             <div class="property-item">
@@ -257,6 +257,7 @@
           :close-on-click-modal="false"
           :close-on-press-escape="false"
           custom-class="edit-point-dialog adjacent-dialog"
+          style="position: fixed;right: 320px;"
         >
           <div class="point-form">
             <div class="property-item">
@@ -621,7 +622,7 @@ const setCranePosition = () => {
     if (propertyPanel) {
       console.log('属性面板位置：', propertyPanel.getBoundingClientRect());
       const rect = propertyPanel.getBoundingClientRect();
-      return `${rect.top + 30}px`; // 顶部比属性面板顶部少30px
+      return `${rect.top + 20}px`; // 顶部比属性面板顶部少30px
     }
     return '5%'; // 默认值
   };
@@ -1117,6 +1118,7 @@ const handleImportPlan = () => {
   height: 90px;
     display: flex;
   align-items: center;
+  justify-content: center;
   padding: 0 7px;
   margin-right: 10px;
 }
@@ -1136,26 +1138,11 @@ const handleImportPlan = () => {
   margin-left: 0;
 }
 
-/* 确保Dialog弹窗水平垂直居中 */
-.add-point-dialog,
-.edit-point-dialog {
-  position: absolute;
-  right: calc(280px + 10px); /* 右侧面板宽度 + 间距 */
-  top: auto; /* 让top属性生效 */
-  bottom: auto; /* 让top属性生效 */
-  left: auto; /* 让right属性生效 */
-}
 
 /* 让弹窗紧靠着属性编辑框左侧 */
 .adjacent-dialog :deep(.el-dialog__wrapper) {
   position: fixed;
-  height: auto;
   width: 400px;
-  max-height: calc(100vh - 60px); /* 限制最大高度，底部少30px */
-  right: calc(280px + 10px); /* 右侧面板宽度 + 间距 */
-  top: auto; /* 让top属性生效 */
-  bottom: auto; /* 让top属性生效 */
-  left: auto; /* 让right属性生效 */
   display: block;
   margin: 0;
   transform: none; /* 移除默认的居中变换 */
@@ -1163,8 +1150,6 @@ const handleImportPlan = () => {
 }
 
 .adjacent-dialog :deep(.el-dialog) {
-  margin: 0;
-  position: static;
   width: 100%;
   max-width: none;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15); /* 添加阴影使其看起来更自然 */
@@ -1271,7 +1256,7 @@ const handleImportPlan = () => {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 12px 16px;
+  padding: 6px 16px;
 }
 .punctuation{
   color: #FFF;
