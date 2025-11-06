@@ -45,7 +45,7 @@
           >
             <span class="crane-name">{{ crane.name }}</span>
             <el-icon class="delete-icon" @click.stop="deleteCrane(crane.id)">
-              <Close />
+          <img src="@/images/c_delete.png" alt="总平规划图" style="width: 15px; height: 15px;">
             </el-icon>
           </div>
         </div>
