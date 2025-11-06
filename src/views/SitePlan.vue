@@ -90,7 +90,7 @@ onMounted(() => {
   // 加载项目数据
   loadProjectData()
   // 自动显示Dialog
-  dialogVisible.value = true
+  dialogVisible.value = false
 })
 
 // 加载项目数据
