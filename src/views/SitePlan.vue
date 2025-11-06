@@ -456,7 +456,7 @@
                 />
                 <img 
                   v-else 
-                  src="@/images/point.png" 
+                  src="@/images/move_point.png" 
                   alt="移动点位" 
                   style="width: 16px; height: 16px; margin-right: 8px"
                 />
