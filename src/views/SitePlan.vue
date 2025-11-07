@@ -362,6 +362,16 @@
             alt="总平规划图"
             class="plan-image"
           />
+          <!-- Canvas覆盖层用于绘制点位和路径 -->
+          <canvas
+            ref="canvas"
+            class="point-canvas"
+            @mousedown="handleCanvasMouseDown"
+            @mousemove="handleCanvasMouseMove"
+            @mouseup="handleCanvasMouseUp"
+            @mouseleave="handleCanvasMouseUp"
+            @wheel="handleCanvasWheel"
+          ></canvas>
         </div>
         <div v-else-if="!dialogVisible" class="empty-content">
           <div class="empty-text">请添加施工场景图</div>
@@ -388,15 +398,21 @@
               />
             </div>
             <div class="property-item">
-              <label>路径颜色</label>
-              <div class="color-input-wrapper">
-                <el-input v-model="selectedCrane.color" placeholder="#26256B" />
-                <div
-                  class="color-preview"
-                  :style="{ backgroundColor: selectedCrane.color }"
-                ></div>
-              </div>
-            </div>
+          <label>路径颜色</label>
+          <div class="color-input-wrapper">
+            <el-color-picker
+              v-model="selectedCrane.color"
+              size="small"
+              show-alpha
+              show-input="false"
+              @change="onColorChange"
+            />
+            <div
+              class="color-preview"
+              :style="{ backgroundColor: selectedCrane.color }"
+            ></div>
+          </div>
+        </div>
             <div class="property-item">
               <label>路径使用宽度</label>
               <el-input-number
@@ -493,7 +509,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { ArrowLeft, Search, Close } from "@element-plus/icons-vue";
@@ -519,6 +535,16 @@ const craneCounter = ref(0); // 用于生成起重机名称
 // 点位相关数据
 const addPointDialogVisible = ref(false);
 const editPointDialogVisible = ref(false);
+
+// Canvas相关数据
+const canvas = ref(null);
+const ctx = ref(null);
+const scale = ref(1);
+const offsetX = ref(0);
+const offsetY = ref(0);
+const isDragging = ref(false);
+const lastMouseX = ref(0);
+const lastMouseY = ref(0);
 const newPoint = ref({
   name: "点位1",
   x: 112.00000000,
@@ -552,7 +578,186 @@ onMounted(() => {
   loadProjectData();
   // 自动显示Dialog
   dialogVisible.value = false;
+  
+  // 初始化Canvas
+  nextTick(() => {
+    initCanvas();
+  });
+  
+  // 监听窗口大小变化，重新调整Canvas大小
+  window.addEventListener('resize', handleResize);
 });
+
+// 初始化Canvas
+const initCanvas = () => {
+  if (!canvas.value) return;
+  
+  ctx.value = canvas.value.getContext('2d');
+  
+  // 设置Canvas大小与容器一致
+  const container = canvas.value.parentElement;
+  if (container) {
+    canvas.value.width = container.offsetWidth;
+    canvas.value.height = container.offsetHeight;
+  }
+  
+  // 绘制点位
+  drawPoints();
+};
+
+// 处理窗口大小变化
+const handleResize = () => {
+  if (!canvas.value) return;
+  
+  const container = canvas.value.parentElement;
+  if (container) {
+    canvas.value.width = container.offsetWidth;
+    canvas.value.height = container.offsetHeight;
+  }
+  
+  // 重绘点位
+  drawPoints();
+};
+
+// 绘制点位和路径
+const drawPoints = () => {
+  if (!ctx.value || !selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length === 0) {
+    return;
+  }
+  
+  // 清空Canvas
+  ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
+  
+  // 保存当前状态
+  ctx.value.save();
+  
+  // 应用平移和缩放
+  ctx.value.translate(offsetX.value, offsetY.value);
+  ctx.value.scale(scale.value, scale.value);
+  
+  const points = selectedCrane.value.points;
+  const color = selectedCrane.value.color || '#26256B';
+  
+  // 绘制路径连接线
+  if (points.length > 1) {
+    ctx.value.beginPath();
+    ctx.value.moveTo(points[0].x * 5, points[0].y * 5); // 假设坐标需要放大5倍以适应Canvas
+    
+    for (let i = 1; i < points.length; i++) {
+      ctx.value.lineTo(points[i].x * 5, points[i].y * 5);
+    }
+    
+    ctx.value.strokeStyle = color;
+    ctx.value.lineWidth = 2 / scale.value; // 线宽适应缩放
+    ctx.value.stroke();
+  }
+  
+  // 绘制点位
+  points.forEach((point, index) => {
+    const x = point.x * 5;
+    const y = point.y * 5;
+    
+    // 绘制点位圆圈
+    ctx.value.beginPath();
+    ctx.value.arc(x, y, 5 / scale.value, 0, 2 * Math.PI);
+    ctx.value.fillStyle = color;
+    ctx.value.fill();
+    
+    // 绘制点位边框
+    ctx.value.strokeStyle = '#ffffff';
+    ctx.value.lineWidth = 1 / scale.value;
+    ctx.value.stroke();
+    
+    // 绘制点位名称
+    ctx.value.fillStyle = '#000000';
+    ctx.value.font = `${12 / scale.value}px Arial`;
+    ctx.value.textAlign = 'center';
+    ctx.value.fillText(point.name, x, y - 10 / scale.value);
+  });
+  
+  // 恢复状态
+  ctx.value.restore();
+};
+
+// 鼠标按下事件处理
+const handleCanvasMouseDown = (event) => {
+  isDragging.value = true;
+  lastMouseX.value = event.clientX;
+  lastMouseY.value = event.clientY;
+  canvas.value.style.cursor = 'grabbing';
+};
+
+// 鼠标移动事件处理
+const handleCanvasMouseMove = (event) => {
+  if (!isDragging.value) return;
+  
+  const deltaX = event.clientX - lastMouseX.value;
+  const deltaY = event.clientY - lastMouseY.value;
+  
+  offsetX.value += deltaX;
+  offsetY.value += deltaY;
+  
+  lastMouseX.value = event.clientX;
+  lastMouseY.value = event.clientY;
+  
+  // 重绘点位
+  drawPoints();
+};
+
+// 鼠标释放事件处理
+const handleCanvasMouseUp = () => {
+  isDragging.value = false;
+  if (canvas.value) {
+    canvas.value.style.cursor = 'grab';
+  }
+};
+
+// 鼠标滚轮事件处理（缩放）
+const handleCanvasWheel = (event) => {
+  event.preventDefault();
+  
+  const mouseX = event.clientX - canvas.value.offsetLeft;
+  const mouseY = event.clientY - canvas.value.offsetTop;
+  
+  const scaleRatio = event.deltaY > 0 ? 0.9 : 1.1;
+  const newScale = Math.max(0.1, Math.min(5, scale.value * scaleRatio));
+  
+  // 调整偏移量以保持鼠标位置不变
+  const scaleChange = newScale / scale.value;
+  
+  offsetX.value = mouseX - (mouseX - offsetX.value) * scaleChange;
+  offsetY.value = mouseY - (mouseY - offsetY.value) * scaleChange;
+  
+  scale.value = newScale;
+  
+  // 重绘点位
+  drawPoints();
+};
+
+// 颜色变化处理
+const onColorChange = () => {
+  // 当颜色变化时，重绘点位
+  drawPoints();
+  
+  // 更新原数据中的对应起重机颜色
+  if (selectedCrane.value) {
+    const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+    if (craneIndex !== -1) {
+      cranes.value[craneIndex].color = selectedCrane.value.color;
+    }
+  }
+};
+
+// 监听selectedCrane的变化，包括color属性
+watch(
+  () => selectedCrane.value,
+  () => {
+    if (selectedCrane.value) {
+      drawPoints();
+    }
+  },
+  { deep: true }
+);
 
 // 计算属性：过滤后的起重机列表
 const filteredCranes = computed(() => {
@@ -596,6 +801,9 @@ const selectCrane = (crane) => {
     crane.points = [];
   }
   selectedCrane.value = { ...crane };
+    
+    // 重绘点位
+    drawPoints();
 };
 
 // 设置起重机点位（打开添加起点弹窗）
@@ -718,6 +926,9 @@ const confirmAddPoint = () => {
   // 关闭弹窗
   addPointDialogVisible.value = false;
   ElMessage.success("点位已添加");
+    
+    // 重绘点位
+    drawPoints();
 };
 
 // 编辑点位
@@ -749,6 +960,9 @@ const confirmEditPoint = () => {
   editPointDialogVisible.value = false;
   editingPointIndex.value = -1;
   ElMessage.success("点位已更新");
+    
+    // 重绘点位
+    drawPoints();
 };
 
 // 删除点位
@@ -765,6 +979,9 @@ const deletePoint = (index) => {
   }
   
   ElMessage.success("点位已删除");
+    
+    // 重绘点位
+    drawPoints();
 };
 
 // 加载项目数据
@@ -1097,7 +1314,7 @@ const handleImportPlan = () => {
 .property-item label {
   font-size: 12px;
   color: #606266;
-  width: 70px;
+  width: 75px;
   flex-shrink: 0;
   text-align: left;
 }
@@ -1119,6 +1336,22 @@ const handleImportPlan = () => {
   border-radius: 4px;
   border: 1px solid #dcdfe6;
 }
+
+.point-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  z-index: 2;
+  pointer-events: all;
+}
+
+.point-canvas:active {
+  cursor: grabbing;
+}
+
 
 .unit {
   margin-left: 8px;
@@ -1197,12 +1430,14 @@ const handleImportPlan = () => {
 
 /* 图片容器样式 */
 .image-container {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
+  margin-right: 280px;
 }
 
 .plan-image {
