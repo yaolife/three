@@ -356,7 +356,7 @@
         <!-- 右侧内容区域 - 显示导入的图片 -->
         <div v-if="importedImage" class="image-container">
           <!-- <img :src="importedImage" alt="总平规划图" class="plan-image"> -->
-           <!-- 施工场平面景图 -->
+           <!-- 施工场景平面 -->
           <img
             src="@/images/planning.png"
             alt="总平规划图"
