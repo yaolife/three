@@ -63,7 +63,7 @@
               { selected: selectedCrane && selectedCrane.id === crane.id },
             ]"
             @click="selectCrane(crane)"
-          > <span class="crane-color"></span>
+          > <span class="crane-color" :style="{ backgroundColor: crane.color }"></span>
             <span class="crane-name">{{ crane.name }}</span>
             <el-icon class="delete-icon" @click.stop="deleteCrane(crane.id)">
               <img
@@ -1218,7 +1218,6 @@ const handleImportPlan = () => {
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  background-color: red;
 }
 .crane-name {
   font-size: 12px;
