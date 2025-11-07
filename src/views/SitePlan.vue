@@ -447,9 +447,15 @@
             <!-- 显示点位列表 -->
             <div v-for="(point, index) in selectedCrane.points" :key="point.id" class="point-item">
               <div class="point-info">
-                <!-- 根据点位类型显示不同图标 -->
+                <!-- 根据点位类型和索引显示不同图标 -->
                 <img 
-                  v-if="point.type === 'lifting'" 
+                  v-if="index === 0" 
+                  src="@/images/point.png" 
+                  alt="起点" 
+                  style="width: 16px; height: 16px; margin-right: 8px"
+                />
+                <img 
+                  v-else-if="point.type === 'lifting'" 
                   src="@/images/crane_point.png" 
                   alt="吊装点位" 
                   style="width: 16px; height: 16px; margin-right: 8px"
