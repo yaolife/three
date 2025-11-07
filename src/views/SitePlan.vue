@@ -530,7 +530,7 @@ const fileInput = ref(null);
 const cranes = ref([]);
 const selectedCrane = ref(null);
 const searchQuery = ref("");
-const craneCounter = ref(0); // 用于生成起重机名称
+const craneCounter = ref(1); // 用于生成起重机名称，从2开始编号
 
 // 点位相关数据
 const addPointDialogVisible = ref(false);
