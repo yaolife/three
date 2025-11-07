@@ -40,7 +40,7 @@
       <!-- 左侧导航菜单 -->
       <div class="left-sidebar">
         <div class="sidebar-header">
-          <div class="project_name">起重机列表</div>
+          <div class="project_name">起重机路径列表</div>
           <span class="add-btn" @click="addCrane">添加</span>
         </div>
         <div class="search-box">
@@ -63,7 +63,7 @@
               { selected: selectedCrane && selectedCrane.id === crane.id },
             ]"
             @click="selectCrane(crane)"
-          >
+          > <span class="crane-color"></span>
             <span class="crane-name">{{ crane.name }}</span>
             <el-icon class="delete-icon" @click.stop="deleteCrane(crane.id)">
               <img
@@ -1213,7 +1213,13 @@ const handleImportPlan = () => {
   background-color: #e6f7ff;
   border: 1px solid #91d5ff;
 }
-
+.crane-color{
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background-color: red;
+}
 .crane-name {
   font-size: 12px;
   color: #303133;
