@@ -4145,6 +4145,24 @@ const calculateLiftingResult = (sling) => {
 
 // 显示吊索具计算结果
 const showLiftingResult = () => {
+  // 非空校验
+    if (!selectedSlingDeviceId.value) {
+    ElMessage.warning('请选择设备名称');
+    return;
+  }
+  if (!activeSlingData.value.deviceName) {
+    ElMessage.warning('请输入吊索具名称');
+    return;
+  }
+  if (!activeSlingData.value.height || parseFloat(activeSlingData.value.height) <= 0) {
+    ElMessage.warning('请计算有效的吊索具高度');
+    return;
+  }
+  if (!activeSlingData.value.angle || parseFloat(activeSlingData.value.angle) <= 0) {
+    ElMessage.warning('请计算有效的吊索具角度');
+    return;
+  }
+  
   // 场景判断
   if (activeSlingData.value.liftingType === "noBeam") {
     // 无吊梁情况
