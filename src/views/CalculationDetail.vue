@@ -4190,6 +4190,28 @@ const doubleResult = ref({
 
 // 显示计算结果弹窗
 const showCalculationResult = () => {
+  // 根据当前激活的起重机参数tab进行相应的非空校验
+  if (craneParamsTab.value === 'crane1') {
+    // 起重机参数1内容下，只校验起重机1的名称和设备名称
+    if (!selectedCraneId.value) {
+      ElMessage.warning('请选择起重机名称');
+      return;
+    }
+    if (!selectedDeviceId.value) {
+      ElMessage.warning('请选择设备名称');
+      return;
+    }
+  } else if (craneParamsTab.value === 'crane2') {
+    // 起重机参数2内容下，只校验起重机2的名称和设备名称
+    if (!selectedCraneId2.value) {
+      ElMessage.warning('请选择起重机2的名称');
+      return;
+    }
+    if (!selectedDeviceId2.value) {
+      ElMessage.warning('请选择起重机2的设备名称');
+      return;
+    }
+  }
   // 收集选中的重量参数
   let equipmentWeight = formData.value.isEquipmentWeightChecked
     ? formData.value.equipmentWeight
