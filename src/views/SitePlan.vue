@@ -24,12 +24,12 @@
               style="width: 20px; height: 20px; margin-right: 5px"
             /><span>生成报告</span>
           </div>
-          <div class="handle_btn_item">
+          <div class="handle_btn_item" @click="togglePlaybackFromHeader">
             <img
               src="@/images/preview.png"
               alt="预览"
               style="width: 20px; height: 20px; margin-right: 5px"
-            /><span>预览</span>
+            /><span>{{ isPlaying ? '停止' : '预览' }}</span>
           </div>
         </div>
       </div>
@@ -114,11 +114,23 @@
             </div>
             <div class="property-item">
               <label>X轴</label>
-              <el-input v-model="newPoint.x" placeholder="X坐标" />
+              <el-input-number
+                v-model="newPoint.x"
+                :precision="6"
+                :step="0.1"
+                placeholder="X坐标"
+                style="width: 120px"
+              />
             </div>
             <div class="property-item">
               <label>Y轴</label>
-              <el-input v-model="newPoint.y" placeholder="Y坐标" />
+              <el-input-number
+                v-model="newPoint.y"
+                :precision="6"
+                :step="0.1"
+                placeholder="Y坐标"
+                style="width: 120px"
+              />
             </div>
             <div class="property-item">
               <label>占点类型</label>
@@ -266,11 +278,23 @@
             </div>
             <div class="property-item">
               <label>X轴</label>
-              <el-input v-model="editingPoint.x" placeholder="X坐标" />
+              <el-input-number
+                v-model="editingPoint.x"
+                :precision="6"
+                :step="0.1"
+                placeholder="X坐标"
+                style="width: 120px"
+              />
             </div>
             <div class="property-item">
               <label>Y轴</label>
-              <el-input v-model="editingPoint.y" placeholder="Y坐标" />
+              <el-input-number
+                v-model="editingPoint.y"
+                :precision="6"
+                :step="0.1"
+                placeholder="Y坐标"
+                style="width: 120px"
+              />
             </div>
             
             <!-- 吊装点位特有字段 -->
@@ -354,13 +378,15 @@
         </el-dialog>
 
         <!-- 右侧内容区域 - 显示导入的图片 -->
-        <div v-if="importedImage" class="image-container">
-          <!-- <img :src="importedImage" alt="总平规划图" class="plan-image"> -->
-           <!-- 施工场景平面 -->
+        <div class="image-container">
+          <!-- 施工场景平面图 -->
           <img
+            ref="imageRef"
             src="@/images/planning.png"
             alt="总平规划图"
             class="plan-image"
+            @load="handleImageLoad"
+            @error="handleImageError"
           />
           <!-- Canvas覆盖层用于绘制点位和路径 -->
           <canvas
@@ -372,12 +398,6 @@
             @mouseleave="handleCanvasMouseUp"
             @wheel="handleCanvasWheel"
           ></canvas>
-        </div>
-        <div v-else-if="!dialogVisible" class="empty-content">
-          <div class="empty-text">请添加施工场景图</div>
-          <el-button type="primary" @click="dialogVisible = true"
-            >添加</el-button
-          >
         </div>
 
         <!-- 任务属性编辑悬浮框 -->
@@ -502,6 +522,25 @@
               >添加路径点位</span>
             >
           </div>
+          <!-- 播放和重置按钮 -->
+          <div class="trajectory-controls">
+            <el-button 
+              type="primary" 
+              :disabled="!selectedCrane || !selectedCrane.points || selectedCrane.points.length < 2"
+              @click="togglePlayback"
+              style="width: 100%; margin-bottom: 10px;"
+            >
+              {{ isPlaying && playingCraneId === selectedCrane?.id ? '停止播放' : '播放路径动画' }}
+            </el-button>
+            <el-button 
+              type="warning" 
+              :disabled="!selectedCrane || !selectedCrane.points || selectedCrane.points.length === 0"
+              @click="resetTrajectory"
+              style="width: 100%;"
+            >
+              重置路径
+            </el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -509,9 +548,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { ArrowLeft, Search, Close } from "@element-plus/icons-vue";
 
 const route = useRoute();
@@ -545,6 +584,25 @@ const offsetY = ref(0);
 const isDragging = ref(false);
 const lastMouseX = ref(0);
 const lastMouseY = ref(0);
+const imageRef = ref(null);
+const imageWidth = ref(0);
+const imageHeight = ref(0);
+const imageNaturalWidth = ref(0);
+const imageNaturalHeight = ref(0);
+
+// 点位拖动相关
+const isDraggingPoint = ref(false);
+const draggedPoint = ref(null);
+const draggedCrane = ref(null);
+const draggedPointIndex = ref(-1);
+const pointHitRadius = 10; // 点位点击检测半径
+
+// 轨迹播放相关
+const isPlaying = ref(false);
+const playingCraneId = ref(null);
+const playbackProgress = ref(0);
+const playbackAnimationFrame = ref(null);
+
 const newPoint = ref({
   name: "点位1",
   x: 112.00000000,
@@ -588,6 +646,43 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
 });
 
+// 处理图片加载
+const handleImageLoad = () => {
+  console.log('图片加载完成');
+  if (imageRef.value) {
+    imageNaturalWidth.value = imageRef.value.naturalWidth;
+    imageNaturalHeight.value = imageRef.value.naturalHeight;
+    console.log('图片尺寸:', imageNaturalWidth.value, imageNaturalHeight.value);
+    nextTick(() => {
+      updateImageDimensions();
+      // 确保Canvas已初始化
+      if (!ctx.value && canvas.value) {
+        initCanvas();
+      } else {
+        drawAllTrajectories();
+      }
+    });
+  }
+};
+
+// 处理图片加载错误
+const handleImageError = () => {
+  console.error('图片加载失败');
+};
+
+// 更新图片尺寸
+const updateImageDimensions = () => {
+  if (imageRef.value && canvas.value) {
+    const rect = imageRef.value.getBoundingClientRect();
+    imageWidth.value = rect.width;
+    imageHeight.value = rect.height;
+    // 延迟重绘，确保尺寸更新完成
+    nextTick(() => {
+      drawAllTrajectories();
+    });
+  }
+};
+
 // 初始化Canvas
 const initCanvas = () => {
   if (!canvas.value) return;
@@ -601,8 +696,11 @@ const initCanvas = () => {
     canvas.value.height = container.offsetHeight;
   }
   
-  // 绘制点位
-  drawPoints();
+  // 更新图片尺寸
+  updateImageDimensions();
+  
+  // 绘制所有轨迹
+  drawAllTrajectories();
 };
 
 // 处理窗口大小变化
@@ -615,101 +713,453 @@ const handleResize = () => {
     canvas.value.height = container.offsetHeight;
   }
   
-  // 重绘点位
-  drawPoints();
+  // 更新图片尺寸
+  updateImageDimensions();
+  
+  // 重绘所有轨迹
+  drawAllTrajectories();
 };
 
-// 绘制点位和路径
-const drawPoints = () => {
-  if (!ctx.value || !selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length === 0) {
+// 坐标系统映射参数（可以在使用时调整）
+const coordMinX = ref(100);
+const coordMaxX = ref(120);
+const coordMinY = ref(30);
+const coordMaxY = ref(50);
+
+// 将地理坐标转换为Canvas坐标
+// 坐标系统：X和Y是地理坐标（例如112.000000, 38.000000）
+// 需要映射到图片在canvas上的实际位置
+const convertToCanvasCoords = (x, y) => {
+  if (!imageRef.value || !canvas.value) {
+    console.warn('图片或Canvas未加载，使用默认映射');
+    // 如果图片或canvas未加载，使用默认映射
+    return { x: x * 5, y: y * 5 };
+  }
+  
+  try {
+    const imageRect = imageRef.value.getBoundingClientRect();
+    const containerRect = canvas.value.parentElement.getBoundingClientRect();
+    
+    // 计算图片在容器中的偏移（相对于容器）
+    const imageOffsetX = imageRect.left - containerRect.left;
+    const imageOffsetY = imageRect.top - containerRect.top;
+    
+    // 获取图片实际显示尺寸
+    const displayedWidth = imageRect.width;
+    const displayedHeight = imageRect.height;
+    
+    if (displayedWidth === 0 || displayedHeight === 0) {
+      console.warn('图片尺寸为0，使用默认映射');
+      return { x: x * 5, y: y * 5 };
+    }
+    
+    const coordRangeX = coordMaxX.value - coordMinX.value;
+    const coordRangeY = coordMaxY.value - coordMinY.value;
+    
+    if (coordRangeX === 0 || coordRangeY === 0) {
+      console.warn('坐标范围无效，使用默认映射');
+      return { x: x * 5, y: y * 5 };
+    }
+    
+    // 将地理坐标归一化（允许超出范围，以便支持更大的坐标范围）
+    const normalizedX = (x - coordMinX.value) / coordRangeX;
+    const normalizedY = (y - coordMinY.value) / coordRangeY;
+    
+    // 映射到图片坐标
+    const canvasX = imageOffsetX + normalizedX * displayedWidth;
+    const canvasY = imageOffsetY + normalizedY * displayedHeight;
+    
+    return { x: canvasX, y: canvasY };
+  } catch (error) {
+    console.error('坐标转换错误:', error);
+    // 如果转换失败，使用默认映射
+    return { x: x * 5, y: y * 5 };
+  }
+};
+
+// 将Canvas坐标转换为地理坐标
+const convertToGeoCoords = (canvasX, canvasY) => {
+  if (!imageRef.value || !canvas.value) {
+    return { x: canvasX / 5, y: canvasY / 5 };
+  }
+  
+  try {
+    const imageRect = imageRef.value.getBoundingClientRect();
+    const containerRect = canvas.value.parentElement.getBoundingClientRect();
+    
+    // 计算图片在容器中的偏移
+    const imageOffsetX = imageRect.left - containerRect.left;
+    const imageOffsetY = imageRect.top - containerRect.top;
+    
+    // 获取图片实际显示尺寸
+    const displayedWidth = imageRect.width;
+    const displayedHeight = imageRect.height;
+    
+    if (displayedWidth === 0 || displayedHeight === 0) {
+      return { x: canvasX / 5, y: canvasY / 5 };
+    }
+    
+    // 计算相对于图片的坐标
+    const relativeX = canvasX - imageOffsetX;
+    const relativeY = canvasY - imageOffsetY;
+    
+    // 归一化到0-1范围
+    const normalizedX = relativeX / displayedWidth;
+    const normalizedY = relativeY / displayedHeight;
+    
+    // 转换为地理坐标
+    const coordRangeX = coordMaxX.value - coordMinX.value;
+    const coordRangeY = coordMaxY.value - coordMinY.value;
+    
+    const geoX = coordMinX.value + normalizedX * coordRangeX;
+    const geoY = coordMinY.value + normalizedY * coordRangeY;
+    
+    return { x: geoX, y: geoY };
+  } catch (error) {
+    console.error('坐标转换错误:', error);
+    return { x: canvasX / 5, y: canvasY / 5 };
+  }
+};
+
+// 绘制单个起重机的轨迹（已废弃，现在使用drawAllTrajectories统一绘制）
+// 保留此函数以兼容播放进度绘制
+const drawCraneTrajectory = (crane, isHighlighted = false) => {
+  // 此函数不再使用，所有绘制都在drawAllTrajectories中完成
+};
+
+// 绘制播放进度
+const drawPlaybackProgress = (crane, points) => {
+  if (points.length < 2 || playbackProgress.value <= 0) return;
+  
+  const color = crane.color || '#26256B';
+  const totalLength = points.length - 1;
+  const currentIndex = Math.floor(playbackProgress.value * totalLength);
+  const progress = (playbackProgress.value * totalLength) % 1;
+  
+  if (currentIndex < points.length - 1) {
+    const startCoords = convertToCanvasCoords(points[currentIndex].x, points[currentIndex].y);
+    const endCoords = convertToCanvasCoords(points[currentIndex + 1].x, points[currentIndex + 1].y);
+    
+    // 绘制已完成的路径（实线）
+    ctx.value.save();
+    ctx.value.beginPath();
+    ctx.value.moveTo(startCoords.x, startCoords.y);
+    
+    // 计算当前位置
+    const currentX = startCoords.x + (endCoords.x - startCoords.x) * progress;
+    const currentY = startCoords.y + (endCoords.y - startCoords.y) * progress;
+    ctx.value.lineTo(currentX, currentY);
+    
+    ctx.value.strokeStyle = color;
+    ctx.value.lineWidth = 4;
+    ctx.value.stroke();
+    ctx.value.restore();
+    
+    // 绘制当前位置指示器
+    ctx.value.save();
+    ctx.value.fillStyle = '#ff0000';
+    ctx.value.beginPath();
+    ctx.value.arc(currentX, currentY, 6, 0, 2 * Math.PI);
+    ctx.value.fill();
+    ctx.value.strokeStyle = '#ffffff';
+    ctx.value.lineWidth = 2;
+    ctx.value.stroke();
+    ctx.value.restore();
+  }
+};
+
+// 绘制所有轨迹
+const drawAllTrajectories = () => {
+  if (!ctx.value || !canvas.value) {
+    console.warn('Canvas未初始化，无法绘制');
     return;
   }
   
   // 清空Canvas
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
   
-  // 保存当前状态
-  ctx.value.save();
-  
-  // 应用平移和缩放
-  ctx.value.translate(offsetX.value, offsetY.value);
-  ctx.value.scale(scale.value, scale.value);
-  
-  const points = selectedCrane.value.points;
-  const color = selectedCrane.value.color || '#26256B';
-  
-  // 绘制路径连接线
-  if (points.length > 1) {
-    ctx.value.beginPath();
-    ctx.value.moveTo(points[0].x * 5, points[0].y * 5); // 假设坐标需要放大5倍以适应Canvas
-    
-    for (let i = 1; i < points.length; i++) {
-      ctx.value.lineTo(points[i].x * 5, points[i].y * 5);
+  // 先绘制所有路径线（按点位顺序连接）
+  cranes.value.forEach(crane => {
+    if (crane.points && crane.points.length > 1) {
+      const color = crane.color || '#26256B';
+      const lineWidth = (selectedCrane.value && selectedCrane.value.id === crane.id) ? 3 : 2;
+      
+      ctx.value.save();
+      ctx.value.setLineDash([5, 5]); // 虚线样式
+      ctx.value.beginPath();
+      
+      // 按点位顺序连接所有点位，生成完整路径
+      const startCoords = convertToCanvasCoords(crane.points[0].x, crane.points[0].y);
+      ctx.value.moveTo(startCoords.x, startCoords.y);
+      
+      // 连接所有后续点位
+      for (let i = 1; i < crane.points.length; i++) {
+        const coords = convertToCanvasCoords(crane.points[i].x, crane.points[i].y);
+        ctx.value.lineTo(coords.x, coords.y);
+      }
+      
+      ctx.value.strokeStyle = color;
+      ctx.value.lineWidth = lineWidth;
+      ctx.value.stroke();
+      ctx.value.restore();
     }
-    
-    ctx.value.strokeStyle = color;
-    ctx.value.lineWidth = 2 / scale.value; // 线宽适应缩放
-    ctx.value.stroke();
-  }
-  
-  // 绘制点位
-  points.forEach((point, index) => {
-    const x = point.x * 5;
-    const y = point.y * 5;
-    
-    // 绘制点位圆圈
-    ctx.value.beginPath();
-    ctx.value.arc(x, y, 5 / scale.value, 0, 2 * Math.PI);
-    ctx.value.fillStyle = color;
-    ctx.value.fill();
-    
-    // 绘制点位边框
-    ctx.value.strokeStyle = '#ffffff';
-    ctx.value.lineWidth = 1 / scale.value;
-    ctx.value.stroke();
-    
-    // 绘制点位名称
-    ctx.value.fillStyle = '#000000';
-    ctx.value.font = `${12 / scale.value}px Arial`;
-    ctx.value.textAlign = 'center';
-    ctx.value.fillText(point.name, x, y - 10 / scale.value);
   });
   
-  // 恢复状态
-  ctx.value.restore();
+  // 再绘制所有点位（按顺序绘制，后添加的在上面）
+  // 为了确保后添加的点位在上面，我们需要按照添加顺序绘制
+  // 但也要确保选中的起重机的点位在上面
+  const allPoints = [];
+  
+  // 收集所有点位，记录它们的添加顺序
+  cranes.value.forEach((crane, craneIndex) => {
+    if (crane.points && crane.points.length > 0) {
+      const isSelected = selectedCrane.value && selectedCrane.value.id === crane.id;
+      crane.points.forEach((point, pointIndex) => {
+        allPoints.push({
+          point,
+          crane,
+          craneIndex,
+          pointIndex,
+          isSelected,
+          isStart: pointIndex === 0,
+          pointId: point.id || pointIndex // 使用点位的ID或索引
+        });
+      });
+    }
+  });
+  
+  // 排序规则：
+  // 1. 先绘制非选中的起重机点位
+  // 2. 再绘制选中的起重机点位
+  // 3. 在同一起重机内，按添加顺序（索引）绘制，索引大的（后添加的）在上层
+  // 4. 对于选中的起重机，使用更大的绘制顺序值，确保在上层
+  allPoints.sort((a, b) => {
+    // 先按是否选中排序
+    if (a.isSelected && !b.isSelected) return 1;
+    if (!a.isSelected && b.isSelected) return -1;
+    
+    // 如果都是选中或都未选中，按起重机索引排序
+    if (a.craneIndex !== b.craneIndex) {
+      return a.craneIndex - b.craneIndex;
+    }
+    
+    // 同一起重机内，按点位索引排序（索引大的后绘制，在上层）
+    return a.pointIndex - b.pointIndex;
+  });
+  
+  // 绘制所有点位
+  allPoints.forEach(({ point, crane, index, isSelected, isStart }) => {
+    const coords = convertToCanvasCoords(point.x, point.y);
+    const color = crane.color || '#26256B';
+    const pointSize = isSelected ? 8 : 6;
+    
+    // 绘制点位方块
+    ctx.value.fillStyle = color;
+    ctx.value.fillRect(coords.x - pointSize / 2, coords.y - pointSize / 2, pointSize, pointSize);
+    
+    // 绘制点位边框（白色）
+    ctx.value.strokeStyle = '#ffffff';
+    ctx.value.lineWidth = 1;
+    ctx.value.strokeRect(coords.x - pointSize / 2, coords.y - pointSize / 2, pointSize, pointSize);
+    
+    // 如果是起点，添加特殊标记
+    if (isStart) {
+      ctx.value.fillStyle = '#ffffff';
+      ctx.value.font = '10px Arial';
+      ctx.value.textAlign = 'center';
+      ctx.value.textBaseline = 'middle';
+      ctx.value.fillText('S', coords.x, coords.y);
+    }
+  });
+  
+  // 如果是播放状态，绘制播放进度
+  if (isPlaying.value && playingCraneId.value) {
+    const playingCrane = cranes.value.find(c => c.id === playingCraneId.value);
+    if (playingCrane && playingCrane.points && playingCrane.points.length > 1) {
+      drawPlaybackProgress(playingCrane, playingCrane.points);
+    }
+  }
+};
+
+// 获取鼠标在Canvas上的坐标
+const getMouseCanvasPos = (event) => {
+  if (!canvas.value) return { x: 0, y: 0 };
+  
+  const rect = canvas.value.getBoundingClientRect();
+  return {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top
+  };
+};
+
+// 检测鼠标是否点击在点位上
+const getPointAtPosition = (x, y) => {
+  // 收集所有点位及其信息
+  const allPoints = [];
+  
+  cranes.value.forEach((crane, craneIndex) => {
+    if (!crane.points || crane.points.length === 0) return;
+    
+    const isSelected = selectedCrane.value && selectedCrane.value.id === crane.id;
+    
+    crane.points.forEach((point, pointIndex) => {
+      const coords = convertToCanvasCoords(point.x, point.y);
+      const distance = Math.sqrt(Math.pow(x - coords.x, 2) + Math.pow(y - coords.y, 2));
+      
+      if (distance <= pointHitRadius) {
+        allPoints.push({
+          point,
+          crane,
+          craneIndex,
+          pointIndex,
+          isSelected,
+          distance
+        });
+      }
+    });
+  });
+  
+  if (allPoints.length === 0) return null;
+  
+  // 排序：优先选中起重机的点位，然后按距离排序（距离小的优先），最后按添加顺序（索引大的优先）
+  allPoints.sort((a, b) => {
+    // 选中的起重机点位优先
+    if (a.isSelected && !b.isSelected) return -1;
+    if (!a.isSelected && b.isSelected) return 1;
+    
+    // 同一状态，按距离排序（距离小的优先）
+    if (Math.abs(a.distance - b.distance) > 0.1) {
+      return a.distance - b.distance;
+    }
+    
+    // 距离相近，按起重机索引排序（后面的优先）
+    if (a.craneIndex !== b.craneIndex) {
+      return b.craneIndex - a.craneIndex;
+    }
+    
+    // 同一起重机，按点位索引排序（索引大的，即后添加的优先）
+    return b.pointIndex - a.pointIndex;
+  });
+  
+  // 返回最优先的点位
+  const hit = allPoints[0];
+  return {
+    point: hit.point,
+    crane: hit.crane,
+    index: hit.pointIndex
+  };
 };
 
 // 鼠标按下事件处理
 const handleCanvasMouseDown = (event) => {
-  isDragging.value = true;
-  lastMouseX.value = event.clientX;
-  lastMouseY.value = event.clientY;
-  canvas.value.style.cursor = 'grabbing';
+  const mousePos = getMouseCanvasPos(event);
+  
+  // 先检查是否点击在点位上
+  const hitPoint = getPointAtPosition(mousePos.x, mousePos.y);
+  
+  if (hitPoint) {
+    // 开始拖动点位
+    isDraggingPoint.value = true;
+    draggedPoint.value = hitPoint.point;
+    draggedCrane.value = hitPoint.crane;
+    draggedPointIndex.value = hitPoint.index;
+    canvas.value.style.cursor = 'move';
+    
+    // 如果点击的不是当前选中的起重机，切换到该起重机
+    if (!selectedCrane.value || selectedCrane.value.id !== hitPoint.crane.id) {
+      selectCrane(hitPoint.crane);
+    }
+  } else {
+    // 开始拖动Canvas
+    isDragging.value = true;
+    lastMouseX.value = event.clientX;
+    lastMouseY.value = event.clientY;
+    canvas.value.style.cursor = 'grabbing';
+  }
 };
 
 // 鼠标移动事件处理
 const handleCanvasMouseMove = (event) => {
-  if (!isDragging.value) return;
+  const mousePos = getMouseCanvasPos(event);
   
-  const deltaX = event.clientX - lastMouseX.value;
-  const deltaY = event.clientY - lastMouseY.value;
-  
-  offsetX.value += deltaX;
-  offsetY.value += deltaY;
-  
-  lastMouseX.value = event.clientX;
-  lastMouseY.value = event.clientY;
-  
-  // 重绘点位
-  drawPoints();
+  if (isDraggingPoint.value && draggedPoint.value && draggedCrane.value && draggedPointIndex.value >= 0) {
+    // 拖动点位
+    event.preventDefault(); // 阻止默认行为
+    const newGeoCoords = convertToGeoCoords(mousePos.x, mousePos.y);
+    
+    // 更新cranes数组中的数据（这是数据源）
+    const craneIndex = cranes.value.findIndex(c => c.id === draggedCrane.value.id);
+    if (craneIndex !== -1 && cranes.value[craneIndex].points) {
+      cranes.value[craneIndex].points[draggedPointIndex.value].x = newGeoCoords.x;
+      cranes.value[craneIndex].points[draggedPointIndex.value].y = newGeoCoords.y;
+    }
+    
+    // 同步更新selectedCrane（如果当前选中的是这个起重机）
+    if (selectedCrane.value && selectedCrane.value.id === draggedCrane.value.id) {
+      if (selectedCrane.value.points && selectedCrane.value.points[draggedPointIndex.value]) {
+        selectedCrane.value.points[draggedPointIndex.value].x = newGeoCoords.x;
+        selectedCrane.value.points[draggedPointIndex.value].y = newGeoCoords.y;
+      }
+    }
+    
+    // 更新draggedPoint引用
+    draggedPoint.value.x = newGeoCoords.x;
+    draggedPoint.value.y = newGeoCoords.y;
+    
+    // 重绘
+    drawAllTrajectories();
+  } else if (isDragging.value) {
+    // 拖动Canvas
+    event.preventDefault(); // 阻止默认行为
+    const deltaX = event.clientX - lastMouseX.value;
+    const deltaY = event.clientY - lastMouseY.value;
+    
+    offsetX.value += deltaX;
+    offsetY.value += deltaY;
+    
+    lastMouseX.value = event.clientX;
+    lastMouseY.value = event.clientY;
+    
+    // 重绘所有轨迹
+    drawAllTrajectories();
+  } else {
+    // 鼠标悬停，检查是否在点位上
+    const hitPoint = getPointAtPosition(mousePos.x, mousePos.y);
+    if (hitPoint) {
+      canvas.value.style.cursor = 'move';
+    } else {
+      canvas.value.style.cursor = 'grab';
+    }
+  }
 };
 
 // 鼠标释放事件处理
-const handleCanvasMouseUp = () => {
-  isDragging.value = false;
+const handleCanvasMouseUp = (event) => {
+  if (isDraggingPoint.value) {
+    // 点位拖动结束，确保坐标已保存
+    if (draggedPoint.value && draggedCrane.value && draggedPointIndex.value >= 0) {
+      // 坐标已经在拖动过程中更新，这里只需要清理状态
+      console.log('点位拖动结束，最终坐标:', {
+        x: draggedPoint.value.x,
+        y: draggedPoint.value.y
+      });
+    }
+    
+    isDraggingPoint.value = false;
+    draggedPoint.value = null;
+    draggedCrane.value = null;
+    draggedPointIndex.value = -1;
+  }
+  
+  if (isDragging.value) {
+    isDragging.value = false;
+  }
+  
   if (canvas.value) {
     canvas.value.style.cursor = 'grab';
   }
+  
+  event.preventDefault();
 };
 
 // 鼠标滚轮事件处理（缩放）
@@ -730,15 +1180,12 @@ const handleCanvasWheel = (event) => {
   
   scale.value = newScale;
   
-  // 重绘点位
-  drawPoints();
+  // 重绘所有轨迹
+  drawAllTrajectories();
 };
 
 // 颜色变化处理
 const onColorChange = () => {
-  // 当颜色变化时，重绘点位
-  drawPoints();
-  
   // 更新原数据中的对应起重机颜色
   if (selectedCrane.value) {
     const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
@@ -746,14 +1193,40 @@ const onColorChange = () => {
       cranes.value[craneIndex].color = selectedCrane.value.color;
     }
   }
+  
+  // 当颜色变化时，重绘所有轨迹
+  drawAllTrajectories();
 };
 
-// 监听selectedCrane的变化，包括color属性
+// 监听selectedCrane的变化
 watch(
   () => selectedCrane.value,
   () => {
+    drawAllTrajectories();
+  },
+  { deep: true }
+);
+
+// 监听cranes数组的变化，自动重绘所有轨迹
+watch(
+  () => cranes.value,
+  () => {
+    drawAllTrajectories();
+  },
+  { deep: true }
+);
+
+// 监听selectedCrane的points变化
+watch(
+  () => selectedCrane.value?.points,
+  () => {
     if (selectedCrane.value) {
-      drawPoints();
+      // 更新原数据中的对应起重机点位
+      const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+      if (craneIndex !== -1) {
+        cranes.value[craneIndex].points = [...(selectedCrane.value.points || [])];
+      }
+      drawAllTrajectories();
     }
   },
   { deep: true }
@@ -787,10 +1260,19 @@ const addCrane = () => {
 
 // 删除起重机
 const deleteCrane = (id) => {
+  // 如果正在播放该起重机的轨迹，停止播放
+  if (isPlaying.value && playingCraneId.value === id) {
+    stopPlayback();
+  }
+  
   cranes.value = cranes.value.filter((crane) => crane.id !== id);
   if (selectedCrane.value && selectedCrane.value.id === id) {
     selectedCrane.value = null;
   }
+  
+  // 重绘所有轨迹（删除的轨迹会自动消失）
+  drawAllTrajectories();
+  
   ElMessage.success("起重机已删除");
 };
 
@@ -801,9 +1283,9 @@ const selectCrane = (crane) => {
     crane.points = [];
   }
   selectedCrane.value = { ...crane };
-    
-    // 重绘点位
-    drawPoints();
+  
+  // 重绘所有轨迹
+  drawAllTrajectories();
 };
 
 // 设置起重机点位（打开添加起点弹窗）
@@ -887,22 +1369,30 @@ const onPointTypeChange = () => {
 
 // 确认添加点位
 const confirmAddPoint = () => {
-  if (!selectedCrane.value) return;
+  if (!selectedCrane.value) {
+    ElMessage.warning("请先选择起重机");
+    return;
+  }
   
   // 确保点位数组存在
   if (!selectedCrane.value.points) {
     selectedCrane.value.points = [];
   }
   
-  // 创建新点位对象
+  // 创建新点位对象，确保坐标是数字类型
   const pointToAdd = {
-    id: Date.now(),
-    ...newPoint.value
+    id: Date.now() + Math.random(), // 确保ID唯一
+    ...newPoint.value,
+    x: typeof newPoint.value.x === 'number' ? newPoint.value.x : parseFloat(newPoint.value.x) || 112,
+    y: typeof newPoint.value.y === 'number' ? newPoint.value.y : parseFloat(newPoint.value.y) || 38
   };
+  
+  console.log('添加点位:', pointToAdd);
   
   // 如果是第一个点位，设置为起点
   if (selectedCrane.value.points.length === 0) {
     pointToAdd.name = "起点1";
+    pointToAdd.type = "start"; // 起点类型
   } else {
     // 根据点位类型设置正确的名称前缀
     const pointCount = selectedCrane.value.points.length;
@@ -914,21 +1404,54 @@ const confirmAddPoint = () => {
     }
   }
   
-  // 添加点位
+  // 添加点位到selectedCrane
   selectedCrane.value.points.push(pointToAdd);
   
   // 更新原数据中的对应起重机
   const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
   if (craneIndex !== -1) {
+    // 确保cranes数组中的points数组存在
+    if (!cranes.value[craneIndex].points) {
+      cranes.value[craneIndex].points = [];
+    }
     cranes.value[craneIndex].points = [...selectedCrane.value.points];
+    console.log('更新起重机数据:', cranes.value[craneIndex]);
   }
   
   // 关闭弹窗
   addPointDialogVisible.value = false;
-  ElMessage.success("点位已添加");
+  ElMessage.success("点位已添加，可在图上拖动调整位置");
+  
+  // 立即重绘，确保新点位显示在图上，路径自动连接
+  nextTick(() => {
+    drawAllTrajectories();
+    // 确保新添加的点位可见
+    scrollToPoint(pointToAdd);
     
-    // 重绘点位
-    drawPoints();
+    // 提示用户可以在图上拖动点位
+    console.log('点位已添加，坐标:', pointToAdd.x, pointToAdd.y);
+    console.log('当前路径点数:', selectedCrane.value.points.length);
+  });
+};
+
+// 滚动到点位（确保新添加的点位可见）
+const scrollToPoint = (point) => {
+  if (!point || !canvas.value || !imageRef.value) return;
+  
+  try {
+    const coords = convertToCanvasCoords(point.x, point.y);
+    const canvasRect = canvas.value.getBoundingClientRect();
+    const containerRect = canvas.value.parentElement.getBoundingClientRect();
+    
+    // 计算点位在容器中的位置
+    const pointX = coords.x + containerRect.left;
+    const pointY = coords.y + containerRect.top;
+    
+    // 如果点位不在视口内，可以滚动（但这里我们只是确保它可见）
+    // 由于Canvas是覆盖层，我们只需要确保重绘即可
+  } catch (error) {
+    console.error('滚动到点位失败:', error);
+  }
 };
 
 // 编辑点位
@@ -960,9 +1483,9 @@ const confirmEditPoint = () => {
   editPointDialogVisible.value = false;
   editingPointIndex.value = -1;
   ElMessage.success("点位已更新");
-    
-    // 重绘点位
-    drawPoints();
+  
+  // 重绘所有轨迹
+  drawAllTrajectories();
 };
 
 // 删除点位
@@ -979,9 +1502,9 @@ const deletePoint = (index) => {
   }
   
   ElMessage.success("点位已删除");
-    
-    // 重绘点位
-    drawPoints();
+  
+  // 重绘所有轨迹
+  drawAllTrajectories();
 };
 
 // 加载项目数据
@@ -1041,6 +1564,117 @@ const handleImportPlan = () => {
   // 触发文件选择对话框
   fileInput.value.click();
 };
+
+// 轨迹播放功能（从顶部按钮调用）
+const togglePlaybackFromHeader = () => {
+  togglePlayback();
+};
+
+// 轨迹播放功能（从属性面板调用）
+const togglePlayback = () => {
+  if (!selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length < 2) {
+    ElMessage.warning("请先选择有至少2个点位的起重机路径");
+    return;
+  }
+  
+  if (isPlaying.value && playingCraneId.value === selectedCrane.value.id) {
+    stopPlayback();
+  } else {
+    startPlayback();
+  }
+};
+
+// 开始播放
+const startPlayback = () => {
+  if (!selectedCrane.value) return;
+  
+  isPlaying.value = true;
+  playingCraneId.value = selectedCrane.value.id;
+  playbackProgress.value = 0;
+  
+  const duration = 5000; // 5秒完成一次播放
+  const startTime = Date.now();
+  
+  const animate = () => {
+    if (!isPlaying.value) return;
+    
+    const elapsed = Date.now() - startTime;
+    playbackProgress.value = Math.min(elapsed / duration, 1);
+    
+    // 重绘以显示播放进度
+    drawAllTrajectories();
+    
+    if (playbackProgress.value >= 1) {
+      // 播放完成，重新开始
+      playbackProgress.value = 0;
+      playbackAnimationFrame.value = requestAnimationFrame(() => {
+        startPlayback();
+      });
+    } else {
+      playbackAnimationFrame.value = requestAnimationFrame(animate);
+    }
+  };
+  
+  playbackAnimationFrame.value = requestAnimationFrame(animate);
+};
+
+// 停止播放
+const stopPlayback = () => {
+  isPlaying.value = false;
+  if (playbackAnimationFrame.value) {
+    cancelAnimationFrame(playbackAnimationFrame.value);
+    playbackAnimationFrame.value = null;
+  }
+  playbackProgress.value = 0;
+  playingCraneId.value = null;
+  drawAllTrajectories();
+};
+
+// 重置路径功能
+const resetTrajectory = () => {
+  if (!selectedCrane.value) {
+    ElMessage.warning("请先选择起重机");
+    return;
+  }
+  
+  // 如果正在播放，先停止
+  if (isPlaying.value && playingCraneId.value === selectedCrane.value.id) {
+    stopPlayback();
+  }
+  
+  // 确认对话框
+  ElMessageBox.confirm(
+    '确定要重置当前路径吗？这将清除所有点位数据。',
+    '重置路径',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    // 清空所有点位
+    selectedCrane.value.points = [];
+    
+    // 更新cranes数组
+    const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+    if (craneIndex !== -1) {
+      cranes.value[craneIndex].points = [];
+    }
+    
+    // 重绘
+    drawAllTrajectories();
+    
+    ElMessage.success("路径已重置");
+  }).catch(() => {
+    // 用户取消
+  });
+};
+
+// 组件卸载时清理
+onBeforeUnmount(() => {
+  stopPlayback();
+  window.removeEventListener('resize', handleResize);
+});
 </script>
 
 <style scoped>
@@ -1308,6 +1942,11 @@ const handleImportPlan = () => {
 }
 .add_path_point:hover {
   color: #005ce6;
+}
+.trajectory-controls {
+  padding: 16px;
+  border-top: 1px solid #c8c8c8;
+  background-color: #fafafa;
 }
 .property-item {
   margin-bottom: 5px;
