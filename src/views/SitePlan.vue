@@ -656,7 +656,7 @@ Object.values(pointIconImages).forEach((img) => {
 });
 
 const pointIconSizes = {
-  start: 28,
+  start: 22,
   lifting: 24,
   moving: 24,
 };
