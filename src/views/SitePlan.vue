@@ -636,8 +636,10 @@ const pointHitRadiusMap = {
 // 轨迹播放相关
 const isPlaying = ref(false);
 const playingCraneId = ref(null);
-const playbackProgress = ref(0);
+const playbackElapsed = ref(0);
+const animationPlan = ref(null);
 const playbackAnimationFrame = ref(null);
+const secondsPerDay = 3;
 
 // 点位图标
 const pointIconImages = {
@@ -730,6 +732,26 @@ const getNextPointName = (type, currentPoints = [], isStart = false) => {
   }
   const liftingCount = countPointsByType(currentPoints, "lifting");
   return `吊装点位${liftingCount + 1}`;
+};
+
+const msPerDay = 24 * 60 * 60 * 1000;
+
+const parseDateValue = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const diffDays = (start, end) => {
+  if (!start || !end) return 0;
+  const diff = Math.round((end.getTime() - start.getTime()) / msPerDay);
+  return diff;
+};
+
+const diffDaysInclusive = (start, end) => {
+  if (!start || !end) return 0;
+  const diff = Math.round((end.getTime() - start.getTime()) / msPerDay);
+  return diff >= 0 ? diff + 1 : 0;
 };
 
 const updateCranePoints = (craneId, points = []) => {
@@ -961,38 +983,65 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
 };
 
 // 绘制播放进度
-const drawPlaybackProgress = (crane, points) => {
-  if (points.length < 2 || playbackProgress.value <= 0) return;
-  
-  const color = crane.color || '#26256B';
-  const totalLength = points.length - 1;
-  const currentIndex = Math.floor(playbackProgress.value * totalLength);
-  const progress = (playbackProgress.value * totalLength) % 1;
-  
-  if (currentIndex < points.length - 1) {
-    const startCoords = convertToCanvasCoords(points[currentIndex].x, points[currentIndex].y);
-    const endCoords = convertToCanvasCoords(points[currentIndex + 1].x, points[currentIndex + 1].y);
-    
-    // 绘制已完成的路径（实线）
-  ctx.value.save();
+const drawPlaybackProgress = () => {
+  if (!isPlaying.value || !animationPlan.value || !ctx.value) return;
+
+  const plan = animationPlan.value;
+  const currentTime = Math.min(playbackElapsed.value, plan.totalDuration);
+  const color = plan.color || '#26256B';
+
+  plan.segments.forEach((segment) => {
+    if (segment.type !== 'travel') return;
+    if (currentTime < segment.startTime + segment.duration) return;
+
+    const fromCoords = plan.coords[segment.fromIndex];
+    const toCoords = plan.coords[segment.toIndex];
+    ctx.value.save();
     ctx.value.beginPath();
-    ctx.value.moveTo(startCoords.x, startCoords.y);
-    
-    // 计算当前位置
-    const currentX = startCoords.x + (endCoords.x - startCoords.x) * progress;
-    const currentY = startCoords.y + (endCoords.y - startCoords.y) * progress;
-    ctx.value.lineTo(currentX, currentY);
-    
+    ctx.value.moveTo(fromCoords.x, fromCoords.y);
+    ctx.value.lineTo(toCoords.x, toCoords.y);
     ctx.value.strokeStyle = color;
     ctx.value.lineWidth = 4;
     ctx.value.stroke();
     ctx.value.restore();
-    
-    // 绘制当前位置指示器
+  });
+
+  const activeSegment = plan.segments.find((segment) => currentTime < segment.startTime + segment.duration)
+    || plan.segments[plan.segments.length - 1];
+  if (!activeSegment) return;
+
+  if (activeSegment.type === 'travel') {
+    const fromCoords = plan.coords[activeSegment.fromIndex];
+    const toCoords = plan.coords[activeSegment.toIndex];
+    const elapsed = Math.max(0, currentTime - activeSegment.startTime);
+    const progress = activeSegment.duration > 0 ? Math.min(elapsed / activeSegment.duration, 1) : 1;
+    const currentX = fromCoords.x + (toCoords.x - fromCoords.x) * progress;
+    const currentY = fromCoords.y + (toCoords.y - fromCoords.y) * progress;
+
     ctx.value.save();
-    ctx.value.fillStyle = '#ff0000';
     ctx.value.beginPath();
-    ctx.value.arc(currentX, currentY, 6, 0, 2 * Math.PI);
+    ctx.value.moveTo(fromCoords.x, fromCoords.y);
+    ctx.value.lineTo(currentX, currentY);
+    ctx.value.strokeStyle = color;
+    ctx.value.lineWidth = 4;
+    ctx.value.stroke();
+    ctx.value.restore();
+
+    ctx.value.save();
+    ctx.value.fillStyle = '#ff4d4f';
+    ctx.value.beginPath();
+    ctx.value.arc(currentX, currentY, 6, 0, Math.PI * 2);
+    ctx.value.fill();
+    ctx.value.strokeStyle = '#ffffff';
+    ctx.value.lineWidth = 2;
+    ctx.value.stroke();
+    ctx.value.restore();
+  } else if (activeSegment.type === 'dwell') {
+    const pointCoords = plan.coords[activeSegment.pointIndex];
+    ctx.value.save();
+    ctx.value.fillStyle = '#ff4d4f';
+    ctx.value.beginPath();
+    ctx.value.arc(pointCoords.x, pointCoords.y, 6, 0, Math.PI * 2);
     ctx.value.fill();
     ctx.value.strokeStyle = '#ffffff';
     ctx.value.lineWidth = 2;
@@ -1103,11 +1152,8 @@ const drawAllTrajectories = () => {
   });
   
   // 如果是播放状态，绘制播放进度
-  if (isPlaying.value && playingCraneId.value) {
-    const playingCrane = cranes.value.find(c => c.id === playingCraneId.value);
-    if (playingCrane && playingCrane.points && playingCrane.points.length > 1) {
-      drawPlaybackProgress(playingCrane, playingCrane.points);
-    }
+  if (isPlaying.value && animationPlan.value) {
+    drawPlaybackProgress();
   }
 };
 
@@ -1501,11 +1547,11 @@ const setCranePosition = () => {
 
     if (pointType === "lifting") {
       if (!isValidDateDay(newPoint.value.startTime)) {
-        ElMessage.warning("请填写吊装点位的开始日期（精确到天）");
+        ElMessage.warning("请填写吊装点位的开始日期");
         return;
       }
       if (!isFirstPoint && !isValidDateDay(newPoint.value.endTime)) {
-        ElMessage.warning("请填写吊装点位的结束日期（精确到天）");
+        ElMessage.warning("请填写吊装点位的结束日期");
         return;
       }
       if (!isFirstPoint && new Date(newPoint.value.endTime) < new Date(newPoint.value.startTime)) {
@@ -1608,11 +1654,11 @@ const setCranePosition = () => {
 
     if (updatedPoint.type === "lifting") {
       if (!isValidDateDay(updatedPoint.startTime)) {
-        ElMessage.warning("请填写吊装点位的开始日期（精确到天）");
+        ElMessage.warning("请填写吊装点位的开始日期");
         return;
       }
       if (!isStart && !isValidDateDay(updatedPoint.endTime)) {
-        ElMessage.warning("请填写吊装点位的结束日期（精确到天）");
+        ElMessage.warning("请填写吊装点位的结束日期");
         return;
       }
       if (!isStart && new Date(updatedPoint.endTime) < new Date(updatedPoint.startTime)) {
@@ -1748,35 +1794,46 @@ const setCranePosition = () => {
 
   // 开始播放
   const startPlayback = () => {
-    if (!selectedCrane.value) return;
-    
+    if (!selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length < 2) {
+      ElMessage.warning("请先完善路径点位及时间信息");
+      return;
+    }
+
+    const plan = computeAnimationPlan(selectedCrane.value.points, selectedCrane.value.color);
+    if (!plan) {
+      ElMessage.warning("无法播放，请检查吊装点位的时间设置");
+      return;
+    }
+
+    animationPlan.value = plan;
     isPlaying.value = true;
     playingCraneId.value = selectedCrane.value.id;
-    playbackProgress.value = 0;
-    
-    const duration = 5000; // 5秒完成一次播放
-    const startTime = Date.now();
-    
+    playbackElapsed.value = 0;
+
+    let animationStart = Date.now();
+
     const animate = () => {
-      if (!isPlaying.value) return;
-      
-      const elapsed = Date.now() - startTime;
-      playbackProgress.value = Math.min(elapsed / duration, 1);
-      
-      // 重绘以显示播放进度
-      drawAllTrajectories();
-      
-      if (playbackProgress.value >= 1) {
-        // 播放完成，重新开始
-        playbackProgress.value = 0;
-        playbackAnimationFrame.value = requestAnimationFrame(() => {
-          startPlayback();
-        });
-      } else {
-        playbackAnimationFrame.value = requestAnimationFrame(animate);
+      if (!isPlaying.value || !animationPlan.value) return;
+
+      const now = Date.now();
+      const elapsedSeconds = (now - animationStart) / 1000;
+      const totalDuration = animationPlan.value.totalDuration;
+
+      if (totalDuration <= 0) {
+        stopPlayback();
+        return;
       }
+
+      playbackElapsed.value = elapsedSeconds % totalDuration;
+
+      if (elapsedSeconds >= totalDuration) {
+        animationStart = now;
+      }
+
+      drawAllTrajectories();
+      playbackAnimationFrame.value = requestAnimationFrame(animate);
     };
-    
+
     playbackAnimationFrame.value = requestAnimationFrame(animate);
   };
 
@@ -1787,7 +1844,8 @@ const setCranePosition = () => {
       cancelAnimationFrame(playbackAnimationFrame.value);
       playbackAnimationFrame.value = null;
     }
-    playbackProgress.value = 0;
+    animationPlan.value = null;
+    playbackElapsed.value = 0;
     playingCraneId.value = null;
     drawAllTrajectories();
   };
@@ -1834,6 +1892,110 @@ const setCranePosition = () => {
     stopPlayback();
     window.removeEventListener('resize', handleResize);
   });
+
+  const computeAnimationPlan = (points = [], color = '#26256B') => {
+    if (!points || points.length < 2 || !canvas.value) return null;
+
+    const coords = points.map((point) => convertToCanvasCoords(point.x, point.y));
+    const segments = [];
+    let timeCursor = 0;
+    const coveredSegments = new Set();
+
+    const timedIndices = points
+      .map((p, idx) => ({ point: p, idx }))
+      .filter(({ point }) => point.type === 'lifting');
+
+    if (!timedIndices.length) return null;
+
+    for (let k = 0; k < timedIndices.length - 1; k += 1) {
+      const startItem = timedIndices[k];
+      const endItem = timedIndices[k + 1];
+      const startIdx = startItem.idx;
+      const endIdx = endItem.idx;
+      const startPoint = startItem.point;
+      const endPoint = endItem.point;
+
+      const startDate = parseDateValue(startPoint.startTime);
+      const endDate = parseDateValue(endPoint.startTime);
+      let travelDays = Math.max(0, diffDays(startDate, endDate));
+      if (travelDays <= 0) travelDays = 1;
+      const travelSeconds = travelDays * secondsPerDay;
+
+      let totalDistance = 0;
+      const localSegments = [];
+      for (let idx = startIdx; idx < endIdx; idx += 1) {
+        const fromCoords = coords[idx];
+        const toCoords = coords[idx + 1];
+        const distance = Math.hypot(toCoords.x - fromCoords.x, toCoords.y - fromCoords.y);
+        totalDistance += distance;
+        localSegments.push({ fromIndex: idx, toIndex: idx + 1, distance });
+      }
+
+      localSegments.forEach((segment) => {
+        const proportion = totalDistance > 0 ? segment.distance / totalDistance : 0;
+        const duration = totalDistance > 0
+          ? travelSeconds * proportion
+          : (localSegments.length > 0 ? travelSeconds / localSegments.length : 0);
+        segments.push({
+          type: 'travel',
+          fromIndex: segment.fromIndex,
+          toIndex: segment.toIndex,
+          duration,
+          startTime: timeCursor,
+        });
+        timeCursor += duration;
+        coveredSegments.add(`${segment.fromIndex}-${segment.toIndex}`);
+      });
+
+      const dwellDays = endPoint.endTime
+        ? diffDaysInclusive(parseDateValue(endPoint.startTime), parseDateValue(endPoint.endTime))
+        : 0;
+
+      if (dwellDays > 0) {
+        const dwellSeconds = dwellDays * secondsPerDay;
+        segments.push({
+          type: 'dwell',
+          pointIndex: endIdx,
+          duration: dwellSeconds,
+          startTime: timeCursor,
+        });
+        timeCursor += dwellSeconds;
+      }
+    }
+
+    for (let idx = 0; idx < points.length - 1; idx += 1) {
+      const key = `${idx}-${idx + 1}`;
+      if (coveredSegments.has(key)) continue;
+
+      const duration = secondsPerDay;
+      segments.push({
+        type: 'travel',
+        fromIndex: idx,
+        toIndex: idx + 1,
+        duration,
+        startTime: timeCursor,
+      });
+      timeCursor += duration;
+    }
+
+    segments.sort((a, b) => a.startTime - b.startTime);
+    let cumulative = 0;
+    const normalizedSegments = segments.map((segment) => {
+      const normalizedSegment = { ...segment, startTime: cumulative };
+      cumulative += segment.duration;
+      return normalizedSegment;
+    });
+
+    const totalDuration = cumulative;
+    if (totalDuration <= 0) return null;
+
+    return {
+      segments: normalizedSegments,
+      totalDuration,
+      coords,
+      color,
+    };
+  };
 </script>
 
 <style scoped>
