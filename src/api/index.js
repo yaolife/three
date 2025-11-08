@@ -369,6 +369,14 @@ export function intelligentCraneSelection(params) {
 export function getCalculateInfo(params) {
   return post("/crane/detail/calculate", params)
 }
+/**
+ * 计算吊索具高度、角度、sinQ相关数据
+ * @param {object} params - 参数 { }
+ * @returns {Promise} - 返回智能选型结果
+ */
+export function getCalculateHeightOrAngle(params) {
+  return post("/lifting/detail/calculate", params)
+}
 
 export default {
   getLiftingInfoPage,
@@ -400,4 +408,5 @@ export default {
   deleteProjectItem,
   intelligentCraneSelection,
   getCalculateInfo,
+  getCalculateHeightOrAngle
 }
