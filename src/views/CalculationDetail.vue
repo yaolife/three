@@ -1014,6 +1014,7 @@
                         v-model="activeSlingData.height"
                         controls-position="right"
                         :precision="2"
+                          disabled
                       />
                       <span class="unit">m</span>
                     </div>
@@ -1026,6 +1027,7 @@
                         v-model="activeSlingData.angle"
                         controls-position="right"
                         :precision="1"
+                        disabled
                       />
                       <span class="unit">度</span>
                     </div>
