@@ -1014,6 +1014,7 @@
                         v-model="activeSlingData.height"
                         controls-position="right"
                         :precision="2"
+                        placeholder="输入高度"
                           disabled
                       />
                       <span class="unit">m</span>
@@ -1026,6 +1027,7 @@
                       <el-input-number
                         v-model="activeSlingData.angle"
                         controls-position="right"
+                          placeholder="输入角度"
                         :precision="1"
                         disabled
                       />
@@ -3755,8 +3757,8 @@ const liftingFormDatas = ref([
     enableL4: false, // Added new field
     enableLa: false, // 添加enableLa字段
     ropeLength: 1,
-    height: 12,
-    angle: 45,
+    height: null,
+    angle: null,
     liftingType: "noBeam", // 添加这个字段，'noBeam'表示无吊梁，'withBeam'表示有吊梁
     slingType: "0", // Initialize slingType, as it's now part of the radio group, default to magnetic (钢丝绳)
     isDouble: false, // Added field for "是否打双" checkbox
@@ -4784,6 +4786,13 @@ const handleCalculateHeightAngle = async () => {
     isCalculatingHeightAngle.value = false;
   }
 };
+
+watch(liftingFormDatas, (newList) => {
+  newList.forEach((item) => {
+    if (item.height === undefined) item.height = null;
+    if (item.angle === undefined) item.angle = null;
+  });
+});
 </script>
 
 <style scoped>
