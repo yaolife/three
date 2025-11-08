@@ -53,7 +53,7 @@
           <div class="search-btn">搜索</div>
         </div>
 
-        <!-- 起重机列表 -->
+        <!-- 起重机路径列表 -->
         <div class="crane-list">
           <div
             v-for="crane in filteredCranes"
