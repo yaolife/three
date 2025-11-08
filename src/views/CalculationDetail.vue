@@ -1095,6 +1095,18 @@
                         <span class="unit">m</span>
                       </div>
                     </div>
+
+                    <div class="form-row full-width">
+                      <el-button
+                        type="primary"
+                        size="small"
+                        class="calculate-distance-btn"
+                        :loading="isCalculatingHeightAngle"
+                        @click="handleCalculateHeightAngle"
+                      >
+                        计算角度和高度结果
+                      </el-button>
+                    </div>
                   </template>
 
                   <!-- 有吊梁情况下只显示La -->
@@ -3321,7 +3333,8 @@ import {
   getLiftingDetail,
   getCraneDataDetail,
   intelligentCraneSelection,
-  getCalculateInfo
+  getCalculateInfo,
+  getCalculateHeightOrAngle,
 } from "@/api/index.js";
 import {  getBoomType, craneType} from "@/utils/common.js";
 
@@ -4718,6 +4731,59 @@ const closeLiftingEquipmentDialog = () => {
   equipmentProducts.value = [];
   equipmentModels.value = [];
 };
+
+const isCalculatingHeightAngle = ref(false);
+
+const handleCalculateHeightAngle = async () => {
+  const data = activeSlingData.value;
+  if (!data || data.liftingType !== 'noBeam') return;
+
+  const fields = ["distanceL1", "distanceL2", "distanceL3", "distanceL4"];
+  const values = fields.map((key) => Number(data[key]));
+
+  if (values.some((val) => Number.isNaN(val) || val === null || val === undefined || val <= 0)) {
+    ElMessage.warning("请完整填写距离L1至L4的数值");
+    return;
+  }
+
+  const ropeLength = Number(data.ropeLength);
+  if (Number.isNaN(ropeLength) || ropeLength <= 0) {
+    ElMessage.warning("请先填写绳索长度");
+    return;
+  }
+
+  const [L1, L2, L3, L4] = values;
+  const avgLongSide = (L1 + L3) / 2;
+  const avgShortSide = (L2 + L4) / 2;
+  const centerDistance = Number(
+    Math.sqrt((avgLongSide / 2) ** 2 + (avgShortSide / 2) ** 2).toFixed(4)
+  );
+
+  try {
+    isCalculatingHeightAngle.value = true;
+    const response = await getCalculateHeightOrAngle({
+      ropeLength,
+      distance: centerDistance,
+    });
+
+    if (response?.code === '0' && response.data) {
+      if (typeof response.data.height === 'number') {
+        data.height = response.data.height;
+      }
+      if (typeof response.data.angle === 'number') {
+        data.angle = response.data.angle;
+      }
+      ElMessage.success("计算成功");
+    } else {
+      ElMessage.error(response?.message || "计算失败，请稍后重试");
+    }
+  } catch (error) {
+    console.error('调用getCalculateHeightOrAngle失败:', error);
+    ElMessage.error("计算失败，请稍后重试");
+  } finally {
+    isCalculatingHeightAngle.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -5372,6 +5438,15 @@ const closeLiftingEquipmentDialog = () => {
 
 .distance-inputs-right .form-row:last-child {
   margin-bottom: 0;
+}
+
+.distance-inputs-right .form-row.full-width {
+  width: 100%;
+  justify-content: center;
+}
+
+.calculate-distance-btn {
+  width: 100%;
 }
 
 /* 地基承载力计算结果弹窗样式 */
