@@ -1001,6 +1001,7 @@
                       <el-input-number
                         v-model="activeSlingData.ropeLength"
                         controls-position="right"
+                         placeholder="输入长度"
                         :precision="2"
                       />
                       <span class="unit">m</span>
