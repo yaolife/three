@@ -29,7 +29,7 @@
               src="@/images/preview.png"
               alt="预览"
               style="width: 20px; height: 20px; margin-right: 5px"
-            /><span>{{ isPlaying ? '停止' : '预览' }}</span>
+            /><span>{{ isPlayingAll ? '停止' : '预览' }}</span>
           </div>
         </div>
       </div>
@@ -559,7 +559,7 @@
               @click="togglePlayback"
               style="width: 100%; margin-bottom: 10px;"
             >
-              {{ isPlaying && playingCraneId === selectedCrane?.id ? '停止播放' : '播放路径动画' }}
+              {{ (isPlaying && playingCraneId === selectedCrane?.id) ? '停止播放' : '播放路径动画' }}
             </el-button>
             <el-button 
               type="warning" 
@@ -636,6 +636,8 @@ const pointHitRadiusMap = {
 // 轨迹播放相关
 const isPlaying = ref(false);
 const playingCraneId = ref(null);
+  const isPlayingAll = ref(false); // 是否播放所有路径
+  const animationPlans = ref({}); // 存储每个起重机的动画计划
 const playbackElapsed = ref(0);
 const animationPlan = ref(null);
 const playbackAnimationFrame = ref(null);
@@ -983,71 +985,141 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
 };
 
 // 绘制播放进度
-const drawPlaybackProgress = () => {
-  if (!isPlaying.value || !animationPlan.value || !ctx.value) return;
+  const drawPlaybackProgress = () => {
+    if (!ctx.value) return;
 
-  const plan = animationPlan.value;
-  const currentTime = Math.min(playbackElapsed.value, plan.totalDuration);
-  const color = plan.color || '#26256B';
+    // 处理播放单个路径的情况
+    if (isPlaying.value && animationPlan.value) {
+      const plan = animationPlan.value;
+      const currentTime = Math.min(playbackElapsed.value, plan.totalDuration);
+      const color = plan.color || '#26256B';
 
-  plan.segments.forEach((segment) => {
-    if (segment.type !== 'travel') return;
-    if (currentTime < segment.startTime + segment.duration) return;
+      plan.segments.forEach((segment) => {
+        if (segment.type !== 'travel') return;
+        if (currentTime < segment.startTime + segment.duration) return;
 
-    const fromCoords = plan.coords[segment.fromIndex];
-    const toCoords = plan.coords[segment.toIndex];
-    ctx.value.save();
-    ctx.value.beginPath();
-    ctx.value.moveTo(fromCoords.x, fromCoords.y);
-    ctx.value.lineTo(toCoords.x, toCoords.y);
-    ctx.value.strokeStyle = color;
-    ctx.value.lineWidth = 4;
-    ctx.value.stroke();
-    ctx.value.restore();
-  });
+        const fromCoords = plan.coords[segment.fromIndex];
+        const toCoords = plan.coords[segment.toIndex];
+        ctx.value.save();
+        ctx.value.beginPath();
+        ctx.value.moveTo(fromCoords.x, fromCoords.y);
+        ctx.value.lineTo(toCoords.x, toCoords.y);
+        ctx.value.strokeStyle = color;
+        ctx.value.lineWidth = 4;
+        ctx.value.stroke();
+        ctx.value.restore();
+      });
 
-  const activeSegment = plan.segments.find((segment) => currentTime < segment.startTime + segment.duration)
-    || plan.segments[plan.segments.length - 1];
-  if (!activeSegment) return;
+      const activeSegment = plan.segments.find((segment) => currentTime < segment.startTime + segment.duration)
+        || plan.segments[plan.segments.length - 1];
+      if (!activeSegment) return;
 
-  if (activeSegment.type === 'travel') {
-    const fromCoords = plan.coords[activeSegment.fromIndex];
-    const toCoords = plan.coords[activeSegment.toIndex];
-    const elapsed = Math.max(0, currentTime - activeSegment.startTime);
-    const progress = activeSegment.duration > 0 ? Math.min(elapsed / activeSegment.duration, 1) : 1;
-    const currentX = fromCoords.x + (toCoords.x - fromCoords.x) * progress;
-    const currentY = fromCoords.y + (toCoords.y - fromCoords.y) * progress;
+      if (activeSegment.type === 'travel') {
+        const fromCoords = plan.coords[activeSegment.fromIndex];
+        const toCoords = plan.coords[activeSegment.toIndex];
+        const elapsed = Math.max(0, currentTime - activeSegment.startTime);
+        const progress = activeSegment.duration > 0 ? Math.min(elapsed / activeSegment.duration, 1) : 1;
+        const currentX = fromCoords.x + (toCoords.x - fromCoords.x) * progress;
+        const currentY = fromCoords.y + (toCoords.y - fromCoords.y) * progress;
 
-    ctx.value.save();
-    ctx.value.beginPath();
-    ctx.value.moveTo(fromCoords.x, fromCoords.y);
-    ctx.value.lineTo(currentX, currentY);
-    ctx.value.strokeStyle = color;
-    ctx.value.lineWidth = 4;
-    ctx.value.stroke();
-    ctx.value.restore();
+        ctx.value.save();
+        ctx.value.beginPath();
+        ctx.value.moveTo(fromCoords.x, fromCoords.y);
+        ctx.value.lineTo(currentX, currentY);
+        ctx.value.strokeStyle = color;
+        ctx.value.lineWidth = 4;
+        ctx.value.stroke();
+        ctx.value.restore();
 
-    ctx.value.save();
-    ctx.value.fillStyle = '#ff4d4f';
-    ctx.value.beginPath();
-    ctx.value.arc(currentX, currentY, 6, 0, Math.PI * 2);
-    ctx.value.fill();
-    ctx.value.strokeStyle = '#ffffff';
-    ctx.value.lineWidth = 2;
-    ctx.value.stroke();
-    ctx.value.restore();
-  } else if (activeSegment.type === 'dwell') {
-    const pointCoords = plan.coords[activeSegment.pointIndex];
-    ctx.value.save();
-    ctx.value.fillStyle = '#ff4d4f';
-    ctx.value.beginPath();
-    ctx.value.arc(pointCoords.x, pointCoords.y, 6, 0, Math.PI * 2);
-    ctx.value.fill();
-    ctx.value.strokeStyle = '#ffffff';
-    ctx.value.lineWidth = 2;
-    ctx.value.stroke();
-    ctx.value.restore();
-  }
+        ctx.value.save();
+        ctx.value.fillStyle = '#ff4d4f';
+        ctx.value.beginPath();
+        ctx.value.arc(currentX, currentY, 6, 0, Math.PI * 2);
+        ctx.value.fill();
+        ctx.value.strokeStyle = '#ffffff';
+        ctx.value.lineWidth = 2;
+        ctx.value.stroke();
+        ctx.value.restore();
+      } else if (activeSegment.type === 'dwell') {
+        const pointCoords = plan.coords[activeSegment.pointIndex];
+        ctx.value.save();
+        ctx.value.fillStyle = '#ff4d4f';
+        ctx.value.beginPath();
+        ctx.value.arc(pointCoords.x, pointCoords.y, 6, 0, Math.PI * 2);
+        ctx.value.fill();
+        ctx.value.strokeStyle = '#ffffff';
+        ctx.value.lineWidth = 2;
+        ctx.value.stroke();
+        ctx.value.restore();
+      }
+    }
+    
+    // 处理播放所有路径的情况
+    else if (isPlayingAll.value) {
+      Object.values(animationPlans.value).forEach((plan) => {
+        const currentTime = Math.min(playbackElapsed.value, plan.totalDuration);
+        const color = plan.color || '#26256B';
+
+        plan.segments.forEach((segment) => {
+          if (segment.type !== 'travel') return;
+          if (currentTime < segment.startTime + segment.duration) return;
+
+          const fromCoords = plan.coords[segment.fromIndex];
+          const toCoords = plan.coords[segment.toIndex];
+          ctx.value.save();
+          ctx.value.beginPath();
+          ctx.value.moveTo(fromCoords.x, fromCoords.y);
+          ctx.value.lineTo(toCoords.x, toCoords.y);
+          ctx.value.strokeStyle = color;
+          ctx.value.lineWidth = 4;
+          ctx.value.stroke();
+          ctx.value.restore();
+        });
+
+        const activeSegment = plan.segments.find((segment) => currentTime < segment.startTime + segment.duration)
+          || plan.segments[plan.segments.length - 1];
+        if (!activeSegment) return;
+
+        if (activeSegment.type === 'travel') {
+          const fromCoords = plan.coords[activeSegment.fromIndex];
+          const toCoords = plan.coords[activeSegment.toIndex];
+          const elapsed = Math.max(0, currentTime - activeSegment.startTime);
+          const progress = activeSegment.duration > 0 ? Math.min(elapsed / activeSegment.duration, 1) : 1;
+          const currentX = fromCoords.x + (toCoords.x - fromCoords.x) * progress;
+          const currentY = fromCoords.y + (toCoords.y - fromCoords.y) * progress;
+
+          ctx.value.save();
+          ctx.value.beginPath();
+          ctx.value.moveTo(fromCoords.x, fromCoords.y);
+          ctx.value.lineTo(currentX, currentY);
+          ctx.value.strokeStyle = color;
+          ctx.value.lineWidth = 4;
+          ctx.value.stroke();
+          ctx.value.restore();
+
+          ctx.value.save();
+          ctx.value.fillStyle = '#ff4d4f';
+          ctx.value.beginPath();
+          ctx.value.arc(currentX, currentY, 6, 0, Math.PI * 2);
+          ctx.value.fill();
+          ctx.value.strokeStyle = '#ffffff';
+          ctx.value.lineWidth = 2;
+          ctx.value.stroke();
+          ctx.value.restore();
+        } else if (activeSegment.type === 'dwell') {
+          const pointCoords = plan.coords[activeSegment.pointIndex];
+          ctx.value.save();
+          ctx.value.fillStyle = '#ff4d4f';
+          ctx.value.beginPath();
+          ctx.value.arc(pointCoords.x, pointCoords.y, 6, 0, Math.PI * 2);
+          ctx.value.fill();
+          ctx.value.strokeStyle = '#ffffff';
+          ctx.value.lineWidth = 2;
+          ctx.value.stroke();
+          ctx.value.restore();
+        }
+      });
+    }
 };
 
 // 绘制所有轨迹
@@ -1152,7 +1224,7 @@ const drawAllTrajectories = () => {
   });
   
   // 如果是播放状态，绘制播放进度
-  if (isPlaying.value && animationPlan.value) {
+  if ((isPlaying.value && animationPlan.value) || isPlayingAll.value) {
     drawPlaybackProgress();
   }
 };
@@ -1773,13 +1845,22 @@ const setCranePosition = () => {
     fileInput.value.click();
   };
 
-  // 轨迹播放功能（从顶部按钮调用）
+  // 轨迹播放功能（从顶部按钮调用）- 播放所有路径
   const togglePlaybackFromHeader = () => {
-    togglePlayback();
+    if (isPlayingAll.value) {
+      stopPlaybackAll();
+    } else {
+      startPlaybackAll();
+    }
   };
 
   // 轨迹播放功能（从属性面板调用）
   const togglePlayback = () => {
+    // 停止任何正在播放的所有路径
+    if (isPlayingAll.value) {
+      stopPlaybackAll();
+    }
+    
     if (!selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length < 2) {
       ElMessage.warning("请先选择有至少2个点位的起重机路径");
       return;
@@ -1794,6 +1875,11 @@ const setCranePosition = () => {
 
   // 开始播放
   const startPlayback = () => {
+    // 停止多路径播放
+    if (isPlayingAll.value) {
+      stopPlaybackAll();
+    }
+    
     if (!selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length < 2) {
       ElMessage.warning("请先完善路径点位及时间信息");
       return;
@@ -1887,9 +1973,84 @@ const setCranePosition = () => {
     });
   };
 
+  // 开始播放所有路径
+  const startPlaybackAll = () => {
+    // 停止任何正在播放的单个路径
+    if (isPlaying.value) {
+      stopPlayback();
+    }
+
+    // 检查是否有可播放的路径
+    const validCranes = cranes.value.filter(crane => 
+      crane.points && crane.points.length >= 2
+    );
+    
+    if (validCranes.length === 0) {
+      ElMessage.warning("没有可播放的路径，请确保至少有一条路径包含2个以上点位");
+      return;
+    }
+
+    // 为每个有效路径生成动画计划
+    animationPlans.value = {};
+    let hasValidPlan = false;
+    
+    validCranes.forEach(crane => {
+      const plan = computeAnimationPlan(crane.points, crane.color);
+      if (plan) {
+        animationPlans.value[crane.id] = plan;
+        hasValidPlan = true;
+      }
+    });
+
+    if (!hasValidPlan) {
+      ElMessage.warning("无法播放，请检查路径点位的时间设置");
+      return;
+    }
+
+    isPlayingAll.value = true;
+    playbackElapsed.value = 0;
+
+    let animationStart = Date.now();
+
+    const animate = () => {
+      if (!isPlayingAll.value || Object.keys(animationPlans.value).length === 0) return;
+
+      const now = Date.now();
+      const elapsedSeconds = (now - animationStart) / 1000;
+      
+      // 使用最长的路径时长作为总时长
+      const totalDurations = Object.values(animationPlans.value).map(plan => plan.totalDuration);
+      const maxDuration = Math.max(...totalDurations, 1); // 确保至少为1秒
+      
+      playbackElapsed.value = elapsedSeconds % maxDuration;
+
+      if (elapsedSeconds >= maxDuration) {
+        animationStart = now;
+      }
+
+      drawAllTrajectories();
+      playbackAnimationFrame.value = requestAnimationFrame(animate);
+    };
+
+    playbackAnimationFrame.value = requestAnimationFrame(animate);
+  };
+
+  // 停止播放所有路径
+  const stopPlaybackAll = () => {
+    isPlayingAll.value = false;
+    if (playbackAnimationFrame.value) {
+      cancelAnimationFrame(playbackAnimationFrame.value);
+      playbackAnimationFrame.value = null;
+    }
+    animationPlans.value = {};
+    playbackElapsed.value = 0;
+    drawAllTrajectories();
+  };
+
   // 组件卸载时清理
   onBeforeUnmount(() => {
     stopPlayback();
+    stopPlaybackAll();
     window.removeEventListener('resize', handleResize);
   });
 
