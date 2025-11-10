@@ -15,3 +15,6 @@
   background-color: #3a8ee6 !important;
   border-color: #3a8ee6 !important;
 }
+.el-button+.el-button{
+  margin-left: 0;
+}
