@@ -651,7 +651,16 @@ const pointIconImages = {
   lifting: new Image(),
   moving: new Image(),
 };
-pointIconImages.start.src = startIconSrc;
+
+// 生成带颜色的SVG DataURL函数
+const createStartIconSvg = (color = '#07AA74') => {
+  // 替换SVG中的颜色值
+  const svg = `<svg t="1762755830607" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M337.92 890.88a173.056 46.08 0 1 0 346.112 0 173.056 46.08 0 1 0-346.112 0Z" opacity=".4"/><path d="M421.376 890.88a89.6 23.04 0 1 0 179.2 0 89.6 23.04 0 1 0-179.2 0Z" opacity=".4"/><path d="M512 891.392c-11.264 0-19.968-8.704-19.968-19.968v-250.88c0-11.264 8.704-19.968 19.968-19.968s19.968 8.704 19.968 19.968v250.88c0 11.264-8.704 19.968-19.968 19.968z" fill="${color || '#106848'}"/><path d="M241.664 385.024c0 149.504 120.832 270.336 270.336 270.336s270.336-120.832 270.336-270.336c0-149.504-120.832-270.336-270.336-270.336-149.504 0-270.336 120.832-270.336 270.336z" fill="${color || '#07AA74'}"/><path d="M463.36 474.624c16.896 5.632 37.888 7.168 64 7.168 18.432 0.512 106.496 0.512 128.512-0.512-4.096 6.656-9.216 19.456-11.264 28.16H527.36c-60.928 0-97.792-8.704-120.832-47.104-3.584 22.528-8.704 41.984-16.384 57.856-5.12-3.584-17.408-9.728-24.064-12.8 16.384-30.72 19.968-79.872 20.992-133.632l26.624 2.048c-0.512 13.824-1.024 27.648-2.048 40.448 6.144 19.456 14.336 33.28 25.088 43.52v-107.52H374.272v-25.088h56.32v-34.304h-48.64v-25.088h48.64v-31.744h27.136v31.744h47.104v25.088h-47.104v34.304h55.296v25.088h-49.664v40.448h46.592v25.088h-46.592v56.832z m142.336-200.192h-83.968v-25.6h111.104v105.984h-80.896v60.416c0 9.728 2.048 11.776 14.848 11.776h41.984c11.776 0 13.312-5.632 14.848-41.984 6.144 5.12 17.408 9.216 25.088 11.264-3.584 44.544-11.264 56.32-37.888 56.32H563.2c-30.208 0-39.424-7.68-39.424-36.864V329.728h80.896V274.432h1.024z" fill="#FFFFFF"/></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+};
+
+// 初始化起点图标为默认颜色
+pointIconImages.start.src = createStartIconSvg();
 pointIconImages.lifting.src = liftingIconSrc;
 pointIconImages.moving.src = movingIconSrc;
 
@@ -660,6 +669,23 @@ Object.values(pointIconImages).forEach((img) => {
     drawAllTrajectories();
   };
 });
+
+// 缓存不同颜色的起点图标
+const startIconCache = {};
+
+// 获取带指定颜色的起点图标
+const getStartIconWithColor = (color) => {
+  if (!color) return pointIconImages.start;
+  
+  if (!startIconCache[color]) {
+    const img = new Image();
+    img.src = createStartIconSvg(color);
+    img.onload = () => drawAllTrajectories();
+    startIconCache[color] = img;
+  }
+  
+  return startIconCache[color];
+};
 
 const pointIconSizes = {
   start: 22,
@@ -1208,7 +1234,15 @@ const drawAllTrajectories = () => {
     const coords = convertToCanvasCoords(point.x, point.y);
     const color = crane.color || '#26256B';
     const iconKey = getPointIconKey(point);
-    const iconImage = pointIconImages[iconKey];
+    
+    // 对于起点，使用带颜色的SVG图标
+    let iconImage;
+    if (iconKey === 'start') {
+      iconImage = getStartIconWithColor(color);
+    } else {
+      iconImage = pointIconImages[iconKey];
+    }
+    
     const iconSize = (pointIconSizes[iconKey] || 24) * (isSelected ? 1.1 : 1);
     
     if (iconImage && iconImage.complete) {
