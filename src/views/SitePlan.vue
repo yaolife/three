@@ -1356,6 +1356,24 @@ const handleCanvasMouseMove = (event) => {
     draggedPoint.value.x = newGeoCoords.x;
     draggedPoint.value.y = newGeoCoords.y;
     
+    // 如果正在播放动画，更新动画计划
+    if (isPlaying.value && animationPlan.value && playingCraneId.value === draggedCrane.value.id) {
+      // 重新计算当前播放的动画计划
+      const newPlan = computeAnimationPlan(draggedCrane.value.points, draggedCrane.value.color);
+      if (newPlan) {
+        animationPlan.value = newPlan;
+      }
+    }
+    
+    // 如果正在播放所有路径动画，更新对应的动画计划
+    if (isPlayingAll.value && animationPlans.value[draggedCrane.value.id]) {
+      // 重新计算当前拖动的起重机的动画计划
+      const newPlan = computeAnimationPlan(draggedCrane.value.points, draggedCrane.value.color);
+      if (newPlan) {
+        animationPlans.value[draggedCrane.value.id] = newPlan;
+      }
+    }
+    
     // 重绘
     drawAllTrajectories();
   } else if (isDragging.value) {
