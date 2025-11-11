@@ -161,7 +161,7 @@
                     </div>
 
                     <div class="form-row">
-                      <label class="form-label">设备生产厂家</label>
+                      <label class="form-label">生产厂家</label>
                       <el-input v-model="formData.manufacturer"  placeholder="请输入生产厂家" />
                     </div>
 
@@ -277,6 +277,7 @@
                         v-model="formData.superLiftWeight"
                         controls-position="right"
                         :precision="2"
+                        placeholder="请输入超起平衡重量"
                       />
                       <span class="unit">t</span>
                     </div>
@@ -286,6 +287,7 @@
                         v-model="formData.superLiftRadius"
                         controls-position="right"
                         :precision="2"
+                        placeholder="请输入超起平衡回转半径"
                       />
                       <span class="unit">m</span>
                     </div>
@@ -3410,7 +3412,6 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
         // 起重机2参数tab回显
         formData.value.equipmentName2 = deviceData.deviceName || '';
         formData.value.equipmentType2 = deviceData.deviceType || '';
-        formData.value.manufacturer2 = deviceData.prodBusiness || '';
         // 将设备重量赋值给起重机2的设备重量(G)
         if (deviceData.weight) {
           formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
@@ -3419,7 +3420,6 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
         // 起重机1参数tab回显
         formData.value.equipmentName = deviceData.deviceName || '';
         formData.value.equipmentType = deviceData.deviceType || '';
-        formData.value.manufacturer = deviceData.prodBusiness || '';
         // 将设备重量赋值给起重机1的设备重量(G)
         if (deviceData.weight) {
           formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
