@@ -3543,6 +3543,8 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
       // 根据是否为第二台起重机，填充对应的参数
       if (isSecondCrane) {
         // 填充第二台起重机参数
+           //生产厂家
+         formData.value.manufacturer2 = response.data.sysProjectTemplateCrane?.prodBusiness || '';
          //车体配重重量
         formData.value.hookWeight = craneData.counterweight !== undefined ? craneData.counterweight : 1;
         //吊钩最大起升吊高度
@@ -3553,6 +3555,8 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         formData.value.superLiftRadius = craneData.superLiftCounterweightRadius !== undefined ? craneData.superLiftCounterweightRadius : 12;
       } else {
         // 填充第一台起重机参数
+          //生产厂家
+           formData.value.manufacturer = response.data.sysProjectTemplateCrane?.prodBusiness || '';
          //车体配重重量
         formData.value.hookWeight = craneData.counterweight !== undefined ? craneData.counterweight : 1;
         //吊钩最大起升吊高度
