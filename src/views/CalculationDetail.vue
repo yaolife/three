@@ -687,8 +687,7 @@
           <div class="action-buttons">
             <el-button>重置</el-button>
             <el-button
-              type="primary"
-              plain
+              type="primary"     
               :loading="saveLoading.crane"
               @click="handleSave('crane')"
               >保存</el-button
@@ -1203,7 +1202,6 @@
             <el-button>重置</el-button>
             <el-button
               type="primary"
-              plain
               :loading="saveLoading.lifting"
               @click="handleSave('lifting')"
               >保存</el-button
@@ -1365,7 +1363,6 @@
             <el-button @click="resetFoundation">重置</el-button>
             <el-button
               type="primary"
-              plain
               :loading="saveLoading.foundation"
               @click="handleSave('foundation')"
               >保存</el-button
