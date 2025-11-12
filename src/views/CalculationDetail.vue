@@ -1199,7 +1199,7 @@
                               v-model="item.value"
                               :controls="false"
                               size="small"
-                              :precision="1"
+                              :precision="2"
                               @change="handleLiftingSystemInputChange(index)"
                             />
                           </td>
@@ -3782,9 +3782,7 @@ const currentWeightItems = computed(
   () => formData.value.weightFactorItems[currentCraneKey.value]
 );
 
-const weightItemPrecision = computed(() =>
-  craneParamsTab.value === "crane2" ? 2 : undefined
-);
+const weightItemPrecision = computed(() => 2);
 
 const getWeightSettingsByKey = (key) => {
   if (!formData.value.weightSettings[key]) {
@@ -4164,7 +4162,6 @@ const handleWeightItemInputChange = (index) => {
   const currentItem = items[index];
   if (
     currentItem &&
-    craneParamsTab.value === "crane2" &&
     currentItem.value !== null &&
     currentItem.value !== undefined &&
     currentItem.value !== ""
@@ -4187,9 +4184,22 @@ const handleWeightItemInputChange = (index) => {
 };
 
 const handleLiftingSystemInputChange = (index) => {
+  const items = activeSlingData.value?.liftingSystemItems;
+  if (!items || !Array.isArray(items) || items.length === 0) return;
+  const currentItem = items[index];
+  if (
+    currentItem &&
+    currentItem.value !== null &&
+    currentItem.value !== undefined &&
+    currentItem.value !== ""
+  ) {
+    const numericValue = Number(currentItem.value);
+    if (!Number.isNaN(numericValue)) {
+      currentItem.value = Number(numericValue.toFixed(2));
+    }
+  }
   // Auto-add new row logic if needed
-  if (index === activeSlingData.value.liftingSystemItems.length - 1) {
-    const currentItem = activeSlingData.value.liftingSystemItems[index];
+  if (index === items.length - 1) {
     if (
       (currentItem.name && currentItem.name.trim() !== "") ||
       (currentItem.value !== null &&
@@ -4197,14 +4207,11 @@ const handleLiftingSystemInputChange = (index) => {
         currentItem.value !== "")
     ) {
       // 如果当前行已有内容且不到10行，添加新行
-      if (activeSlingData.value.liftingSystemItems.length < 10) {
-        const newId =
-          Math.max(
-            ...activeSlingData.value.liftingSystemItems.map((item) => item.id)
-          ) + 1;
-        activeSlingData.value.liftingSystemItems.push({
+      if (items.length < 10) {
+        const newId = Math.max(...items.map((item) => item.id)) + 1;
+        items.push({
           id: newId,
-          order: activeSlingData.value.liftingSystemItems.length + 1,
+          order: items.length + 1,
           name: "",
           value: null,
           checked: false,
