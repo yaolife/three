@@ -169,6 +169,10 @@
                       <label class="form-label">设备型号</label>
                       <el-input v-model="formData.equipmentType" placeholder="请输入设备型号"/>
                     </div>
+                       <div class="form-row">
+                      <label class="form-label">型号</label>
+                      <el-input v-model="formData.model" placeholder="请输入起重机型号"/>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -365,6 +369,10 @@
                     <div class="form-row">
                       <label class="form-label">设备型号</label>
                       <el-input v-model="formData.equipmentType2" placeholder="请输入设备型号"/>
+                    </div>
+                      <div class="form-row">
+                      <label class="form-label">型号</label>
+                      <el-input v-model="formData.model2" placeholder="请输入起重机型号"/>
                     </div>
                   </div>
                 </div>
@@ -3545,6 +3553,8 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         // 填充第二台起重机参数
            //生产厂家
          formData.value.manufacturer2 = response.data.sysProjectTemplateCrane?.prodBusiness || '';
+        //型号
+         formData.value.model2 = response.data.sysProjectTemplateCrane?.model || '';
          //车体配重重量
         formData.value.hookWeight = craneData.counterweight !== undefined ? craneData.counterweight : 1;
         //吊钩最大起升吊高度
@@ -3557,6 +3567,8 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         // 填充第一台起重机参数
           //生产厂家
            formData.value.manufacturer = response.data.sysProjectTemplateCrane?.prodBusiness || '';
+             //型号
+         formData.value.model = response.data.sysProjectTemplateCrane?.model || '';
          //车体配重重量
         formData.value.hookWeight = craneData.counterweight !== undefined ? craneData.counterweight : 1;
         //吊钩最大起升吊高度
