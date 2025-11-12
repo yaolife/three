@@ -686,6 +686,13 @@
 
           <div class="action-buttons">
             <el-button>重置</el-button>
+            <el-button
+              type="primary"
+              plain
+              :loading="saveLoading.crane"
+              @click="handleSave('crane')"
+              >保存</el-button
+            >
             <el-button type="primary" @click="showCalculationResult"
               >计算结果</el-button
             >
@@ -1194,6 +1201,13 @@
 
           <div class="action-buttons">
             <el-button>重置</el-button>
+            <el-button
+              type="primary"
+              plain
+              :loading="saveLoading.lifting"
+              @click="handleSave('lifting')"
+              >保存</el-button
+            >
             <el-button type="primary" @click="showLiftingResult"
               >计算结果</el-button
             >
@@ -1349,6 +1363,13 @@
 
           <div class="action-buttons">
             <el-button @click="resetFoundation">重置</el-button>
+            <el-button
+              type="primary"
+              plain
+              :loading="saveLoading.foundation"
+              @click="handleSave('foundation')"
+              >保存</el-button
+            >
             <el-button type="primary" @click="calculateFoundation"
               >计算结果</el-button
             >
@@ -3325,7 +3346,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, reactive } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowLeft,
@@ -3348,12 +3369,33 @@ import {
   intelligentCraneSelection,
   getCalculateInfo,
   getCalculateHeightOrAngle,
+  saveProjectDetail,
 } from "@/api/index.js";
 import {  getBoomType, craneType} from "@/utils/common.js";
 
 const router = useRouter();
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
+
+const saveLoading = reactive({
+  crane: false,
+  lifting: false,
+  foundation: false,
+});
+
+const craneTemplateDetailId1 = ref("");
+const craneTemplateDetailId2 = ref("");
+
+const projectId = computed(() => {
+  const currentRoute = router.currentRoute?.value || {};
+  return (
+    currentRoute.query?.projectId ??
+    currentRoute.params?.projectId ??
+    currentRoute.query?.id ??
+    currentRoute.params?.id ??
+    ""
+  );
+});
 
 // 设备列表相关
 const deviceList = ref([]);
@@ -3412,6 +3454,7 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
         activeSlingData.value.equipmentName = deviceData.deviceName || '';
         activeSlingData.value.equipmentModel = deviceData.deviceType || '';
         activeSlingData.value.manufacturer2 = deviceData.prodBusiness || '';
+        activeSlingData.value.templateDeviceId = deviceId || '';
         // 如果设备重量有值，也进行回显
         if (deviceData.weight) {
           activeSlingData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
@@ -3452,6 +3495,7 @@ const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
       activeSlingData.value.equipmentModel = '';
       activeSlingData.value.manufacturer2 = '';
       activeSlingData.value.equipmentWeight = 0;
+      activeSlingData.value.templateDeviceId = '';
     } else if (isCrane2) {
       // 清除起重机2参数tab回显信息
       formData.value.equipmentName2 = '';
@@ -3532,10 +3576,28 @@ const selectCraneResult = async (result) => {
 const handleCraneChange = async (craneId, isSecondCrane = false) => {
   const crane = craneList.value.find(c => c.id === craneId);
   if (crane) {
+    if (isSecondCrane) {
+      formData.value.craneName2 = crane.machineName || crane.craneName || '';
+    } else {
+      formData.value.craneName = crane.machineName || crane.craneName || '';
+    }
     try {
       // 调用起重机详情接口获取详细数据
       const response = await getCraneDataDetail(craneId);
       const craneData = response.data.sysProjectTemplateCraneDetail || {};
+      const templateDetailId =
+        craneData.id ??
+        response.data?.sysProjectTemplateCraneDetail?.id ??
+        craneId;
+      if (isSecondCrane) {
+        craneTemplateDetailId2.value = templateDetailId
+          ? String(templateDetailId)
+          : "";
+      } else {
+        craneTemplateDetailId1.value = templateDetailId
+          ? String(templateDetailId)
+          : "";
+      }
       
       // 将接口返回的mainHookWeight赋值给重量计算设置版块的吊钩重量G1
       formData.value.hookWeightG1 = craneData.mainHookWeight !== undefined ? craneData.mainHookWeight : formData.value.hookWeightG1;
@@ -3585,10 +3647,16 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         formData.value.craneName2 = crane.craneName || '';
         formData.value.manufacturer2 = crane.manufacturer || '';
         formData.value.model2 = crane.model || '';
+        if (!craneTemplateDetailId2.value) {
+          craneTemplateDetailId2.value = craneId ? String(craneId) : "";
+        }
       } else {
         formData.value.craneName = crane.craneName || '';
         formData.value.manufacturer = crane.manufacturer || '';
         formData.value.model = crane.model || '';
+        if (!craneTemplateDetailId1.value) {
+          craneTemplateDetailId1.value = craneId ? String(craneId) : "";
+        }
       }
     }
   }
@@ -3745,6 +3813,8 @@ watch(
 const liftingFormDatas = ref([
   {
     id: 1,
+    templateDeviceId: "",
+    templateCraneLiftingDetailId: "",
     equipmentName: "",
     equipmentNumber: "",
     equipmentModel: "",
@@ -3796,6 +3866,19 @@ const activeSlingIndex = ref(0);
 // 获取当前激活的吊索具配置
 const activeSlingData = computed(() => {
   return liftingFormDatas.value[activeSlingIndex.value];
+});
+
+watch(activeSlingIndex, (newIndex) => {
+  const current = liftingFormDatas.value[newIndex];
+  if (current) {
+    selectedSlingDeviceId.value = current.templateDeviceId || "";
+  }
+});
+
+watch(selectedSlingDeviceId, (newValue) => {
+  if (activeSlingData.value) {
+    activeSlingData.value.templateDeviceId = newValue || "";
+  }
 });
 
 // 弹窗可见性状态
@@ -4671,6 +4754,8 @@ const confirmLiftingEquipmentSelection = async () => {
     const response = await getLiftingDetail(selectedModel.value.id);
     if (response.code === '0' && response.data) {
       const liftingDetail = response.data;
+      activeSlingData.value.templateCraneLiftingDetailId =
+        selectedModel.value?.id ? String(selectedModel.value.id) : "";
       
       // 将选中的第二级菜单名称填充到吊索具名称输入框
       activeSlingData.value.deviceName =
@@ -4744,6 +4829,8 @@ const confirmLiftingEquipmentSelection = async () => {
       activeSlingData.value.productModel =
         selectedProduct.value.productModel || "";
     }
+    activeSlingData.value.templateCraneLiftingDetailId =
+      selectedModel.value?.id ? String(selectedModel.value.id) : "";
 
     if (selectedCategory.value) {
       const typeMap = {
@@ -4828,6 +4915,187 @@ watch(liftingFormDatas, (newList) => {
     if (item.angle === undefined) item.angle = null;
   });
 });
+
+const toNumberOrNull = (value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+  const num = Number(value);
+  return Number.isNaN(num) ? null : num;
+};
+
+const normalizeFactorItems = (items = []) =>
+  items.map((item) => ({
+    id: item.id,
+    order: item.order,
+    name: item.name,
+    value:
+      item.value === "" || item.value === null || item.value === undefined
+        ? null
+        : Number(item.value),
+    checked: !!item.checked,
+  }));
+
+const buildCraneDetail = (isSecondCrane = false, itemIndex = 1) => {
+  const suffix = isSecondCrane ? "2" : "";
+  const getField = (key, fallbackKey) => {
+    const computedKey = `${key}${suffix}`;
+    if (Object.prototype.hasOwnProperty.call(formData.value, computedKey)) {
+      return formData.value[computedKey];
+    }
+    return formData.value[fallbackKey ?? key];
+  };
+
+  return {
+    projectId: projectId.value || "",
+    templateDeviceId: isSecondCrane
+      ? selectedDeviceId2.value || ""
+      : selectedDeviceId.value || "",
+    templateCraneDetailId: isSecondCrane
+      ? craneTemplateDetailId2.value || selectedCraneId2.value || ""
+      : craneTemplateDetailId1.value || selectedCraneId.value || "",
+    craneType,
+    type: formData.value.liftingMethod === "double" ? 'double' : 'single',
+    itemIndex,
+    machineName: getField("craneName", "craneName") || "",
+    deviceName: getField("equipmentName", "equipmentName") || "",
+    prodBusiness: getField("manufacturer", "manufacturer") || "",
+    deviceCode: getField("equipmentNumber", "equipmentNumber") || "",
+    model: getField("model", "model") || "",
+    deviceModel: getField("equipmentType", "equipmentType") || "",
+    pq: toNumberOrNull(getField("ratedLoad", "ratedLoad")),
+    mainArmLength: toNumberOrNull(getField("mainBoomLength", "mainBoomLength")),
+    mainArmAngle: toNumberOrNull(getField("mainBoomAngle", "mainBoomAngle")),
+    carWeight: toNumberOrNull(getField("hookWeight", "hookWeight")),
+    balanceWeight: toNumberOrNull(getField("superLiftWeight", "superLiftWeight")),
+    minorArmLength: toNumberOrNull(getField("auxBoomLength", "auxBoomLength")),
+    minorArmAngle: toNumberOrNull(getField("auxBoomAngle", "auxBoomAngle")),
+    maxHigh: toNumberOrNull(getField("hookHeight", "hookHeight")),
+    gyrationRadius: toNumberOrNull(
+      getField("superLiftRadius", "superLiftRadius")
+    ),
+    workRadius: toNumberOrNull(getField("workRadius", "workRadius")),
+    weightG: toNumberOrNull(
+      getField("equipmentWeight", "equipmentWeight")
+    ),
+    weightG1: toNumberOrNull(formData.value.hookWeightG1),
+    weightG2: toNumberOrNull(formData.value.wireRopeWeightG2),
+    weightG3: toNumberOrNull(formData.value.slingsWeightG3),
+    weightG4: toNumberOrNull(formData.value.otherWeightG4),
+    weightSet: JSON.stringify(normalizeFactorItems(weightItems.value)),
+  };
+};
+
+const buildCraneDetails = () => {
+  const details = [];
+  if (selectedCraneId.value) {
+    details.push(buildCraneDetail(false, details.length + 1));
+  }
+  if (
+    formData.value.liftingMethod === "double" &&
+    selectedCraneId2.value
+  ) {
+    details.push(buildCraneDetail(true, details.length + 1));
+  }
+  return details;
+};
+
+const buildLiftingDetails = () =>
+  liftingFormDatas.value.map((sling, index) => ({
+    projectId: projectId.value || "",
+    templateDeviceId: sling.templateDeviceId || "",
+    templateCraneLiftingDetailId:
+      sling.templateCraneLiftingDetailId || "",
+    liftingPosition: sling.isBottomSling ? 1 : 0,
+    type: sling.liftingType === "withBeam" ? 1 : 0,
+    itemIndex: index + 1,
+    deviceName: sling.deviceName || "",
+    deviceCode: sling.equipmentNumber || "",
+    deviceModel: sling.equipmentModel || "",
+    deviceWeight: toNumberOrNull(sling.equipmentWeight),
+    beamWeight: toNumberOrNull(sling.beamWeight),
+    beamLength: toNumberOrNull(sling.beamLength),
+    utensilWeight: toNumberOrNull(sling.beamSlingWeight),
+    liftingName: sling.deviceName || "",
+    liftingType: toNumberOrNull(sling.slingType),
+    prodBusiness: sling.manufacturer || "",
+    normsModel: sling.productModel || "",
+    loadType: sling.loadType === "magnetic" ? 1 : 0,
+    loadContent: toNumberOrNull(
+      sling.loadType === "magnetic"
+        ? sling.safetyFactor
+        : sling.ratedLoad
+    ),
+    topSpotCount: toNumberOrNull(sling.topPointCount),
+    belowSpotCount: toNumberOrNull(sling.bottomPointCount),
+    ropeLength: toNumberOrNull(sling.ropeLength),
+    angle: toNumberOrNull(sling.angle),
+    twoDozen: sling.isDouble ? 1 : 0,
+    arrangeType: toNumberOrNull(sling.arrangeType),
+    height: toNumberOrNull(sling.height),
+    distanceLa: toNumberOrNull(sling.distanceLa),
+    distanceLb: toNumberOrNull(sling.distanceLb),
+    coefficientSet: JSON.stringify(
+      normalizeFactorItems(sling.liftingSystemItems || [])
+    ),
+  }));
+
+const buildBearingDetail = () => {
+  const bearingTypeMap = {
+    truck: 0,
+    tower: 1,
+    tracked: 2,
+  };
+  return {
+    projectId: projectId.value || "",
+    bearingType:
+      bearingTypeMap[foundationData.value.craneType] ?? null,
+    name: foundationData.value.foundationName || "",
+    bearingName: foundationData.value.trackName || "",
+    type: foundationData.value.trackModel || "",
+    leftWidth: toNumberOrNull(foundationData.value.trackWidthB),
+    rightWidth: toNumberOrNull(foundationData.value.trackWidthB),
+    threadLength: toNumberOrNull(
+      foundationData.value.trackGroundLengthL4
+    ),
+    weight: toNumberOrNull(foundationData.value.craneWeightW),
+    acceleration: toNumberOrNull(foundationData.value.gravityAccel),
+    drivingWheel: foundationData.value.driveWheelOffGround ? 1 : 0,
+    slaveWheel: foundationData.value.idlerWheelOffGround ? 1 : 0,
+  };
+};
+
+const buildSavePayload = () => ({
+  projectId: projectId.value || "",
+  sysProjectCraneDetailList: buildCraneDetails(),
+  sysProjectLiftingDetailList: buildLiftingDetails(),
+  sysProjectBearingDetail: buildBearingDetail(),
+});
+
+const handleSave = async (section) => {
+  if (!projectId.value) {
+    ElMessage.warning("未找到项目ID，无法保存");
+    return;
+  }
+  if (saveLoading[section]) {
+    return;
+  }
+  try {
+    saveLoading[section] = true;
+    const payload = buildSavePayload();
+    const response = await saveProjectDetail(payload);
+    if (response?.code === "0") {
+      ElMessage.success("保存成功");
+    } else {
+      ElMessage.error(response?.message || "保存失败");
+    }
+  } catch (error) {
+    console.error("保存项目详情失败:", error);
+    ElMessage.error("保存失败，请稍后重试");
+  } finally {
+    saveLoading[section] = false;
+  }
+};
 </script>
 
 <style scoped>
