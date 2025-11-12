@@ -576,11 +576,13 @@
                 <!-- 左侧重量参数 -->
                 <div class="weight-parameters">
                   <div class="form-row weight-set">
-                    <el-checkbox v-model="formData.isEquipmentWeightChecked" />
+                    <el-checkbox
+                      v-model="currentWeightSettings.isEquipmentWeightChecked"
+                    />
                     <label class="form-label">设备重量<span>(G)</span></label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.equipmentWeight"
+                        v-model="currentWeightSettings.equipmentWeight"
                         controls-position="right"
                         :precision="2"
                       />
@@ -588,11 +590,13 @@
                     </div>
                   </div>
                   <div class="form-row weight-set">
-                    <el-checkbox v-model="formData.isHookWeightChecked" />
+                    <el-checkbox
+                      v-model="currentWeightSettings.isHookWeightChecked"
+                    />
                     <label class="form-label">吊钩重量<span>(G1)</span></label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.hookWeightG1"
+                        v-model="currentWeightSettings.hookWeightG1"
                         controls-position="right"
                         :precision="2"
                       />
@@ -600,13 +604,15 @@
                     </div>
                   </div>
                   <div class="form-row weight-set">
-                    <el-checkbox v-model="formData.isWireRopeWeightChecked" />
+                    <el-checkbox
+                      v-model="currentWeightSettings.isWireRopeWeightChecked"
+                    />
                     <label class="form-label"
                       >计算钢丝绳重量<span>(G2)</span></label
                     >
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.wireRopeWeightG2"
+                        v-model="currentWeightSettings.wireRopeWeightG2"
                         controls-position="right"
                         :precision="2"
                       />
@@ -614,13 +620,15 @@
                     </div>
                   </div>
                   <div class="form-row weight-set">
-                    <el-checkbox v-model="formData.isSlingsWeightChecked" />
+                    <el-checkbox
+                      v-model="currentWeightSettings.isSlingsWeightChecked"
+                    />
                     <label class="form-label"
                       >吊索具重量<span>(G3)</span></label
                     >
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.slingsWeightG3"
+                        v-model="currentWeightSettings.slingsWeightG3"
                         controls-position="right"
                         :precision="2"
                       />
@@ -628,13 +636,15 @@
                     </div>
                   </div>
                   <div class="form-row weight-set">
-                    <el-checkbox v-model="formData.isOtherWeightChecked" />
+                    <el-checkbox
+                      v-model="currentWeightSettings.isOtherWeightChecked"
+                    />
                     <label class="form-label"
                       >其它计算重量<span>(G4)</span></label
                     >
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.otherWeightG4"
+                        v-model="currentWeightSettings.otherWeightG4"
                         controls-position="right"
                         :precision="2"
                       />
@@ -655,7 +665,10 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(item, index) in weightItems" :key="item.id">
+                      <tr
+                        v-for="(item, index) in currentWeightItems"
+                        :key="item.id"
+                      >
                         <td>
                           <el-checkbox v-model="item.checked" />
                         </td>
@@ -665,7 +678,7 @@
                             v-model="item.name"
                             size="small"
                             placeholder="请输入系数名称"
-                            @input="handleInputChange(index)"
+                            @input="handleWeightItemInputChange(index)"
                           />
                         </td>
                         <td>
@@ -673,7 +686,7 @@
                             v-model="item.value"
                             :controls="false"
                             size="small"
-                            @change="handleInputChange(index)"
+                            @change="handleWeightItemInputChange(index)"
                           />
                         </td>
                       </tr>
@@ -3596,9 +3609,20 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
           : "";
       }
       
+      const targetWeightSettings = getWeightSettingsByKey(
+        isSecondCrane ? "crane2" : "crane1"
+      );
       // 将接口返回的mainHookWeight赋值给重量计算设置版块的吊钩重量G1
-      formData.value.hookWeightG1 = craneData.mainHookWeight !== undefined ? craneData.mainHookWeight : formData.value.hookWeightG1;
-      
+      if (craneData.mainHookWeight !== undefined) {
+        targetWeightSettings.hookWeightG1 =
+          craneData.mainHookWeight ?? targetWeightSettings.hookWeightG1;
+      }
+      if (craneData.mainHookMaxCapacity !== undefined) {
+        targetWeightSettings.equipmentWeight =
+          craneData.mainHookMaxCapacity ??
+          targetWeightSettings.equipmentWeight;
+      }
+
       // 将接口返回的mainHookMaxCapacity赋值给默认值G0字段
       formData.value.G0 = craneData.mainHookMaxCapacity !== undefined ? craneData.mainHookMaxCapacity : formData.value.G0;
       
@@ -3668,6 +3692,26 @@ const handleTabChange = (tabName) => {
   console.log("切换到标签页:", tabName);
 };
 
+const defaultWeightSettings = () => ({
+  isEquipmentWeightChecked: false,
+  equipmentWeight: 0,
+  isHookWeightChecked: false,
+  hookWeightG1: 0,
+  isWireRopeWeightChecked: false,
+  wireRopeWeightG2: 0,
+  isSlingsWeightChecked: false,
+  slingsWeightG3: 0,
+  isOtherWeightChecked: false,
+  otherWeightG4: 0,
+});
+
+const defaultWeightItems = () => [
+  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
+  { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
+  { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
+  { id: 4, order: 4, name: "", value: null, checked: false },
+];
+
 const formData = ref({
   // 起重机1参数
   craneName: "",
@@ -3715,18 +3759,41 @@ const formData = ref({
   crane2Weight: 0,
   G0: 65, // 添加G0字段，默认值为65
 
-  // 重量计算设置 - 左侧重量参数
-  isEquipmentWeightChecked: false,
-  equipmentWeight: 0,
-  isHookWeightChecked: false,
-  hookWeightG1: 0,
-  isWireRopeWeightChecked: false,
-  wireRopeWeightG2: 0,
-  isSlingsWeightChecked: false,
-  slingsWeightG3: 0,
-  isOtherWeightChecked: false,
-  otherWeightG4: 0,
+  weightSettings: {
+    crane1: defaultWeightSettings(),
+    crane2: defaultWeightSettings(),
+  },
+  weightFactorItems: {
+    crane1: defaultWeightItems(),
+    crane2: defaultWeightItems(),
+  },
 });
+
+const currentCraneKey = computed(() =>
+  craneParamsTab.value === "crane2" ? "crane2" : "crane1"
+);
+
+const currentWeightSettings = computed(
+  () => formData.value.weightSettings[currentCraneKey.value]
+);
+
+const currentWeightItems = computed(
+  () => formData.value.weightFactorItems[currentCraneKey.value]
+);
+
+const getWeightSettingsByKey = (key) => {
+  if (!formData.value.weightSettings[key]) {
+    formData.value.weightSettings[key] = defaultWeightSettings();
+  }
+  return formData.value.weightSettings[key];
+};
+
+const getWeightItemsByKey = (key) => {
+  if (!formData.value.weightFactorItems[key]) {
+    formData.value.weightFactorItems[key] = defaultWeightItems();
+  }
+  return formData.value.weightFactorItems[key];
+};
 
 // 监听起重机1参数变化，自动调用getCalculateInfo接口
 watch(
@@ -3806,6 +3873,23 @@ watch(
   { immediate: false, deep: true }
 );
 
+const createDefaultLiftingSystemItems = () => [
+  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
+  { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
+  { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
+  { id: 4, order: 4, name: "", value: null, checked: false },
+];
+
+const cloneLiftingSystemItems = (items) =>
+  (Array.isArray(items) && items.length > 0
+    ? items
+    : createDefaultLiftingSystemItems()
+  ).map((item, index) => ({
+    ...item,
+    id: item.id ?? index + 1,
+    order: item.order ?? index + 1,
+  }));
+
 // 吊索具校核计算表单数据数组，用于存储多个吊索具配置
 const liftingFormDatas = ref([
   {
@@ -3848,12 +3932,7 @@ const liftingFormDatas = ref([
     isDouble: false, // Added field for "是否打双" checkbox
     isSinglePointLifting: false, // 添加是否单点吊装字段
     isBottomSling: false, // 标识是否为下部吊索具，false为上部，true为下部
-    liftingSystemItems: [
-      { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
-      { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-      { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
-      { id: 4, order: 4, name: "", value: null, checked: false },
-    ],
+    liftingSystemItems: cloneLiftingSystemItems(),
   },
 ]);
 
@@ -3922,12 +4001,18 @@ watch(
         upperSling.id = 1;
         upperSling.isBottomSling = false;
         upperSling.liftingType = "withBeam";
+        upperSling.liftingSystemItems = cloneLiftingSystemItems(
+          upperSling.liftingSystemItems
+        );
 
         // 创建下部吊索具01，复制上部吊索具内容
         const lowerSling = JSON.parse(JSON.stringify(upperSling));
         lowerSling.id = 2;
         lowerSling.isBottomSling = true;
         lowerSling.bottomPointCount = 4; // 设置下部吊索具的下部吊点数量默认值为4
+        lowerSling.liftingSystemItems = cloneLiftingSystemItems(
+          lowerSling.liftingSystemItems
+        );
 
         // 添加到数组中，确保顺序正确
         liftingFormDatas.value.push(upperSling);
@@ -3944,6 +4029,9 @@ watch(
       if (firstSling) {
         firstSling.liftingType = "noBeam";
         firstSling.isBottomSling = false; // Reset if it was a lower sling
+        firstSling.liftingSystemItems = cloneLiftingSystemItems(
+          firstSling.liftingSystemItems
+        );
         liftingFormDatas.value = [firstSling];
         activeSlingIndex.value = 0;
       }
@@ -3962,6 +4050,9 @@ const addNewSling = () => {
     // 复制当前吊索具配置作为新配置的基础
     const newSlingData = JSON.parse(JSON.stringify(activeSlingData.value));
     newSlingData.id = newId;
+    newSlingData.liftingSystemItems = cloneLiftingSystemItems(
+      newSlingData.liftingSystemItems
+    );
     liftingFormDatas.value.push(newSlingData);
   }
 };
@@ -4003,15 +4094,8 @@ const confirmAddSling = () => {
     }
 
     // 确保有独立的 liftingSystemItems
-    newSlingData.liftingSystemItems = JSON.parse(
-      JSON.stringify(
-        newSlingData.liftingSystemItems || [
-          { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
-          { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-          { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
-          { id: 4, order: 4, name: "", value: null, checked: false },
-        ]
-      )
+    newSlingData.liftingSystemItems = cloneLiftingSystemItems(
+      newSlingData.liftingSystemItems
     );
 
     // 添加到数组中
@@ -4056,48 +4140,31 @@ const removeSling = (index) => {
   }
 };
 
-const weightItems = ref([
-  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
-  { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-  { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
-  { id: 4, order: 4, name: "", value: null, checked: false },
-]);
-
-// 吊索具系统设备表单数据
-const liftingSystemItems = ref([
-  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
-  { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-  { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
-  { id: 4, order: 4, name: "", value: null, checked: false },
-]);
-
-// 添加新行的函数
-const addNewRow = () => {
+const addNewWeightRow = (items) => {
+  if (!items) return;
   const newId =
-    weightItems.value.length > 0
-      ? Math.max(...weightItems.value.map((item) => item.id)) + 1
-      : 1;
-  weightItems.value.push({
+    items.length > 0 ? Math.max(...items.map((item) => item.id)) + 1 : 1;
+  items.push({
     id: newId,
-    order: weightItems.value.length + 1,
+    order: items.length + 1,
     name: "",
     value: null,
     checked: false,
   });
 };
 
-// 处理输入变化的函数
-const handleInputChange = (index) => {
-  // 如果是最后一行，并且该行已经有内容，则添加新行
-  if (index === weightItems.value.length - 1) {
-    const currentItem = weightItems.value[index];
+const handleWeightItemInputChange = (index) => {
+  const items = currentWeightItems.value;
+  if (!items || !Array.isArray(items) || items.length === 0) return;
+  if (index === items.length - 1) {
+    const currentItem = items[index];
     if (
       (currentItem.name && currentItem.name.trim() !== "") ||
       (currentItem.value !== null &&
         currentItem.value !== undefined &&
         currentItem.value !== "")
     ) {
-      addNewRow();
+      addNewWeightRow(items);
     }
   }
 };
@@ -4344,100 +4411,84 @@ const showCalculationResult = () => {
       return;
     }
   }
-  // 收集选中的重量参数
-  let equipmentWeight = formData.value.isEquipmentWeightChecked
-    ? formData.value.equipmentWeight
-    : 0;
-  let hookWeightG1 = formData.value.isHookWeightChecked
-    ? formData.value.hookWeightG1
-    : 0;
-  let wireRopeWeightG2 = formData.value.isWireRopeWeightChecked
-    ? formData.value.wireRopeWeightG2
-    : 0;
-  let slingsWeightG3 = formData.value.isSlingsWeightChecked
-    ? formData.value.slingsWeightG3
-    : 0;
-  let otherWeightG4 = formData.value.isOtherWeightChecked
-    ? formData.value.otherWeightG4
-    : 0;
-
-  // 获取选中的系数项
-  const selectedFactors = weightItems.value.filter(
-    (item) => item.checked && item.name && item.value !== null
-  );
-
-  // 计算系数乘积
-  let factorProduct = 1;
-  selectedFactors.forEach((factor) => {
-    factorProduct *= factor.value;
-  });
-
-  // 计算总重量
-  const totalWeight =
-    equipmentWeight +
-    hookWeightG1 +
-    wireRopeWeightG2 +
-    slingsWeightG3 +
-    otherWeightG4;
+  const activeCraneKey = currentCraneKey.value;
+  const activeWeightData = collectCraneWeightData(activeCraneKey);
 
   // 根据吊装方式显示不同的弹窗
   if (formData.value.liftingMethod === "single") {
-    // 单机吊装计算
-    const calculationResult =
-      (((equipmentWeight +
-        hookWeightG1 +
-        wireRopeWeightG2 +
-        slingsWeightG3 +
-        otherWeightG4) *
-        factorProduct) /
-        formData.value.ratedLoad) *
-      100;
+    const isSecondCraneActive = activeCraneKey === "crane2";
+    const ratedLoad = toNumberOrZero(
+      isSecondCraneActive ? formData.value.ratedLoad2 : formData.value.ratedLoad
+    );
+    const craneName = getCraneFieldValue(
+      "craneName",
+      activeCraneKey,
+      "craneName"
+    );
+    const equipmentName = getCraneFieldValue(
+      "equipmentName",
+      activeCraneKey,
+      "equipmentName"
+    );
 
-    // 填充单机吊装结果数据
+    const calculationResult = ratedLoad
+      ? ((activeWeightData.totalWeight * activeWeightData.factorProduct) /
+          ratedLoad) *
+        100
+      : 0;
+
     singleResult.value = {
       liftingMethod: "单机吊装",
-      craneName: formData.value.craneName,
-      equipmentName: formData.value.equipmentName,
-      totalWeight: totalWeight.toFixed(2),
-      otherParams: `吊钩重量${hookWeightG1.toFixed(
+      craneName: craneName,
+      equipmentName: equipmentName,
+      totalWeight: activeWeightData.totalWeight.toFixed(2),
+      otherParams: `吊钩重量${activeWeightData.hookWeightG1.toFixed(
         2
-      )}t、计算钢丝绳重量${wireRopeWeightG2.toFixed(
+      )}t、计算钢丝绳重量${activeWeightData.wireRopeWeightG2.toFixed(
         2
-      )}t、吊索具重量${slingsWeightG3.toFixed(
+      )}t、吊索具重量${activeWeightData.slingsWeightG3.toFixed(
         2
-      )}t、其他计算重量${otherWeightG4.toFixed(2)}t`,
-      hookWeight: hookWeightG1.toFixed(2),
-      wireRopeWeight: wireRopeWeightG2.toFixed(2),
-      slingsWeight: slingsWeightG3.toFixed(2),
-      otherWeight: otherWeightG4.toFixed(2),
-      equipmentWeight: equipmentWeight.toFixed(2),
+      )}t、其他计算重量${activeWeightData.otherWeightG4.toFixed(2)}t`,
+      hookWeight: activeWeightData.hookWeightG1.toFixed(2),
+      wireRopeWeight: activeWeightData.wireRopeWeightG2.toFixed(2),
+      slingsWeight: activeWeightData.slingsWeightG3.toFixed(2),
+      otherWeight: activeWeightData.otherWeightG4.toFixed(2),
+      equipmentWeight: activeWeightData.equipmentWeight.toFixed(2),
       calculationResult: calculationResult.toFixed(2),
       isQualified: calculationResult < 100, // 修改合格判断逻辑，等于100%时不满足要求
-      selectedFactors: selectedFactors,
+      selectedFactors: activeWeightData.selectedFactors,
+      factorProduct: activeWeightData.factorProduct,
     };
 
     singleCraneDialogVisible.value = true;
   } else {
-    // 双机吊装计算，使用formData中的G0值，如果不存在则使用默认值65
+    const crane1WeightData = collectCraneWeightData("crane1");
+    const crane2WeightData = collectCraneWeightData("crane2");
     const G0 = formData.value.G0 !== undefined ? formData.value.G0 : 65;
-    const calculationResult1 =
-      (((G0 +
-        hookWeightG1 +
-        wireRopeWeightG2 +
-        slingsWeightG3 +
-        otherWeightG4) *
-        factorProduct) /
-        formData.value.ratedLoad) *
-      100;
-    const calculationResult2 =
-      (((G0 +
-        hookWeightG1 +
-        wireRopeWeightG2 +
-        slingsWeightG3 +
-        otherWeightG4) *
-        factorProduct) /
-        formData.value.ratedLoad2) *
-      100;
+    const ratedLoad1 = toNumberOrZero(formData.value.ratedLoad);
+    const ratedLoad2 = toNumberOrZero(formData.value.ratedLoad2);
+
+    const calculationResult1 = ratedLoad1
+      ? (((G0 +
+          crane1WeightData.hookWeightG1 +
+          crane1WeightData.wireRopeWeightG2 +
+          crane1WeightData.slingsWeightG3 +
+          crane1WeightData.otherWeightG4) *
+          crane1WeightData.factorProduct) /
+          ratedLoad1) *
+        100
+      : 0;
+
+    const calculationResult2 = ratedLoad2
+      ? (((G0 +
+          crane2WeightData.hookWeightG1 +
+          crane2WeightData.wireRopeWeightG2 +
+          crane2WeightData.slingsWeightG3 +
+          crane2WeightData.otherWeightG4) *
+          crane2WeightData.factorProduct) /
+          ratedLoad2) *
+        100
+      : 0;
 
     // 填充双机吊装结果数据
     doubleResult.value = {
@@ -4445,25 +4496,26 @@ const showCalculationResult = () => {
       craneName1: formData.value.craneName || "起重机1",
       craneName2: formData.value.craneName2 || "起重机2",
       equipmentName: formData.value.equipmentName,
-      totalWeight: totalWeight.toFixed(2),
-      otherParams: `吊钩重量${hookWeightG1.toFixed(
+      totalWeight: crane1WeightData.totalWeight.toFixed(2),
+      otherParams: `吊钩重量${crane1WeightData.hookWeightG1.toFixed(
         2
-      )}t、计算钢丝绳重量${wireRopeWeightG2.toFixed(
+      )}t、计算钢丝绳重量${crane1WeightData.wireRopeWeightG2.toFixed(
         2
-      )}t、吊索具重量${slingsWeightG3.toFixed(
+      )}t、吊索具重量${crane1WeightData.slingsWeightG3.toFixed(
         2
-      )}t、其他计算重量${otherWeightG4.toFixed(2)}t`,
-      hookWeight: hookWeightG1.toFixed(2),
-      wireRopeWeight: wireRopeWeightG2.toFixed(2),
-      slingsWeight: slingsWeightG3.toFixed(2),
-      otherWeight: otherWeightG4.toFixed(2),
-      equipmentWeight: equipmentWeight.toFixed(2),
+      )}t、其他计算重量${crane1WeightData.otherWeightG4.toFixed(2)}t`,
+      hookWeight: crane1WeightData.hookWeightG1.toFixed(2),
+      wireRopeWeight: crane1WeightData.wireRopeWeightG2.toFixed(2),
+      slingsWeight: crane1WeightData.slingsWeightG3.toFixed(2),
+      otherWeight: crane1WeightData.otherWeightG4.toFixed(2),
+      equipmentWeight: crane1WeightData.equipmentWeight.toFixed(2),
       G0: G0, // 存储实际使用的G0值
       calculationResult1: calculationResult1.toFixed(2),
       calculationResult2: calculationResult2.toFixed(2),
       isQualified1: calculationResult1 < 75, // 修改合格判断逻辑，等于75%时不满足要求
       isQualified2: calculationResult2 < 75, // 修改合格判断逻辑，等于75%时不满足要求
-      selectedFactors: selectedFactors,
+      selectedFactors: crane1WeightData.selectedFactors,
+      factorProduct: crane1WeightData.factorProduct,
     };
 
     doubleCraneDialogVisible.value = true;
@@ -4921,6 +4973,81 @@ const toNumberOrNull = (value) => {
   return Number.isNaN(num) ? null : num;
 };
 
+const toNumberOrZero = (value) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+};
+
+const collectCraneWeightData = (key) => {
+  const settings = getWeightSettingsByKey(key);
+  const items = getWeightItemsByKey(key) || [];
+  const parseWeight = (value, checked) =>
+    checked ? toNumberOrZero(value) : 0;
+
+  const equipmentWeight = parseWeight(
+    settings.equipmentWeight,
+    settings.isEquipmentWeightChecked
+  );
+  const hookWeightG1 = parseWeight(
+    settings.hookWeightG1,
+    settings.isHookWeightChecked
+  );
+  const wireRopeWeightG2 = parseWeight(
+    settings.wireRopeWeightG2,
+    settings.isWireRopeWeightChecked
+  );
+  const slingsWeightG3 = parseWeight(
+    settings.slingsWeightG3,
+    settings.isSlingsWeightChecked
+  );
+  const otherWeightG4 = parseWeight(
+    settings.otherWeightG4,
+    settings.isOtherWeightChecked
+  );
+
+  const selectedFactors = items
+    .filter(
+      (item) =>
+        item.checked &&
+        item.name &&
+        item.value !== null &&
+        item.value !== undefined &&
+        item.value !== ""
+    )
+    .map((item) => ({
+      ...item,
+      value: toNumberOrZero(item.value),
+    }));
+
+  let factorProduct = 1;
+  selectedFactors.forEach((factor) => {
+    const val = toNumberOrZero(factor.value);
+    if (!Number.isNaN(val)) {
+      factorProduct *= val;
+    }
+  });
+
+  const totalWeight =
+    equipmentWeight +
+    hookWeightG1 +
+    wireRopeWeightG2 +
+    slingsWeightG3 +
+    otherWeightG4;
+
+  return {
+    equipmentWeight,
+    hookWeightG1,
+    wireRopeWeightG2,
+    slingsWeightG3,
+    otherWeightG4,
+    selectedFactors,
+    factorProduct,
+    totalWeight,
+    settings,
+    items,
+  };
+};
+
 const normalizeFactorItems = (items = []) =>
   items.map((item) => ({
     id: item.id,
@@ -4933,15 +5060,21 @@ const normalizeFactorItems = (items = []) =>
     checked: !!item.checked,
   }));
 
-const buildCraneDetail = (isSecondCrane = false, itemIndex = 1) => {
-  const suffix = isSecondCrane ? "2" : "";
-  const getField = (key, fallbackKey) => {
-    const computedKey = `${key}${suffix}`;
-    if (Object.prototype.hasOwnProperty.call(formData.value, computedKey)) {
-      return formData.value[computedKey];
-    }
-    return formData.value[fallbackKey ?? key];
-  };
+const getCraneSuffix = (key) => (key === "crane2" ? "2" : "");
+
+const getCraneFieldValue = (field, key, fallbackField) => {
+  const suffix = getCraneSuffix(key);
+  const computedKey = `${field}${suffix}`;
+  if (Object.prototype.hasOwnProperty.call(formData.value, computedKey)) {
+    return formData.value[computedKey];
+  }
+  return formData.value[fallbackField ?? field];
+};
+
+const buildCraneDetail = (craneKey, itemIndex = 1) => {
+  const isSecondCrane = craneKey === "crane2";
+  const weightSettings = getWeightSettingsByKey(craneKey);
+  const weightItems = getWeightItemsByKey(craneKey);
 
   return {
     projectId: projectId.value || "",
@@ -4952,47 +5085,65 @@ const buildCraneDetail = (isSecondCrane = false, itemIndex = 1) => {
       ? craneTemplateDetailId2.value || selectedCraneId2.value || ""
       : craneTemplateDetailId1.value || selectedCraneId.value || "",
     craneType,
-    type: formData.value.liftingMethod === "double" ? 'double' : 'single',
+    type: formData.value.liftingMethod === "double" ? 1 : 0,
     itemIndex,
-    machineName: getField("craneName", "craneName") || "",
-    deviceName: getField("equipmentName", "equipmentName") || "",
-    prodBusiness: getField("manufacturer", "manufacturer") || "",
-    deviceCode: getField("equipmentNumber", "equipmentNumber") || "",
-    model: getField("model", "model") || "",
-    deviceModel: getField("equipmentType", "equipmentType") || "",
-    pq: toNumberOrNull(getField("ratedLoad", "ratedLoad")),
-    mainArmLength: toNumberOrNull(getField("mainBoomLength", "mainBoomLength")),
-    mainArmAngle: toNumberOrNull(getField("mainBoomAngle", "mainBoomAngle")),
-    carWeight: toNumberOrNull(getField("hookWeight", "hookWeight")),
-    balanceWeight: toNumberOrNull(getField("superLiftWeight", "superLiftWeight")),
-    minorArmLength: toNumberOrNull(getField("auxBoomLength", "auxBoomLength")),
-    minorArmAngle: toNumberOrNull(getField("auxBoomAngle", "auxBoomAngle")),
-    maxHigh: toNumberOrNull(getField("hookHeight", "hookHeight")),
+    machineName: getCraneFieldValue("craneName", craneKey, "craneName") || "",
+    deviceName:
+      getCraneFieldValue("equipmentName", craneKey, "equipmentName") || "",
+    prodBusiness:
+      getCraneFieldValue("manufacturer", craneKey, "manufacturer") || "",
+    deviceCode:
+      getCraneFieldValue("equipmentNumber", craneKey, "equipmentNumber") || "",
+    model: getCraneFieldValue("model", craneKey, "model") || "",
+    deviceModel:
+      getCraneFieldValue("equipmentType", craneKey, "equipmentType") || "",
+    pq: toNumberOrNull(getCraneFieldValue("ratedLoad", craneKey, "ratedLoad")),
+    mainArmLength: toNumberOrNull(
+      getCraneFieldValue("mainBoomLength", craneKey, "mainBoomLength")
+    ),
+    mainArmAngle: toNumberOrNull(
+      getCraneFieldValue("mainBoomAngle", craneKey, "mainBoomAngle")
+    ),
+    carWeight: toNumberOrNull(
+      getCraneFieldValue("hookWeight", craneKey, "hookWeight")
+    ),
+    balanceWeight: toNumberOrNull(
+      getCraneFieldValue("superLiftWeight", craneKey, "superLiftWeight")
+    ),
+    minorArmLength: toNumberOrNull(
+      getCraneFieldValue("auxBoomLength", craneKey, "auxBoomLength")
+    ),
+    minorArmAngle: toNumberOrNull(
+      getCraneFieldValue("auxBoomAngle", craneKey, "auxBoomAngle")
+    ),
+    maxHigh: toNumberOrNull(
+      getCraneFieldValue("hookHeight", craneKey, "hookHeight")
+    ),
     gyrationRadius: toNumberOrNull(
-      getField("superLiftRadius", "superLiftRadius")
+      getCraneFieldValue("superLiftRadius", craneKey, "superLiftRadius")
     ),
-    workRadius: toNumberOrNull(getField("workRadius", "workRadius")),
-    weightG: toNumberOrNull(
-      getField("equipmentWeight", "equipmentWeight")
+    workRadius: toNumberOrNull(
+      getCraneFieldValue("workRadius", craneKey, "workRadius")
     ),
-    weightG1: toNumberOrNull(formData.value.hookWeightG1),
-    weightG2: toNumberOrNull(formData.value.wireRopeWeightG2),
-    weightG3: toNumberOrNull(formData.value.slingsWeightG3),
-    weightG4: toNumberOrNull(formData.value.otherWeightG4),
-    weightSet: JSON.stringify(normalizeFactorItems(weightItems.value)),
+    weightG: toNumberOrNull(weightSettings.equipmentWeight),
+    weightG1: toNumberOrNull(weightSettings.hookWeightG1),
+    weightG2: toNumberOrNull(weightSettings.wireRopeWeightG2),
+    weightG3: toNumberOrNull(weightSettings.slingsWeightG3),
+    weightG4: toNumberOrNull(weightSettings.otherWeightG4),
+    weightSet: JSON.stringify(normalizeFactorItems(weightItems)),
   };
 };
 
 const buildCraneDetails = () => {
   const details = [];
   if (selectedCraneId.value) {
-    details.push(buildCraneDetail(false, details.length + 1));
+    details.push(buildCraneDetail("crane1", details.length + 1));
   }
   if (
     formData.value.liftingMethod === "double" &&
     selectedCraneId2.value
   ) {
-    details.push(buildCraneDetail(true, details.length + 1));
+    details.push(buildCraneDetail("crane2", details.length + 1));
   }
   return details;
 };
