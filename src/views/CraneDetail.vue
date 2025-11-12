@@ -454,7 +454,7 @@ const auxBoomTableData2 = ref([]);
 const handleAddMainBoomRow = () => {
   mainBoomTableData.value.push({
     workingRadius: "",
-    mainBoomLength: "",
+    mainBoomMaxLength: "",
     liftingCapacity: "",
   });
 };

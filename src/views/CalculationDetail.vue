@@ -206,7 +206,7 @@
                     <label class="form-label">主臂长度</label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.mainBoomLength"
+                        v-model="formData.mainBoomMaxLength"
                         controls-position="right"
                         :precision="2"
                       />
@@ -407,7 +407,7 @@
                     <label class="form-label">主臂长度</label>
                     <div class="input-with-unit">
                       <el-input-number
-                        v-model="formData.mainBoomLength2"
+                        v-model="formData.mainBoomMaxLength"
                         controls-position="right"
                         :precision="2"
                       />
@@ -1461,7 +1461,7 @@
           <div class="equipment-info">
             <div class="info-item">起重机：{{ singleResult.craneName }}</div>
             <div class="info-item">
-              规格型号：主臂长度{{ formData.mainBoomLength }}m、副臂长度{{
+              规格型号：主臂长度{{ formData.mainBoomMaxLength }}m、副臂长度{{
                 formData.auxBoomLength
               }}m、主臂角度{{ formData.mainBoomAngle }}°、副臂角度{{
                 formData.auxBoomAngle
@@ -2667,7 +2667,7 @@
           <div class="equipment-info">
             <div class="info-item">起重机：{{ doubleResult.craneName1 }}</div>
             <div class="info-item">
-              规格型号：主臂长度{{ formData.mainBoomLength }}m、副臂长度{{
+              规格型号：主臂长度{{ formData.mainBoomMaxLength }}m、副臂长度{{
                 formData.auxBoomLength
               }}m、主臂角度{{ formData.mainBoomAngle }}°、副臂角度{{
                 formData.auxBoomAngle
@@ -2684,7 +2684,7 @@
           <div class="equipment-info">
             <div class="info-item">起重机：{{ doubleResult.craneName2 }}</div>
             <div class="info-item">
-              规格型号：主臂长度{{ formData.mainBoomLength2 }}m、副臂长度{{
+              规格型号：主臂长度{{ formData.mainBoomMaxLength2 }}m、副臂长度{{
                 formData.auxBoomLength2
               }}m、主臂角度{{ formData.mainBoomAngle2 }}°、副臂角度{{
                 formData.auxBoomAngle2
@@ -3644,9 +3644,9 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         //吊钩最大起升吊高度
         formData.value.hookHeight = craneData.maxLiftingHeight !== undefined ? craneData.maxLiftingHeight : 12;
         //超起平衡重量
-        formData.value.superLiftWeight = craneData.superLiftCounterweightWeight !== undefined ? craneData.superLiftCounterweightWeight : 12;
+        formData.value.superLiftWeight = craneData.superLiftCounterweightWeight !== undefined ? craneData.superLiftCounterweightWeight : '';
         //超起平衡回转半径
-        formData.value.superLiftRadius = craneData.superLiftCounterweightRadius !== undefined ? craneData.superLiftCounterweightRadius : 12;
+        formData.value.superLiftRadius = craneData.superLiftCounterweightRadius !== undefined ? craneData.superLiftCounterweightRadius : '';
       } else {
         // 填充第一台起重机参数
           //生产厂家
@@ -3658,9 +3658,9 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         //吊钩最大起升吊高度
         formData.value.hookHeight = craneData.maxLiftingHeight !== undefined ? craneData.maxLiftingHeight : 12;
         //超起平衡重量
-        formData.value.superLiftWeight = craneData.superLiftCounterweightWeight !== undefined ? craneData.superLiftCounterweightWeight : 12;
+        formData.value.superLiftWeight = craneData.superLiftCounterweightWeight !== undefined ? craneData.superLiftCounterweightWeight : '';
         //超起平衡回转半径
-        formData.value.superLiftRadius = craneData.superLiftCounterweightRadius !== undefined ? craneData.superLiftCounterweightRadius : 12;
+        formData.value.superLiftRadius = craneData.superLiftCounterweightRadius !== undefined ? craneData.superLiftCounterweightRadius : '';
       }
     } catch (error) {
       console.error('获取起重机详情失败:', error);
@@ -3723,7 +3723,7 @@ const formData = ref({
   equipmentType: "",
   ratedLoad: 12,
   boomType: 0, // 添加吊臂类型字段，默认值为主臂
-  mainBoomLength: 12,
+  mainBoomMaxLength: 12,
   auxBoomLength: 12,
   workRadius: 12,
   mainBoomAngle: 12,
@@ -3742,7 +3742,7 @@ const formData = ref({
   equipmentType2: "",
   ratedLoad2: 12,
   boomType2: 0, // 添加吊臂类型字段，默认值为主臂
-  mainBoomLength2: 12,
+   mainBoomMaxLength2: 12,
   auxBoomLength2: 12,
   workRadius2: 12,
   mainBoomAngle2: 12,
@@ -3801,7 +3801,7 @@ const getWeightItemsByKey = (key) => {
 // 监听起重机1参数变化，自动调用getCalculateInfo接口
 watch(
   () => [
-    formData.value.mainBoomLength,
+    formData.value.mainBoomMaxLength,
     formData.value.mainBoomAngle,
     formData.value.auxBoomLength,
     formData.value.auxBoomAngle,
@@ -3812,7 +3812,7 @@ watch(
     if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
       try {
         const response = await getCalculateInfo({
-          l1: formData.value.mainBoomLength,
+          l1: formData.value.mainBoomMaxLength,
           theta1: formData.value.mainBoomAngle,
           l2: formData.value.auxBoomLength,
           theta2: formData.value.auxBoomAngle,
@@ -3840,7 +3840,7 @@ watch(
 // 监听起重机2参数变化，自动调用getCalculateInfo接口
 watch(
   () => [
-    formData.value.mainBoomLength2,
+    formData.value.mainBoomMaxLength2,
     formData.value.mainBoomAngle2,
     formData.value.auxBoomLength2,
     formData.value.auxBoomAngle2,
@@ -3851,7 +3851,7 @@ watch(
     if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
       try {
         const response = await getCalculateInfo({
-          l1: formData.value.mainBoomLength2,
+          l1: formData.value.mainBoomMaxLength2,
           theta1: formData.value.mainBoomAngle2,
           l2: formData.value.auxBoomLength2,
           theta2: formData.value.auxBoomAngle2,
@@ -5109,7 +5109,7 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
       ? craneTemplateDetailId2.value || selectedCraneId2.value || ""
       : craneTemplateDetailId1.value || selectedCraneId.value || "",
     craneType,
-    type: formData.value.liftingMethod === "double" ? 1 : 0,
+    type: formData.value.liftingMethod === "double" ? "double" : "single",
     itemIndex,
     machineName: getCraneFieldValue("craneName", craneKey, "craneName") || "",
     deviceName:
@@ -5123,10 +5123,10 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
       getCraneFieldValue("equipmentType", craneKey, "equipmentType") || "",
     pq: toNumberOrNull(getCraneFieldValue("ratedLoad", craneKey, "ratedLoad")),
     mainArmLength: toNumberOrNull(
-      getCraneFieldValue("mainBoomLength", craneKey, "mainBoomLength")
+      getCraneFieldValue("mainBoomMaxLength", craneKey, "mainBoomMaxLength")
     ),
     mainArmAngle: toNumberOrNull(
-      getCraneFieldValue("mainBoomAngle", craneKey, "mainBoomAngle")
+      getCraneFieldValue("mainArmLength", craneKey, "mainBoomAngle")
     ),
     carWeight: toNumberOrNull(
       getCraneFieldValue("hookWeight", craneKey, "hookWeight")
