@@ -3277,7 +3277,7 @@
               <div style="display: flex; align-items: center; width: 300px;">
                 <label style="min-width: 80px; text-align: right; margin-right: 12px;">设备重量</label>
                 <el-input-number
-                  v-model="formData.equipmentWeight"
+                  v-model="intelligentSelectionWeight"
                   :min="0"
                   :precision="2"
                   controls-position="right"
@@ -3474,18 +3474,12 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
         // 起重机2参数tab回显
         formData.value.equipmentName2 = deviceData.deviceName || '';
         formData.value.equipmentType2 = deviceData.deviceType || '';
-        // 将设备重量赋值给起重机2的设备重量(G)
-        if (deviceData.weight) {
-          formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
-        }
+        setEquipmentWeightForCrane(deviceData.weight, "crane2");
       } else {
         // 起重机1参数tab回显
         formData.value.equipmentName = deviceData.deviceName || '';
         formData.value.equipmentType = deviceData.deviceType || '';
-        // 将设备重量赋值给起重机1的设备重量(G)
-        if (deviceData.weight) {
-          formData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
-        }
+        setEquipmentWeightForCrane(deviceData.weight, "crane1");
       }
     }
   } catch (error) {
@@ -3512,13 +3506,13 @@ const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
       formData.value.equipmentName2 = '';
       formData.value.equipmentType2 = '';
       formData.value.manufacturer2 = '';
-      formData.value.equipmentWeight = 0;
+      setEquipmentWeightForCrane(0, "crane2");
     } else {
       // 清除起重机1参数tab回显信息
       formData.value.equipmentName = '';
       formData.value.equipmentType = '';
       formData.value.manufacturer = '';
-      formData.value.equipmentWeight = 0;
+      setEquipmentWeightForCrane(0, "crane1");
     }
   }
 };
@@ -3531,21 +3525,29 @@ const openIntelligentSelection = (craneIndex) => {
 
 // 执行智能选型
 const executeIntelligentSelection = async () => {
+  const targetKey = currentCraneIndex.value === 1 ? "crane2" : "crane1";
+  const currentDeviceId =
+    currentCraneIndex.value === 1
+      ? selectedDeviceId2.value
+      : selectedDeviceId.value;
+
   // 先判断是否选择了设备名称
-  if (!selectedDeviceId.value) {
+  if (!currentDeviceId) {
     ElMessage.warning('请先选择设备名称');
     return;
   }
   
   // 判断设备重量是否有值且大于0
-  if (!formData.value.equipmentWeight || formData.value.equipmentWeight <= 0) {
+  const equipmentWeight =
+    getWeightSettingsByKey(targetKey).equipmentWeight || 0;
+  if (!equipmentWeight || equipmentWeight <= 0) {
     ElMessage.warning('设备重量必须大于0');
     return;
   }
   
   try {
     intelligentSelectionLoading.value = true;
-    const weight = formData.value.equipmentWeight; // 使用设备重量，如果没有则使用默认值10
+    const weight = equipmentWeight; // 使用设备重量，如果没有则使用默认值10
     const response = await intelligentCraneSelection({ mainHookMaxCapacity: weight });
     if (response.code === '0' && response.data) {
       selectionResults.value = response.data;
@@ -3610,18 +3612,15 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
           : "";
       }
       
-      const targetWeightSettings = getWeightSettingsByKey(
-        isSecondCrane ? "crane2" : "crane1"
-      );
+      const craneKey = isSecondCrane ? "crane2" : "crane1";
+      const targetWeightSettings = getWeightSettingsByKey(craneKey);
       // 将接口返回的mainHookWeight赋值给重量计算设置版块的吊钩重量G1
       if (craneData.mainHookWeight !== undefined) {
         targetWeightSettings.hookWeightG1 =
           craneData.mainHookWeight ?? targetWeightSettings.hookWeightG1;
       }
       if (craneData.mainHookMaxCapacity !== undefined) {
-        targetWeightSettings.equipmentWeight =
-          craneData.mainHookMaxCapacity ??
-          targetWeightSettings.equipmentWeight;
+        setEquipmentWeightForCrane(craneData.mainHookMaxCapacity, craneKey);
       }
 
       // 将接口返回的mainHookMaxCapacity赋值给默认值G0字段
@@ -3798,6 +3797,17 @@ const getWeightItemsByKey = (key) => {
   return formData.value.weightFactorItems[key];
 };
 
+const setEquipmentWeightForCrane = (weight, key) => {
+  const targetSettings = getWeightSettingsByKey(key);
+  const numericWeight =
+    weight !== undefined && weight !== null && weight !== ""
+      ? Number(weight)
+      : 0;
+  const safeWeight = Number.isFinite(numericWeight) ? numericWeight : 0;
+  targetSettings.equipmentWeight = safeWeight;
+  targetSettings.isEquipmentWeightChecked = safeWeight > 0;
+};
+
 // 监听起重机1参数变化，自动调用getCalculateInfo接口
 watch(
   () => [
@@ -3972,6 +3982,21 @@ const currentCraneIndex = ref(0); // 0表示第一台起重机，1表示第二�
 const selectionResults = ref([]); // 智能选型结果列表
 const intelligentSelectionLoading = ref(false); // 智能选型加载状态
 const liftingResultDialog3Visible = ref(false);
+
+const currentIntelligentSelectionKey = computed(() =>
+  currentCraneIndex.value === 1 ? "crane2" : "crane1"
+);
+
+const intelligentSelectionWeight = computed({
+  get() {
+    return getWeightSettingsByKey(
+      currentIntelligentSelectionKey.value
+    ).equipmentWeight;
+  },
+  set(value) {
+    setEquipmentWeightForCrane(value, currentIntelligentSelectionKey.value);
+  },
+});
 // 地基承载力计算结果弹窗状态
 const foundationResultDialogVisible = ref(false);
 
