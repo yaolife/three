@@ -378,6 +378,30 @@ export function getCalculateHeightOrAngle(params) {
   return post("/lifting/detail/calculate", params)
 }
 
+/**
+ * 起重机校核/吊索具校核/地基承载力校核 保存的接口
+ * @param {object} params - }
+ * @returns {Promise} - 
+ */
+export function saveProjectDetail(params) {
+  return post("/projectInfo/addUpdateDetail", params)
+}
+
+
+/**
+ * 拿到项目的所有信息
+ * @param {string|number} id - 项目ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getProjectAllDetail(id) {
+  try {
+    const url = `/projectInfo/getProjectDetailById/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取项目所有数据API请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -408,5 +432,7 @@ export default {
   deleteProjectItem,
   intelligentCraneSelection,
   getCalculateInfo,
-  getCalculateHeightOrAngle
+  getCalculateHeightOrAngle,
+  saveProjectDetail,
+  getProjectAllDetail,
 }
