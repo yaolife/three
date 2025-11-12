@@ -686,6 +686,7 @@
                             v-model="item.value"
                             :controls="false"
                             size="small"
+                            :precision="weightItemPrecision"
                             @change="handleWeightItemInputChange(index)"
                           />
                         </td>
@@ -3781,6 +3782,10 @@ const currentWeightItems = computed(
   () => formData.value.weightFactorItems[currentCraneKey.value]
 );
 
+const weightItemPrecision = computed(() =>
+  craneParamsTab.value === "crane2" ? 2 : undefined
+);
+
 const getWeightSettingsByKey = (key) => {
   if (!formData.value.weightSettings[key]) {
     formData.value.weightSettings[key] = defaultWeightSettings();
@@ -4156,8 +4161,20 @@ const addNewWeightRow = (items) => {
 const handleWeightItemInputChange = (index) => {
   const items = currentWeightItems.value;
   if (!items || !Array.isArray(items) || items.length === 0) return;
+  const currentItem = items[index];
+  if (
+    currentItem &&
+    craneParamsTab.value === "crane2" &&
+    currentItem.value !== null &&
+    currentItem.value !== undefined &&
+    currentItem.value !== ""
+  ) {
+    const numericValue = Number(currentItem.value);
+    if (!Number.isNaN(numericValue)) {
+      currentItem.value = Number(numericValue.toFixed(2));
+    }
+  }
   if (index === items.length - 1) {
-    const currentItem = items[index];
     if (
       (currentItem.name && currentItem.name.trim() !== "") ||
       (currentItem.value !== null &&
