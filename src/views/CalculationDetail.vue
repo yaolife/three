@@ -3997,6 +3997,21 @@ watch(selectedSlingDeviceId, (newValue) => {
   }
 });
 
+watch(
+  () => activeSlingData.value?.loadType,
+  (newType) => {
+    if (isInitializingFromApi) {
+      return;
+    }
+    if (newType === "rope" && activeSlingData.value) {
+      const factor = Number(activeSlingData.value.factorySafetyFactor);
+      if (!Number.isFinite(factor) || factor <= 0) {
+        activeSlingData.value.factorySafetyFactor = 1;
+      }
+    }
+  }
+);
+
 // 弹窗可见性状态
 const singleCraneDialogVisible = ref(false);
 const doubleCraneDialogVisible = ref(false);
