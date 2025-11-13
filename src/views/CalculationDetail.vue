@@ -5670,12 +5670,12 @@ const buildBearingDetail = () => {
     tracked: 2,
   };
   return {
-    projectId: projectId.value || "",
+    projectId: projectId.value || null,
     bearingType:
       bearingTypeMap[foundationData.value.craneType] ?? null,
-    name: foundationData.value.foundationName || "",
-    bearingName: foundationData.value.trackName || "",
-    type: foundationData.value.trackModel || "",
+    name: foundationData.value.foundationName || null,
+    bearingName: foundationData.value.trackName || null,
+    type: foundationData.value.trackModel || null,
     leftWidth: toNumberOrNull(foundationData.value.trackWidthB),
     rightWidth: toNumberOrNull(foundationData.value.trackWidthB),
     threadLength: toNumberOrNull(
