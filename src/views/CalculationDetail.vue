@@ -1084,8 +1084,14 @@
                   </div>
                 </div>
                 <div class="distance-inputs-right">
-                  <!-- 无吊梁情况下显示L1-L4 -->
-                  <template v-if="activeSlingData.liftingType === 'noBeam'">
+                  <!-- 无吊梁或有吊梁且为下部吊索具时显示L1-L4 -->
+                  <template
+                    v-if="
+                      activeSlingData.liftingType === 'noBeam' ||
+                      (activeSlingData.liftingType === 'withBeam' &&
+                        activeSlingData.isBottomSling)
+                    "
+                  >
                     <div class="form-row">
                       <el-checkbox v-model="activeSlingData.enableL1" />
                       <label class="form-label error"
@@ -1159,7 +1165,7 @@
                     </div>
                   </template>
 
-                  <!-- 有吊梁情况下只显示La -->
+                  <!-- 有吊梁且为上部吊索具时显示La -->
                   <template v-else>
                     <div class="form-row">
                       <el-checkbox v-model="activeSlingData.enableLa" />
@@ -1174,6 +1180,17 @@
                         />
                         <span class="unit">m</span>
                       </div>
+                    </div>
+                    <div class="form-row full-width">
+                      <el-button
+                        type="primary"
+                        size="small"
+                        class="calculate-distance-btn"
+                        :loading="isCalculatingHeightAngle"
+                        @click="handleCalculateHeightAngleByLa"
+                      >
+                        计算角度和高度结果
+                      </el-button>
                     </div>
                   </template>
                 </div>
@@ -5011,7 +5028,15 @@ const isCalculatingHeightAngle = ref(false);
 
 const handleCalculateHeightAngle = async () => {
   const data = activeSlingData.value;
-  if (!data || data.liftingType !== 'noBeam') return;
+  if (
+    !data ||
+    !(
+      data.liftingType === "noBeam" ||
+      (data.liftingType === "withBeam" && data.isBottomSling)
+    )
+  ) {
+    return;
+  }
 
   const fields = ["distanceL1", "distanceL2", "distanceL3", "distanceL4"];
   const values = fields.map((key) => Number(data[key]));
@@ -5054,6 +5079,56 @@ const handleCalculateHeightAngle = async () => {
     }
   } catch (error) {
     console.error('调用getCalculateHeightOrAngle失败:', error);
+    ElMessage.error("计算失败，请稍后重试");
+  } finally {
+    isCalculatingHeightAngle.value = false;
+  }
+};
+
+const handleCalculateHeightAngleByLa = async () => {
+  const data = activeSlingData.value;
+  if (
+    !data ||
+    data.liftingType !== "withBeam" ||
+    data.isBottomSling
+  ) {
+    return;
+  }
+
+  const la = Number(data.distanceLa);
+  if (!Number.isFinite(la) || la <= 0) {
+    ElMessage.warning("请先填写有效的距离La");
+    return;
+  }
+
+  const ropeLength = Number(data.ropeLength);
+  if (Number.isNaN(ropeLength) || ropeLength <= 0) {
+    ElMessage.warning("请先填写绳索长度");
+    return;
+  }
+
+  const distance = Number((la / 2).toFixed(4));
+
+  try {
+    isCalculatingHeightAngle.value = true;
+    const response = await getCalculateHeightOrAngle({
+      ropeLength,
+      distance,
+    });
+
+    if (response?.code === "0" && response.data) {
+      if (typeof response.data.height === "number") {
+        data.height = response.data.height;
+      }
+      if (typeof response.data.angle === "number") {
+        data.angle = response.data.angle;
+      }
+      ElMessage.success("计算成功");
+    } else {
+      ElMessage.error(response?.message || "计算失败，请稍后重试");
+    }
+  } catch (error) {
+    console.error("调用getCalculateHeightOrAngle失败:", error);
     ElMessage.error("计算失败，请稍后重试");
   } finally {
     isCalculatingHeightAngle.value = false;
