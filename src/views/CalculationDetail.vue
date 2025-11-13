@@ -5476,6 +5476,10 @@ const createSlingFromDetail = (detail, index) => {
       : sling.slingType;
   sling.distanceLa = toNumberOrZero(detail?.distanceLa, sling.distanceLa);
   sling.distanceLb = toNumberOrZero(detail?.distanceLb, sling.distanceLb);
+  sling.distanceL1 = toNumberOrZero(detail?.distanceL1, sling.distanceL1);
+  sling.distanceL2 = toNumberOrZero(detail?.distanceL2, sling.distanceL2);
+  sling.distanceL3 = toNumberOrZero(detail?.distanceL3, sling.distanceL3);
+  sling.distanceL4 = toNumberOrZero(detail?.distanceL4, sling.distanceL4);
   sling.arrangeType =
     detail?.arrangeType !== undefined ? detail.arrangeType : sling.arrangeType;
   return sling;
@@ -5741,6 +5745,10 @@ const buildLiftingDetails = () =>
     height: toNumberOrNull(sling.height),
     distanceLa: toNumberOrNull(sling.distanceLa),
     distanceLb: toNumberOrNull(sling.distanceLb),
+    distanceL1: toNumberOrNull(sling.distanceL1),
+    distanceL2: toNumberOrNull(sling.distanceL2),
+    distanceL3: toNumberOrNull(sling.distanceL3),
+    distanceL4: toNumberOrNull(sling.distanceL4),
     coefficientSet: JSON.stringify(
       normalizeFactorItems(sling.liftingSystemItems || [])
     ),
