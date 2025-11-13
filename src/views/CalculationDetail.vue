@@ -5385,22 +5385,28 @@ const createSlingFromDetail = (detail, index) => {
   const loadType =
     rawLoadType === 1 || rawLoadType === "1" ? "magnetic" : "rope";
   const sling = createDefaultSling({ id: index + 1 });
-  sling.templateDeviceId = detail?.templateDeviceId
-    ? String(detail.templateDeviceId)
-    : "";
-  sling.templateCraneLiftingDetailId = detail?.templateCraneLiftingDetailId
-    ? String(detail.templateCraneLiftingDetailId)
-    : "";
-  sling.equipmentName = detail?.deviceName ?? "";
-  sling.equipmentNumber = detail?.deviceCode ?? "";
-  sling.equipmentModel = detail?.deviceModel ?? "";
+  sling.templateDeviceId =
+    detail?.templateDeviceId !== undefined &&
+    detail?.templateDeviceId !== null &&
+    detail?.templateDeviceId !== ""
+      ? String(detail.templateDeviceId)
+      : null;
+  sling.templateCraneLiftingDetailId =
+    detail?.templateCraneLiftingDetailId !== undefined &&
+    detail?.templateCraneLiftingDetailId !== null &&
+    detail?.templateCraneLiftingDetailId !== ""
+      ? String(detail.templateCraneLiftingDetailId)
+      : null;
+  sling.equipmentName = toNullableString(detail?.deviceName);
+  sling.equipmentNumber = toNullableString(detail?.deviceCode);
+  sling.equipmentModel = toNullableString(detail?.deviceModel);
   sling.equipmentWeight = toNumberOrZero(
     detail?.deviceWeight,
     sling.equipmentWeight
   );
-  sling.deviceName = detail?.liftingName ?? detail?.deviceName ?? "";
-  sling.manufacturer = detail?.prodBusiness ?? "";
-  sling.productModel = detail?.normsModel ?? "";
+  sling.deviceName = toNullableString(detail?.liftingName ?? detail?.deviceName);
+  sling.manufacturer = toNullableString(detail?.prodBusiness);
+  sling.productModel = toNullableString(detail?.normsModel);
   sling.loadType = loadType;
   sling.safetyFactor =
     loadType === "magnetic"
@@ -5662,15 +5668,10 @@ const buildCraneDetails = () => {
 const buildLiftingDetails = () =>
   liftingFormDatas.value.map((sling, index) => ({
     projectId: toNullableString(projectId.value),
-    templateDeviceId:
-      sling.templateDeviceId !== undefined && sling.templateDeviceId !== null
-        ? sling.templateDeviceId
-        : null,
-    templateCraneLiftingDetailId:
-      sling.templateCraneLiftingDetailId !== undefined &&
-      sling.templateCraneLiftingDetailId !== null
-        ? sling.templateCraneLiftingDetailId
-        : null,
+    templateDeviceId: toNullableString(sling.templateDeviceId),
+    templateCraneLiftingDetailId: toNullableString(
+      sling.templateCraneLiftingDetailId
+    ),
     liftingPosition: sling.isBottomSling ? 1 : 0,
     type: sling.liftingType === "withBeam" ? 1 : 0,
     itemIndex: index + 1,
