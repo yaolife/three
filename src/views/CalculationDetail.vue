@@ -3619,10 +3619,6 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         targetWeightSettings.hookWeightG1 =
           craneData.mainHookWeight ?? targetWeightSettings.hookWeightG1;
       }
-      if (craneData.mainHookMaxCapacity !== undefined) {
-        setEquipmentWeightForCrane(craneData.mainHookMaxCapacity, craneKey);
-      }
-
       // 将接口返回的mainHookMaxCapacity赋值给默认值G0字段
       formData.value.G0 = craneData.mainHookMaxCapacity !== undefined ? craneData.mainHookMaxCapacity : formData.value.G0;
       
