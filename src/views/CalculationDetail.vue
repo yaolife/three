@@ -3717,15 +3717,15 @@ const formData = ref({
   equipmentType: "",
   ratedLoad: 12,
   armType: 0, // 添加吊臂类型字段，默认值为主臂
-  mainBoomMaxLength: 12,
-  auxBoomLength: 12,
-  workRadius: 12,
-  mainBoomAngle: 12,
-  auxBoomAngle: 12,
-  hookWeight: 12,
-  hookHeight: 12,
-  superLiftWeight: 12,
-  superLiftRadius: 12,
+  mainBoomMaxLength: 0,
+  auxBoomLength: 0,
+  workRadius: 0,
+  mainBoomAngle: 0,
+  auxBoomAngle: 0,
+  hookWeight: 0,
+  hookHeight: 0,
+  superLiftWeight: 0,
+  superLiftRadius: 0,
 
   // 起重机2参数
   craneName2: "",
@@ -3734,17 +3734,17 @@ const formData = ref({
   equipmentNumber2: "",
   model2: "",
   equipmentType2: "",
-  ratedLoad2: 12,
+  ratedLoad2: 0,
   armType2: 0, // 添加吊臂类型字段，默认值为主臂
-   mainBoomMaxLength2: 12,
-  auxBoomLength2: 12,
-  workRadius2: 12,
-  mainBoomAngle2: 12,
-  auxBoomAngle2: 12,
-  hookWeight2: 12,
-  hookHeight2: 12,
-  superLiftWeight2: 12,
-  superLiftRadius2: 12,
+   mainBoomMaxLength2: 0,
+  auxBoomLength2: 0,
+  workRadius2: 0,
+  mainBoomAngle2: 0,
+  auxBoomAngle2: 0,
+  hookWeight2: 0,
+  hookHeight2: 0,
+  superLiftWeight2: 0,
+  superLiftRadius2: 0,
 
   // 吊装计算设置
   liftingMethod: "single",
@@ -5569,7 +5569,7 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
       getCraneFieldValue("mainBoomMaxLength", craneKey, "mainBoomMaxLength")
     ),
     mainArmAngle: toNumberOrNull(
-      getCraneFieldValue("mainArmLength", craneKey, "mainBoomAngle")
+      getCraneFieldValue("mainBoomAngle", craneKey, "mainBoomAngle")
     ),
     carWeight: toNumberOrNull(
       getCraneFieldValue("hookWeight", craneKey, "hookWeight")
