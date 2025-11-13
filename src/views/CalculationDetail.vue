@@ -954,7 +954,7 @@
                 <label
                   class="form-label"
                   v-if="activeSlingData.loadType === 'magnetic'"
-                  >出厂安全系数</label
+                  >破断拉力</label
                 >
                 <div
                   class="input-with-unit"
@@ -965,6 +965,7 @@
                     controls-position="right"
                     :precision="2"
                   />
+                  <span class="unit">MPa</span>
                 </div>
                 <label
                   class="form-label"
@@ -980,7 +981,23 @@
                     controls-position="right"
                     :precision="2"
                   />
-                  <span class="unit">MPa</span>
+                  <span class="unit">t</span>
+                </div>
+                <label
+                  class="form-label"
+                  v-if="activeSlingData.loadType === 'rope'"
+                  >出厂安全系数</label
+                >
+                <div
+                  class="input-with-unit"
+                  v-if="activeSlingData.loadType === 'rope'"
+                >
+                  <el-input-number
+                    v-model="activeSlingData.factorySafetyFactor"
+                    controls-position="right"
+                    :precision="2"
+                    :min="0"
+                  />
                 </div>
               </div>
 
@@ -3921,6 +3938,7 @@ const createDefaultSling = (overrides = {}) => ({
   loadType: "magnetic",
   safetyFactor: 1,
   ratedLoad: 0,
+  factorySafetyFactor: 1,
   topPointCount: 1,
   bottomPointCount: 4,
   customLoop: "loop",
@@ -5385,18 +5403,10 @@ const createSlingFromDetail = (detail, index) => {
   const loadType =
     rawLoadType === 1 || rawLoadType === "1" ? "magnetic" : "rope";
   const sling = createDefaultSling({ id: index + 1 });
-  sling.templateDeviceId =
-    detail?.templateDeviceId !== undefined &&
-    detail?.templateDeviceId !== null &&
-    detail?.templateDeviceId !== ""
-      ? String(detail.templateDeviceId)
-      : null;
-  sling.templateCraneLiftingDetailId =
-    detail?.templateCraneLiftingDetailId !== undefined &&
-    detail?.templateCraneLiftingDetailId !== null &&
-    detail?.templateCraneLiftingDetailId !== ""
-      ? String(detail.templateCraneLiftingDetailId)
-      : null;
+  sling.templateDeviceId = toNullableString(detail?.templateDeviceId);
+  sling.templateCraneLiftingDetailId = toNullableString(
+    detail?.templateCraneLiftingDetailId
+  );
   sling.equipmentName = toNullableString(detail?.deviceName);
   sling.equipmentNumber = toNullableString(detail?.deviceCode);
   sling.equipmentModel = toNullableString(detail?.deviceModel);
@@ -5416,6 +5426,10 @@ const createSlingFromDetail = (detail, index) => {
     loadType === "rope"
       ? toNumberOrZero(detail?.loadContent, sling.ratedLoad)
       : sling.ratedLoad;
+  sling.factorySafetyFactor = toNumberOrZero(
+    detail?.factorySafetyFactor,
+    sling.factorySafetyFactor
+  );
   sling.topPointCount = toNumberOrZero(detail?.topSpotCount, sling.topPointCount);
   sling.bottomPointCount = toNumberOrZero(
     detail?.belowSpotCount,
@@ -5690,6 +5704,7 @@ const buildLiftingDetails = () =>
     loadContent: toNumberOrNull(
       sling.loadType === "magnetic" ? sling.safetyFactor : sling.ratedLoad
     ),
+    factorySafetyFactor: toNumberOrNull(sling.factorySafetyFactor),
     topSpotCount: toNumberOrNull(sling.topPointCount),
     belowSpotCount: toNumberOrNull(sling.bottomPointCount),
     ropeLength: toNumberOrNull(sling.ropeLength),
