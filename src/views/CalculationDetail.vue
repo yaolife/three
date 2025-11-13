@@ -1095,7 +1095,7 @@
                         <el-input-number
                           v-model="activeSlingData.distanceL1"
                           controls-position="right"
-                          :precision="0"
+                          :precision="2"
                         />
                         <span class="unit">m</span>
                       </div>
@@ -1110,7 +1110,7 @@
                         <el-input-number
                           v-model="activeSlingData.distanceL2"
                           controls-position="right"
-                          :precision="0"
+                          :precision="2"
                         />
                         <span class="unit">m</span>
                       </div>
@@ -1125,7 +1125,7 @@
                         <el-input-number
                           v-model="activeSlingData.distanceL3"
                           controls-position="right"
-                          :precision="0"
+                          :precision="2"
                         />
                         <span class="unit">m</span>
                       </div>
@@ -1140,7 +1140,7 @@
                         <el-input-number
                           v-model="activeSlingData.distanceL4"
                           controls-position="right"
-                          :precision="0"
+                          :precision="2"
                         />
                         <span class="unit">m</span>
                       </div>
@@ -1170,7 +1170,7 @@
                         <el-input-number
                           v-model="activeSlingData.distanceLa"
                           controls-position="right"
-                          :precision="0"
+                          :precision="2"
                         />
                         <span class="unit">m</span>
                       </div>
