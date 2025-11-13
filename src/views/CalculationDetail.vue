@@ -1654,7 +1654,6 @@
           <div class="section-title">设备信息</div>
           <div class="section-content">
             <div class="info-item">设备名称：{{ sling.equipmentName }}</div>
-            <div class="info-item">设备编号：{{ sling.equipmentNumber }}</div>
             <div class="info-item">设备型号：{{ sling.equipmentModel }}</div>
             <div class="info-item">设备重量：{{ sling.equipmentWeight }} t</div>
           </div>
@@ -1960,7 +1959,6 @@
           <div class="section-title">设备信息</div>
           <div class="section-content">
             <div class="info-item">设备名称：{{ sling.equipmentName }}</div>
-            <div class="info-item">设备编号：{{ sling.equipmentNumber }}</div>
             <div class="info-item">设备型号：{{ sling.equipmentModel }}</div>
             <div class="info-item">设备重量：{{ sling.equipmentWeight }} t</div>
           </div>
