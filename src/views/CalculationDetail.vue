@@ -1076,7 +1076,7 @@
                         v-model="activeSlingData.angle"
                         controls-position="right"
                           placeholder="输入角度"
-                        :precision="1"
+                        :precision="2"
                         disabled
                       />
                       <span class="unit">度</span>
