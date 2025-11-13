@@ -192,7 +192,7 @@
                       <span class="unit">pq</span>
                     </div>
                     <label class="form-label">吊臂类型</label>
-                    <el-select v-model="formData.boomType" placeholder="请选择吊臂类型" style="width: 150px; ">
+                    <el-select v-model="formData.armType" placeholder="请选择吊臂类型" style="width: 150px; ">
                       <el-option
                         v-for="item in getBoomType()"
                         :key="item.value"
@@ -393,7 +393,7 @@
                       <span class="unit">pq</span>
                     </div>
                     <label class="form-label">吊臂类型</label>
-                    <el-select v-model="formData.boomType2" placeholder="请选择吊臂类型" style="width: 150px;">
+                    <el-select v-model="formData.armType2" placeholder="请选择吊臂类型" style="width: 150px;">
                       <el-option
                         v-for="item in getBoomType()"
                         :key="item.value"
@@ -3718,7 +3718,7 @@ const formData = ref({
   model: "",
   equipmentType: "",
   ratedLoad: 12,
-  boomType: 0, // 添加吊臂类型字段，默认值为主臂
+  armType: 0, // 添加吊臂类型字段，默认值为主臂
   mainBoomMaxLength: 12,
   auxBoomLength: 12,
   workRadius: 12,
@@ -3737,7 +3737,7 @@ const formData = ref({
   model2: "",
   equipmentType2: "",
   ratedLoad2: 12,
-  boomType2: 0, // 添加吊臂类型字段，默认值为主臂
+  armType2: 0, // 添加吊臂类型字段，默认值为主臂
    mainBoomMaxLength2: 12,
   auxBoomLength2: 12,
   workRadius2: 12,
@@ -3812,7 +3812,7 @@ watch(
     formData.value.mainBoomAngle,
     formData.value.auxBoomLength,
     formData.value.auxBoomAngle,
-    formData.value.boomType
+    formData.value.armType
   ],
   async (newValues) => {
     // 确保所有必要参数都有值
@@ -3824,7 +3824,7 @@ watch(
           l2: formData.value.auxBoomLength,
           theta2: formData.value.auxBoomAngle,
           craneType: craneType,// 起重机类型
-          armType: formData.value.boomType//吊臂类型
+          armType: formData.value.armType//吊臂类型
         });
         
         if (response.code === '0' && response.data) {
@@ -3851,7 +3851,7 @@ watch(
     formData.value.mainBoomAngle2,
     formData.value.auxBoomLength2,
     formData.value.auxBoomAngle2,
-    formData.value.boomType2
+    formData.value.armType2
   ],
   async (newValues) => {
     // 确保所有必要参数都有值
@@ -3863,7 +3863,7 @@ watch(
           l2: formData.value.auxBoomLength2,
           theta2: formData.value.auxBoomAngle2,
            craneType: craneType,// 起重机类型
-          armType: formData.value.boomType2//吊臂类型
+          armType: formData.value.armType2//吊臂类型
         });
         
         if (response.code === '0' && response.data) {
@@ -5156,7 +5156,7 @@ const resetCraneForm = (craneKey) => {
     [`model${suffix}`]: "",
     [`equipmentType${suffix}`]: "",
     [`ratedLoad${suffix}`]: 0,
-    [`boomType${suffix}`]: 0,
+    [`armType${suffix}`]: 0,
     [`mainBoomMaxLength${suffix}`]: 0,
     [`auxBoomLength${suffix}`]: 0,
     [`workRadius${suffix}`]: 0,
@@ -5209,10 +5209,12 @@ const applyCraneDetailToForm = (detail, craneKey) => {
     [`equipmentNumber${suffix}`]: detail.deviceCode ?? "",
     [`model${suffix}`]: detail.model ?? "",
     [`equipmentType${suffix}`]: detail.deviceModel ?? "",
-    [`boomType${suffix}`]:
-      detail?.boomType !== undefined && detail?.boomType !== null
+    [`armType${suffix}`]:
+      detail?.armType !== undefined && detail?.armType !== null
+        ? Number(detail.armType)
+        : detail?.boomType !== undefined && detail?.boomType !== null
         ? Number(detail.boomType)
-        : formData.value[`boomType${suffix}`] ?? 0,
+        : formData.value[`armType${suffix}`] ?? 0,
     [`ratedLoad${suffix}`]: toNumberOrZero(detail.pq),
     [`mainBoomMaxLength${suffix}`]: toNumberOrZero(detail.mainArmLength),
     [`auxBoomLength${suffix}`]: toNumberOrZero(detail.minorArmLength),
@@ -5261,6 +5263,18 @@ const applyCraneDetailToForm = (detail, craneKey) => {
     selectedDeviceId2.value = detail.templateDeviceId
       ? String(detail.templateDeviceId)
       : "";
+    if (detail.weightDistance1 !== undefined && detail.weightDistance1 !== null) {
+      formData.value.crane1Distance = Number(detail.weightDistance1);
+    }
+    if (detail.weightDistance2 !== undefined && detail.weightDistance2 !== null) {
+      formData.value.crane2Distance = Number(detail.weightDistance2);
+    }
+    if (detail.bearingWeight1 !== undefined && detail.bearingWeight1 !== null) {
+      formData.value.crane1Weight = Number(detail.bearingWeight1);
+    }
+    if (detail.bearingWeight2 !== undefined && detail.bearingWeight2 !== null) {
+      formData.value.crane2Weight = Number(detail.bearingWeight2);
+    }
   }
 };
 
@@ -5521,7 +5535,7 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
   const weightSettings = getWeightSettingsByKey(craneKey);
   const weightItems = getWeightItemsByKey(craneKey);
 
-  return {
+  const detail = {
     projectId: projectId.value || null,
     templateDeviceId: isSecondCrane
       ? selectedDeviceId2.value || null
@@ -5542,6 +5556,9 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
     model: getCraneFieldValue("model", craneKey, "model") || null,
     deviceModel:
       getCraneFieldValue("equipmentType", craneKey, "equipmentType") || null,
+    armType: toNumberOrNull(
+      getCraneFieldValue("armType", craneKey, "armType")
+    ),
     pq: toNumberOrNull(getCraneFieldValue("ratedLoad", craneKey, "ratedLoad")),
     mainArmLength: toNumberOrNull(
       getCraneFieldValue("mainBoomMaxLength", craneKey, "mainBoomMaxLength")
@@ -5577,6 +5594,13 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
     weightG4: toNumberOrNull(weightSettings.otherWeightG4),
     weightSet: JSON.stringify(normalizeFactorItems(weightItems)),
   };
+  if (isSecondCrane && formData.value.liftingMethod === "double") {
+    detail.weightDistance1 = toNumberOrNull(formData.value.crane1Distance);
+    detail.weightDistance2 = toNumberOrNull(formData.value.crane2Distance);
+    detail.bearingWeight1 = toNumberOrNull(formData.value.crane1Weight);
+    detail.bearingWeight2 = toNumberOrNull(formData.value.crane2Weight);
+  }
+  return detail;
 };
 
 const buildCraneDetails = () => {
