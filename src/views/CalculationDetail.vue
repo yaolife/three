@@ -3410,16 +3410,16 @@ const projectId = computed(() => {
 // 设备列表相关
 const deviceList = ref([]);
 const deviceLoading = ref(false);
-const selectedDeviceId = ref('');
-const selectedDeviceId2 = ref('');
-const selectedSlingDeviceId = ref('');
+const selectedDeviceId = ref(null);
+const selectedDeviceId2 = ref(null);
+const selectedSlingDeviceId = ref(null);
 
 // 起重机列表相关
 const craneList = ref([]);
 
 const craneLoading = ref(false);
-const selectedCraneId = ref('');
-const selectedCraneId2 = ref('');
+const selectedCraneId = ref(null);
+const selectedCraneId2 = ref(null);
 
 // 加载设备列表
 const loadDeviceList = async () => {
@@ -3461,23 +3461,24 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
       const deviceData = response.data;
       if (isSlingTab) {
         // 吊索具tab回显
-        activeSlingData.value.equipmentName = deviceData.deviceName || '';
-        activeSlingData.value.equipmentModel = deviceData.deviceType || '';
-        activeSlingData.value.manufacturer2 = deviceData.prodBusiness || '';
-        activeSlingData.value.templateDeviceId = deviceId || '';
+        activeSlingData.value.equipmentName = deviceData.deviceName ?? null;
+        activeSlingData.value.equipmentModel = deviceData.deviceType ?? null;
+        activeSlingData.value.manufacturer2 = deviceData.prodBusiness ?? null;
+        activeSlingData.value.templateDeviceId =
+          deviceId !== undefined && deviceId !== null ? deviceId : null;
         // 如果设备重量有值，也进行回显
         if (deviceData.weight) {
           activeSlingData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
         }
       } else if (isCrane2) {
         // 起重机2参数tab回显
-        formData.value.equipmentName2 = deviceData.deviceName || '';
-        formData.value.equipmentType2 = deviceData.deviceType || '';
+        formData.value.equipmentName2 = deviceData.deviceName ?? null;
+        formData.value.equipmentType2 = deviceData.deviceType ?? null;
         setEquipmentWeightForCrane(deviceData.weight, "crane2");
       } else {
         // 起重机1参数tab回显
-        formData.value.equipmentName = deviceData.deviceName || '';
-        formData.value.equipmentType = deviceData.deviceType || '';
+        formData.value.equipmentName = deviceData.deviceName ?? null;
+        formData.value.equipmentType = deviceData.deviceType ?? null;
         setEquipmentWeightForCrane(deviceData.weight, "crane1");
       }
     }
@@ -3495,22 +3496,22 @@ const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
     // 当清空设备名称时，清除相应的回显信息
     if (isSlingTab) {
       // 清除吊索具tab回显信息
-      activeSlingData.value.equipmentName = '';
-      activeSlingData.value.equipmentModel = '';
-      activeSlingData.value.manufacturer2 = '';
+      activeSlingData.value.equipmentName = null;
+      activeSlingData.value.equipmentModel = null;
+      activeSlingData.value.manufacturer2 = null;
       activeSlingData.value.equipmentWeight = 0;
-      activeSlingData.value.templateDeviceId = '';
+      activeSlingData.value.templateDeviceId = null;
     } else if (isCrane2) {
       // 清除起重机2参数tab回显信息
-      formData.value.equipmentName2 = '';
-      formData.value.equipmentType2 = '';
-      formData.value.manufacturer2 = '';
+      formData.value.equipmentName2 = null;
+      formData.value.equipmentType2 = null;
+      formData.value.manufacturer2 = null;
       setEquipmentWeightForCrane(0, "crane2");
     } else {
       // 清除起重机1参数tab回显信息
-      formData.value.equipmentName = '';
-      formData.value.equipmentType = '';
-      formData.value.manufacturer = '';
+      formData.value.equipmentName = null;
+      formData.value.equipmentType = null;
+      formData.value.manufacturer = null;
       setEquipmentWeightForCrane(0, "crane1");
     }
   }
@@ -3906,38 +3907,38 @@ const cloneLiftingSystemItems = (items) =>
 
 const createDefaultSling = (overrides = {}) => ({
   id: 1,
-  templateDeviceId: "",
-  templateCraneLiftingDetailId: "",
-  equipmentName: "",
-  equipmentNumber: "",
-  equipmentModel: "",
-  equipmentWeight: 15,
+  templateDeviceId: null,
+  templateCraneLiftingDetailId: null,
+  equipmentName: null,
+  equipmentNumber: null,
+  equipmentModel: null,
+  equipmentWeight: 0,
   isUnbalanced: false,
   hasRope: false,
-  deviceName: "",
-  manufacturer: "",
-  productModel: "",
+  deviceName: null,
+  manufacturer: null,
+  productModel: null,
   loadType: "magnetic",
   safetyFactor: 1,
   ratedLoad: 0,
   topPointCount: 1,
   bottomPointCount: 4,
   customLoop: "loop",
-  distanceL1: 12,
-  distanceL2: 12,
-  distanceL3: 12,
-  distanceL4: 12,
+  distanceL1: 0,
+  distanceL2: 0,
+  distanceL3: 0,
+  distanceL4: 0,
   distanceLa: 0,
   distanceLb: 0,
-  beamWeight: 5,
-  beamLength: 6,
-  beamSlingWeight: 8,
+  beamWeight: 0,
+  beamLength: 0,
+  beamSlingWeight: 0,
   enableL1: false,
   enableL2: false,
   enableL3: false,
   enableL4: false,
   enableLa: false,
-  ropeLength: 1,
+  ropeLength: 0,
   height: null,
   angle: null,
   liftingType: "noBeam",
@@ -3964,13 +3965,17 @@ const activeSlingData = computed(() => {
 watch(activeSlingIndex, (newIndex) => {
   const current = liftingFormDatas.value[newIndex];
   if (current) {
-    selectedSlingDeviceId.value = current.templateDeviceId || "";
+    selectedSlingDeviceId.value =
+      current.templateDeviceId !== undefined && current.templateDeviceId !== null
+        ? current.templateDeviceId
+        : null;
   }
 });
 
 watch(selectedSlingDeviceId, (newValue) => {
   if (activeSlingData.value) {
-    activeSlingData.value.templateDeviceId = newValue || "";
+    activeSlingData.value.templateDeviceId =
+      newValue !== undefined && newValue !== null ? newValue : null;
   }
 });
 
@@ -4928,16 +4933,22 @@ const confirmLiftingEquipmentSelection = async () => {
     
     // 如果接口调用失败，仍然使用第三级菜单名称填充基本信息
     activeSlingData.value.deviceName =
-      selectedProduct.value.liftingName  || selectedProduct.value.modelName;
+      selectedProduct.value?.liftingName ??
+      selectedProduct.value?.modelName ??
+      null;
     if (selectedProduct.value) {
       // 使用第二级菜单的prodBusiness作为生产厂家
       activeSlingData.value.manufacturer =
-        (selectedProduct.value && selectedProduct.value.prodBusiness) || selectedProduct.value.manufacturer || "";
+        selectedProduct.value.prodBusiness ??
+        selectedProduct.value.manufacturer ??
+        null;
       activeSlingData.value.productModel =
-        selectedProduct.value.productModel || "";
+        selectedProduct.value.productModel ?? null;
     }
     activeSlingData.value.templateCraneLiftingDetailId =
-      selectedModel.value?.id ? String(selectedModel.value.id) : "";
+      selectedModel.value?.id !== undefined && selectedModel.value?.id !== null
+        ? String(selectedModel.value.id)
+        : null;
 
     if (selectedCategory.value) {
       const typeMap = {
@@ -5035,6 +5046,9 @@ const toNumberOrZero = (value) => {
   const num = Number(value);
   return Number.isFinite(num) ? num : 0;
 };
+
+const toNullableString = (value) =>
+  value === undefined || value === null || value === "" ? null : value;
 
 const collectCraneWeightData = (key) => {
   const settings = getWeightSettingsByKey(key);
@@ -5153,12 +5167,12 @@ const parseBooleanFlag = (value) =>
 const resetCraneForm = (craneKey) => {
   const suffix = craneKey === "crane2" ? "2" : "";
   const clearedFields = {
-    [`craneName${suffix}`]: "",
-    [`equipmentName${suffix}`]: "",
-    [`manufacturer${suffix}`]: "",
-    [`equipmentNumber${suffix}`]: "",
-    [`model${suffix}`]: "",
-    [`equipmentType${suffix}`]: "",
+    [`craneName${suffix}`]: null,
+    [`equipmentName${suffix}`]: null,
+    [`manufacturer${suffix}`]: null,
+    [`equipmentNumber${suffix}`]: null,
+    [`model${suffix}`]: null,
+    [`equipmentType${suffix}`]: null,
     [`ratedLoad${suffix}`]: 0,
     [`armType${suffix}`]: 0,
     [`mainBoomMaxLength${suffix}`]: 0,
@@ -5248,25 +5262,37 @@ const applyCraneDetailToForm = (detail, craneKey) => {
   };
 
   if (craneKey === "crane1") {
-    selectedCraneId.value = detail.templateCraneDetailId
-      ? String(detail.templateCraneDetailId)
-      : "";
-    craneTemplateDetailId1.value = detail.templateCraneDetailId
-      ? String(detail.templateCraneDetailId)
-      : "";
-    selectedDeviceId.value = detail.templateDeviceId
-      ? String(detail.templateDeviceId)
-      : "";
+    selectedCraneId.value =
+      detail.templateCraneDetailId !== undefined &&
+      detail.templateCraneDetailId !== null
+        ? String(detail.templateCraneDetailId)
+        : null;
+    craneTemplateDetailId1.value =
+      detail.templateCraneDetailId !== undefined &&
+      detail.templateCraneDetailId !== null
+        ? String(detail.templateCraneDetailId)
+        : null;
+    selectedDeviceId.value =
+      detail.templateDeviceId !== undefined &&
+      detail.templateDeviceId !== null
+        ? String(detail.templateDeviceId)
+        : null;
   } else {
-    selectedCraneId2.value = detail.templateCraneDetailId
-      ? String(detail.templateCraneDetailId)
-      : "";
-    craneTemplateDetailId2.value = detail.templateCraneDetailId
-      ? String(detail.templateCraneDetailId)
-      : "";
-    selectedDeviceId2.value = detail.templateDeviceId
-      ? String(detail.templateDeviceId)
-      : "";
+    selectedCraneId2.value =
+      detail.templateCraneDetailId !== undefined &&
+      detail.templateCraneDetailId !== null
+        ? String(detail.templateCraneDetailId)
+        : null;
+    craneTemplateDetailId2.value =
+      detail.templateCraneDetailId !== undefined &&
+      detail.templateCraneDetailId !== null
+        ? String(detail.templateCraneDetailId)
+        : null;
+    selectedDeviceId2.value =
+      detail.templateDeviceId !== undefined &&
+      detail.templateDeviceId !== null
+        ? String(detail.templateDeviceId)
+        : null;
     if (detail.weightDistance1 !== undefined && detail.weightDistance1 !== null) {
       formData.value.crane1Distance = Number(detail.weightDistance1);
     }
@@ -5285,12 +5311,12 @@ const applyCraneDetailToForm = (detail, craneKey) => {
 const populateCraneDetails = (details = []) => {
   resetCraneForm("crane1");
   resetCraneForm("crane2");
-  selectedCraneId.value = "";
-  selectedCraneId2.value = "";
-  selectedDeviceId.value = "";
-  selectedDeviceId2.value = "";
-  craneTemplateDetailId1.value = "";
-  craneTemplateDetailId2.value = "";
+  selectedCraneId.value = null;
+  selectedCraneId2.value = null;
+  selectedDeviceId.value = null;
+  selectedDeviceId2.value = null;
+  craneTemplateDetailId1.value = null;
+  craneTemplateDetailId2.value = null;
 
   if (!Array.isArray(details) || !details.length) {
     formData.value = {
@@ -5429,7 +5455,10 @@ const populateLiftingDetails = (details = []) => {
   const mapped = sorted.map((detail, index) => createSlingFromDetail(detail, index));
   liftingFormDatas.value = mapped;
   activeSlingIndex.value = 0;
-  selectedSlingDeviceId.value = mapped[0]?.templateDeviceId || "";
+  selectedSlingDeviceId.value =
+    mapped[0]?.templateDeviceId !== undefined && mapped[0]?.templateDeviceId !== null
+      ? mapped[0]?.templateDeviceId
+      : null;
 };
 
 const bearingTypeReverseMap = {
@@ -5541,26 +5570,34 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
   const weightItems = getWeightItemsByKey(craneKey);
 
   const detail = {
-    projectId: projectId.value || null,
-    templateDeviceId: isSecondCrane
-      ? selectedDeviceId2.value || null
-      : selectedDeviceId.value || null,
-    templateCraneDetailId: isSecondCrane
-      ? craneTemplateDetailId2.value || selectedCraneId2.value || null
-      : craneTemplateDetailId1.value || selectedCraneId.value || null,
+    projectId: toNullableString(projectId.value),
+    templateDeviceId: toNullableString(
+      isSecondCrane ? selectedDeviceId2.value : selectedDeviceId.value
+    ),
+    templateCraneDetailId: toNullableString(
+      isSecondCrane
+        ? craneTemplateDetailId2.value ?? selectedCraneId2.value
+        : craneTemplateDetailId1.value ?? selectedCraneId.value
+    ),
     craneType,
     type: formData.value.liftingMethod === "double" ? "double" : "single",
     itemIndex,
-    machineName: getCraneFieldValue("craneName", craneKey, "craneName") || null,
-    deviceName:
-      getCraneFieldValue("equipmentName", craneKey, "equipmentName") || null,
-    prodBusiness:
-      getCraneFieldValue("manufacturer", craneKey, "manufacturer") || null,
-    deviceCode:
-      getCraneFieldValue("equipmentNumber", craneKey, "equipmentNumber") || null,
-    model: getCraneFieldValue("model", craneKey, "model") || null,
-    deviceModel:
-      getCraneFieldValue("equipmentType", craneKey, "equipmentType") || null,
+    machineName: toNullableString(
+      getCraneFieldValue("craneName", craneKey, "craneName")
+    ),
+    deviceName: toNullableString(
+      getCraneFieldValue("equipmentName", craneKey, "equipmentName")
+    ),
+    prodBusiness: toNullableString(
+      getCraneFieldValue("manufacturer", craneKey, "manufacturer")
+    ),
+    deviceCode: toNullableString(
+      getCraneFieldValue("equipmentNumber", craneKey, "equipmentNumber")
+    ),
+    model: toNullableString(getCraneFieldValue("model", craneKey, "model")),
+    deviceModel: toNullableString(
+      getCraneFieldValue("equipmentType", craneKey, "equipmentType")
+    ),
     armType: toNumberOrNull(
       getCraneFieldValue("armType", craneKey, "armType")
     ),
@@ -5624,29 +5661,33 @@ const buildCraneDetails = () => {
 
 const buildLiftingDetails = () =>
   liftingFormDatas.value.map((sling, index) => ({
-    projectId: projectId.value || "",
-    templateDeviceId: sling.templateDeviceId || "",
+    projectId: toNullableString(projectId.value),
+    templateDeviceId:
+      sling.templateDeviceId !== undefined && sling.templateDeviceId !== null
+        ? sling.templateDeviceId
+        : null,
     templateCraneLiftingDetailId:
-      sling.templateCraneLiftingDetailId || "",
+      sling.templateCraneLiftingDetailId !== undefined &&
+      sling.templateCraneLiftingDetailId !== null
+        ? sling.templateCraneLiftingDetailId
+        : null,
     liftingPosition: sling.isBottomSling ? 1 : 0,
     type: sling.liftingType === "withBeam" ? 1 : 0,
     itemIndex: index + 1,
-    deviceName: sling.deviceName || "",
-    deviceCode: sling.equipmentNumber || "",
-    deviceModel: sling.equipmentModel || "",
+    deviceName: toNullableString(sling.deviceName),
+    deviceCode: toNullableString(sling.equipmentNumber),
+    deviceModel: toNullableString(sling.equipmentModel),
     deviceWeight: toNumberOrNull(sling.equipmentWeight),
     beamWeight: toNumberOrNull(sling.beamWeight),
     beamLength: toNumberOrNull(sling.beamLength),
     utensilWeight: toNumberOrNull(sling.beamSlingWeight),
-    liftingName: sling.deviceName || "",
+    liftingName: toNullableString(sling.deviceName),
     liftingType: toNumberOrNull(sling.slingType),
-    prodBusiness: sling.manufacturer || "",
-    normsModel: sling.productModel || "",
+    prodBusiness: toNullableString(sling.manufacturer),
+    normsModel: toNullableString(sling.productModel),
     loadType: sling.loadType === "magnetic" ? 1 : 0,
     loadContent: toNumberOrNull(
-      sling.loadType === "magnetic"
-        ? sling.safetyFactor
-        : sling.ratedLoad
+      sling.loadType === "magnetic" ? sling.safetyFactor : sling.ratedLoad
     ),
     topSpotCount: toNumberOrNull(sling.topPointCount),
     belowSpotCount: toNumberOrNull(sling.bottomPointCount),
@@ -5669,12 +5710,12 @@ const buildBearingDetail = () => {
     tracked: 2,
   };
   return {
-    projectId: projectId.value || null,
+    projectId: toNullableString(projectId.value),
     bearingType:
       bearingTypeMap[foundationData.value.craneType] ?? null,
-    name: foundationData.value.foundationName || null,
-    bearingName: foundationData.value.trackName || null,
-    type: foundationData.value.trackModel || null,
+    name: toNullableString(foundationData.value.foundationName),
+    bearingName: toNullableString(foundationData.value.trackName),
+    type: toNullableString(foundationData.value.trackModel),
     leftWidth: toNumberOrNull(foundationData.value.trackWidthB),
     rightWidth: toNumberOrNull(foundationData.value.trackWidthB),
     threadLength: toNumberOrNull(
@@ -5688,7 +5729,7 @@ const buildBearingDetail = () => {
 };
 
 const buildSavePayload = () => ({
-  projectId: projectId.value || "",
+  projectId: toNullableString(projectId.value),
   sysProjectCraneDetailList: buildCraneDetails(),
   sysProjectLiftingDetailList: buildLiftingDetails(),
   sysProjectBearingDetail: buildBearingDetail(),
