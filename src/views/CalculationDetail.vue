@@ -3815,6 +3815,9 @@ watch(
     formData.value.armType
   ],
   async (newValues) => {
+    if (isInitializingFromApi) {
+      return;
+    }
     // 确保所有必要参数都有值
     if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
       try {
@@ -3854,6 +3857,9 @@ watch(
     formData.value.armType2
   ],
   async (newValues) => {
+    if (isInitializingFromApi) {
+      return;
+    }
     // 确保所有必要参数都有值
     if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
       try {
