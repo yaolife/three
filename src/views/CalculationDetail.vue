@@ -5433,14 +5433,20 @@ const createSlingFromDetail = (detail, index) => {
   sling.manufacturer = toNullableString(detail?.prodBusiness);
   sling.productModel = toNullableString(detail?.normsModel);
   sling.loadType = loadType;
-  sling.safetyFactor =
-    loadType === "magnetic"
-      ? toNumberOrZero(detail?.loadContent, sling.safetyFactor)
-      : sling.safetyFactor;
-  sling.ratedLoad =
-    loadType === "rope"
-      ? toNumberOrZero(detail?.loadContent, sling.ratedLoad)
-      : sling.ratedLoad;
+  if (detail?.loadContent !== undefined && detail?.loadContent !== null) {
+    sling.ratedLoad = toNumberOrZero(detail.loadContent);
+  }
+  if (detail?.disconnect !== undefined && detail?.disconnect !== null) {
+    sling.safetyFactor = toNumberOrZero(detail.disconnect);
+  } else if (loadType === "magnetic" && detail?.loadContent !== undefined && detail?.loadContent !== null) {
+    sling.safetyFactor = toNumberOrZero(detail.loadContent);
+  }
+  if (detail?.safety !== undefined && detail?.safety !== null) {
+    const safetyValue = toNumberOrZero(detail.safety);
+    sling.factorySafetyFactor = safetyValue > 0 ? safetyValue : sling.factorySafetyFactor;
+  } else if (loadType === "rope" && (!Number.isFinite(Number(sling.factorySafetyFactor)) || Number(sling.factorySafetyFactor) <= 0)) {
+    sling.factorySafetyFactor = 1;
+  }
   sling.factorySafetyFactor = toNumberOrZero(
     detail?.factorySafetyFactor,
     sling.factorySafetyFactor
@@ -5717,7 +5723,13 @@ const buildLiftingDetails = () =>
     normsModel: toNullableString(sling.productModel),
     loadType: sling.loadType === "magnetic" ? 1 : 0,
     loadContent: toNumberOrNull(
-      sling.loadType === "magnetic" ? sling.safetyFactor : sling.ratedLoad
+      sling.loadType === "rope" ? sling.ratedLoad : null
+    ),
+    disconnect: toNumberOrNull(
+      sling.loadType === "magnetic" ? sling.safetyFactor : null
+    ),
+    safety: toNumberOrNull(
+      sling.loadType === "rope" ? sling.factorySafetyFactor : null
     ),
     factorySafetyFactor: toNumberOrNull(sling.factorySafetyFactor),
     topSpotCount: toNumberOrNull(sling.topPointCount),
