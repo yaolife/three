@@ -1021,16 +1021,18 @@
                   <div class="form-row">
                     <label class="form-label">下部吊点数量</label>
                     <div class="input-with-unit">
-                      <el-input-number
+                      <el-select
                         v-model="activeSlingData.bottomPointCount"
-                        controls-position="right"
-                        :precision="0"
-                        :min="
-                          activeSlingData.liftingType === 'withBeam' ? 2 : 1
-                        "
-                        :max="8"
                         :disabled="activeSlingData.isSinglePointLifting"
-                      />
+                        placeholder="请选择"
+                      >
+                        <el-option
+                          v-for="option in lowerPointCountOptions"
+                          :key="option"
+                          :label="option"
+                          :value="option"
+                        />
+                      </el-select>
                     </div>
                     <label class="form-label">挂布方式</label>
                     <el-select
@@ -1084,22 +1086,19 @@
                   </div>
                 </div>
                 <div class="distance-inputs-right">
-                  <!-- 无吊梁或有吊梁且为下部吊索具时显示L1-L4 -->
-                  <template
-                    v-if="
-                      activeSlingData.liftingType === 'noBeam' ||
-                      (activeSlingData.liftingType === 'withBeam' &&
-                        activeSlingData.isBottomSling)
-                    "
-                  >
-                    <div class="form-row">
-                      <el-checkbox v-model="activeSlingData.enableL1" />
+                  <template v-if="activeSlingData.bottomPointCount > 2">
+                    <div
+                      class="form-row"
+                      v-for="config in bottomDistanceFields"
+                      :key="config.valueKey"
+                    >
+                      <el-checkbox v-model="activeSlingData[config.enableKey]" />
                       <label class="form-label error"
-                        >距离<span>L1</span></label
+                        >距离<span>{{ config.label }}</span></label
                       >
                       <div class="input-with-unit">
                         <el-input-number
-                          v-model="activeSlingData.distanceL1"
+                          v-model="activeSlingData[config.valueKey]"
                           controls-position="right"
                           :precision="2"
                         />
@@ -1107,52 +1106,10 @@
                       </div>
                     </div>
 
-                    <div class="form-row">
-                      <el-checkbox v-model="activeSlingData.enableL2" />
-                      <label class="form-label error"
-                        >距离<span>L2</span></label
-                      >
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="activeSlingData.distanceL2"
-                          controls-position="right"
-                          :precision="2"
-                        />
-                        <span class="unit">m</span>
-                      </div>
-                    </div>
-
-                    <div class="form-row">
-                      <el-checkbox v-model="activeSlingData.enableL3" />
-                      <label class="form-label error"
-                        >距离<span>L3</span></label
-                      >
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="activeSlingData.distanceL3"
-                          controls-position="right"
-                          :precision="2"
-                        />
-                        <span class="unit">m</span>
-                      </div>
-                    </div>
-
-                    <div class="form-row">
-                      <el-checkbox v-model="activeSlingData.enableL4" />
-                      <label class="form-label error"
-                        >距离<span>L4</span></label
-                      >
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="activeSlingData.distanceL4"
-                          controls-position="right"
-                          :precision="2"
-                        />
-                        <span class="unit">m</span>
-                      </div>
-                    </div>
-
-                    <div class="form-row full-width">
+                    <div
+                      class="form-row full-width"
+                      v-if="activeSlingData.bottomPointCount >= 4"
+                    >
                       <el-button
                         type="primary"
                         size="small"
@@ -1165,7 +1122,6 @@
                     </div>
                   </template>
 
-                  <!-- 有吊梁且为上部吊索具时显示La -->
                   <template v-else>
                     <div class="form-row">
                       <el-checkbox v-model="activeSlingData.enableLa" />
@@ -3948,6 +3904,10 @@ const createDefaultSling = (overrides = {}) => ({
   distanceL2: 0,
   distanceL3: 0,
   distanceL4: 0,
+  distanceL5: 0,
+  distanceL6: 0,
+  distanceL7: 0,
+  distanceL8: 0,
   distanceLa: 0,
   distanceLb: 0,
   beamWeight: 0,
@@ -3957,6 +3917,10 @@ const createDefaultSling = (overrides = {}) => ({
   enableL2: false,
   enableL3: false,
   enableL4: false,
+  enableL5: false,
+  enableL6: false,
+  enableL7: false,
+  enableL8: false,
   enableLa: false,
   ropeLength: 0,
   height: null,
@@ -3980,6 +3944,23 @@ const activeSlingIndex = ref(0);
 // 获取当前激活的吊索具配置
 const activeSlingData = computed(() => {
   return liftingFormDatas.value[activeSlingIndex.value];
+});
+
+const lowerPointCountOptions = [1, 2, 3, 4, 6, 8];
+
+const bottomDistanceFields = computed(() => {
+  const count = Number(activeSlingData.value?.bottomPointCount ?? 0);
+  if (count <= 2) {
+    return [];
+  }
+  return Array.from({ length: count }, (_, index) => {
+    const label = `L${index + 1}`;
+    return {
+      label,
+      valueKey: `distance${label}`,
+      enableKey: `enable${label}`,
+    };
+  });
 });
 
 watch(activeSlingIndex, (newIndex) => {
@@ -5030,7 +5011,14 @@ const handleCalculateHeightAngle = async () => {
     return;
   }
 
-  const fields = ["distanceL1", "distanceL2", "distanceL3", "distanceL4"];
+  const fields = bottomDistanceFields.value
+    .slice(0, 4)
+    .map((config) => config.valueKey);
+
+  if (fields.length < 4) {
+    ElMessage.warning("下部吊点数量不足，无法计算角度和高度");
+    return;
+  }
   const values = fields.map((key) => Number(data[key]));
 
   if (values.some((val) => Number.isNaN(val) || val === null || val === undefined || val <= 0)) {
@@ -5079,11 +5067,7 @@ const handleCalculateHeightAngle = async () => {
 
 const handleCalculateHeightAngleByLa = async () => {
   const data = activeSlingData.value;
-  if (
-    !data ||
-    data.liftingType !== "withBeam" ||
-    data.isBottomSling
-  ) {
+  if (!data || data.bottomPointCount > 2) {
     return;
   }
 
@@ -5552,6 +5536,10 @@ const createSlingFromDetail = (detail, index) => {
   sling.distanceL2 = toNumberOrZero(detail?.distanceL2, sling.distanceL2);
   sling.distanceL3 = toNumberOrZero(detail?.distanceL3, sling.distanceL3);
   sling.distanceL4 = toNumberOrZero(detail?.distanceL4, sling.distanceL4);
+  sling.distanceL5 = toNumberOrZero(detail?.distanceL5, sling.distanceL5);
+  sling.distanceL6 = toNumberOrZero(detail?.distanceL6, sling.distanceL6);
+  sling.distanceL7 = toNumberOrZero(detail?.distanceL7, sling.distanceL7);
+  sling.distanceL8 = toNumberOrZero(detail?.distanceL8, sling.distanceL8);
   sling.arrangeType =
     detail?.arrangeType !== undefined ? detail.arrangeType : sling.arrangeType;
   return sling;
@@ -5835,6 +5823,10 @@ const buildLiftingDetails = () =>
     distanceL2: toNumberOrNull(sling.distanceL2),
     distanceL3: toNumberOrNull(sling.distanceL3),
     distanceL4: toNumberOrNull(sling.distanceL4),
+    distanceL5: toNumberOrNull(sling.distanceL5),
+    distanceL6: toNumberOrNull(sling.distanceL6),
+    distanceL7: toNumberOrNull(sling.distanceL7),
+    distanceL8: toNumberOrNull(sling.distanceL8),
     coefficientSet: JSON.stringify(
       normalizeFactorItems(sling.liftingSystemItems || [])
     ),
