@@ -948,17 +948,17 @@
               <!-- Removed standalone radio group row -->
               <div class="form-row" style="margin-left: 50px">
                 <el-radio-group v-model="activeSlingData.loadType">
-                  <el-radio value="magnetic">破断拉力</el-radio>
-                  <el-radio value="rope">额定载荷</el-radio>
+                  <el-radio :label="1">破断拉力</el-radio>
+                  <el-radio :label="0">额定载荷</el-radio>
                 </el-radio-group>
                 <label
                   class="form-label"
-                  v-if="activeSlingData.loadType === 'magnetic'"
+                  v-if="activeSlingData.loadType === 1"
                   >破断拉力</label
                 >
                 <div
                   class="input-with-unit"
-                  v-if="activeSlingData.loadType === 'magnetic'"
+                  v-if="activeSlingData.loadType === 1"
                 >
                   <el-input-number
                     v-model="activeSlingData.safetyFactor"
@@ -969,12 +969,12 @@
                 </div>
                 <label
                   class="form-label"
-                  v-if="activeSlingData.loadType === 'rope'"
+                  v-if="activeSlingData.loadType === 0"
                   >额定载荷(PQ)</label
                 >
                 <div
                   class="input-with-unit"
-                  v-if="activeSlingData.loadType === 'rope'"
+                  v-if="activeSlingData.loadType === 0"
                 >
                   <el-input-number
                     v-model="activeSlingData.ratedLoad"
@@ -985,12 +985,12 @@
                 </div>
                 <label
                   class="form-label"
-                  v-if="activeSlingData.loadType === 'rope'"
+                  v-if="activeSlingData.loadType === 0"
                   >出厂安全系数</label
                 >
                 <div
                   class="input-with-unit"
-                  v-if="activeSlingData.loadType === 'rope'"
+                  v-if="activeSlingData.loadType === 0"
                 >
                   <el-input-number
                     v-model="activeSlingData.factorySafetyFactor"
@@ -1672,13 +1672,9 @@
               </div>
               <div class="info-item">
                 {{
-                  sling.loadType === "magnetic" ? "出厂安全系数" : "额定载荷"
-                }}：{{
-                  sling.loadType === "magnetic"
-                    ? sling.safetyFactor
-                    : sling.ratedLoad
-                }}
-                {{ sling.loadType === "rope" ? "MPa" : "" }}
+                  sling.loadType === 1 ? "出厂安全系数" : "额定载荷"
+                }}：{{ sling.loadType === 1 ? sling.safetyFactor : sling.ratedLoad }}
+                {{ sling.loadType === 0 ? "MPa" : "" }}
               </div>
             </div>
           </div>
@@ -1721,7 +1717,7 @@
           <div class="section-content calculation-process">
             <!-- 根据loadType显示不同的计算公式 -->
             <div class="process-text">已知吊索具与设备直连的吊装公式为：</div>
-            <div class="process-text" v-if="sling.loadType === 'magnetic'">
+            <div class="process-text" v-if="sling.loadType === 1">
               破断拉力安全系数算法，破断拉力÷【设备重量G×动载系数×偏载系数×其他安全系数】＞6
             </div>
             <div class="process-text" v-else>
@@ -1729,7 +1725,7 @@
             </div>
 
             <!-- 破断拉力计算公式 -->
-            <div class="formula" v-if="sling.loadType === 'magnetic'">
+            <div class="formula" v-if="sling.loadType === 1">
               <div class="formula-fraction">
                 <div class="formula-numerator" style="padding: 10px 50px">
                   N
@@ -1770,7 +1766,7 @@
 
             <div class="weight-details">
               <!-- 破断拉力变量说明 -->
-              <template v-if="sling.loadType === 'magnetic'">
+              <template v-if="sling.loadType === 1">
                 <div class="weight-item">
                   N：破断拉力={{ sling.safetyFactor
                   }}{{ sling.slingType === "rope" ? "MPa" : "" }}
@@ -1835,7 +1831,7 @@
               >
                 <div>
                   吊索具 {{ index + 1 }} 计算结果：{{
-                    sling.loadType === "magnetic"
+                    sling.loadType === 1
                       ? calculateLiftingResult(sling).result.toFixed(2)
                       : calculateLiftingResult(sling).result.toFixed(2) + "%"
                   }}
@@ -1849,10 +1845,10 @@
                     "
                     >{{
                       calculateLiftingResult(sling).isQualified
-                        ? sling.loadType === "magnetic"
+                        ? sling.loadType === 1
                           ? ">6 (合格)"
                           : "<100% (合格)"
-                        : sling.loadType === "magnetic"
+                        : sling.loadType === 1
                         ? "≤6 (不合格)"
                         : "≥100% (不合格)"
                     }}</span
@@ -1880,11 +1876,11 @@
               :key="sling.id"
             >
               吊索具{{ index + 1 }}校核计算结果为{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? calculateLiftingResult(sling).result.toFixed(2)
                   : calculateLiftingResult(sling).result.toFixed(2) + "%"
               }}，{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? (calculateLiftingResult(sling).result.toFixed(2) > 6
                       ? "大于"
                       : calculateLiftingResult(sling).result.toFixed(2) == 6
@@ -1905,11 +1901,11 @@
               :key="sling.id"
             >
               吊索具{{ index + 1 }}校核计算结果为{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? calculateLiftingResult(sling).result.toFixed(2)
                   : calculateLiftingResult(sling).result.toFixed(2) + "%"
               }}，{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? (calculateLiftingResult(sling).result.toFixed(2) > 6
                       ? "大于"
                       : calculateLiftingResult(sling).result.toFixed(2) == 6
@@ -1977,13 +1973,9 @@
               </div>
               <div class="info-item">
                 {{
-                  sling.loadType === "magnetic" ? "出厂安全系数" : "额定载荷"
-                }}：{{
-                  sling.loadType === "magnetic"
-                    ? sling.safetyFactor
-                    : sling.ratedLoad
-                }}
-                {{ sling.loadType === "rope" ? "MPa" : "" }}
+                  sling.loadType === 1 ? "出厂安全系数" : "额定载荷"
+                }}：{{ sling.loadType === 1 ? sling.safetyFactor : sling.ratedLoad }}
+                {{ sling.loadType === 0 ? "MPa" : "" }}
               </div>
             </div>
           </div>
@@ -2028,7 +2020,7 @@
             <div class="process-text">已知吊索具与设备直连的吊装公式为：</div>
 
             <!-- 破断拉力计算公式 -->
-            <template v-if="sling.loadType === 'magnetic'">
+            <template v-if="sling.loadType === 1">
               <div class="process-text">
                 破断拉力安全系数算法，破断拉力÷【设备重量÷吊点数量·×动载系数×偏载系数×其他系数÷sinQ（单条吊索与水平面夹角）】＞6
               </div>
@@ -2076,7 +2068,7 @@
 
             <div class="weight-details">
               <!-- 破断拉力变量说明 -->
-              <template v-if="sling.loadType === 'magnetic'">
+              <template v-if="sling.loadType === 1">
                 <div class="weight-item">
                   N：破断拉力={{ sling.safetyFactor
                   }}{{ sling.slingType === "rope" ? "MPa" : "" }}
@@ -2153,7 +2145,7 @@
               >
                 <div>
                   吊索具 {{ index + 1 }} 计算结果：{{
-                    sling.loadType === "magnetic"
+                    sling.loadType === 1
                       ? calculateLiftingResult(sling).result.toFixed(2)
                       : calculateLiftingResult(sling).result.toFixed(2) + "%"
                   }}
@@ -2167,10 +2159,10 @@
                     "
                     >{{
                       calculateLiftingResult(sling).isQualified
-                        ? sling.loadType === "magnetic"
+                        ? sling.loadType === 1
                           ? ">6 (合格)"
                           : "<100% (合格)"
-                        : sling.loadType === "magnetic"
+                        : sling.loadType === 1
                         ? "≤6 (不合格)"
                         : "≥100% (不合格)"
                     }}</span
@@ -2198,11 +2190,11 @@
               :key="sling.id"
             >
               吊索具{{ index + 1 }}校核计算结果为{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? calculateLiftingResult(sling).result.toFixed(2)
                   : calculateLiftingResult(sling).result.toFixed(2) + "%"
               }}，{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? (calculateLiftingResult(sling).result.toFixed(2) > 6
                       ? "大于"
                       : calculateLiftingResult(sling).result.toFixed(2) == 6
@@ -2223,11 +2215,11 @@
               :key="sling.id"
             >
               吊索具{{ index + 1 }}校核计算结果为{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? calculateLiftingResult(sling).result.toFixed(2)
                   : calculateLiftingResult(sling).result.toFixed(2) + "%"
               }}，{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? (calculateLiftingResult(sling).result.toFixed(2) > 6
                       ? "大于"
                       : calculateLiftingResult(sling).result.toFixed(2) == 6
@@ -2300,13 +2292,9 @@
               </div>
               <div class="info-item">
                 {{
-                  sling.loadType === "magnetic" ? "出厂安全系数" : "额定载荷"
-                }}：{{
-                  sling.loadType === "magnetic"
-                    ? sling.safetyFactor
-                    : sling.ratedLoad
-                }}
-                {{ sling.loadType === "rope" ? "MPa" : "" }}
+                  sling.loadType === 1 ? "出厂安全系数" : "额定载荷"
+                }}：{{ sling.loadType === 1 ? sling.safetyFactor : sling.ratedLoad }}
+                {{ sling.loadType === 0 ? "MPa" : "" }}
               </div>
             </div>
           </div>
@@ -2369,7 +2357,7 @@
             <!-- 根据是否为底部吊索具和loadType显示不同的计算公式 -->
             <template v-if="sling.isBottomSling">
               <!-- 下部吊索具 -->
-              <div class="process-text" v-if="sling.loadType === 'magnetic'">
+              <div class="process-text" v-if="sling.loadType === 1">
                 破断拉力安全系数算法，破断拉力÷【设备重量÷吊点数量×动载系数×偏载系数×其他系数÷sinQ（单条吊索与水平面夹角）】＞6
               </div>
               <div class="process-text" v-else>
@@ -2377,7 +2365,7 @@
               </div>
 
               <!-- 破断拉力计算公式 -->
-              <div class="formula" v-if="sling.loadType === 'magnetic'">
+              <div class="formula" v-if="sling.loadType === 1">
                 <div class="formula-fraction">
                   <div class="formula-numerator" style="padding: 0 70px">N</div>
                   <div class="formula-denominator">
@@ -2420,7 +2408,7 @@
 
             <template v-else>
               <!-- 上部吊索具 -->
-              <div class="process-text" v-if="sling.loadType === 'magnetic'">
+              <div class="process-text" v-if="sling.loadType === 1">
                 破断拉力安全系数算法，破断拉力÷【（设备重量+平衡梁重量+吊梁下部吊具重量）÷吊点数量×动载系数×偏载系数×其他系数÷sinQ（单条吊索与吊梁夹角）】＞6
               </div>
               <div class="process-text" v-else>
@@ -2428,7 +2416,7 @@
               </div>
 
               <!-- 破断拉力计算公式 -->
-              <div class="formula" v-if="sling.loadType === 'magnetic'">
+              <div class="formula" v-if="sling.loadType === 1">
                 <div class="formula-fraction">
                   <div class="formula-numerator" style="padding: 0 100px">
                     N
@@ -2474,7 +2462,7 @@
 
             <div class="weight-details">
               <!-- 破断拉力变量说明 -->
-              <template v-if="sling.loadType === 'magnetic'">
+              <template v-if="sling.loadType === 1">
                 <div class="weight-item">
                   N：破断拉力={{ sling.safetyFactor
                   }}{{ sling.slingType === "rope" ? "MPa" : "" }}
@@ -2567,7 +2555,7 @@
               >
                 <div>
                   计算结果：{{
-                    sling.loadType === "magnetic"
+                    sling.loadType === 1
                       ? calculateLiftingResult(sling).result.toFixed(2)
                       : calculateLiftingResult(sling).result.toFixed(2) + "%"
                   }}
@@ -2581,10 +2569,10 @@
                     "
                     >{{
                       calculateLiftingResult(sling).isQualified
-                        ? sling.loadType === "magnetic"
+                        ? sling.loadType === 1
                           ? ">6 (合格)"
                           : "<100% (合格)"
-                        : sling.loadType === "magnetic"
+                        : sling.loadType === 1
                         ? "≤6 (不合格)"
                         : "≥100% (不合格)"
                     }}</span
@@ -2616,11 +2604,11 @@
               吊索具{{
                 getSlingIndex(sling, sling.isBottomSling)
               }}校核计算结果为{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? calculateLiftingResult(sling).result.toFixed(2)
                   : calculateLiftingResult(sling).result.toFixed(2) + "%"
               }}，{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? (calculateLiftingResult(sling).result.toFixed(2) > 6
                       ? "大于"
                       : calculateLiftingResult(sling).result.toFixed(2) == 6
@@ -2645,11 +2633,11 @@
               吊索具{{
                 getSlingIndex(sling, sling.isBottomSling)
               }}校核计算结果为{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? calculateLiftingResult(sling).result.toFixed(2)
                   : calculateLiftingResult(sling).result.toFixed(2) + "%"
               }}，{{
-                sling.loadType === "magnetic"
+                sling.loadType === 1
                   ? (calculateLiftingResult(sling).result.toFixed(2) > 6
                       ? "大于"
                       : calculateLiftingResult(sling).result.toFixed(2) == 6
@@ -3952,7 +3940,7 @@ const createDefaultSling = (overrides = {}) => ({
   deviceName: null,
   manufacturer: null,
   productModel: null,
-  loadType: "magnetic",
+  loadType: 1,
   safetyFactor: 1,
   ratedLoad: 0,
   factorySafetyFactor: 1,
@@ -4020,7 +4008,7 @@ watch(
     if (isInitializingFromApi) {
       return;
     }
-    if (newType === "rope" && activeSlingData.value) {
+    if (newType === 0 && activeSlingData.value) {
       const factor = Number(activeSlingData.value.factorySafetyFactor);
       if (!Number.isFinite(factor) || factor <= 0) {
         activeSlingData.value.factorySafetyFactor = 1;
@@ -4354,7 +4342,7 @@ const calculateLiftingResult = (sling) => {
       forcePerSling =
         (sling.equipmentWeight / sling.bottomPointCount) * factorProduct;
 
-      if (sling.loadType === "magnetic") {
+      if (sling.loadType === 1) {
         // 破断拉力安全系数算法
         result = sling.safetyFactor / forcePerSling;
         isQualified = result > 6;
@@ -4368,7 +4356,7 @@ const calculateLiftingResult = (sling) => {
       forcePerSling =
         ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) /
         sinQ;
-      if (sling.loadType === "magnetic") {
+      if (sling.loadType === 1) {
         // 破断拉力情况
         result = sling.safetyFactor / forcePerSling;
         isQualified = result > 6;
@@ -4385,7 +4373,7 @@ const calculateLiftingResult = (sling) => {
       forcePerSling =
         ((sling.equipmentWeight / sling.bottomPointCount) * factorProduct) /
         sinQ;
-      if (sling.loadType === "magnetic") {
+      if (sling.loadType === 1) {
         // 下部吊索具且为破断拉力
         result = sling.safetyFactor / forcePerSling;
         isQualified = result > 6;
@@ -4400,7 +4388,7 @@ const calculateLiftingResult = (sling) => {
         sling.equipmentWeight + sling.beamWeight + sling.beamSlingWeight;
       forcePerSling =
         ((totalWeight / sling.bottomPointCount) * factorProduct) / sinQ;
-      if (sling.loadType === "magnetic") {
+      if (sling.loadType === 1) {
         // 上部吊索具且为破断拉力
         result = sling.safetyFactor / forcePerSling;
         isQualified = result > 6;
@@ -4961,7 +4949,7 @@ const confirmLiftingEquipmentSelection = async () => {
         // 处理额定载荷(pq)相关逻辑
         if (liftingDetail.pq !== undefined && liftingDetail.pq !== null) {
           // 选中额定载荷选项
-          activeSlingData.value.loadType = 'rope';
+          activeSlingData.value.loadType = 0;
      
           // 设置额定载荷值
           activeSlingData.value.ratedLoad = liftingDetail.pq;
@@ -4969,7 +4957,7 @@ const confirmLiftingEquipmentSelection = async () => {
         // 处理破断拉力(smalPull)相关逻辑
         if (liftingDetail.smalPull !== undefined && liftingDetail.smalPull !== null) {
           // 选中破断拉力选项
-         activeSlingData.value.loadType = 'magnetic';
+         activeSlingData.value.loadType = 1;
           // 设置出厂安全系数值
           activeSlingData.value.safetyFactor = liftingDetail.smalPull;
         }
@@ -5491,7 +5479,11 @@ const parseCoefficientItems = (coefficientSet) => {
 const createSlingFromDetail = (detail, index) => {
   const rawLoadType = detail?.loadType;
   const loadType =
-    rawLoadType === 1 || rawLoadType === "1" ? "magnetic" : "rope";
+    rawLoadType === 1 || rawLoadType === "1"
+      ? 1
+      : rawLoadType === 0 || rawLoadType === "0"
+      ? 0
+      : 1;
   const sling = createDefaultSling({ id: index + 1 });
   sling.templateDeviceId = toNullableString(detail?.templateDeviceId);
   sling.templateCraneLiftingDetailId = toNullableString(
@@ -5508,24 +5500,25 @@ const createSlingFromDetail = (detail, index) => {
   sling.manufacturer = toNullableString(detail?.prodBusiness);
   sling.productModel = toNullableString(detail?.normsModel);
   sling.loadType = loadType;
-  if (detail?.loadContent !== undefined && detail?.loadContent !== null) {
-    sling.ratedLoad = toNumberOrZero(detail.loadContent);
-  }
-  if (detail?.disconnect !== undefined && detail?.disconnect !== null) {
-    sling.safetyFactor = toNumberOrZero(detail.disconnect);
-  } else if (loadType === "magnetic" && detail?.loadContent !== undefined && detail?.loadContent !== null) {
-    sling.safetyFactor = toNumberOrZero(detail.loadContent);
-  }
-  if (detail?.safety !== undefined && detail?.safety !== null) {
-    const safetyValue = toNumberOrZero(detail.safety);
-    sling.factorySafetyFactor = safetyValue > 0 ? safetyValue : sling.factorySafetyFactor;
-  } else if (loadType === "rope" && (!Number.isFinite(Number(sling.factorySafetyFactor)) || Number(sling.factorySafetyFactor) <= 0)) {
-    sling.factorySafetyFactor = 1;
-  }
-  sling.factorySafetyFactor = toNumberOrZero(
-    detail?.factorySafetyFactor,
+  sling.ratedLoad = toNumberOrZero(detail?.loadContent, sling.ratedLoad);
+  sling.safetyFactor = toNumberOrZero(
+    detail?.disconnect ??
+      (loadType === 1 ? detail?.loadContent : sling.safetyFactor),
+    sling.safetyFactor
+  );
+  const safetyValue = toNumberOrZero(
+    detail?.safety ?? detail?.factorySafetyFactor,
     sling.factorySafetyFactor
   );
+  sling.factorySafetyFactor =
+    safetyValue > 0 ? safetyValue : sling.factorySafetyFactor;
+  if (
+    loadType === 0 &&
+    (!Number.isFinite(Number(sling.factorySafetyFactor)) ||
+      Number(sling.factorySafetyFactor) <= 0)
+  ) {
+    sling.factorySafetyFactor = 1;
+  }
   sling.topPointCount = toNumberOrZero(detail?.topSpotCount, sling.topPointCount);
   sling.bottomPointCount = toNumberOrZero(
     detail?.belowSpotCount,
@@ -5567,12 +5560,23 @@ const populateLiftingDetails = (details = []) => {
     selectedSlingDeviceId.value = "";
     return;
   }
-  const sorted = [...details].sort((a, b) => {
-    const indexA = toNumberOrZero(a?.itemIndex);
-    const indexB = toNumberOrZero(b?.itemIndex);
-    return indexA - indexB;
+  const indexed = details.map((detail, idx) => {
+    const sortIndex =
+      detail?.itemIndex !== undefined && detail?.itemIndex !== null
+        ? Number(detail.itemIndex)
+        : idx + 1;
+    const positionOrder = parseBooleanFlag(detail?.liftingPosition) ? 1 : 0;
+    return { detail, sortIndex, positionOrder };
   });
-  const mapped = sorted.map((detail, index) => createSlingFromDetail(detail, index));
+  const sorted = indexed.sort((a, b) => {
+    if (a.sortIndex !== b.sortIndex) {
+      return a.sortIndex - b.sortIndex;
+    }
+    return a.positionOrder - b.positionOrder;
+  });
+  const mapped = sorted.map((item, index) =>
+    createSlingFromDetail(item.detail, index)
+  );
   liftingFormDatas.value = mapped;
   activeSlingIndex.value = 0;
   selectedSlingDeviceId.value =
@@ -5800,15 +5804,15 @@ const buildLiftingDetails = () =>
     liftingType: toNumberOrNull(sling.slingType),
     prodBusiness: toNullableString(sling.manufacturer),
     normsModel: toNullableString(sling.productModel),
-    loadType: sling.loadType === "magnetic" ? 1 : 0,
+    loadType: toNumberOrNull(sling.loadType),
     loadContent: toNumberOrNull(
-      sling.loadType === "rope" ? sling.ratedLoad : null
+      sling.loadType === 0 ? sling.ratedLoad : null
     ),
     disconnect: toNumberOrNull(
-      sling.loadType === "magnetic" ? sling.safetyFactor : null
+      sling.loadType === 1 ? sling.safetyFactor : null
     ),
     safety: toNumberOrNull(
-      sling.loadType === "rope" ? sling.factorySafetyFactor : null
+      sling.loadType === 0 ? sling.factorySafetyFactor : null
     ),
     factorySafetyFactor: toNumberOrNull(sling.factorySafetyFactor),
     topSpotCount: toNumberOrNull(sling.topPointCount),
