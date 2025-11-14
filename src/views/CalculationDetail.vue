@@ -4067,6 +4067,12 @@ watch(
     }
     // When switching from 'noBeam' to 'withBeam'
     if (newType === "withBeam" && oldType === "noBeam") {
+    const hasExistingBottom = liftingFormDatas.value.some(
+      (s) => s.liftingType === "withBeam" && s.isBottomSling
+    );
+    if (hasExistingBottom) {
+      return;
+    }
       // 使用第一个吊索具作为模板
       const templateSling = liftingFormDatas.value[0];
       if (templateSling) {
@@ -4082,9 +4088,10 @@ watch(
           upperSling.liftingSystemItems
         );
 
-        // 创建下部吊索具01，复制上部吊索具内容
-        const lowerSling = JSON.parse(JSON.stringify(upperSling));
+        // 创建下部吊索具01，使用默认初始化内容
+        const lowerSling = createDefaultSling();
         lowerSling.id = 2;
+        lowerSling.liftingType = "withBeam";
         lowerSling.isBottomSling = true;
         lowerSling.bottomPointCount = 4; // 设置下部吊索具的下部吊点数量默认值为4
         lowerSling.liftingSystemItems = cloneLiftingSystemItems(
@@ -5574,7 +5581,10 @@ const populateLiftingDetails = (details = []) => {
   const mapped = sorted.map((item, index) =>
     createSlingFromDetail(item.detail, index)
   );
-  liftingFormDatas.value = mapped;
+  liftingFormDatas.value = mapped.map((sling, index) => ({
+    ...sling,
+    id: index + 1,
+  }));
   activeSlingIndex.value = 0;
   selectedSlingDeviceId.value =
     mapped[0]?.templateDeviceId !== undefined && mapped[0]?.templateDeviceId !== null
