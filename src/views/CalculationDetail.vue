@@ -1034,11 +1034,15 @@
                         />
                       </el-select>
                     </div>
-                    <label class="form-label">挂布方式</label>
+                    <label 
+                      class="form-label"
+                      v-if="activeSlingData.liftingType === 'noBeam' || (activeSlingData.liftingType === 'withBeam' && activeSlingData.isBottomSling)"
+                    >排布方式</label>
                     <el-select
                       v-model="activeSlingData.customLoop"
                       placeholder="请选择"
                       class="hanging-method-select"
+                      v-if="activeSlingData.liftingType === 'noBeam' || (activeSlingData.liftingType === 'withBeam' && activeSlingData.isBottomSling)"
                     >
                       <el-option label="矩形" value="loop" />
                       <el-option label="圆形" value="zero" />
@@ -3946,7 +3950,14 @@ const activeSlingData = computed(() => {
   return liftingFormDatas.value[activeSlingIndex.value];
 });
 
-const lowerPointCountOptions = [1, 2, 3, 4, 6, 8];
+const lowerPointCountOptions = computed(() => {
+  // 如果有吊梁，去掉1，最小值为2
+  if (activeSlingData.value?.liftingType === 'withBeam') {
+    return [2, 3, 4, 6, 8];
+  }
+  // 无吊梁时，包含所有选项
+  return [1, 2, 3, 4, 6, 8];
+});
 
 const bottomDistanceFields = computed(() => {
   const count = Number(activeSlingData.value?.bottomPointCount ?? 0);
@@ -3992,6 +4003,21 @@ watch(
         activeSlingData.value.factorySafetyFactor = 1;
       }
     }
+  }
+);
+
+// 监听吊梁类型变化，如果有吊梁且下部吊点数量为1，自动改为2
+watch(
+  () => activeSlingData.value?.liftingType,
+  (newType) => {
+    if (isInitializingFromApi || !activeSlingData.value) {
+      return;
+    }
+    // 如果有吊梁且下部吊点数量为1，自动改为2
+    if (newType === 'withBeam' && activeSlingData.value.bottomPointCount === 1) {
+      activeSlingData.value.bottomPointCount = 2;
+    }
+    // 如果从有吊梁切换到无吊梁，且当前值不在选项中，保持原值（因为无吊梁时包含1）
   }
 );
 
