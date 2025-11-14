@@ -1112,7 +1112,7 @@
 
                     <div
                       class="form-row full-width"
-                      v-if="activeSlingData.bottomPointCount >= 4"
+                      v-if="activeSlingData.bottomPointCount >= 3"
                     >
                       <el-button
                         type="primary"
@@ -5027,6 +5027,16 @@ const isCalculatingHeightAngle = ref(false);
 
 const handleCalculateHeightAngle = async () => {
   const data = activeSlingData.value;
+  console.log('handleCalculateHeightAngle 开始执行', {
+    data: data ? {
+      liftingType: data.liftingType,
+      isBottomSling: data.isBottomSling,
+      bottomPointCount: data.bottomPointCount,
+      customLoop: data.customLoop,
+      ropeLength: data.ropeLength
+    } : null
+  });
+
   if (
     !data ||
     !(
@@ -5034,21 +5044,7 @@ const handleCalculateHeightAngle = async () => {
       (data.liftingType === "withBeam" && data.isBottomSling)
     )
   ) {
-    return;
-  }
-
-  const fields = bottomDistanceFields.value
-    .slice(0, 4)
-    .map((config) => config.valueKey);
-
-  if (fields.length < 4) {
-    ElMessage.warning("下部吊点数量不足，无法计算角度和高度");
-    return;
-  }
-  const values = fields.map((key) => Number(data[key]));
-
-  if (values.some((val) => Number.isNaN(val) || val === null || val === undefined || val <= 0)) {
-    ElMessage.warning("请完整填写距离L1至L4的数值");
+    console.log('条件检查失败：liftingType 或 isBottomSling 不符合要求');
     return;
   }
 
@@ -5058,19 +5054,143 @@ const handleCalculateHeightAngle = async () => {
     return;
   }
 
-  const [L1, L2, L3, L4] = values;
-  const avgLongSide = (L1 + L3) / 2;
-  const avgShortSide = (L2 + L4) / 2;
-  const centerDistance = Number(
-    Math.sqrt((avgLongSide / 2) ** 2 + (avgShortSide / 2) ** 2).toFixed(4)
-  );
+  // 检查挂布方式是否已选择（默认值是"loop"，所以这里只检查是否为空或无效值）
+  if (data.customLoop !== "loop" && data.customLoop !== "zero") {
+    console.log('挂布方式未选择或值不正确', data.customLoop);
+    ElMessage.warning("请先选择挂布方式");
+    return;
+  }
+
+  let distance = 0;
+
+  // 根据挂布方式计算distance
+  if (data.customLoop === "loop") {
+    // 矩形情况
+    if (data.bottomPointCount > 2) {
+      // 根据吊点数量取对应的L值
+      const pointCount = data.bottomPointCount;
+      const fields = bottomDistanceFields.value
+        .slice(0, pointCount)
+        .map((config) => config.valueKey);
+
+      if (fields.length < pointCount) {
+        ElMessage.warning(`下部吊点数量不足，无法计算角度和高度`);
+        return;
+      }
+
+      const values = fields.map((key) => Number(data[key]));
+
+      if (values.some((val) => Number.isNaN(val) || val === null || val === undefined || val <= 0)) {
+        ElMessage.warning(`请完整填写距离L1至L${pointCount}的数值`);
+        return;
+      }
+
+      // 根据吊点数量计算中心距离
+      if (pointCount === 4) {
+        // 4个吊点：取L1-L4，计算矩形中心距离
+        const [L1, L2, L3, L4] = values;
+        const avgLongSide = (L1 + L3) / 2;
+        const avgShortSide = (L2 + L4) / 2;
+        distance = Number(
+          Math.sqrt((avgLongSide / 2) ** 2 + (avgShortSide / 2) ** 2).toFixed(4)
+        );
+      } else if (pointCount === 6) {
+        // 6个吊点：取L1-L6，计算六边形中心距离
+        const [L1, L2, L3, L4, L5, L6] = values;
+        // 六边形：计算对边距离的平均值，然后计算中心距离
+        const avgLongSide = (L1 + L4) / 2;
+        const avgShortSide1 = (L2 + L5) / 2;
+        const avgShortSide2 = (L3 + L6) / 2;
+        const avgShortSide = (avgShortSide1 + avgShortSide2) / 2;
+        distance = Number(
+          Math.sqrt((avgLongSide / 2) ** 2 + (avgShortSide / 2) ** 2).toFixed(4)
+        );
+      } else if (pointCount === 8) {
+        // 8个吊点：取L1-L8，计算八边形中心距离
+        const [L1, L2, L3, L4, L5, L6, L7, L8] = values;
+        // 八边形：计算对边距离的平均值
+        const avgLongSide = (L1 + L5) / 2;
+        const avgShortSide1 = (L2 + L6) / 2;
+        const avgShortSide2 = (L3 + L7) / 2;
+        const avgShortSide3 = (L4 + L8) / 2;
+        const avgShortSide = (avgShortSide1 + avgShortSide2 + avgShortSide3) / 3;
+        distance = Number(
+          Math.sqrt((avgLongSide / 2) ** 2 + (avgShortSide / 2) ** 2).toFixed(4)
+        );
+      } else if (pointCount === 3) {
+        // 3个吊点：取L1-L3，计算三角形中心距离
+        const [L1, L2, L3] = values;
+        // 对于3个吊点的矩形布局，取三个距离的平均值作为中心距离的近似值
+        // 或者可以理解为三个顶点到中心的距离的平均值
+        const avgDistance = (L1 + L2 + L3) / 3;
+        distance = Number(avgDistance.toFixed(4));
+      } else {
+        // 其他数量的吊点，使用平均值作为中心距离
+        const avgDistance = values.reduce((sum, val) => sum + val, 0) / values.length;
+        distance = Number(avgDistance.toFixed(4));
+      }
+    } else {
+      // 吊点数量 < 3，使用La/2
+      const la = Number(data.distanceLa);
+      if (!Number.isFinite(la) || la <= 0) {
+        ElMessage.warning("请先填写有效的距离La");
+        return;
+      }
+      distance = Number((la / 2).toFixed(4));
+    }
+  } else if (data.customLoop === "zero") {
+    // 圆形情况：所有距离之和（周长），算出半径
+    if (data.bottomPointCount > 2) {
+      const pointCount = data.bottomPointCount;
+      const fields = bottomDistanceFields.value
+        .slice(0, pointCount)
+        .map((config) => config.valueKey);
+
+      if (fields.length < pointCount) {
+        ElMessage.warning(`下部吊点数量不足，无法计算角度和高度`);
+        return;
+      }
+
+      const values = fields.map((key) => Number(data[key]));
+
+      if (values.some((val) => Number.isNaN(val) || val === null || val === undefined || val <= 0)) {
+        ElMessage.warning(`请完整填写距离L1至L${pointCount}的数值`);
+        return;
+      }
+
+      // 所有距离之和（周长）
+      const perimeter = values.reduce((sum, val) => sum + val, 0);
+      // 半径 = 周长 / (2 * π)
+      distance = Number((perimeter / (2 * Math.PI)).toFixed(4));
+    } else {
+      // 吊点数量 < 3，使用La
+      const la = Number(data.distanceLa);
+      if (!Number.isFinite(la) || la <= 0) {
+        ElMessage.warning("请先填写有效的距离La");
+        return;
+      }
+      // 圆形情况下，La就是直径，半径 = La / 2
+      distance = Number((la / 2).toFixed(4));
+    }
+  }
+
+  // 验证distance是否有效
+  if (!distance || distance <= 0) {
+    console.log('distance 计算无效', distance);
+    ElMessage.warning("计算出的距离值无效，请检查输入数据");
+    return;
+  }
+
+  console.log('准备调用接口', { ropeLength, distance, customLoop: data.customLoop, bottomPointCount: data.bottomPointCount });
 
   try {
     isCalculatingHeightAngle.value = true;
     const response = await getCalculateHeightOrAngle({
       ropeLength,
-      distance: centerDistance,
+      distance,
     });
+    
+    console.log('接口调用成功', response);
 
     if (response?.code === '0' && response.data) {
       if (typeof response.data.height === 'number') {
@@ -5109,7 +5229,19 @@ const handleCalculateHeightAngleByLa = async () => {
     return;
   }
 
-  const distance = Number((la / 2).toFixed(4));
+  let distance = 0;
+
+  // 根据挂布方式计算distance
+  if (data.customLoop === "loop") {
+    // 矩形情况：La / 2
+    distance = Number((la / 2).toFixed(4));
+  } else if (data.customLoop === "zero") {
+    // 圆形情况：La是直径，半径 = La / 2
+    distance = Number((la / 2).toFixed(4));
+  } else {
+    ElMessage.warning("请先选择挂布方式");
+    return;
+  }
 
   try {
     isCalculatingHeightAngle.value = true;
