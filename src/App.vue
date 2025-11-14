@@ -46,6 +46,10 @@
           <el-icon><FolderOpened /></el-icon>
           <span>全部项目</span>
         </el-menu-item>
+        <el-menu-item index="/verification-projects">
+          <el-icon><Document /></el-icon>
+          <span>校核计算项目</span>
+        </el-menu-item>
         <el-menu-item index="/virtual-simulation">
           <el-icon><VideoPlay /></el-icon>
           <span>虚拟仿真项目</span>

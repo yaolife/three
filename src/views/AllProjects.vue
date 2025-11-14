@@ -118,7 +118,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAllProject, handleEditProject, deleteProjectItem } from '../api/index.js'
@@ -126,6 +126,36 @@ import { getAllProject, handleEditProject, deleteProjectItem } from '../api/inde
 // 初始化 router 和 route
 const router = useRouter()
 const route = useRoute()
+
+const projectTypeFilter = computed(() => {
+  if (route.meta && route.meta.projectType !== undefined) {
+    return route.meta.projectType
+  }
+  if (route.query && route.query.projectType !== undefined) {
+    const parsed = Number(route.query.projectType)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+  return null
+})
+
+const resolveDefaultProjectType = () =>
+  projectTypeFilter.value !== null && projectTypeFilter.value !== undefined
+    ? projectTypeFilter.value
+    : 0
+
+const resolveDefaultFileType = (type) => (type === 0 ? 0 : 1)
+
+const createEmptyFormData = () => {
+  const defaultType = resolveDefaultProjectType()
+  return {
+    id: null,
+    title: '',
+    projectType: defaultType,
+    fileType: resolveDefaultFileType(defaultType),
+    belongingProject: '',
+    belongingDept: ''
+  }
+}
 
 // 项目数据
 const projectData = ref([])
@@ -138,14 +168,7 @@ const total = ref(0)
 // 创建项目弹窗相关
 const showCreateDialog = ref(false)
 const formRef = ref(null)
-const formData = ref({
-  id: null,
-  title: '',
-  projectType: 0,
-  fileType: 0,
-  belongingProject: '',
-  belongingDept: ''
-})
+const formData = ref(createEmptyFormData())
 
 const formRules = ref({
   title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
@@ -201,10 +224,16 @@ const checkCreateFlag = () => {
 // 加载项目数据
 const loadProjectData = async () => {
   try {
-    const response = await getAllProject({
+    const params = {
       pageNum: currentPage.value,
       pageSize: pageSize.value
-    })
+    }
+    
+    if (projectTypeFilter.value !== null && projectTypeFilter.value !== undefined) {
+      params.projectType = projectTypeFilter.value
+    }
+    
+    const response = await getAllProject(params)
     
     if (response.code === '0' && response.data) {
       projectData.value = response.data.records || []
@@ -331,18 +360,17 @@ const submitForm = async () => {
 
 // 重置表单
 const resetForm = () => {
-  formData.value = {
-    id: null,
-    title: '',
-    projectType: 0,
-    fileType: 0,
-    belongingProject: '',
-    belongingDept: ''
-  }
+  formData.value = createEmptyFormData()
   if (formRef.value) {
     formRef.value.resetFields()
   }
 }
+
+watch(projectTypeFilter, () => {
+  currentPage.value = 1
+  loadProjectData()
+  resetForm()
+})
 
 
 

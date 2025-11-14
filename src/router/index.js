@@ -3,8 +3,6 @@ import { createRouter, createWebHistory } from "vue-router"
 // 懒加载组件
 const Login = () => import("../views/Login.vue")
 const AllProjects = () => import("../views/AllProjects.vue")
-const VirtualSimulation = () => import("../views/VirtualSimulation.vue")
-const ConstructionPlans = () => import("../views/ConstructionPlans.vue")
 const RecycleBin = () => import("../views/RecycleBin.vue")
 const CalculationDetail = () => import("../views/CalculationDetail.vue")
 const DataManagement = () => import("../views/DataManagement.vue")
@@ -34,11 +32,21 @@ const routes = [
     },
   },
   {
+    path: "/verification-projects",
+    name: "VerificationProjects",
+    component: AllProjects,
+    meta: {
+      title: "校核计算项目",
+      projectType: 0,
+    },
+  },
+  {
     path: "/virtual-simulation",
     name: "VirtualSimulation",
-    component: VirtualSimulation,
+    component: AllProjects,
     meta: {
       title: "虚拟仿真项目",
+      projectType: 1,
     },
   },
   {
@@ -54,9 +62,10 @@ const routes = [
   {
     path: "/construction-plans",
     name: "ConstructionPlans",
-    component: ConstructionPlans,
+    component: AllProjects,
     meta: {
-      title: "施工平立面图",
+      title: "总平规划项目",
+      projectType: 2,
     },
   },
   {
