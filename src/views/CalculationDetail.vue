@@ -1271,9 +1271,9 @@
                 <div class="form-grid" style="margin-top: 16px">
                   <div class="form-row">
                     <label class="form-label">计算方式</label>
-                    <el-radio-group v-model="foundationData.calculationPoint">
-                      <el-radio value="center">平均接地比压</el-radio>
-                      <el-radio value="support" disabled>力矩平衡</el-radio>
+                    <el-radio-group v-model="foundationData.calculateType">
+                      <el-radio :label="0">平均接地比压</el-radio>
+                      <el-radio :label="1" disabled>力矩平衡</el-radio>
                     </el-radio-group>
                   </div>
                 </div>
@@ -1291,7 +1291,7 @@
                       >
                       <div class="input-with-unit">
                         <el-input-number
-                          v-model="foundationData.trackWidthB"
+                          v-model="foundationData.bearingWidth"
                           controls-position="right"
                           :precision="2"
                         />
@@ -3097,7 +3097,7 @@
               L4：履带接地长度= {{ foundationData.trackGroundLengthL4 }}m
             </div>
             <div class="weight-item">
-              B1：左或右侧履带板宽度= {{ foundationData.trackWidthB }}m
+              B1：左或右侧履带板宽度= {{ foundationData.bearingWidth }}m
             </div>
           </div>
 
@@ -4680,7 +4680,7 @@ const foundationData = ref({
   foundationPoint: "Q345D钢基础结构",
   centerMark: "xxxx",
   number: "H-00000",
-  calculationPoint: "center",
+  calculateType: 0,
   foundationType: "concrete",
   compactionCoeff: 1.0,
   bearingCapacity: 200.0,
@@ -4688,7 +4688,7 @@ const foundationData = ref({
   craneType: "truck",
   trackName: "",
   trackModel: "",
-  trackWidthB: 0,
+  bearingWidth: 0,
   trackGroundLengthL4: 0,
   craneWeightW: 0,
   driveWheelOffGround: false,
@@ -4717,7 +4717,7 @@ const calculateFoundation = () => {
   const groundArea =
     foundationData.value.trackGroundLengthL4 *
     2 *
-    foundationData.value.trackWidthB;
+    foundationData.value.bearingWidth;
 
   // 计算平均接地比压 T = W × g / A
   const averagePressure =
@@ -4730,9 +4730,9 @@ const calculateFoundation = () => {
       name: foundationData.value.trackName || "S",
       model: foundationData.value.trackModel || "HS-0000",
       specifications: `左侧履带宽度${
-        foundationData.value.trackWidthB || 26
+        foundationData.value.bearingWidth || 26
       }m、右侧履带宽度${
-        foundationData.value.trackWidthB || 26
+        foundationData.value.bearingWidth || 26
       }m、起重机设计自重、重力加速度。`,
     },
     otherParams: {
@@ -4755,7 +4755,7 @@ const resetFoundation = () => {
     foundationPoint: "Q345D钢基础结构",
     centerMark: "xxxx",
     number: "H-00000",
-    calculationPoint: "center",
+    calculateType: 0,
     foundationType: "concrete",
     compactionCoeff: 1.0,
     bearingCapacity: 200.0,
@@ -4763,7 +4763,7 @@ const resetFoundation = () => {
     craneType: "truck",
     trackName: "",
     trackModel: "",
-    trackWidthB: 0,
+    bearingWidth: 0,
     trackGroundLengthL4: 0,
     craneWeightW: 0,
     driveWheelOffGround: false,
@@ -4795,7 +4795,7 @@ xxxxx方案项目地基承载力校核计算
 A = L4 × 2B1
 
 L4：履带接地长度=${foundationData.value.trackGroundLengthL4}m
-B1：左或右侧履带板宽度=${foundationData.value.trackWidthB}m
+B1：左或右侧履带板宽度=${foundationData.value.bearingWidth}m
 
 履带接地面积计算结果A= ${foundationCalculationResult.value.calculationProcess.area.toFixed(
     2
@@ -5771,11 +5771,15 @@ const populateFoundationDetail = (detail = {}) => {
   foundationData.value = {
     ...foundationData.value,
     foundationName: detail.name ?? "",
+    calculateType:
+      detail.calculateType !== undefined && detail.calculateType !== null
+        ? Number(detail.calculateType)
+        : foundationData.value.calculateType,
     trackName: detail.bearingName ?? "",
     trackModel: detail.type ?? "",
-    trackWidthB: toNumberOrZero(
-      detail.leftWidth ?? detail.rightWidth,
-      foundationData.value.trackWidthB
+    bearingWidth: toNumberOrZero(
+      detail.bearingWidth ?? detail.leftWidth ?? detail.rightWidth,
+      foundationData.value.bearingWidth
     ),
     trackGroundLengthL4: toNumberOrZero(
       detail.threadLength,
@@ -6018,8 +6022,8 @@ const buildBearingDetail = () => {
     name: toNullableString(foundationData.value.foundationName),
     bearingName: toNullableString(foundationData.value.trackName),
     type: toNullableString(foundationData.value.trackModel),
-    leftWidth: toNumberOrNull(foundationData.value.trackWidthB),
-    rightWidth: toNumberOrNull(foundationData.value.trackWidthB),
+    calculateType: toNumberOrNull(foundationData.value.calculateType),
+    bearingWidth: toNumberOrNull(foundationData.value.bearingWidth),
     threadLength: toNumberOrNull(
       foundationData.value.trackGroundLengthL4
     ),
