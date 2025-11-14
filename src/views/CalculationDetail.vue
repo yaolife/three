@@ -1501,7 +1501,6 @@
                 formData.auxBoomAngle
               }}°、吊钩最大起升高度xxx
             </div>
-            <div class="info-item">破断拉力：{{ formData.ratedLoad }}t</div>
           </div>
         </div>
       </div>
@@ -2693,7 +2692,6 @@
                 formData.auxBoomAngle
               }}°、吊钩最大起升高度xxx
             </div>
-            <div class="info-item">破断拉力：{{ formData.ratedLoad }}t</div>
           </div>
         </div>
       </div>
@@ -2710,7 +2708,6 @@
                 formData.auxBoomAngle2
               }}°、吊钩最大起升高度xxx
             </div>
-            <div class="info-item">破断拉力：{{ formData.ratedLoad2 }}t</div>
           </div>
         </div>
       </div>
