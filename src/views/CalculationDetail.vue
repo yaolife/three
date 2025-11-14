@@ -4131,19 +4131,41 @@ watch(
 );
 
 // 添加新的吊索具配置
+// 获取初始化内容（不包含回显数据）
+const getInitialSlingData = (templateSling) => {
+  if (!templateSling) {
+    return createDefaultSling();
+  }
+  
+  // 创建新的初始化吊索具，只保留基本结构属性
+  const initialData = createDefaultSling({
+    liftingType: templateSling.liftingType,
+    isBottomSling: templateSling.isBottomSling,
+    // 保留一些基本配置
+    topPointCount: templateSling.topPointCount || 1,
+    bottomPointCount: templateSling.bottomPointCount || (templateSling.isBottomSling ? 4 : 1),
+    customLoop: templateSling.customLoop || "loop",
+    slingType: templateSling.slingType || "0",
+    loadType: templateSling.loadType || 1,
+    isDouble: templateSling.isDouble || false,
+    isSinglePointLifting: templateSling.isSinglePointLifting || false,
+  });
+  
+  return initialData;
+};
+
 const addNewSling = () => {
   if (activeSlingData.value.liftingType === "withBeam") {
     // 有吊梁情况下，显示选择弹窗
     showSlingTypeDialog.value = true;
   } else if (activeSlingData.value.liftingType === "noBeam") {
-    // 无吊梁情况下，保持原有逻辑
+    // 无吊梁情况下，复制第一个吊索具（索引0）的初始化内容
     const newId = liftingFormDatas.value.length + 1;
-    // 复制当前吊索具配置作为新配置的基础
-    const newSlingData = JSON.parse(JSON.stringify(activeSlingData.value));
+    const firstSling = liftingFormDatas.value[0];
+    const newSlingData = getInitialSlingData(firstSling);
     newSlingData.id = newId;
-    newSlingData.liftingSystemItems = cloneLiftingSystemItems(
-      newSlingData.liftingSystemItems
-    );
+    newSlingData.liftingType = "noBeam";
+    newSlingData.isBottomSling = false;
     liftingFormDatas.value.push(newSlingData);
   }
 };
@@ -4161,33 +4183,26 @@ const handleSinglePointLiftingChange = (val) => {
 const confirmAddSling = () => {
   if (!selectedSlingType.value) return;
 
-  // 获取现有相同类型吊索具的数量，以生成正确的序号
   const isUpper = selectedSlingType.value === "upper";
-  const existingSameTypeCount = liftingFormDatas.value.filter(
-    (sling) =>
-      sling.liftingType === "withBeam" && sling.isBottomSling === !isUpper
-  ).length;
-
-  // 找到第一个上部吊索具作为模板
-  const upperSlingTemplate = liftingFormDatas.value.find(
-    (sling) => sling.liftingType === "withBeam" && !sling.isBottomSling
+  
+  // 找到第一个对应类型的吊索具作为模板（获取初始化内容）
+  const templateSling = liftingFormDatas.value.find(
+    (sling) => 
+      sling.liftingType === "withBeam" && 
+      sling.isBottomSling === !isUpper
   );
 
-  if (upperSlingTemplate) {
-    // 复制模板内容
-    const newSlingData = JSON.parse(JSON.stringify(upperSlingTemplate));
+  if (templateSling) {
+    // 获取初始化内容（不包含回显数据）
+    const newSlingData = getInitialSlingData(templateSling);
     newSlingData.id = liftingFormDatas.value.length + 1;
+    newSlingData.liftingType = "withBeam";
     newSlingData.isBottomSling = !isUpper;
 
     // 如果是下部吊索具，设置下部吊点数量默认值为4
     if (!isUpper) {
       newSlingData.bottomPointCount = 4;
     }
-
-    // 确保有独立的 liftingSystemItems
-    newSlingData.liftingSystemItems = cloneLiftingSystemItems(
-      newSlingData.liftingSystemItems
-    );
 
     // 添加到数组中
     liftingFormDatas.value.push(newSlingData);
