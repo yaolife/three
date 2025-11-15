@@ -586,6 +586,7 @@ import { ArrowLeft, Search, Close } from "@element-plus/icons-vue";
 import startIconSrc from "@/images/point.png";
 import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
+import craneModelSrc from "@/images/crane_model.png";
 
 const route = useRoute();
 const router = useRouter();
@@ -650,6 +651,16 @@ const pointIconImages = {
   start: new Image(),
   lifting: new Image(),
   moving: new Image(),
+};
+
+// 起重机模型图片（用于路径运动轨迹）
+const craneModelImage = new Image();
+craneModelImage.src = craneModelSrc;
+craneModelImage.onload = () => {
+  // 图片加载完成后重绘轨迹
+  if (ctx.value) {
+    drawAllTrajectories();
+  }
 };
 
 // 生成带颜色的SVG DataURL函数
@@ -1059,25 +1070,33 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
         ctx.value.stroke();
         ctx.value.restore();
 
+        // 绘制起重机模型图片
         ctx.value.save();
-        ctx.value.fillStyle = '#ff4d4f';
-        ctx.value.beginPath();
-        ctx.value.arc(currentX, currentY, 6, 0, Math.PI * 2);
-        ctx.value.fill();
-        ctx.value.strokeStyle = '#ffffff';
-        ctx.value.lineWidth = 2;
-        ctx.value.stroke();
+        if (craneModelImage.complete) {
+          const imageSize = 24; // 图片大小
+          ctx.value.drawImage(
+            craneModelImage,
+            currentX - imageSize / 2,
+            currentY - imageSize / 2,
+            imageSize,
+            imageSize
+          );
+        }
         ctx.value.restore();
       } else if (activeSegment.type === 'dwell') {
         const pointCoords = plan.coords[activeSegment.pointIndex];
+        // 绘制起重机模型图片
         ctx.value.save();
-        ctx.value.fillStyle = '#ff4d4f';
-        ctx.value.beginPath();
-        ctx.value.arc(pointCoords.x, pointCoords.y, 6, 0, Math.PI * 2);
-        ctx.value.fill();
-        ctx.value.strokeStyle = '#ffffff';
-        ctx.value.lineWidth = 2;
-        ctx.value.stroke();
+        if (craneModelImage.complete) {
+          const imageSize = 24; // 图片大小
+          ctx.value.drawImage(
+            craneModelImage,
+            pointCoords.x - imageSize / 2,
+            pointCoords.y - imageSize / 2,
+            imageSize,
+            imageSize
+          );
+        }
         ctx.value.restore();
       }
     }
@@ -1125,25 +1144,33 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
           ctx.value.stroke();
           ctx.value.restore();
 
+          // 绘制起重机模型图片
           ctx.value.save();
-          ctx.value.fillStyle = '#ff4d4f';
-          ctx.value.beginPath();
-          ctx.value.arc(currentX, currentY, 6, 0, Math.PI * 2);
-          ctx.value.fill();
-          ctx.value.strokeStyle = '#ffffff';
-          ctx.value.lineWidth = 2;
-          ctx.value.stroke();
+          if (craneModelImage.complete) {
+            const imageSize = 24; // 图片大小
+            ctx.value.drawImage(
+              craneModelImage,
+              currentX - imageSize / 2,
+              currentY - imageSize / 2,
+              imageSize,
+              imageSize
+            );
+          }
           ctx.value.restore();
         } else if (activeSegment.type === 'dwell') {
           const pointCoords = plan.coords[activeSegment.pointIndex];
+          // 绘制起重机模型图片
           ctx.value.save();
-          ctx.value.fillStyle = '#ff4d4f';
-          ctx.value.beginPath();
-          ctx.value.arc(pointCoords.x, pointCoords.y, 6, 0, Math.PI * 2);
-          ctx.value.fill();
-          ctx.value.strokeStyle = '#ffffff';
-          ctx.value.lineWidth = 2;
-          ctx.value.stroke();
+          if (craneModelImage.complete) {
+            const imageSize = 24; // 图片大小
+            ctx.value.drawImage(
+              craneModelImage,
+              pointCoords.x - imageSize / 2,
+              pointCoords.y - imageSize / 2,
+              imageSize,
+              imageSize
+            );
+          }
           ctx.value.restore();
         }
       });
