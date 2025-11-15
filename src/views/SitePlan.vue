@@ -31,6 +31,16 @@
               style="width: 20px; height: 20px; margin-right: 5px"
             /><span>{{ isPlayingAll ? '停止' : '预览' }}</span>
           </div>
+          <!-- 全局录制按钮 -->
+          <div class="handle_btn_item" @click="startGlobalRecording" v-if="!isGlobalRecording">
+            <span>开始全局录制</span>
+          </div>
+          <div class="handle_btn_item" @click="stopGlobalRecording" v-if="isGlobalRecording">
+            <span>结束全局录制</span>
+          </div>
+          <div class="handle_btn_item" @click="downloadGlobalRecording" v-if="globalRecordingBlob">
+            <span>下载视频</span>
+          </div>
         </div>
       </div>
     </div>
@@ -567,9 +577,34 @@
               type="warning" 
               :disabled="!selectedCrane || !selectedCrane.points || selectedCrane.points.length === 0"
               @click="resetTrajectory"
-              style="width: 100%;"
+              style="width: 100%; margin-bottom: 10px;"
             >
               重置路径
+            </el-button>
+            <!-- 单个起重机录制按钮 -->
+            <el-button 
+              type="success" 
+              :disabled="!selectedCrane || craneRecordingStates[selectedCrane?.id]?.isRecording"
+              @click="startCraneRecording"
+              style="width: 100%; margin-bottom: 10px;"
+            >
+              开始录制
+            </el-button>
+            <el-button 
+              type="danger" 
+              :disabled="!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.isRecording"
+              @click="stopCraneRecording"
+              style="width: 100%; margin-bottom: 10px;"
+            >
+              结束录制
+            </el-button>
+            <el-button 
+              type="info" 
+              :disabled="!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.blob"
+              @click="downloadCraneRecording"
+              style="width: 100%;"
+            >
+              下载录制
             </el-button>
           </div>
         </div>
@@ -587,6 +622,7 @@ import startIconSrc from "@/images/point.png";
 import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
+import RecordRTC from "recordrtc";
 
 const route = useRoute();
 const router = useRouter();
@@ -645,6 +681,12 @@ const playbackElapsed = ref(0);
 const animationPlan = ref(null);
 const playbackAnimationFrame = ref(null);
 const secondsPerDay = 3;
+
+// 录制相关状态
+const isGlobalRecording = ref(false);
+const globalRecordingBlob = ref(null);
+const globalRecorder = ref(null);
+const craneRecordingStates = ref({}); // 存储每个起重机的录制状态 { craneId: { isRecording: false, recorder: null, blob: null } }
 
 // 点位图标
 const pointIconImages = {
@@ -2017,6 +2059,166 @@ const setCranePosition = () => {
     drawAllTrajectories();
   };
 
+  // 开始单个起重机录制
+  const startCraneRecording = async () => {
+    if (!selectedCrane.value || !canvas.value) {
+      ElMessage.warning("请先选择起重机或等待页面加载完成");
+      return;
+    }
+
+    try {
+      // 初始化该起重机的录制状态
+      if (!craneRecordingStates.value[selectedCrane.value.id]) {
+        craneRecordingStates.value[selectedCrane.value.id] = {
+          isRecording: false,
+          recorder: null,
+          blob: null,
+        };
+      }
+
+      // 获取 canvas 的 MediaStream
+      const stream = canvas.value.captureStream(30); // 30 FPS
+
+      // 创建录制器
+      const recorder = new RecordRTC(stream, {
+        type: "video",
+        mimeType: "video/webm;codecs=vp9",
+        videoBitsPerSecond: 2500000,
+      });
+
+      recorder.startRecording();
+
+      // 更新状态
+      craneRecordingStates.value[selectedCrane.value.id].isRecording = true;
+      craneRecordingStates.value[selectedCrane.value.id].recorder = recorder;
+
+      ElMessage.success(`开始录制 ${selectedCrane.value.name} 的操作视频`);
+    } catch (error) {
+      console.error("开始录制失败:", error);
+      ElMessage.error("开始录制失败，请检查浏览器是否支持");
+    }
+  };
+
+  // 停止单个起重机录制
+  const stopCraneRecording = () => {
+    if (!selectedCrane.value || !craneRecordingStates.value[selectedCrane.value.id]) {
+      ElMessage.warning("没有正在进行的录制");
+      return;
+    }
+
+    const recordingState = craneRecordingStates.value[selectedCrane.value.id];
+    if (!recordingState.isRecording || !recordingState.recorder) {
+      ElMessage.warning("没有正在进行的录制");
+      return;
+    }
+
+    const recorder = recordingState.recorder;
+    recorder.stopRecording(() => {
+      const blob = recorder.getBlob();
+      recordingState.blob = blob;
+      recordingState.isRecording = false;
+      recordingState.recorder = null;
+
+      ElMessage.success(`已停止录制 ${selectedCrane.value.name} 的操作视频`);
+    });
+  };
+
+  // 下载单个起重机录制
+  const downloadCraneRecording = () => {
+    if (!selectedCrane.value || !craneRecordingStates.value[selectedCrane.value.id]) {
+      ElMessage.warning("没有可下载的录制文件");
+      return;
+    }
+
+    const recordingState = craneRecordingStates.value[selectedCrane.value.id];
+    if (!recordingState.blob) {
+      ElMessage.warning("没有可下载的录制文件");
+      return;
+    }
+
+    const blob = recordingState.blob;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${selectedCrane.value.name}_录制_${new Date().getTime()}.webm`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    ElMessage.success("下载成功");
+  };
+
+  // 开始全局录制
+  const startGlobalRecording = async () => {
+    if (!canvas.value) {
+      ElMessage.warning("请等待页面加载完成");
+      return;
+    }
+
+    try {
+      // 获取 canvas 的 MediaStream
+      const stream = canvas.value.captureStream(30); // 30 FPS
+
+      // 创建录制器
+      const recorder = new RecordRTC(stream, {
+        type: "video",
+        mimeType: "video/webm;codecs=vp9",
+        videoBitsPerSecond: 2500000,
+      });
+
+      recorder.startRecording();
+
+      // 更新状态
+      isGlobalRecording.value = true;
+      globalRecorder.value = recorder;
+      globalRecordingBlob.value = null;
+
+      ElMessage.success("开始全局录制");
+    } catch (error) {
+      console.error("开始全局录制失败:", error);
+      ElMessage.error("开始全局录制失败，请检查浏览器是否支持");
+    }
+  };
+
+  // 停止全局录制
+  const stopGlobalRecording = () => {
+    if (!isGlobalRecording.value || !globalRecorder.value) {
+      ElMessage.warning("没有正在进行的录制");
+      return;
+    }
+
+    const recorder = globalRecorder.value;
+    recorder.stopRecording(() => {
+      const blob = recorder.getBlob();
+      globalRecordingBlob.value = blob;
+      isGlobalRecording.value = false;
+      globalRecorder.value = null;
+
+      ElMessage.success("已停止全局录制");
+    });
+  };
+
+  // 下载全局录制
+  const downloadGlobalRecording = () => {
+    if (!globalRecordingBlob.value) {
+      ElMessage.warning("没有可下载的录制文件");
+      return;
+    }
+
+    const blob = globalRecordingBlob.value;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `全局录制_${new Date().getTime()}.webm`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    ElMessage.success("下载成功");
+  };
+
   // 重置路径功能
   const resetTrajectory = () => {
     if (!selectedCrane.value) {
@@ -2130,9 +2332,26 @@ const setCranePosition = () => {
 
   // 组件卸载时清理
   onBeforeUnmount(() => {
+    // 停止播放
     stopPlayback();
     stopPlaybackAll();
     window.removeEventListener('resize', handleResize);
+
+    // 清理录制器
+    // 停止全局录制
+    if (isGlobalRecording.value && globalRecorder.value) {
+      globalRecorder.value.stopRecording();
+      globalRecorder.value = null;
+    }
+
+    // 停止所有起重机的录制
+    Object.keys(craneRecordingStates.value).forEach((craneId) => {
+      const state = craneRecordingStates.value[craneId];
+      if (state.isRecording && state.recorder) {
+        state.recorder.stopRecording();
+        state.recorder = null;
+      }
+    });
   });
 
   const computeAnimationPlan = (points = [], color = '#26256B') => {
