@@ -1229,6 +1229,20 @@ const drawAllTrajectories = () => {
   // 清空Canvas
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
   
+  // 先绘制背景图片（如果存在）
+  if (imageRef.value && imageRef.value.complete) {
+    ctx.value.save();
+    // 直接绘制图片，填充整个canvas
+    ctx.value.drawImage(
+      imageRef.value,
+      0,
+      0,
+      canvas.value.width,
+      canvas.value.height
+    );
+    ctx.value.restore();
+  }
+  
   // 先绘制所有路径线（按点位顺序连接）
   cranes.value.forEach(crane => {
     if (crane.points && crane.points.length > 1) {
@@ -2066,6 +2080,18 @@ const setCranePosition = () => {
       return;
     }
 
+    // 检查是否有路径点
+    if (!selectedCrane.value.points || selectedCrane.value.points.length < 2) {
+      ElMessage.warning("请先添加路径点，至少需要2个路径点才能录制");
+      return;
+    }
+
+    // 检查是否有背景图片
+    if (!imageRef.value || !imageRef.value.complete) {
+      ElMessage.warning("请先导入施工场景平面图");
+      return;
+    }
+
     try {
       // 初始化该起重机的录制状态
       if (!craneRecordingStates.value[selectedCrane.value.id]) {
@@ -2075,6 +2101,9 @@ const setCranePosition = () => {
           blob: null,
         };
       }
+
+      // 确保背景图片已绘制到canvas
+      drawAllTrajectories();
 
       // 获取 canvas 的 MediaStream
       const stream = canvas.value.captureStream(30); // 30 FPS
@@ -2156,7 +2185,23 @@ const setCranePosition = () => {
       return;
     }
 
+    // 检查是否有背景图片
+    if (!imageRef.value || !imageRef.value.complete) {
+      ElMessage.warning("请先导入施工场景平面图");
+      return;
+    }
+
+    // 检查是否至少有一个起重机有路径点
+    const hasPath = cranes.value.some(crane => crane.points && crane.points.length >= 2);
+    if (!hasPath) {
+      ElMessage.warning("请先为至少一个起重机添加路径点");
+      return;
+    }
+
     try {
+      // 确保背景图片已绘制到canvas
+      drawAllTrajectories();
+
       // 获取 canvas 的 MediaStream
       const stream = canvas.value.captureStream(30); // 30 FPS
 
