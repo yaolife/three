@@ -450,13 +450,6 @@
               <el-input v-model="selectedCrane.name" placeholder="请输入名称" />
             </div>
             <div class="property-item">
-              <label>起重机</label>
-              <el-input
-                v-model="selectedCrane.type"
-                placeholder="xxx履带式起重机"
-              />
-            </div>
-            <div class="property-item">
           <label>路径颜色</label>
           <div class="color-input-wrapper">
             <el-color-picker
@@ -484,17 +477,6 @@
                 placeholder="10"
               />
               <span class="unit">m</span>
-            </div>
-            <div class="property-item">
-              <label>使用时间</label>
-              <el-input-number
-                controls-position="right"
-                v-model="selectedCrane.time"
-                :min="0"
-                :step="1"
-                placeholder="10"
-              />
-              <span class="unit">d</span>
             </div>
             <div class="property-item">
               <label>地面承载力</label>
