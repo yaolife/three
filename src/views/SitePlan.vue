@@ -194,88 +194,6 @@
                   format="YYYY-MM-DD"
                 />
               </div>
-              <div class="property-item">
-                <label>完成状态</label>
-                <el-select v-model="newPoint.status" placeholder="完成状态">
-                  <el-option label="已完成" value="completed" />
-                  <el-option label="未完成" value="pending" />
-                </el-select>
-              </div>
-              
-              <!-- 占位设置 -->
-              <div class="section-title">占位设置</div>
-              <div class="stub-config">
-                <div class="stub-img"> <img src="@/images/configurations.png" alt="设置" style="width: 46px; height: 20px"></div>
-                <div> <div class="property-item">
-                <label>占位长度</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.occupyLength"
-                  :min="0"
-                  :step="0.1"
-                  placeholder="16"
-                />
-                <span class="unit">m</span>
-              </div>
-              <div class="property-item">
-                <label>占位宽度</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.occupyWidth"
-                  :min="0"
-                  :step="0.1"
-                  placeholder="0.5"
-                />
-                  <span class="unit">m</span>
-              </div>
-              <div class="property-item">
-                <label>旋转角度</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.rotateAngle"
-                  :step="1"
-                  placeholder="-30"
-                />
-                  <span class="unit">度</span>
-              </div></div>
-              </div>
-             
-              
-              <!-- 吊装区域 -->
-              <div class="section-title">吊装区域</div>
-              <div class="property-item">
-                <label>作业半径</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.radius"
-                  :min="0"
-                  :step="0.1"
-                  placeholder="16"
-                />
-                <span class="unit">m</span>
-              </div>
-              <div class="property-item">
-                <label>幅度</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.amplitude"
-                  :min="0"
-                  :step="1"
-                  placeholder="126"
-                />
-                <span class="unit">度</span>
-              </div>
-              <div class="property-item">
-                <label>回转</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="newPoint.rotation"
-                  :min="0"
-                  :step="1"
-                  placeholder="90"
-                />
-                <span class="unit">度</span>
-              </div>
             </template>
             
           </div>
@@ -1693,13 +1611,22 @@ const setCranePosition = () => {
 
   // 添加防范站位
   const addNewPosition = () => {
-    if (!selectedCrane.value) return;
+    if (!selectedCrane.value) {
+      ElMessage.warning("请先选择起重机");
+      return;
+    }
+    
+    // 判断是否已添加起点
+    const pointCount = selectedCrane.value.points ? selectedCrane.value.points.length : 0;
+    if (pointCount === 0) {
+      ElMessage.warning("请先添加起点");
+      return;
+    }
     
     // 重置新点位数据
-    const pointCount = selectedCrane.value.points ? selectedCrane.value.points.length : 0;
-    const isStart = pointCount === 0;
+    const isStart = false; // 添加路径点位不是起点
     newPoint.value = createBasePoint({
-      name: isStart ? "起点1" : `吊装点位${pointCount}`,
+      name: `吊装点位${pointCount}`,
       isStart,
       type: "lifting",
     });
