@@ -280,49 +280,6 @@
                   format="YYYY-MM-DD"
                 />
               </div>
-              <div class="property-item">
-                <label>完成状态</label>
-                <el-select v-model="editingPoint.status" placeholder="完成状态">
-                  <el-option label="已完成" value="completed" />
-                  <el-option label="未完成" value="pending" />
-                </el-select>
-              </div>
-              
-              <!-- 吊装区域 -->
-              <div class="section-title">吊装区域</div>
-              <div class="property-item">
-                <label>作业半径</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="editingPoint.radius"
-                  :min="0"
-                  :step="0.1"
-                  placeholder="16"
-                />
-                <span class="unit">m</span>
-              </div>
-              <div class="property-item">
-                <label>幅度</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="editingPoint.amplitude"
-                  :min="0"
-                  :step="1"
-                  placeholder="126"
-                />
-                <span class="unit">°</span>
-              </div>
-              <div class="property-item">
-                <label>回转</label>
-                <el-input-number
-                  controls-position="right"
-                  v-model="editingPoint.rotation"
-                  :min="0"
-                  :step="1"
-                  placeholder="90"
-                />
-                <span class="unit">°</span>
-              </div>
             </template>
             
           </div>
