@@ -180,40 +180,62 @@ onMounted(() => {
   loadProjectData()
   
   // 检查是否需要打开创建项目弹窗（从App.vue触发）
-  checkCreateFlag()
+  // 使用 nextTick 确保在组件完全挂载后再检查
+  nextTick(() => {
+    checkCreateFlag()
+  })
   
   // 监听自定义事件，当用户已在全部项目页面时打开创建弹窗
-console.log('Adding openProjectDialog event listener');
-window.addEventListener('openProjectDialog', checkCreateFlag)
+  console.log('Adding openProjectDialog event listener');
+  window.addEventListener('openProjectDialog', checkCreateFlag)
 
-// 添加全局方法，方便直接从App.vue调用
-window.openProjectDialogDirect = () => {
-  console.log('Direct open project dialog called');
-  // 确保在DOM更新后执行
-  nextTick(() => {
-    openCreateDialog();
-  });
-}
+  // 添加全局方法，方便直接从App.vue调用
+  window.openProjectDialogDirect = () => {
+    console.log('Direct open project dialog called');
+    // 确保在DOM更新后执行
+    nextTick(() => {
+      openCreateDialog();
+    });
+  }
 })
 
-// 组件卸载时清理事件监听器
+// 组件卸载时清理事件监听器和状态
 onUnmounted(() => {
   console.log('Removing openProjectDialog event listener');
   window.removeEventListener('openProjectDialog', checkCreateFlag)
   // 移除全局方法
   delete window.openProjectDialogDirect;
+  // 重置创建项目标志，避免遗留状态导致下次进入页面时误触发
+  window.createProjectFlag = false;
 })
 
-// 监听路由变化，确保在页面内也能检测到创建标志
-watch(() => route.fullPath, () => {
-  checkCreateFlag()
+// 监听路由变化，但只在从其他页面导航到当前页面时检查创建标志
+// 避免在同一个组件内切换路由时重复触发
+let previousPath = route.fullPath
+watch(() => route.fullPath, (newPath) => {
+  // 只有在路径真正改变，且是从其他页面导航过来时才检查
+  // 如果是从其他路由导航到使用 AllProjects 组件的路由，才检查标志
+  if (previousPath !== newPath) {
+    // 延迟检查，确保组件已完全挂载
+    nextTick(() => {
+      // 只在明确设置了创建标志时才打开弹窗
+      // 并且确保标志在检查后立即重置，避免重复触发
+      if (window.createProjectFlag === true) {
+        window.createProjectFlag = false
+        console.log('Opening create project dialog from route change');
+        openCreateDialog()
+      }
+    })
+    previousPath = newPath
+  }
 })
 
 // 检查并处理创建项目标志的函数
 const checkCreateFlag = () => {
   console.log('checkCreateFlag called, createProjectFlag:', window.createProjectFlag);
-  if (window.createProjectFlag) {
-    // 重置标志
+  // 使用严格相等检查，确保只在明确为 true 时才打开
+  if (window.createProjectFlag === true) {
+    // 立即重置标志，避免重复触发
     window.createProjectFlag = false
     // 打开创建项目弹窗
     console.log('Opening create project dialog');

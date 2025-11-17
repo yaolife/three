@@ -160,12 +160,13 @@ const shouldHideHeader = computed(() => {
 const activeMenu = computed(() => route.path || "/all-projects");
 
 // 创建项目全局状态，用于在组件间传递
-window.createProjectFlag = false;
+// 初始化为 false，确保只在明确点击按钮时才设置为 true
+if (typeof window.createProjectFlag === 'undefined') {
+  window.createProjectFlag = false;
+}
 
 const createProject = () => {
   console.log('Create project button clicked');
-  // 设置创建项目标志，确保全局可访问
-  window.createProjectFlag = true;
   
   // 检查当前是否已经在全部项目页面
   if (route.path === '/all-projects') {
@@ -181,8 +182,10 @@ const createProject = () => {
       }, 100);
     }
   } else {
-    // 导航到全部项目页面，路由变化会触发AllProjects组件的onMounted或watch
+    // 导航到全部项目页面时，设置标志
+    // 注意：只在导航时才设置标志，避免在已存在的页面中误触发
     console.log('Navigating to all-projects page');
+    window.createProjectFlag = true;
     router.push('/all-projects');
   }
 };
