@@ -159,7 +159,7 @@
             <template v-if="newPoint.type === 'lifting'">
                 <div class="point_title">占点设置</div>
               <div class="property-item">
-                <label>地面承载力</label>
+                <label>地基承载力</label>
                 <el-input-number
                   controls-position="right"
                   v-model="newPoint.groundLoad"
@@ -246,7 +246,7 @@
             <template v-if="editingPoint.type === 'lifting'">
               <div class="point_title">占点设置</div>
               <div class="property-item">
-                <label>地面承载力</label>
+                <label>地基承载力</label>
                 <el-input-number
                   controls-position="right"
                   v-model="editingPoint.groundLoad"
@@ -397,7 +397,7 @@
               <span class="unit">m</span>
             </div>
             <div class="property-item">
-              <label>地面承载力</label>
+              <label>地基承载力</label>
               <el-input-number
                 controls-position="right"
                 :precision="2"
