@@ -422,6 +422,7 @@
                 :y="item.canvasY"
                 :fill="item.config.color || '#1F2D3D'"
                 :font-size="item.config.fontSize || 14"
+                :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 text-anchor="middle"
                 dominant-baseline="middle"
               >
@@ -839,6 +840,7 @@ const defaultShapeConfigs = {
     text: "文字",
     color: "#1F2D3D",
     fontSize: 14,
+    rotate: 0,
   }),
 };
 
@@ -1349,7 +1351,41 @@ const resizeShapeWithDelta = (deltaX, deltaY) => {
         next.angle = Math.max(10, Math.min(360, (initial.angle || 60) + deltaY / 2));
       }
     } else if (tool === "text") {
-      next.fontSize = Math.max(MIN_FONT_SIZE, (initial.fontSize || 14) + deltaY);
+      // 通过不同的控制点调整字体大小或旋转
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转文字
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        // 计算初始控制点位置（考虑旋转）
+        const initialRotate = initial.rotate || 0;
+        const rad = degToRad(initialRotate);
+        const handleOffsetX = handlePos.includes("e") ? bounds.width / 2 : -bounds.width / 2;
+        const handleOffsetY = handlePos.includes("s") ? bounds.height / 2 : -bounds.height / 2;
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        // 计算新的控制点位置
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        // 计算角度差
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        // 规范化角度到 -180 到 180 度
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+      } else {
+        // 边缘控制点：调整字体大小
+        const sizeDelta = Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : deltaX;
+        next.fontSize = Math.max(MIN_FONT_SIZE, (initial.fontSize || 14) + sizeDelta);
+      }
     }
     return next;
   });
