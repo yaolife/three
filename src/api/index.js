@@ -445,6 +445,20 @@ export async function uploadImage(file, fileName = "image.png") {
 export function saveGeneralPing(params) {
   return post("/projectFlat/addUpdate", params)
 }
+/**
+ * 获取总平详情
+ * @param {string|number} id - 项目ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getGeneralDetails(projectId) {
+  try {
+    const url = `/projectFlat/getDetailByProjectId/${projectId}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取总平详情API请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -479,5 +493,6 @@ export default {
   saveProjectDetail,
   getProjectAllDetail,
   uploadImage,
-  saveGeneralPing
+  saveGeneralPing,
+  getGeneralDetails,
 }
