@@ -1371,11 +1371,23 @@ const resizeShapeWithDelta = (deltaX, deltaY) => {
       const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
       next.size = Math.max(MIN_TRIANGLE_SIZE, (initial.size || MIN_TRIANGLE_SIZE) + delta * sign);
     } else if (tool === "sector") {
-      const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
-      next.radius = Math.max(MIN_RADIUS, (initial.radius || MIN_RADIUS) + delta * sign);
-      if (handlePos.includes("n") || handlePos.includes("s")) {
-        next.angle = Math.max(10, Math.min(360, (initial.angle || 60) + deltaY / 2));
+      // 扇形调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：调整半径（大小）
+      // - 上下控制点（n, s）：只调整角度，不改变大小
+      // - 左右控制点（w, e）：调整半径（大小）
+      if (handlePos === "n" || handlePos === "s") {
+        // 上下控制点：只调整角度，不改变半径
+        const angleDelta = handlePos === "s" ? deltaY : -deltaY;
+        next.angle = Math.max(10, Math.min(360, (initial.angle || 60) + angleDelta / 2));
+        // 保持半径不变
+        next.radius = initial.radius || MIN_RADIUS;
+      } else {
+        // 角落或左右控制点：调整半径（大小）
+        const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
+        next.radius = Math.max(MIN_RADIUS, (initial.radius || MIN_RADIUS) + delta * sign);
+        // 保持角度不变
+        next.angle = initial.angle || 60;
       }
     } else if (tool === "text") {
       // 通过不同的控制点调整字体大小或旋转
