@@ -411,6 +411,14 @@ export async function getProjectAllDetail(id) {
 export function uploadImage(params) {
   return post("/file/upload/upload", params)
 }
+/**
+ * 总平规划/保存的接口
+ * @param {object} params - 参数{ pageNum, pageSize,liftingInfoId }
+ * @returns {Promise} - 
+ */
+export function saveGeneralPing(params) {
+  return post("/projectFlat/addUpdate", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -444,5 +452,6 @@ export default {
   getCalculateHeightOrAngle,
   saveProjectDetail,
   getProjectAllDetail,
-  uploadImage
+  uploadImage,
+  saveGeneralPing
 }
