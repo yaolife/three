@@ -241,14 +241,14 @@ const handleRefresh = () => {
 const triggerRefresh = (projectType) => {
   console.log('触发刷新，项目类型:', projectType);
   
-  // 通过自定义事件通知 AllProjects 组件刷新数据
-  window.dispatchEvent(new CustomEvent('refreshProjectList', {
-    detail: { projectType }
-  }));
-  
-  // 如果 AllProjects 组件暴露了刷新方法，直接调用
+  // 优先使用直接调用方法，避免重复调用
   if (window.refreshProjectListDirect) {
     window.refreshProjectListDirect(projectType);
+  } else {
+    // 如果直接方法不存在，使用事件通知（备用方案）
+    window.dispatchEvent(new CustomEvent('refreshProjectList', {
+      detail: { projectType }
+    }));
   }
 };
 </script>
