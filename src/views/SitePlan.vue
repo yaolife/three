@@ -3097,6 +3097,7 @@ const setCranePosition = () => {
             };
             
             // 回显形状数据（如果存在）
+            // 支持一个点位上有多个文字，每个文字都有独立的位置坐标
             if (item.shapes) {
               try {
                 // 将字符串转为数组
@@ -3109,13 +3110,15 @@ const setCranePosition = () => {
                 
                 if (Array.isArray(shapesArray) && shapesArray.length > 0) {
                   shapesArray.forEach((shapeData) => {
+                    // 每个形状（包括文字）都有独立的位置坐标
+                    // position 保存的是地理坐标（x, y），用于回显时正确定位
                     const shape = {
                       id: shapeData.id || `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                       tool: shapeData.tool,
                       pointId: item.id,
                       craneId: craneDetail.id,
-                      position: shapeData.position || { x: pointData.x, y: pointData.y },
-                      config: shapeData.config || {},
+                      position: shapeData.position || { x: pointData.x, y: pointData.y }, // 使用保存的位置坐标
+                      config: shapeData.config || {}, // 包含文字内容（text 属性）和其他配置
                     };
                     shapeOverlays.value.push(shape);
                   });
@@ -3226,7 +3229,8 @@ const handleSave = async () => {
           }
         };
 
-        // 获取该点位的所有形状数据
+        // 获取该点位的所有形状数据（包括多个文字）
+        // 每个形状都有独立的位置坐标（position），支持一个点位上有多个文字
         const shapes = getShapesForPoint(point.id).map((shape) => {
           const config = shape.config || {};
           const tool = shape.tool;
@@ -3252,9 +3256,24 @@ const handleSave = async () => {
             height = radius * 2;
           } else if (tool === "text") {
             const fontSize = config.fontSize || 14;
-            const textWidth = (config.text || "文字").length * fontSize * 0.6;
+            const textContent = config.text || "文字";
+            const textWidth = textContent.length * fontSize * 0.6;
             width = textWidth;
             height = fontSize;
+            
+            // 确保文字内容被保存（text 属性）
+            // position 保存的是该文字的地理坐标（x, y），支持多个文字有不同位置
+            return {
+              id: shape.id,
+              tool: tool,
+              config: {
+                ...config,
+                text: textContent, // 确保文字内容被保存
+                width: width,
+                height: height,
+              },
+              position: shape.position || { x: point.x, y: point.y }, // 保存文字的位置坐标
+            };
           }
           
           return {
@@ -3265,7 +3284,7 @@ const handleSave = async () => {
               width: width,
               height: height,
             },
-            position: shape.position || { x: point.x, y: point.y },
+            position: shape.position || { x: point.x, y: point.y }, // 保存形状的位置坐标
           };
         });
 
