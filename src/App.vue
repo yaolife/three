@@ -110,7 +110,7 @@
               />
               <span>更新</span>
           </el-button>
-              <el-button type="default" size="large" style="margin-left: 12px">
+              <el-button type="default" size="large" style="margin-left: 12px" @click="handleCopy">
                   <img
                  style="width: 22px; height: 22px;margin-right: 5px;"
                 src="@/images/copy.png"
@@ -142,6 +142,7 @@ import {
   Search,
   DataAnalysis,
 } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
 
 const route = useRoute();
@@ -249,6 +250,25 @@ const triggerRefresh = (projectType) => {
     window.dispatchEvent(new CustomEvent('refreshProjectList', {
       detail: { projectType }
     }));
+  }
+};
+
+// 处理复制按钮点击
+const handleCopy = () => {
+  console.log('复制按钮被点击，当前路由:', route.path);
+  
+  // 检查当前是否在项目列表页面
+  const projectListPaths = ['/all-projects', '/verification-projects', '/virtual-simulation', '/construction-plans'];
+  if (!projectListPaths.includes(route.path)) {
+    ElMessage.warning('请在项目列表页面使用复制功能');
+    return;
+  }
+  
+  // 调用 AllProjects 组件的复制方法
+  if (window.copyProjectDirect) {
+    window.copyProjectDirect();
+  } else {
+    ElMessage.warning('复制功能暂不可用，请刷新页面后重试');
   }
 };
 </script>

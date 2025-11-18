@@ -3,7 +3,12 @@
     <el-card class="project-table-card">
       
       <!-- 项目列表表格 -->
-      <el-table :data="projectData" style="width: 100%">
+      <el-table 
+        :data="projectData" 
+        style="width: 100%"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" align="center" width="55" />
         <el-table-column type="index" align="center" label="序号" width="70">
           <template #default="{ $index }">
             {{ $index + 1 }}
@@ -121,7 +126,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getAllProject, handleEditProject, deleteProjectItem } from '../api/index.js'
+import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem } from '../api/index.js'
 
 // 初始化 router 和 route
 const router = useRouter()
@@ -159,6 +164,8 @@ const createEmptyFormData = () => {
 
 // 项目数据
 const projectData = ref([])
+// 选中的项目数据
+const selectedProjects = ref([])
 
 // 分页数据
 const currentPage = ref(1)
@@ -220,6 +227,12 @@ onMounted(() => {
     console.log('Direct refresh project list called');
     refreshProjectList(projectType);
   }
+  
+  // 添加全局复制方法，方便直接从App.vue调用
+  window.copyProjectDirect = () => {
+    console.log('Direct copy project called');
+    return copyProject();
+  }
 })
 
 // 组件卸载时清理事件监听器和状态
@@ -230,6 +243,7 @@ onUnmounted(() => {
   // 移除全局方法
   delete window.openProjectDialogDirect;
   delete window.refreshProjectListDirect;
+  delete window.copyProjectDirect;
   // 重置创建项目标志，避免遗留状态导致下次进入页面时误触发
   window.createProjectFlag = false;
 })
@@ -267,6 +281,54 @@ const checkCreateFlag = () => {
     openCreateDialog()
   }
 }
+
+// 处理表格选中变化
+const handleSelectionChange = (selection) => {
+  selectedProjects.value = selection;
+  console.log('选中的项目:', selection);
+};
+
+// 复制项目的方法（供外部调用）
+const copyProject = async () => {
+  const selectedCount = selectedProjects.value.length;
+  
+  if (selectedCount === 0) {
+    ElMessage.warning('请先选择一个项目');
+    return false;
+  }
+  
+  if (selectedCount > 1) {
+    ElMessage.warning('只能选择一个项目进行复制');
+    return false;
+  }
+  
+  const selectedProject = selectedProjects.value[0];
+  if (!selectedProject || !selectedProject.id) {
+    ElMessage.error('选中的项目数据异常');
+    return false;
+  }
+  
+  try {
+    console.log('复制项目，项目ID:', selectedProject.id);
+    const response = await copyProjectItem(selectedProject.id);
+    
+    if (response.code === '0') {
+      ElMessage.success('复制成功');
+      // 刷新当前菜单下的table数据
+      loadProjectData();
+      // 清空选中状态
+      selectedProjects.value = [];
+      return true;
+    } else {
+      ElMessage.error(response.msg || '复制失败');
+      return false;
+    }
+  } catch (error) {
+    console.error('复制项目失败:', error);
+    ElMessage.error('复制项目失败');
+    return false;
+  }
+};
 
 // 加载项目数据
 const loadProjectData = async () => {
