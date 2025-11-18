@@ -293,6 +293,61 @@
 
         <!-- 右侧内容区域 - 显示导入的图片 -->
         <div class="image-container">
+          <div v-if="selectedCrane" class="drawing-toolbar">
+            <div class="toolbar-headline">
+              <div class="toolbar-title">绘制点位占位</div>
+              <div class="toolbar-subtitle">
+                {{ activePoint ? `当前点位：${activePoint.name}` : '请选择吊装点位' }}
+              </div>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-tools">
+              <button
+                v-for="tool in drawingToolOptions"
+                :key="tool.type"
+                class="tool-button"
+                :class="[
+                  `tool-${tool.type}`,
+                  { active: activeDrawingTool === tool.type }
+                ]"
+                :title="tool.label"
+                @click.stop="handleDrawingToolClick(tool.type)"
+              >
+                <span class="tool-icon" :class="`icon-${tool.type}`">
+                  {{ tool.type === 'text' ? 'T' : '' }}
+                </span>
+              </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-actions">
+              <el-button
+                size="small"
+                type="primary"
+                @click="handleCompleteDrawing"
+                :disabled="!canCompleteDrawing"
+              >
+                完成绘制
+              </el-button>
+              <el-button
+                size="small"
+                type="default"
+                class="clear-shapes-btn"
+                :disabled="!canCompleteDrawing"
+                @click="handleClearShapes"
+              >
+                清除
+              </el-button>
+              <el-button
+                size="small"
+                type="default"
+                class="undo-shape-btn"
+                :disabled="!activeShapeId"
+                @click="handleUndoShape"
+              >
+                撤销
+              </el-button>
+            </div>
+          </div>
           <!-- 施工场景平面图 -->
           <img
             ref="imageRef"
@@ -312,6 +367,96 @@
             @mouseleave="handleCanvasMouseUp"
             @wheel="handleCanvasWheel"
           ></canvas>
+          <svg
+            v-if="selectedCrane && canvasSize.width && canvasSize.height"
+            class="shape-overlay"
+            :width="canvasSize.width"
+            :height="canvasSize.height"
+            :viewBox="`0 0 ${canvasSize.width} ${canvasSize.height}`"
+          >
+            <g
+              v-for="item in renderedShapeItems"
+              :key="item.id"
+              class="shape-overlay-item"
+              :class="{ active: item.id === activeShapeId }"
+              @mousedown.stop="handleShapeMouseDown(item, $event)"
+            >
+              <rect
+                v-if="item.tool === 'rectangle'"
+                class="shape-body"
+                :x="item.canvasX - (item.config.width || 0) / 2"
+                :y="item.canvasY - (item.config.height || 0) / 2"
+                :width="item.config.width || 0"
+                :height="item.config.height || 0"
+                :fill="item.config.fill || 'rgba(255,255,255,0.2)'"
+                :stroke="item.config.stroke || '#F59A23'"
+                :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+              />
+              <circle
+                v-else-if="item.tool === 'circle'"
+                class="shape-body"
+                :cx="item.canvasX"
+                :cy="item.canvasY"
+                :r="item.config.radius || MIN_RADIUS"
+                :fill="item.config.fill || 'rgba(38,132,255,0.25)'"
+                :stroke="item.config.stroke || '#2684FF'"
+              />
+              <polygon
+                v-else-if="item.tool === 'triangle'"
+                class="shape-body"
+                :points="createTrianglePoints(item.canvasX, item.canvasY, item.config.size || MIN_TRIANGLE_SIZE, item.config.rotate || 0)"
+                :fill="item.config.fill || 'rgba(245,108,108,0.25)'"
+                :stroke="item.config.stroke || '#F56C6C'"
+              />
+              <path
+                v-else-if="item.tool === 'sector'"
+                class="shape-body"
+                :d="createSectorPath(item.canvasX, item.canvasY, item.config.radius || MIN_RADIUS, item.config.rotate || 0, (item.config.rotate || 0) + (item.config.angle || 60))"
+                :fill="item.config.fill || 'rgba(255,196,112,0.25)'"
+                :stroke="item.config.stroke || '#F59A23'"
+              />
+              <text
+                v-else-if="item.tool === 'text'"
+                class="shape-text"
+                :x="item.canvasX"
+                :y="item.canvasY"
+                :fill="item.config.color || '#1F2D3D'"
+                :font-size="item.config.fontSize || 14"
+                text-anchor="middle"
+                dominant-baseline="middle"
+              >
+                {{ item.config.text || '文字' }}
+              </text>
+
+              <!-- 边界框 -->
+              <rect
+                v-if="item.id === activeShapeId && isShapeResizable(item.tool) && getShapeBounds(item)"
+                class="shape-bounding-box"
+                :x="getShapeBounds(item).left"
+                :y="getShapeBounds(item).top"
+                :width="getShapeBounds(item).width"
+                :height="getShapeBounds(item).height"
+                fill="none"
+                stroke="#409eff"
+                stroke-width="1"
+                stroke-dasharray="4 4"
+              />
+              
+              <!-- 8个控制点 -->
+              <g v-if="item.id === activeShapeId && isShapeResizable(item.tool)">
+                <circle
+                  v-for="(handle, index) in getResizeHandles(item)"
+                  :key="index"
+                  class="shape-resize-handle"
+                  :class="`handle-${handle.position}`"
+                  :cx="handle.x"
+                  :cy="handle.y"
+                  r="6"
+                  @mousedown.stop="handleResizeMouseDown(item, $event, handle.position)"
+                />
+              </g>
+            </g>
+          </svg>
         </div>
 
         <!-- 任务属性编辑悬浮框 -->
@@ -379,7 +524,13 @@
               <span @click="setCranePosition">设置起点+</span>
             </div>
             <!-- 显示点位列表 -->
-            <div v-for="(point, index) in selectedCrane.points" :key="point.id" class="point-item">
+            <div
+              v-for="(point, index) in selectedCrane.points"
+              :key="point.id"
+              class="point-item"
+              :class="{ active: point.id === activePointId }"
+              @click="handlePointItemClick(point)"
+            >
               <div class="point-info">
                 <!-- 根据点位类型和索引显示不同图标 -->
                    <svg    v-if="index === 0"  t="1762755830607" class="icon" viewBox="0 0 1024 1024" version="1.1"  p-id="7979" width="28" height="28"><path d="M337.92 890.88a173.056 46.08 0 1 0 346.112 0 173.056 46.08 0 1 0-346.112 0Z" opacity=".4" p-id="7980"></path><path d="M421.376 890.88a89.6 23.04 0 1 0 179.2 0 89.6 23.04 0 1 0-179.2 0Z" opacity=".4" p-id="7981"></path><path d="M512 891.392c-11.264 0-19.968-8.704-19.968-19.968v-250.88c0-11.264 8.704-19.968 19.968-19.968s19.968 8.704 19.968 19.968v250.88c0 11.264-8.704 19.968-19.968 19.968z" :fill="selectedCrane?.color || '#106848'" p-id="7982"></path><path d="M241.664 385.024c0 149.504 120.832 270.336 270.336 270.336s270.336-120.832 270.336-270.336c0-149.504-120.832-270.336-270.336-270.336-149.504 0-270.336 120.832-270.336 270.336z" :fill="selectedCrane?.color || '#07AA74'" p-id="7983"></path><path d="M463.36 474.624c16.896 5.632 37.888 7.168 64 7.168 18.432 0.512 106.496 0.512 128.512-0.512-4.096 6.656-9.216 19.456-11.264 28.16H527.36c-60.928 0-97.792-8.704-120.832-47.104-3.584 22.528-8.704 41.984-16.384 57.856-5.12-3.584-17.408-9.728-24.064-12.8 16.384-30.72 19.968-79.872 20.992-133.632l26.624 2.048c-0.512 13.824-1.024 27.648-2.048 40.448 6.144 19.456 14.336 33.28 25.088 43.52v-107.52H374.272v-25.088h56.32v-34.304h-48.64v-25.088h48.64v-31.744h27.136v31.744h47.104v25.088h-47.104v34.304h55.296v25.088h-49.664v40.448h46.592v25.088h-46.592v56.832z m142.336-200.192h-83.968v-25.6h111.104v105.984h-80.896v60.416c0 9.728 2.048 11.776 14.848 11.776h41.984c11.776 0 13.312-5.632 14.848-41.984 6.144 5.12 17.408 9.216 25.088 11.264-3.584 44.544-11.264 56.32-37.888 56.32H563.2c-30.208 0-39.424-7.68-39.424-36.864V329.728h80.896V274.432h1.024z" fill="#FFFFFF" p-id="7984"></path></svg>
@@ -404,9 +555,13 @@
                 <span>{{ point.name }}</span>
               </div>
               <div class="point-actions">
-                <span class="action-btn edit" @click="editPoint(point)">修改</span>
+                <span class="action-btn edit" @click.stop="editPoint(point)">修改</span>
                 <!-- 只有非起点才可以删除 -->
-                <span v-if="index > 0" class="action-btn delete" @click="deletePoint(index)">删除</span>
+                <span
+                  v-if="index > 0"
+                  class="action-btn delete"
+                  @click.stop="deletePoint(index)"
+                >删除</span>
               </div>
             </div>
           </div>
@@ -471,7 +626,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { ArrowLeft, Search, Close } from "@element-plus/icons-vue";
@@ -499,6 +654,31 @@ const selectedCrane = ref(null);
 const searchQuery = ref("");
 const craneCounter = ref(1); // 用于生成起重机名称，从2开始编号
 
+// 绘制工具栏相关状态
+const drawingToolOptions = [
+  { type: "rectangle", label: "矩形" },
+  { type: "circle", label: "圆形" },
+  { type: "triangle", label: "三角形" },
+  { type: "sector", label: "扇形" },
+  { type: "text", label: "文字" },
+];
+const activeDrawingTool = ref(null);
+const shapeOverlays = ref([]);
+const activePointId = ref(null);
+const activeShapeId = ref(null);
+const isDraggingShape = ref(false);
+const isResizingShape = ref(false);
+const dragContext = reactive({
+  type: null,
+  shapeId: null,
+  tool: null,
+  handlePosition: null,
+  startPos: { x: 0, y: 0 },
+  initialConfig: null,
+  initialCanvasPos: { x: 0, y: 0 },
+  initialBounds: null,
+});
+
 // 点位相关数据
 const addPointDialogVisible = ref(false);
 const editPointDialogVisible = ref(false);
@@ -517,6 +697,10 @@ const imageWidth = ref(0);
 const imageHeight = ref(0);
 const imageNaturalWidth = ref(0);
 const imageNaturalHeight = ref(0);
+const canvasSize = reactive({
+  width: 0,
+  height: 0,
+});
 
 // 点位拖动相关
 const isDraggingPoint = ref(false);
@@ -620,6 +804,44 @@ const isValidDateDay = (value) => {
   return /^\d{4}-\d{2}-\d{2}$/.test(String(value).trim());
 };
 
+const withOffsetDefaults = (config = {}) => ({
+  offsetX: 0,
+  offsetY: 0,
+  ...config,
+});
+
+const defaultShapeConfigs = {
+  rectangle: withOffsetDefaults({
+    width: 80,
+    height: 40,
+    fill: "rgba(255, 202, 133, 0.35)",
+    stroke: "#F59A23",
+    rotate: 0,
+  }),
+  circle: withOffsetDefaults({
+    radius: 38,
+    fill: "rgba(38, 132, 255, 0.25)",
+    stroke: "#2684FF",
+  }),
+  triangle: withOffsetDefaults({
+    size: 72,
+    fill: "rgba(245, 108, 108, 0.25)",
+    stroke: "#F56C6C",
+  }),
+  sector: withOffsetDefaults({
+    radius: 90,
+    angle: 60,
+    fill: "rgba(255, 196, 112, 0.25)",
+    stroke: "#F59A23",
+    rotate: -30,
+  }),
+  text: withOffsetDefaults({
+    text: "文字",
+    color: "#1F2D3D",
+    fontSize: 14,
+  }),
+};
+
 const createBasePoint = (overrides = {}) => ({
   name: "点位1",
   x: 112.0,
@@ -714,6 +936,757 @@ const newPoint = ref(createBasePoint());
 const editingPoint = ref(createBasePoint());
 const editingPointIndex = ref(-1);
 
+const activePoint = computed(() => {
+  if (!selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length === 0) {
+    return null;
+  }
+  if (activePointId.value) {
+    const matched = selectedCrane.value.points.find(
+      (point) => point.id === activePointId.value && point.type === "lifting"
+    );
+    if (matched) {
+      return matched;
+    }
+  }
+  const fallback = selectedCrane.value.points.find((point) => point.type === "lifting");
+  if (fallback) {
+    activePointId.value = fallback.id;
+  }
+  return fallback || null;
+});
+
+const getShapesForPoint = (pointId) =>
+  shapeOverlays.value.filter((shape) => shape.pointId === pointId);
+
+const canCompleteDrawing = computed(() => {
+  if (!activePoint.value) return false;
+  return getShapesForPoint(activePoint.value.id).length > 0;
+});
+
+const activeShape = computed(() => {
+  if (!activeShapeId.value) return null;
+  return shapeOverlays.value.find((shape) => shape.id === activeShapeId.value) || null;
+});
+
+const renderedShapeItems = computed(() => {
+  // 依赖图片尺寸，确保尺寸变化后重新计算
+  imageWidth.value;
+  imageHeight.value;
+  canvasSize.width;
+  canvasSize.height;
+  if (!canvas.value) return [];
+  return shapeOverlays.value
+    .map((shape) => {
+      const matched = findPointById(shape.pointId, shape.craneId);
+      if (!matched) return null;
+      const geoPosition = shape.position || matched.point;
+      const baseCoords = convertToCanvasCoords(geoPosition.x, geoPosition.y);
+      return {
+        ...shape,
+        canvasX: baseCoords.x,
+        canvasY: baseCoords.y,
+        baseCoords,
+        geoPosition,
+        point: matched.point,
+        crane: matched.crane,
+      };
+    })
+    .filter(Boolean);
+});
+
+const syncActivePointSelection = () => {
+  if (!selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length === 0) {
+    activePointId.value = null;
+    return;
+  }
+  const validPoint = selectedCrane.value.points.find(
+    (point) => point.id === activePointId.value && point.type === "lifting"
+  );
+  if (!validPoint) {
+    const fallback = selectedCrane.value.points.find((point) => point.type === "lifting");
+    activePointId.value = fallback ? fallback.id : null;
+  }
+};
+
+watch(
+  () => selectedCrane.value?.id,
+  () => {
+    nextTick(() => {
+      syncActivePointSelection();
+    });
+  }
+);
+
+watch(
+  () => selectedCrane.value?.points,
+  () => {
+    syncActivePointSelection();
+  },
+  { deep: true }
+);
+
+watch(
+  () => activePointId.value,
+  () => {
+    const shapes = getShapesForPoint(activePointId.value);
+    if (!shapes.some((shape) => shape.id === activeShapeId.value)) {
+      activeShapeId.value = shapes.length > 0 ? shapes[0].id : null;
+    }
+  }
+);
+
+watch(
+  shapeOverlays,
+  () => {
+    const shapes = getShapesForPoint(activePointId.value);
+    if (!shapes.some((shape) => shape.id === activeShapeId.value)) {
+      activeShapeId.value = shapes.length > 0 ? shapes[0].id : null;
+    }
+    // 只在非创建状态下重绘，避免创建时的重复绘制
+    if (!isCreatingShape) {
+      drawAllTrajectories();
+    }
+  },
+  { deep: true }
+);
+
+const handlePointItemClick = (point) => {
+  if (point.type !== "lifting") {
+    ElMessage.warning("当前仅支持在吊装点位上绘制");
+    return;
+  }
+  activePointId.value = point.id;
+};
+
+// 防止重复创建的标志
+let isCreatingShape = false;
+
+const handleDrawingToolClick = async (toolType) => {
+  if (!selectedCrane.value) {
+    ElMessage.warning("请先选择起重机");
+    return;
+  }
+  if (!activePoint.value || activePoint.value.type !== "lifting") {
+    ElMessage.warning("请先选择吊装点位");
+    return;
+  }
+
+  // 防止重复创建
+  if (isCreatingShape) {
+    return;
+  }
+
+  activeDrawingTool.value = toolType;
+  isCreatingShape = true;
+
+  if (toolType === "text") {
+    try {
+      const { value } = await ElMessageBox.prompt("请输入要展示的文字", "添加文字", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputValue: defaultShapeConfigs.text.text,
+      });
+      addShapeOverlayForPoint(toolType, { text: value || defaultShapeConfigs.text.text });
+    } catch (error) {
+      activeDrawingTool.value = null;
+    } finally {
+      isCreatingShape = false;
+    }
+    return;
+  }
+
+  addShapeOverlayForPoint(toolType);
+  // addShapeOverlayForPoint 内部会在 nextTick 中重置标志
+};
+
+const addShapeOverlayForPoint = (toolType, extraConfig = {}) => {
+  if (!activePoint.value) {
+    isCreatingShape = false;
+    return;
+  }
+  
+  // 再次检查防止重复创建
+  if (isCreatingShape && shapeOverlays.value.length > 0) {
+    const lastShape = shapeOverlays.value[shapeOverlays.value.length - 1];
+    const timeDiff = Date.now() - parseInt(lastShape.id.split('_')[0]);
+    // 如果最后创建的图形是在100ms内创建的，可能是重复创建
+    if (timeDiff < 100 && lastShape.tool === toolType && lastShape.pointId === activePoint.value.id) {
+      console.warn('检测到可能的重复创建，已阻止');
+      isCreatingShape = false;
+      return;
+    }
+  }
+  
+  const config = {
+    ...(defaultShapeConfigs[toolType] || {}),
+    ...extraConfig,
+  };
+  if (!Number.isFinite(config.offsetX)) config.offsetX = 0;
+  if (!Number.isFinite(config.offsetY)) config.offsetY = 0;
+
+  const shape = {
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    tool: toolType,
+    pointId: activePoint.value.id,
+    craneId: selectedCrane.value?.id || null,
+    position: {
+      x: activePoint.value.x,
+      y: activePoint.value.y,
+    },
+    config,
+  };
+
+  shapeOverlays.value = [...shapeOverlays.value, shape];
+  activeShapeId.value = shape.id;
+  
+  // 创建完成后立即重绘
+  nextTick(() => {
+    drawAllTrajectories();
+    isCreatingShape = false;
+  });
+};
+
+const handleClearShapes = () => {
+  if (!activePoint.value) {
+    ElMessage.warning("暂无可清除的点位绘制");
+    return;
+  }
+  shapeOverlays.value = shapeOverlays.value.filter((shape) => shape.pointId !== activePoint.value.id);
+  activeDrawingTool.value = null;
+  activeShapeId.value = null;
+  ElMessage.success("已清除当前点位的绘制图形");
+};
+
+// 撤销选中的图形
+const handleUndoShape = () => {
+  if (!activeShapeId.value) {
+    ElMessage.warning("请先选择一个图形");
+    return;
+  }
+  
+  const shapeIndex = shapeOverlays.value.findIndex((shape) => shape.id === activeShapeId.value);
+  if (shapeIndex === -1) {
+    ElMessage.warning("未找到要撤销的图形");
+    return;
+  }
+  
+  // 删除选中的图形
+  shapeOverlays.value = shapeOverlays.value.filter((shape) => shape.id !== activeShapeId.value);
+  
+  // 选择下一个图形或清空选中
+  const remainingShapes = getShapesForPoint(activePointId.value);
+  activeShapeId.value = remainingShapes.length > 0 ? remainingShapes[0].id : null;
+  
+  ElMessage.success("已撤销选中的图形");
+};
+
+const MIN_RECT_SIZE = 24;
+const MIN_RADIUS = 12;
+const MIN_TRIANGLE_SIZE = 32;
+const MIN_FONT_SIZE = 12;
+let pointerListenersAttached = false;
+
+const updateShape = (shapeId, updater) => {
+  shapeOverlays.value = shapeOverlays.value.map((shape) => {
+    if (shape.id !== shapeId) return shape;
+    return updater(shape);
+  });
+};
+
+const updateShapeConfig = (shapeId, updater) => {
+  updateShape(shapeId, (shape) => {
+    const baseConfig = { ...(shape.config || {}) };
+    const nextConfig =
+      typeof updater === "function" ? updater(baseConfig) : { ...baseConfig, ...updater };
+    return {
+      ...shape,
+      config: nextConfig,
+    };
+  });
+};
+
+const attachPointerListeners = () => {
+  if (pointerListenersAttached) return;
+  window.addEventListener("mousemove", handleGlobalPointerMove);
+  window.addEventListener("mouseup", handleGlobalPointerUp);
+  pointerListenersAttached = true;
+};
+
+const detachPointerListeners = () => {
+  if (!pointerListenersAttached) return;
+  window.removeEventListener("mousemove", handleGlobalPointerMove);
+  window.removeEventListener("mouseup", handleGlobalPointerUp);
+  pointerListenersAttached = false;
+};
+
+const setShapePositionByCanvas = (shapeId, canvasX, canvasY) => {
+  const geo = convertToGeoCoords(canvasX, canvasY);
+  updateShape(shapeId, (shape) => ({
+    ...shape,
+    position: { x: geo.x, y: geo.y },
+  }));
+};
+
+const handleShapeMouseDown = (item, event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  activeShapeId.value = item.id;
+  dragContext.type = "move";
+  dragContext.shapeId = item.id;
+  dragContext.tool = item.tool;
+  dragContext.startPos = getMouseCanvasPos(event);
+  dragContext.initialConfig = { ...(item.config || {}) };
+  dragContext.initialCanvasPos = { x: item.canvasX, y: item.canvasY };
+  isDraggingShape.value = true;
+  attachPointerListeners();
+};
+
+const handleResizeMouseDown = (item, event, handlePosition) => {
+  event.preventDefault();
+  event.stopPropagation();
+  activeShapeId.value = item.id;
+  dragContext.type = "resize";
+  dragContext.shapeId = item.id;
+  dragContext.tool = item.tool;
+  dragContext.handlePosition = handlePosition; // 保存控制点位置
+  dragContext.startPos = getMouseCanvasPos(event);
+  dragContext.initialConfig = { ...(item.config || {}) };
+  dragContext.initialCanvasPos = { x: item.canvasX, y: item.canvasY };
+  dragContext.initialBounds = getShapeBounds(item);
+  isResizingShape.value = true;
+  attachPointerListeners();
+};
+
+const handleGlobalPointerMove = (event) => {
+  if (!dragContext.shapeId) return;
+  const currentPos = getMouseCanvasPos(event);
+  const deltaX = currentPos.x - dragContext.startPos.x;
+  const deltaY = currentPos.y - dragContext.startPos.y;
+
+  if (dragContext.type === "move" && isDraggingShape.value) {
+    const newCanvasX = (dragContext.initialCanvasPos?.x || 0) + deltaX;
+    const newCanvasY = (dragContext.initialCanvasPos?.y || 0) + deltaY;
+    setShapePositionByCanvas(dragContext.shapeId, newCanvasX, newCanvasY);
+  } else if (dragContext.type === "resize" && isResizingShape.value) {
+    resizeShapeWithDelta(deltaX, deltaY);
+  }
+};
+
+const handleGlobalPointerUp = () => {
+  if (!isDraggingShape.value && !isResizingShape.value) return;
+  isDraggingShape.value = false;
+  isResizingShape.value = false;
+  dragContext.type = null;
+  dragContext.shapeId = null;
+  dragContext.tool = null;
+  dragContext.handlePosition = null;
+  dragContext.initialConfig = null;
+  dragContext.initialCanvasPos = null;
+  dragContext.initialBounds = null;
+  detachPointerListeners();
+};
+
+const resizeShapeWithDelta = (deltaX, deltaY) => {
+  if (!dragContext.shapeId || !dragContext.initialBounds) return;
+  const tool = dragContext.tool;
+  const initial = dragContext.initialConfig || {};
+  const handlePos = dragContext.handlePosition || "se";
+  const bounds = dragContext.initialBounds;
+  
+  updateShapeConfig(dragContext.shapeId, (config) => {
+    const next = { ...config };
+    
+    if (tool === "rectangle") {
+      let newWidth = bounds.width;
+      let newHeight = bounds.height;
+      let offsetX = 0;
+      let offsetY = 0;
+      
+      // 根据控制点位置计算新的宽高和偏移
+      if (handlePos.includes("e")) {
+        newWidth = Math.max(MIN_RECT_SIZE, bounds.width + deltaX);
+      }
+      if (handlePos.includes("w")) {
+        newWidth = Math.max(MIN_RECT_SIZE, bounds.width - deltaX);
+        offsetX = deltaX;
+      }
+      if (handlePos.includes("s")) {
+        newHeight = Math.max(MIN_RECT_SIZE, bounds.height + deltaY);
+      }
+      if (handlePos.includes("n")) {
+        newHeight = Math.max(MIN_RECT_SIZE, bounds.height - deltaY);
+        offsetY = deltaY;
+      }
+      
+      next.width = newWidth;
+      next.height = newHeight;
+      
+      // 更新位置（如果从左边或上边调整）
+      const currentPos = dragContext.initialCanvasPos || { x: 0, y: 0 };
+      if (handlePos.includes("w") || handlePos.includes("n")) {
+        const newCanvasX = handlePos.includes("w") ? currentPos.x + offsetX : currentPos.x;
+        const newCanvasY = handlePos.includes("n") ? currentPos.y + offsetY : currentPos.y;
+        const geo = convertToGeoCoords(newCanvasX, newCanvasY);
+        updateShape(dragContext.shapeId, (shape) => ({
+          ...shape,
+          position: { x: geo.x, y: geo.y },
+        }));
+      }
+    } else if (tool === "circle") {
+      // 圆形从中心向外扩展
+      const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
+      next.radius = Math.max(MIN_RADIUS, (initial.radius || MIN_RADIUS) + delta * sign);
+    } else if (tool === "triangle") {
+      const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
+      next.size = Math.max(MIN_TRIANGLE_SIZE, (initial.size || MIN_TRIANGLE_SIZE) + delta * sign);
+    } else if (tool === "sector") {
+      const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
+      next.radius = Math.max(MIN_RADIUS, (initial.radius || MIN_RADIUS) + delta * sign);
+      if (handlePos.includes("n") || handlePos.includes("s")) {
+        next.angle = Math.max(10, Math.min(360, (initial.angle || 60) + deltaY / 2));
+      }
+    } else if (tool === "text") {
+      next.fontSize = Math.max(MIN_FONT_SIZE, (initial.fontSize || 14) + deltaY);
+    }
+    return next;
+  });
+};
+
+const findPointById = (pointId, craneId) => {
+  if (!pointId) return null;
+  if (craneId) {
+    const targetCrane = cranes.value.find((crane) => crane.id === craneId);
+    if (targetCrane) {
+      const point = targetCrane.points?.find((p) => p.id === pointId);
+      if (point) return { crane: targetCrane, point };
+    }
+  }
+  for (const crane of cranes.value) {
+    if (!crane.points) continue;
+    const point = crane.points.find((p) => p.id === pointId);
+    if (point) {
+      return { crane, point };
+    }
+  }
+  return null;
+};
+
+const degToRad = (deg) => (deg * Math.PI) / 180;
+
+const rotatePoint = (x, y, angleDeg = 0) => {
+  const rad = degToRad(angleDeg);
+  return {
+    x: x * Math.cos(rad) - y * Math.sin(rad),
+    y: x * Math.sin(rad) + y * Math.cos(rad),
+  };
+};
+
+const createTrianglePoints = (cx, cy, size = 60, rotateDeg = 0) => {
+  const half = size / 2;
+  const points = [
+    rotatePoint(0, -half, rotateDeg),
+    rotatePoint(half, half, rotateDeg),
+    rotatePoint(-half, half, rotateDeg),
+  ];
+  return points.map((p) => `${cx + p.x},${cy + p.y}`).join(" ");
+};
+
+const polarToCartesian = (cx, cy, radius, angleDeg) => {
+  const rad = degToRad(angleDeg);
+  return {
+    x: cx + radius * Math.cos(rad),
+    y: cy + radius * Math.sin(rad),
+  };
+};
+
+const createSectorPath = (cx, cy, radius, startAngleDeg, endAngleDeg) => {
+  const start = polarToCartesian(cx, cy, radius, startAngleDeg);
+  const end = polarToCartesian(cx, cy, radius, endAngleDeg);
+  const largeArcFlag = Math.abs(endAngleDeg - startAngleDeg) > 180 ? 1 : 0;
+  return [
+    `M ${cx} ${cy}`,
+    `L ${start.x} ${start.y}`,
+    `A ${radius} ${radius} 0 ${largeArcFlag} ${endAngleDeg >= startAngleDeg ? 1 : 0} ${end.x} ${end.y}`,
+    "Z",
+  ].join(" ");
+};
+
+const isShapeResizable = (tool) =>
+  ["rectangle", "circle", "triangle", "sector", "text"].includes(tool);
+
+// 获取图形的边界框（用于显示控制点）
+const getShapeBounds = (item) => {
+  const config = item.config || {};
+  if (item.tool === "rectangle") {
+    const width = config.width || 80;
+    const height = config.height || 40;
+    return {
+      left: item.canvasX - width / 2,
+      right: item.canvasX + width / 2,
+      top: item.canvasY - height / 2,
+      bottom: item.canvasY + height / 2,
+      width,
+      height,
+    };
+  }
+  if (item.tool === "circle") {
+    const radius = config.radius || MIN_RADIUS;
+    return {
+      left: item.canvasX - radius,
+      right: item.canvasX + radius,
+      top: item.canvasY - radius,
+      bottom: item.canvasY + radius,
+      width: radius * 2,
+      height: radius * 2,
+    };
+  }
+  if (item.tool === "triangle") {
+    const size = config.size || MIN_TRIANGLE_SIZE;
+    return {
+      left: item.canvasX - size / 2,
+      right: item.canvasX + size / 2,
+      top: item.canvasY - size / 2,
+      bottom: item.canvasY + size / 2,
+      width: size,
+      height: size,
+    };
+  }
+  if (item.tool === "sector") {
+    const radius = config.radius || MIN_RADIUS;
+    return {
+      left: item.canvasX - radius,
+      right: item.canvasX + radius,
+      top: item.canvasY - radius,
+      bottom: item.canvasY + radius,
+      width: radius * 2,
+      height: radius * 2,
+    };
+  }
+  if (item.tool === "text") {
+    const fontSize = config.fontSize || 14;
+    const textWidth = (config.text || "文字").length * fontSize * 0.6;
+    return {
+      left: item.canvasX - textWidth / 2,
+      right: item.canvasX + textWidth / 2,
+      top: item.canvasY - fontSize / 2,
+      bottom: item.canvasY + fontSize / 2,
+      width: textWidth,
+      height: fontSize,
+    };
+  }
+  return null;
+};
+
+// 获取8个控制点的位置（类似 Figma）
+const getResizeHandles = (item) => {
+  const bounds = getShapeBounds(item);
+  if (!bounds) return [];
+  
+  const { left, right, top, bottom, width, height } = bounds;
+  const centerX = (left + right) / 2;
+  const centerY = (top + bottom) / 2;
+  
+  return [
+    { x: left, y: top, position: "nw" },      // 左上
+    { x: centerX, y: top, position: "n" },    // 上
+    { x: right, y: top, position: "ne" },     // 右上
+    { x: right, y: centerY, position: "e" },  // 右
+    { x: right, y: bottom, position: "se" },   // 右下
+    { x: centerX, y: bottom, position: "s" }, // 下
+    { x: left, y: bottom, position: "sw" },   // 左下
+    { x: left, y: centerY, position: "w" },   // 左
+  ];
+};
+
+const drawShapeOverlays = () => {
+  if (!ctx.value) return;
+  shapeOverlays.value.forEach((shape) => {
+    const matched = findPointById(shape.pointId, shape.craneId);
+    if (!matched) return;
+    const baseCoords = convertToCanvasCoords(matched.point.x, matched.point.y);
+    const offsetX = Number(shape.config?.offsetX) || 0;
+    const offsetY = Number(shape.config?.offsetY) || 0;
+    const coords = {
+      x: baseCoords.x + offsetX,
+      y: baseCoords.y + offsetY,
+    };
+    switch (shape.tool) {
+      case "rectangle":
+        drawRectangleShape(coords, shape.config);
+        break;
+      case "circle":
+        drawCircleShape(coords, shape.config);
+        break;
+      case "triangle":
+        drawTriangleShape(coords, shape.config);
+        break;
+      case "sector":
+        drawSectorShape(coords, shape.config);
+        break;
+      case "text":
+        drawTextShape(coords, shape.config);
+        break;
+      default:
+        break;
+    }
+  });
+};
+
+const drawRectangleShape = (coords, config = {}) => {
+  const width = config.width || 80;
+  const height = config.height || 40;
+  ctx.value.save();
+  ctx.value.translate(coords.x, coords.y);
+  ctx.value.rotate(degToRad(config.rotate || 0));
+  ctx.value.beginPath();
+  ctx.value.rect(-width / 2, -height / 2, width, height);
+  ctx.value.fillStyle = config.fill || "rgba(255,255,255,0.2)";
+  ctx.value.fill();
+  ctx.value.strokeStyle = config.stroke || "#F59A23";
+  ctx.value.lineWidth = 2;
+  ctx.value.stroke();
+  ctx.value.restore();
+};
+
+const drawCircleShape = (coords, config = {}) => {
+  const radius = config.radius || 40;
+  ctx.value.save();
+  ctx.value.beginPath();
+  ctx.value.arc(coords.x, coords.y, radius, 0, Math.PI * 2);
+  ctx.value.fillStyle = config.fill || "rgba(38,132,255,0.25)";
+  ctx.value.fill();
+  ctx.value.strokeStyle = config.stroke || "#2684FF";
+  ctx.value.lineWidth = 2;
+  ctx.value.stroke();
+  ctx.value.restore();
+};
+
+const drawTriangleShape = (coords, config = {}) => {
+  const size = config.size || 70;
+  ctx.value.save();
+  ctx.value.translate(coords.x, coords.y);
+  ctx.value.rotate(degToRad(config.rotate || 0));
+  ctx.value.beginPath();
+  ctx.value.moveTo(0, -size / 2);
+  ctx.value.lineTo(size / 2, size / 2);
+  ctx.value.lineTo(-size / 2, size / 2);
+  ctx.value.closePath();
+  ctx.value.fillStyle = config.fill || "rgba(245,108,108,0.25)";
+  ctx.value.fill();
+  ctx.value.strokeStyle = config.stroke || "#F56C6C";
+  ctx.value.lineWidth = 2;
+  ctx.value.stroke();
+  ctx.value.restore();
+};
+
+const drawSectorShape = (coords, config = {}) => {
+  const radius = config.radius || 80;
+  const angle = config.angle || 60;
+  const rotate = config.rotate || 0;
+  const startAngle = degToRad(rotate);
+  const endAngle = degToRad(rotate + angle);
+  
+  ctx.value.save();
+  ctx.value.beginPath();
+  ctx.value.moveTo(coords.x, coords.y);
+  ctx.value.arc(coords.x, coords.y, radius, startAngle, endAngle);
+  ctx.value.closePath();
+  ctx.value.fillStyle = config.fill || "rgba(255,196,112,0.25)";
+  ctx.value.fill();
+  ctx.value.strokeStyle = config.stroke || "#F59A23";
+  ctx.value.lineWidth = 2;
+  ctx.value.stroke();
+  ctx.value.restore();
+};
+
+const drawTextShape = (coords, config = {}) => {
+  ctx.value.save();
+  ctx.value.font = `${config.fontSize || 14}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+  ctx.value.fillStyle = config.color || "#1F2D3D";
+  ctx.value.textAlign = "center";
+  ctx.value.textBaseline = "middle";
+  ctx.value.fillText(config.text || "文字", coords.x, coords.y);
+  ctx.value.restore();
+};
+
+const handleCompleteDrawing = async () => {
+  if (!selectedCrane.value) {
+    ElMessage.warning("请先选择起重机");
+    return;
+  }
+  if (!activePoint.value) {
+    ElMessage.warning("请先选择吊装点位");
+    return;
+  }
+
+  const shapes = getShapesForPoint(activePoint.value.id);
+  if (shapes.length === 0) {
+    ElMessage.warning("请先绘制形状");
+    return;
+  }
+
+  drawAllTrajectories();
+  await nextTick();
+  const snapshot = capturePointSnapshot(activePoint.value);
+  const payload = {
+    projectId: projectId.value,
+    craneId: selectedCrane.value.id,
+    point: { ...activePoint.value },
+    shapes,
+    snapshot,
+    timestamp: Date.now(),
+  };
+
+  try {
+    await mockSaveDrawing(payload);
+    ElMessage.success("绘制结果已提交");
+  } catch (error) {
+    console.error("提交绘制结果失败:", error);
+    ElMessage.error("绘制结果提交失败");
+  }
+};
+
+const capturePointSnapshot = (point) => {
+  if (!canvas.value) return null;
+  const { x, y } = convertToCanvasCoords(point.x, point.y);
+  const radius = 20;
+  const size = radius * 2;
+  const snapshotCanvas = document.createElement("canvas");
+  snapshotCanvas.width = size;
+  snapshotCanvas.height = size;
+  const snapshotCtx = snapshotCanvas.getContext("2d");
+
+  const sx = Math.max(0, x - radius);
+  const sy = Math.max(0, y - radius);
+  const sw = Math.min(size, canvas.value.width - sx);
+  const sh = Math.min(size, canvas.value.height - sy);
+
+  snapshotCtx.fillStyle = "#ffffff";
+  snapshotCtx.fillRect(0, 0, size, size);
+  snapshotCtx.drawImage(
+    canvas.value,
+    sx,
+    sy,
+    sw,
+    sh,
+    (size - sw) / 2,
+    (size - sh) / 2,
+    sw,
+    sh
+  );
+
+  return snapshotCanvas.toDataURL("image/png");
+};
+
+const mockSaveDrawing = (payload) =>
+  new Promise((resolve) => {
+    console.log("Mock保存绘制结果:", payload);
+    setTimeout(() => resolve({ code: 0 }), 800);
+  });
+
 // 计算属性：是否有起点
 const hasStartPoint = computed(() => {
   return selectedCrane.value && Array.isArray(selectedCrane.value.points) && selectedCrane.value.points.length > 0;
@@ -789,6 +1762,8 @@ const initCanvas = () => {
   if (container) {
     canvas.value.width = container.offsetWidth;
     canvas.value.height = container.offsetHeight;
+    canvasSize.width = canvas.value.width;
+    canvasSize.height = canvas.value.height;
   }
   
   // 更新图片尺寸
@@ -806,6 +1781,8 @@ const handleResize = () => {
   if (container) {
     canvas.value.width = container.offsetWidth;
     canvas.value.height = container.offsetHeight;
+    canvasSize.width = canvas.value.width;
+    canvasSize.height = canvas.value.height;
   }
   
   // 更新图片尺寸
@@ -1127,6 +2104,9 @@ const drawAllTrajectories = () => {
     }
   });
   
+  // 点位占位图形现在由 SVG overlay 渲染，不再在 Canvas 上绘制
+  // drawShapeOverlays(); // 已移除，避免与 SVG overlay 重复渲染
+  
   // 再绘制所有点位（按顺序绘制，后添加的在上面）
   // 为了确保后添加的点位在上面，我们需要按照添加顺序绘制
   // 但也要确保选中的起重机的点位在上面
@@ -1276,9 +2256,56 @@ const getPointAtPosition = (x, y) => {
   };
 };
 
+// 检查是否点击在图形上
+const isClickOnShape = (x, y) => {
+  for (const item of renderedShapeItems.value) {
+    const config = item.config || {};
+    let hit = false;
+    
+    if (item.tool === "rectangle") {
+      const width = config.width || 80;
+      const height = config.height || 40;
+      const left = item.canvasX - width / 2;
+      const right = item.canvasX + width / 2;
+      const top = item.canvasY - height / 2;
+      const bottom = item.canvasY + height / 2;
+      hit = x >= left && x <= right && y >= top && y <= bottom;
+    } else if (item.tool === "circle") {
+      const radius = config.radius || MIN_RADIUS;
+      const dist = Math.sqrt(Math.pow(x - item.canvasX, 2) + Math.pow(y - item.canvasY, 2));
+      hit = dist <= radius;
+    } else if (item.tool === "triangle") {
+      const size = config.size || MIN_TRIANGLE_SIZE;
+      const half = size / 2;
+      // 简化的三角形碰撞检测
+      const dx = Math.abs(x - item.canvasX);
+      const dy = Math.abs(y - item.canvasY);
+      hit = dx + dy <= half * 1.5;
+    } else if (item.tool === "sector") {
+      const radius = config.radius || MIN_RADIUS;
+      const dist = Math.sqrt(Math.pow(x - item.canvasX, 2) + Math.pow(y - item.canvasY, 2));
+      hit = dist <= radius;
+    } else if (item.tool === "text") {
+      const fontSize = config.fontSize || 14;
+      const textWidth = (config.text || "文字").length * fontSize * 0.6;
+      const textHeight = fontSize;
+      hit = Math.abs(x - item.canvasX) <= textWidth / 2 && Math.abs(y - item.canvasY) <= textHeight / 2;
+    }
+    
+    if (hit) {
+      return true;
+    }
+  }
+  return false;
+};
+
 // 鼠标按下事件处理
 const handleCanvasMouseDown = (event) => {
+  // 如果点击在图形上，不处理 canvas 事件（让 SVG 层处理）
   const mousePos = getMouseCanvasPos(event);
+  if (isClickOnShape(mousePos.x, mousePos.y)) {
+    return;
+  }
   
   // 先检查是否点击在点位上
   const hitPoint = getPointAtPosition(mousePos.x, mousePos.y);
@@ -1297,10 +2324,12 @@ const handleCanvasMouseDown = (event) => {
     }
   } else {
     // 开始拖动Canvas
-  isDragging.value = true;
-  lastMouseX.value = event.clientX;
-  lastMouseY.value = event.clientY;
-  canvas.value.style.cursor = 'grabbing';
+    isDragging.value = true;
+    lastMouseX.value = event.clientX;
+    lastMouseY.value = event.clientY;
+    canvas.value.style.cursor = 'grabbing';
+    // 取消选中图形
+    activeShapeId.value = null;
   }
 };
 
@@ -1514,6 +2543,14 @@ const deleteCrane = (id) => {
     selectedCrane.value = null;
   }
   
+  shapeOverlays.value = shapeOverlays.value.filter((shape) => shape.craneId !== id);
+  if (activePointId.value && !selectedCrane.value) {
+    activePointId.value = null;
+  }
+  if (!shapeOverlays.value.some((shape) => shape.id === activeShapeId.value)) {
+    activeShapeId.value = null;
+  }
+  
   // 重绘所有轨迹（删除的轨迹会自动消失）
   drawAllTrajectories();
   
@@ -1528,6 +2565,9 @@ const selectCrane = (crane) => {
   }
   const normalizedPoints = updateCranePoints(crane.id, crane.points);
   selectedCrane.value = { ...crane, points: normalizedPoints };
+  nextTick(() => {
+    syncActivePointSelection();
+  });
 
   // 打开时准备一个默认的新点位
   const isStart = normalizedPoints.length === 0;
@@ -1773,9 +2813,20 @@ const setCranePosition = () => {
     
     // 删除点位
     const currentPoints = selectedCrane.value.points ? [...selectedCrane.value.points] : [];
+  const removedPoint = currentPoints[index];
     currentPoints.splice(index, 1);
     const normalized = updateCranePoints(selectedCrane.value.id, currentPoints);
     selectedCrane.value.points = normalized;
+  if (removedPoint?.id) {
+    shapeOverlays.value = shapeOverlays.value.filter((shape) => shape.pointId !== removedPoint.id);
+    if (activePointId.value === removedPoint.id) {
+      activePointId.value = null;
+      nextTick(() => syncActivePointSelection());
+    }
+    if (!shapeOverlays.value.some((shape) => shape.id === activeShapeId.value)) {
+      activeShapeId.value = null;
+    }
+  }
     
     ElMessage.success("点位已删除");
       
@@ -2263,6 +3314,8 @@ const setCranePosition = () => {
         state.recorder = null;
       }
     });
+
+    detachPointerListeners();
   });
 
   const computeAnimationPlan = (points = [], color = '#26256B') => {
@@ -2777,6 +3830,204 @@ const setCranePosition = () => {
   margin-right: 280px;
 }
 
+.drawing-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 30px rgba(15, 35, 95, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  z-index: 5;
+  min-width: 600px;
+  white-space: nowrap;
+}
+
+.toolbar-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.toolbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2d3d;
+  white-space: nowrap;
+}
+
+.toolbar-subtitle {
+  font-size: 12px;
+  color: #909399;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.toolbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #dcdfe6;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.tool-button:hover,
+.tool-button.active {
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.12);
+}
+
+.tool-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-icon.icon-rectangle {
+  width: 16px;
+  height: 12px;
+  border: 2px solid #606266;
+  border-radius: 2px;
+}
+
+.tool-icon.icon-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #606266;
+}
+
+.tool-icon.icon-triangle {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid #606266;
+}
+
+.tool-icon.icon-sector {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #606266;
+  border-radius: 100% 0 0 0;
+  transform: rotate(-45deg);
+}
+
+.tool-icon.icon-text {
+  font-weight: 600;
+  font-size: 14px;
+  color: #303133;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clear-shapes-btn {
+  color: #606266;
+}
+
+.shape-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.shape-overlay-item {
+  pointer-events: auto;
+  cursor: move;
+}
+
+.shape-overlay-item .shape-body {
+  stroke-width: 2px;
+  pointer-events: auto;
+}
+
+.shape-overlay-item.active .shape-body {
+  stroke-width: 2.5px;
+  filter: drop-shadow(0 2px 6px rgba(64, 158, 255, 0.25));
+}
+
+.shape-text {
+  font-weight: 600;
+  pointer-events: auto;
+  cursor: move;
+}
+
+.shape-bounding-box {
+  pointer-events: none;
+}
+
+.shape-resize-handle {
+  fill: #ffffff;
+  stroke: #409eff;
+  stroke-width: 2px;
+  pointer-events: auto;
+  cursor: se-resize;
+}
+
+.shape-resize-handle.handle-nw {
+  cursor: nw-resize;
+}
+
+.shape-resize-handle.handle-n {
+  cursor: n-resize;
+}
+
+.shape-resize-handle.handle-ne {
+  cursor: ne-resize;
+}
+
+.shape-resize-handle.handle-e {
+  cursor: e-resize;
+}
+
+.shape-resize-handle.handle-se {
+  cursor: se-resize;
+}
+
+.shape-resize-handle.handle-s {
+  cursor: s-resize;
+}
+
+.shape-resize-handle.handle-sw {
+  cursor: sw-resize;
+}
+
+.shape-resize-handle.handle-w {
+  cursor: w-resize;
+}
+
 .plan-image {
   max-width: 100%;
   max-height: 100%;
@@ -2806,11 +4057,17 @@ const setCranePosition = () => {
   margin-top: 10px;
   background-color: #f5f7fa;
   border-radius: 4px;
+  border: 1px solid transparent;
   transition: all 0.3s ease;
 }
 
 .point-item:hover {
   background-color: #e6e8eb;
+}
+
+.point-item.active {
+  border-color: rgba(64, 158, 255, 0.6);
+  background-color: rgba(64, 158, 255, 0.1);
 }
 
 .point-info {
