@@ -2845,6 +2845,11 @@ const setCranePosition = () => {
     addPointDialogVisible.value = false;
     ElMessage.success("点位已添加，可在图上拖动调整位置");
     
+    // 如果添加的是吊装点位，自动选中该点位
+    if (pointType === "lifting") {
+      activePointId.value = pointToAdd.id;
+    }
+    
     // 立即重绘，确保新点位显示在图上，路径自动连接
     nextTick(() => {
       drawAllTrajectories();
