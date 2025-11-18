@@ -404,12 +404,38 @@ export async function getProjectAllDetail(id) {
 }
 
 /**
- * 总平规划/起重机截图上传的接口
- * @param {object} params - 参数{ pageNum, pageSize,liftingInfoId }
- * @returns {Promise} - 
+ * 文件上传接口（form-data，文件流形式）
+ * @param {File|Blob} file - 上传的文件（File 或 Blob 对象）
+ * @param {string} fileName - 文件名（可选，如果是 Blob 需要提供）
+ * @returns {Promise} - 返回上传结果
  */
-export function uploadImage(params) {
-  return post("/file/upload/upload", params)
+export async function uploadImage(file, fileName = "image.png") {
+  try {
+    // 确保是 File 对象，如果是 Blob 则转换为 File
+    let fileToUpload = file;
+    if (file instanceof Blob && !(file instanceof File)) {
+      fileToUpload = new File([file], fileName, { type: file.type || "image/png" });
+    }
+    
+    const formData = new FormData();
+    formData.append("file", fileToUpload);
+    
+    const response = await fetch(`${API_BASE_URL}/file/upload/upload`, {
+      method: "POST",
+      body: formData,
+      // 不要手动设置 Content-Type，让浏览器自动设置（包括 boundary）
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("文件上传API请求失败:", error);
+    throw error;
+  }
 }
 /**
  * 总平规划/保存的接口

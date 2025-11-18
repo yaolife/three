@@ -17,6 +17,13 @@
           />
         </div>
         <div class="handle_btn">
+          <div class="handle_btn_item" @click="handleSave">
+            <img
+              src="@/images/report.png"
+              alt="保存"
+              style="width: 20px; height: 20px; margin-right: 5px"
+            /><span>保存</span>
+          </div>
           <div class="handle_btn_item">
             <img
               src="@/images/report.png"
@@ -636,6 +643,7 @@ import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import RecordRTC from "recordrtc";
+import { uploadImage, saveGeneralPing } from "@/api/index";
 
 const route = useRoute();
 const router = useRouter();
@@ -1058,6 +1066,25 @@ const handlePointItemClick = (point) => {
     return;
   }
   activePointId.value = point.id;
+};
+
+// 将 base64 转换为 Blob
+const base64ToBlob = (base64) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const arr = base64.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      resolve(new Blob([u8arr], { type: mime }));
+    } catch (error) {
+      reject(error);
+    }
+  });
 };
 
 // 防止重复创建的标志
@@ -1654,23 +1681,28 @@ const handleCompleteDrawing = async () => {
     return;
   }
 
-  // 获取所有吊装点位
-  const liftingPoints = (selectedCrane.value.points || []).filter(
-    (point) => point.type === "lifting"
-  );
+  // 检查是否选中了点位
+  if (!activePointId.value) {
+    ElMessage.warning("请先在点位设置中选择一个点位");
+    return;
+  }
 
-  if (liftingPoints.length === 0) {
-    ElMessage.warning("请先添加吊装点位");
+  // 获取当前选中的点位
+  const currentPoint = selectedCrane.value.points.find(p => p.id === activePointId.value);
+  if (!currentPoint) {
+    ElMessage.warning("选中的点位不存在");
+    return;
+  }
+
+  // 只处理吊装点位，移动点位不上传
+  if (currentPoint.type !== "lifting") {
+    ElMessage.warning("移动点位没有点位占位，无需上传图片");
     return;
   }
 
   // 检查是否有绘制图形
-  const pointsWithShapes = liftingPoints.filter((point) => {
-    const shapes = getShapesForPoint(point.id);
-    return shapes.length > 0;
-  });
-
-  if (pointsWithShapes.length === 0) {
+  const shapes = getShapesForPoint(currentPoint.id);
+  if (shapes.length === 0) {
     ElMessage.warning("请先绘制形状");
     return;
   }
@@ -1679,38 +1711,41 @@ const handleCompleteDrawing = async () => {
   drawAllTrajectories();
   await nextTick();
 
-  // 为每个有绘制图形的点位截取图片并准备数据
-  const pointsData = await Promise.all(
-    pointsWithShapes.map(async (point) => {
-      const shapes = getShapesForPoint(point.id);
-      const snapshot = capturePointSnapshot(point);
-      
-      return {
-        ...point,
-        shapes: shapes.map((shape) => ({
-          id: shape.id,
-          tool: shape.tool,
-          config: shape.config,
-          position: shape.position,
-        })),
-        snapshot, // 图片放在每个 point 对象里
-      };
-    })
-  );
-
-  const payload = {
-    projectId: projectId.value,
-    craneId: selectedCrane.value.id,
-    points: pointsData, // point 改为 points 数组
-    timestamp: Date.now(),
-  };
-
   try {
-    await mockSaveDrawing(payload);
-    ElMessage.success(`已提交 ${pointsData.length} 个点位的绘制结果`);
+    // 截取当前选中点位的图片
+    const snapshot = capturePointSnapshot(currentPoint);
+    if (!snapshot) {
+      ElMessage.error("截图失败");
+      return;
+    }
+    
+    // 将 base64 转换为 Blob
+    const blob = await base64ToBlob(snapshot);
+    
+    // 生成文件名（使用点位名称和时间戳）
+    const fileName = `${currentPoint.name || "point"}_${Date.now()}.png`;
+    
+    // 上传图片（以文件流形式）
+    const response = await uploadImage(blob, fileName);
+    
+    if (response && response.code === "0" && response.data && response.data.fileId) {
+      // 将 fileId 存储到点位数据中
+      const pointIndex = selectedCrane.value.points.findIndex(p => p.id === currentPoint.id);
+      if (pointIndex !== -1) {
+        selectedCrane.value.points[pointIndex].fileId = response.data.fileId;
+        // 同步更新到 cranes 数组
+        const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+        if (craneIndex !== -1) {
+          cranes.value[craneIndex].points[pointIndex].fileId = response.data.fileId;
+        }
+      }
+      ElMessage.success(`完成绘制，图片上传成功`);
+    } else {
+      ElMessage.error(response?.msg || "图片上传失败");
+    }
   } catch (error) {
-    console.error("提交绘制结果失败:", error);
-    ElMessage.error("绘制结果提交失败");
+    console.error("完成绘制失败:", error);
+    ElMessage.error("完成绘制失败");
   }
 };
 
@@ -3013,7 +3048,119 @@ const setCranePosition = () => {
   };
 
   // 处理返回按钮点击
-  const handleBack = () => {
+  // 保存总平规划数据
+const handleSave = async () => {
+  if (!projectId.value) {
+    ElMessage.warning("项目ID不存在");
+    return;
+  }
+
+  if (!cranes.value || cranes.value.length === 0) {
+    ElMessage.warning("请先添加起重机路径");
+    return;
+  }
+
+  try {
+    // 构建接口所需的数据格式
+    const sysProjectFlatAddUpdateDetail = cranes.value.map((crane, craneIndex) => {
+      // 构建起重机信息
+      const sysProjectFlatDetail = {
+        id: crane.id || null,
+        projectId: projectId.value,
+        craneName: crane.name || "",
+        craneType: crane.type || "",
+        color: crane.color || "#26256B",
+        pathUseWidth: crane.pathUseWidth || null,
+        useTime: crane.useTime || null,
+        carryingCapacity: crane.carryingCapacity || null,
+        itemIndex: craneIndex + 1,
+      };
+
+      // 构建点位数组，确保第一条是吊装点位
+      const points = (crane.points || []).map((point, pointIndex) => {
+        // 确定点位类型
+        let pointType = 1; // 默认普通点位
+        if (pointIndex === 0) {
+          pointType = 0; // 起点
+        } else if (pointIndex === crane.points.length - 1) {
+          pointType = 2; // 终点
+        }
+
+        // 确定占点类型：吊装点位=0，移动点位=1
+        const occupyType = point.type === "lifting" ? 0 : 1;
+
+        // 格式化日期（精确到天）
+        const formatDate = (dateStr) => {
+          if (!dateStr) return null;
+          try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return null;
+            // 返回 YYYY-MM-DD 格式
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          } catch (error) {
+            return null;
+          }
+        };
+
+        return {
+          id: point.id || null,
+          flatDetailId: crane.id || null,
+          pointName: point.name || "",
+          x: typeof point.x === "number" ? point.x : parseFloat(point.x) || 0,
+          y: typeof point.y === "number" ? point.y : parseFloat(point.y) || 0,
+          carryingCapacity: point.groundLoad || point.carryingCapacity || null,
+          area: point.area || null,
+          startTime: formatDate(point.startTime),
+          endTime: formatDate(point.endTime),
+          pointLength: point.occupyLength || point.pointLength || null,
+          pointWidth: point.occupyWidth || point.pointWidth || null,
+          rotateAngle: point.rotateAngle || null,
+          workRadius: point.radius || point.workRadius || null,
+          amplitude: point.amplitude || null,
+          turnAround: point.turnAround || null,
+          occupyType: occupyType,
+          pointType: pointType,
+          fileId: point.fileId || null,
+          itemIndex: pointIndex + 1,
+        };
+      });
+
+      // 确保第一条是吊装点位（occupyType=0）
+      const liftingPoints = points.filter((p) => p.occupyType === 0);
+      const movingPoints = points.filter((p) => p.occupyType === 1);
+      
+      // 重新排序：先吊装点位，后移动点位
+      const sortedPoints = [...liftingPoints, ...movingPoints];
+
+      return {
+        sysProjectFlatDetail,
+        points: sortedPoints,
+      };
+    });
+
+    const payload = {
+      projectId: projectId.value,
+      sysProjectFlatAddUpdateDetail,
+    };
+
+    // 调用保存接口
+    const response = await saveGeneralPing(payload);
+
+    if (response && response.code === "0") {
+      ElMessage.success("保存成功");
+    } else {
+      ElMessage.error(response?.msg || "保存失败");
+    }
+  } catch (error) {
+    console.error("保存总平规划失败:", error);
+    ElMessage.error("保存失败，请检查网络连接");
+  }
+};
+
+const handleBack = () => {
     router.push({ name: "AllProjects" });
   };
 
