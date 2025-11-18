@@ -1653,32 +1653,61 @@ const handleCompleteDrawing = async () => {
     ElMessage.warning("请先选择起重机");
     return;
   }
-  if (!activePoint.value) {
-    ElMessage.warning("请先选择吊装点位");
+
+  // 获取所有吊装点位
+  const liftingPoints = (selectedCrane.value.points || []).filter(
+    (point) => point.type === "lifting"
+  );
+
+  if (liftingPoints.length === 0) {
+    ElMessage.warning("请先添加吊装点位");
     return;
   }
 
-  const shapes = getShapesForPoint(activePoint.value.id);
-  if (shapes.length === 0) {
+  // 检查是否有绘制图形
+  const pointsWithShapes = liftingPoints.filter((point) => {
+    const shapes = getShapesForPoint(point.id);
+    return shapes.length > 0;
+  });
+
+  if (pointsWithShapes.length === 0) {
     ElMessage.warning("请先绘制形状");
     return;
   }
 
+  // 重绘所有轨迹，确保截图准确
   drawAllTrajectories();
   await nextTick();
-  const snapshot = capturePointSnapshot(activePoint.value);
+
+  // 为每个有绘制图形的点位截取图片并准备数据
+  const pointsData = await Promise.all(
+    pointsWithShapes.map(async (point) => {
+      const shapes = getShapesForPoint(point.id);
+      const snapshot = capturePointSnapshot(point);
+      
+      return {
+        ...point,
+        shapes: shapes.map((shape) => ({
+          id: shape.id,
+          tool: shape.tool,
+          config: shape.config,
+          position: shape.position,
+        })),
+        snapshot, // 图片放在每个 point 对象里
+      };
+    })
+  );
+
   const payload = {
     projectId: projectId.value,
     craneId: selectedCrane.value.id,
-    point: { ...activePoint.value },
-    shapes,
-    snapshot,
+    points: pointsData, // point 改为 points 数组
     timestamp: Date.now(),
   };
 
   try {
     await mockSaveDrawing(payload);
-    ElMessage.success("绘制结果已提交");
+    ElMessage.success(`已提交 ${pointsData.length} 个点位的绘制结果`);
   } catch (error) {
     console.error("提交绘制结果失败:", error);
     ElMessage.error("绘制结果提交失败");
@@ -1700,8 +1729,11 @@ const capturePointSnapshot = (point) => {
   const sw = Math.min(size, canvas.value.width - sx);
   const sh = Math.min(size, canvas.value.height - sy);
 
+  // 填充白色背景
   snapshotCtx.fillStyle = "#ffffff";
   snapshotCtx.fillRect(0, 0, size, size);
+  
+  // 先绘制 Canvas 内容
   snapshotCtx.drawImage(
     canvas.value,
     sx,
@@ -1713,6 +1745,84 @@ const capturePointSnapshot = (point) => {
     sw,
     sh
   );
+
+  // 获取该点位的形状，绘制到截图 Canvas 上
+  const shapes = getShapesForPoint(point.id);
+  if (shapes.length > 0) {
+    shapes.forEach((shape) => {
+      const shapeCoords = convertToCanvasCoords(
+        shape.position?.x || point.x,
+        shape.position?.y || point.y
+      );
+      
+      // 计算形状相对于截图区域的偏移
+      const offsetX = shapeCoords.x - sx - radius;
+      const offsetY = shapeCoords.y - sy - radius;
+      
+      // 在截图 Canvas 上绘制形状
+      snapshotCtx.save();
+      snapshotCtx.translate(radius + offsetX, radius + offsetY);
+      
+      const config = shape.config || {};
+      switch (shape.tool) {
+        case "rectangle":
+          snapshotCtx.rotate(degToRad(config.rotate || 0));
+          snapshotCtx.fillStyle = config.fill || "rgba(255,255,255,0.2)";
+          snapshotCtx.strokeStyle = config.stroke || "#F59A23";
+          snapshotCtx.lineWidth = 2;
+          snapshotCtx.fillRect(-(config.width || 80) / 2, -(config.height || 40) / 2, config.width || 80, config.height || 40);
+          snapshotCtx.strokeRect(-(config.width || 80) / 2, -(config.height || 40) / 2, config.width || 80, config.height || 40);
+          break;
+        case "circle":
+          snapshotCtx.fillStyle = config.fill || "rgba(38,132,255,0.25)";
+          snapshotCtx.strokeStyle = config.stroke || "#2684FF";
+          snapshotCtx.lineWidth = 2;
+          snapshotCtx.beginPath();
+          snapshotCtx.arc(0, 0, config.radius || 38, 0, Math.PI * 2);
+          snapshotCtx.fill();
+          snapshotCtx.stroke();
+          break;
+        case "triangle":
+          const triSize = config.size || 72;
+          snapshotCtx.fillStyle = config.fill || "rgba(245,108,108,0.25)";
+          snapshotCtx.strokeStyle = config.stroke || "#F56C6C";
+          snapshotCtx.lineWidth = 2;
+          snapshotCtx.rotate(degToRad(config.rotate || 0));
+          snapshotCtx.beginPath();
+          snapshotCtx.moveTo(0, -triSize / 2);
+          snapshotCtx.lineTo(triSize / 2, triSize / 2);
+          snapshotCtx.lineTo(-triSize / 2, triSize / 2);
+          snapshotCtx.closePath();
+          snapshotCtx.fill();
+          snapshotCtx.stroke();
+          break;
+        case "sector":
+          const sectorRadius = config.radius || 90;
+          const startAngle = degToRad(config.rotate || -30);
+          const endAngle = degToRad((config.rotate || -30) + (config.angle || 60));
+          snapshotCtx.fillStyle = config.fill || "rgba(255,196,112,0.25)";
+          snapshotCtx.strokeStyle = config.stroke || "#F59A23";
+          snapshotCtx.lineWidth = 2;
+          snapshotCtx.beginPath();
+          snapshotCtx.moveTo(0, 0);
+          snapshotCtx.arc(0, 0, sectorRadius, startAngle, endAngle);
+          snapshotCtx.closePath();
+          snapshotCtx.fill();
+          snapshotCtx.stroke();
+          break;
+        case "text":
+          snapshotCtx.rotate(degToRad(config.rotate || 0));
+          snapshotCtx.fillStyle = config.color || "#1F2D3D";
+          snapshotCtx.font = `${config.fontSize || 14}px sans-serif`;
+          snapshotCtx.textAlign = "center";
+          snapshotCtx.textBaseline = "middle";
+          snapshotCtx.fillText(config.text || "文字", 0, 0);
+          break;
+      }
+      
+      snapshotCtx.restore();
+    });
+  }
 
   return snapshotCanvas.toDataURL("image/png");
 };
