@@ -3097,18 +3097,32 @@ const setCranePosition = () => {
             };
             
             // 回显形状数据（如果存在）
-            if (item.shapes && Array.isArray(item.shapes) && item.shapes.length > 0) {
-              item.shapes.forEach((shapeData) => {
-                const shape = {
-                  id: shapeData.id || `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-                  tool: shapeData.tool,
-                  pointId: item.id,
-                  craneId: craneDetail.id,
-                  position: shapeData.position || { x: pointData.x, y: pointData.y },
-                  config: shapeData.config || {},
-                };
-                shapeOverlays.value.push(shape);
-              });
+            if (item.shapes) {
+              try {
+                // 将字符串转为数组
+                let shapesArray = [];
+                if (typeof item.shapes === 'string') {
+                  shapesArray = JSON.parse(item.shapes);
+                } else if (Array.isArray(item.shapes)) {
+                  shapesArray = item.shapes;
+                }
+                
+                if (Array.isArray(shapesArray) && shapesArray.length > 0) {
+                  shapesArray.forEach((shapeData) => {
+                    const shape = {
+                      id: shapeData.id || `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                      tool: shapeData.tool,
+                      pointId: item.id,
+                      craneId: craneDetail.id,
+                      position: shapeData.position || { x: pointData.x, y: pointData.y },
+                      config: shapeData.config || {},
+                    };
+                    shapeOverlays.value.push(shape);
+                  });
+                }
+              } catch (error) {
+                console.error("解析形状数据失败:", error, item.shapes);
+              }
             }
             
             return pointData;
@@ -3213,12 +3227,47 @@ const handleSave = async () => {
         };
 
         // 获取该点位的所有形状数据
-        const shapes = getShapesForPoint(point.id).map((shape) => ({
-          id: shape.id,
-          tool: shape.tool,
-          config: shape.config || {},
-          position: shape.position || { x: point.x, y: point.y },
-        }));
+        const shapes = getShapesForPoint(point.id).map((shape) => {
+          const config = shape.config || {};
+          const tool = shape.tool;
+          
+          // 计算形状的 width 和 height
+          let width = null;
+          let height = null;
+          
+          if (tool === "rectangle") {
+            width = config.width || 80;
+            height = config.height || 40;
+          } else if (tool === "circle") {
+            const radius = config.radius || MIN_RADIUS;
+            width = radius * 2;
+            height = radius * 2;
+          } else if (tool === "triangle") {
+            const size = config.size || MIN_TRIANGLE_SIZE;
+            width = size;
+            height = size;
+          } else if (tool === "sector") {
+            const radius = config.radius || MIN_RADIUS;
+            width = radius * 2;
+            height = radius * 2;
+          } else if (tool === "text") {
+            const fontSize = config.fontSize || 14;
+            const textWidth = (config.text || "文字").length * fontSize * 0.6;
+            width = textWidth;
+            height = fontSize;
+          }
+          
+          return {
+            id: shape.id,
+            tool: tool,
+            config: {
+              ...config,
+              width: width,
+              height: height,
+            },
+            position: shape.position || { x: point.x, y: point.y },
+          };
+        });
 
         return {
           id: point.id || null,
@@ -3240,7 +3289,7 @@ const handleSave = async () => {
           pointType: pointType,
           fileId: point.fileId || null,
           itemIndex: pointIndex + 1,
-          shapes: shapes, // 添加形状数据
+          shapes: shapes.length > 0 ? JSON.stringify(shapes) : null, // 将形状数组转为字符串
         };
       });
 
