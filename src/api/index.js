@@ -459,6 +459,20 @@ export async function getGeneralDetails(projectId) {
     throw error
   }
 }
+/**
+ * 复制选中项目
+ * @param {string|number} id - 项目ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function copyProjectItem(id) {
+  try {
+    const url = `/projectInfo/copy/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("复制项目数据API请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -495,4 +509,5 @@ export default {
   uploadImage,
   saveGeneralPing,
   getGeneralDetails,
+  copyProjectItem
 }
