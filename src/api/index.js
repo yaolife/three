@@ -402,6 +402,15 @@ export async function getProjectAllDetail(id) {
     throw error
   }
 }
+
+/**
+ * 总平规划/起重机截图上传的接口
+ * @param {object} params - 参数{ pageNum, pageSize,liftingInfoId }
+ * @returns {Promise} - 
+ */
+export function uploadImage(params) {
+  return post("/file/upload/upload", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -435,4 +444,5 @@ export default {
   getCalculateHeightOrAngle,
   saveProjectDetail,
   getProjectAllDetail,
+  uploadImage
 }
