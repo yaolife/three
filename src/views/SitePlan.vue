@@ -6,7 +6,7 @@
         <el-button type="text" class="back-btn" @click="handleBack">
           <el-icon><ArrowLeft /></el-icon>
         </el-button>
-        <div class="project_title">总平规划xxx项目</div>
+        <div class="project_title">{{ projectTitle || '总平规划xxx项目' }}</div>
       </div>
       <div class="header-content_right">
         <div>
@@ -650,6 +650,8 @@ const router = useRouter();
 
 // 从路由参数获取项目ID
 const projectId = ref("");
+// 项目标题
+const projectTitle = ref("");
 // 控制Dialog显示
 const dialogVisible = ref(true);
 // 存储导入的图片URL
@@ -3189,121 +3191,148 @@ const setCranePosition = () => {
       
       const response = await getGeneralDetails(projectId.value);
       
-      if (response && response.code === "0" && response.data && response.data.flatInfo) {
-        const flatInfoList = response.data.flatInfo;
-        
-        // 转换为前端数据结构
-        const loadedCranes = flatInfoList.map((flatInfo) => {
-          const craneDetail = flatInfo.sysProjectFlatDetail;
-          const pointItems = flatInfo.sysProjectFlatDetailItem || [];
-          
-          // 转换点位数据
-          const points = pointItems.map((item) => {
-            // 转换日期格式（LocalDate -> Date string）
-            const formatLocalDate = (localDate) => {
-              if (!localDate) return null;
-              if (typeof localDate === 'string') return localDate;
-              if (localDate.year && localDate.month && localDate.day) {
-                const year = localDate.year;
-                const month = String(localDate.month).padStart(2, '0');
-                const day = String(localDate.day).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-              }
-              return null;
-            };
-            
-            // 确定点位类型
-            const type = item.occupyType === 0 ? "lifting" : "moving";
-            const isStart = item.pointType === 0;
-            
-            const pointData = {
-              id: item.id,
-              name: item.pointName || "",
-              x: typeof item.x === "number" ? item.x : parseFloat(item.x) || 0,
-              y: typeof item.y === "number" ? item.y : parseFloat(item.y) || 0,
-              type: type,
-              groundLoad: item.carryingCapacity || null,
-              area: item.area || "",
-              startTime: formatLocalDate(item.startTime),
-              endTime: formatLocalDate(item.endTime),
-              status: "completed",
-              occupyLength: item.pointLength || null,
-              occupyWidth: item.pointWidth || null,
-              rotateAngle: item.rotateAngle || null,
-              radius: item.workRadius || null,
-              amplitude: item.amplitude || null,
-              angle: 60,
-              isStart: isStart,
-              fileId: item.fileId || null,
-              carryingCapacity: item.carryingCapacity || null,
-              pointLength: item.pointLength || null,
-              pointWidth: item.pointWidth || null,
-              workRadius: item.workRadius || null,
-              turnAround: item.turnAround || null,
-            };
-            
-            // 回显形状数据（如果存在）
-            // 支持一个点位上有多个文字，每个文字都有独立的位置坐标
-            if (item.shapes) {
-              try {
-                // 将字符串转为数组
-                let shapesArray = [];
-                if (typeof item.shapes === 'string') {
-                  shapesArray = JSON.parse(item.shapes);
-                } else if (Array.isArray(item.shapes)) {
-                  shapesArray = item.shapes;
-                }
-                
-                if (Array.isArray(shapesArray) && shapesArray.length > 0) {
-                  shapesArray.forEach((shapeData) => {
-                    // 每个形状（包括文字）都有独立的位置坐标
-                    // position 保存的是地理坐标（x, y），用于回显时正确定位
-                    const shape = {
-                      id: shapeData.id || `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-                      tool: shapeData.tool,
-                      pointId: item.id,
-                      craneId: craneDetail.id,
-                      position: shapeData.position || { x: pointData.x, y: pointData.y }, // 使用保存的位置坐标
-                      config: shapeData.config || {}, // 包含文字内容（text 属性）和其他配置
-                    };
-                    shapeOverlays.value.push(shape);
-                  });
-                }
-              } catch (error) {
-                console.error("解析形状数据失败:", error, item.shapes);
-              }
-            }
-            
-            return pointData;
-          });
-          
-          // 构建起重机对象
-          return {
-            id: craneDetail.id,
-            name: craneDetail.craneName || "",
-            type: craneDetail.craneType || "",
-            color: craneDetail.color || "#26256B",
-            pathUseWidth: craneDetail.pathUseWidth || null,
-            useTime: craneDetail.useTime || null,
-            carryingCapacity: craneDetail.carryingCapacity || null,
-            points: points,
-          };
-        });
-        
-        // 更新起重机列表
-        cranes.value = loadedCranes;
-        
-        // 如果有数据，选中第一个起重机
-        if (loadedCranes.length > 0) {
-          selectCrane(loadedCranes[0]);
+      console.log("总平详情API返回数据:", response);
+      
+      if (response && response.code === "0" && response.data) {
+        // 设置项目标题（优先从 sysProjectInfo 获取）
+        if (response.data.sysProjectInfo) {
+          const title = response.data.sysProjectInfo.title;
+          if (title) {
+            projectTitle.value = title;
+            console.log("已设置项目标题:", projectTitle.value);
+          } else {
+            console.warn("sysProjectInfo.title 为空或未定义");
+          }
+        } else {
+          console.warn("response.data.sysProjectInfo 不存在，尝试其他方式获取项目标题");
+          // 如果 sysProjectInfo 不存在，尝试从其他可能的路径获取
+          // 例如：response.data.title 或其他可能的字段
+          if (response.data.title) {
+            projectTitle.value = response.data.title;
+            console.log("从 response.data.title 获取项目标题:", projectTitle.value);
+          }
         }
         
-        // 重绘所有轨迹
-        nextTick(() => {
-          drawAllTrajectories();
-        });
+        if (response.data.flatInfo) {
+          const flatInfoList = response.data.flatInfo;
+          
+          // 转换为前端数据结构
+          const loadedCranes = flatInfoList.map((flatInfo) => {
+            const craneDetail = flatInfo.sysProjectFlatDetail;
+            const pointItems = flatInfo.sysProjectFlatDetailItem || [];
+            
+            // 转换点位数据
+            const points = pointItems.map((item) => {
+              // 转换日期格式（LocalDate -> Date string）
+              const formatLocalDate = (localDate) => {
+                if (!localDate) return null;
+                if (typeof localDate === 'string') return localDate;
+                if (localDate.year && localDate.month && localDate.day) {
+                  const year = localDate.year;
+                  const month = String(localDate.month).padStart(2, '0');
+                  const day = String(localDate.day).padStart(2, '0');
+                  return `${year}-${month}-${day}`;
+                }
+                return null;
+              };
+              
+              // 确定点位类型
+              const type = item.occupyType === 0 ? "lifting" : "moving";
+              const isStart = item.pointType === 0;
+              
+              const pointData = {
+                id: item.id,
+                name: item.pointName || "",
+                x: typeof item.x === "number" ? item.x : parseFloat(item.x) || 0,
+                y: typeof item.y === "number" ? item.y : parseFloat(item.y) || 0,
+                type: type,
+                groundLoad: item.carryingCapacity || null,
+                area: item.area || "",
+                startTime: formatLocalDate(item.startTime),
+                endTime: formatLocalDate(item.endTime),
+                status: "completed",
+                occupyLength: item.pointLength || null,
+                occupyWidth: item.pointWidth || null,
+                rotateAngle: item.rotateAngle || null,
+                radius: item.workRadius || null,
+                amplitude: item.amplitude || null,
+                angle: 60,
+                isStart: isStart,
+                fileId: item.fileId || null,
+                carryingCapacity: item.carryingCapacity || null,
+                pointLength: item.pointLength || null,
+                pointWidth: item.pointWidth || null,
+                workRadius: item.workRadius || null,
+                turnAround: item.turnAround || null,
+              };
+              
+              // 回显形状数据（如果存在）
+              // 支持一个点位上有多个文字，每个文字都有独立的位置坐标
+              if (item.shapes) {
+                try {
+                  // 将字符串转为数组
+                  let shapesArray = [];
+                  if (typeof item.shapes === 'string') {
+                    shapesArray = JSON.parse(item.shapes);
+                  } else if (Array.isArray(item.shapes)) {
+                    shapesArray = item.shapes;
+                  }
+                  
+                  if (Array.isArray(shapesArray) && shapesArray.length > 0) {
+                    shapesArray.forEach((shapeData) => {
+                      // 每个形状（包括文字）都有独立的位置坐标
+                      // position 保存的是地理坐标（x, y），用于回显时正确定位
+                      const shape = {
+                        id: shapeData.id || `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                        tool: shapeData.tool,
+                        pointId: item.id,
+                        craneId: craneDetail.id,
+                        position: shapeData.position || { x: pointData.x, y: pointData.y }, // 使用保存的位置坐标
+                        config: shapeData.config || {}, // 包含文字内容（text 属性）和其他配置
+                      };
+                      shapeOverlays.value.push(shape);
+                    });
+                  }
+                } catch (error) {
+                  console.error("解析形状数据失败:", error, item.shapes);
+                }
+              }
+              
+              return pointData;
+            });
+            
+            // 构建起重机对象
+            return {
+              id: craneDetail.id,
+              name: craneDetail.craneName || "",
+              type: craneDetail.craneType || "",
+              color: craneDetail.color || "#26256B",
+              pathUseWidth: craneDetail.pathUseWidth || null,
+              useTime: craneDetail.useTime || null,
+              carryingCapacity: craneDetail.carryingCapacity || null,
+              points: points,
+            };
+          });
         
-        ElMessage.success("数据加载成功");
+          // 更新起重机列表
+          cranes.value = loadedCranes;
+          
+          // 如果有数据，选中第一个起重机
+          if (loadedCranes.length > 0) {
+            selectCrane(loadedCranes[0]);
+          }
+          
+          // 重绘所有轨迹
+          nextTick(() => {
+            drawAllTrajectories();
+          });
+          
+          ElMessage.success("数据加载成功");
+        } else {
+          console.warn("接口返回数据格式异常:", response);
+          // 如果没有数据，使用默认空数据
+          cranes.value = [];
+        }
       } else {
         console.warn("接口返回数据格式异常:", response);
         // 如果没有数据，使用默认空数据
