@@ -19,7 +19,7 @@
         <div class="handle_btn">
           <div class="handle_btn_item" @click="handleSave">
             <img
-              src="@/images/report.png"
+              src="@/images/save.png"
               alt="保存"
               style="width: 20px; height: 20px; margin-right: 5px"
             /><span>保存</span>
@@ -1752,7 +1752,7 @@ const handleCompleteDrawing = async () => {
 const capturePointSnapshot = (point) => {
   if (!canvas.value) return null;
   const { x, y } = convertToCanvasCoords(point.x, point.y);
-  const radius = 20;
+  const radius = 100; // 以点位为中心，半径为100px进行截图
   const size = radius * 2;
   const snapshotCanvas = document.createElement("canvas");
   snapshotCanvas.width = size;
