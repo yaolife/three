@@ -831,11 +831,13 @@ const defaultShapeConfigs = {
     radius: 38,
     fill: "rgba(38, 132, 255, 0.25)",
     stroke: "#2684FF",
+    rotate: 0,
   }),
   triangle: withOffsetDefaults({
     size: 72,
     fill: "rgba(245, 108, 108, 0.25)",
     stroke: "#F56C6C",
+    rotate: 0,
   }),
   sector: withOffsetDefaults({
     radius: 90,
@@ -1326,68 +1328,200 @@ const resizeShapeWithDelta = (deltaX, deltaY) => {
     const next = { ...config };
     
     if (tool === "rectangle") {
-      let newWidth = bounds.width;
-      let newHeight = bounds.height;
-      let offsetX = 0;
-      let offsetY = 0;
-      
-      // 根据控制点位置计算新的宽高和偏移
-      if (handlePos.includes("e")) {
-        newWidth = Math.max(MIN_RECT_SIZE, bounds.width + deltaX);
-      }
-      if (handlePos.includes("w")) {
-        newWidth = Math.max(MIN_RECT_SIZE, bounds.width - deltaX);
-        offsetX = deltaX;
-      }
-      if (handlePos.includes("s")) {
-        newHeight = Math.max(MIN_RECT_SIZE, bounds.height + deltaY);
-      }
-      if (handlePos.includes("n")) {
-        newHeight = Math.max(MIN_RECT_SIZE, bounds.height - deltaY);
-        offsetY = deltaY;
-      }
-      
-      next.width = newWidth;
-      next.height = newHeight;
-      
-      // 更新位置（如果从左边或上边调整）
-      const currentPos = dragContext.initialCanvasPos || { x: 0, y: 0 };
-      if (handlePos.includes("w") || handlePos.includes("n")) {
-        const newCanvasX = handlePos.includes("w") ? currentPos.x + offsetX : currentPos.x;
-        const newCanvasY = handlePos.includes("n") ? currentPos.y + offsetY : currentPos.y;
-        const geo = convertToGeoCoords(newCanvasX, newCanvasY);
-        updateShape(dragContext.shapeId, (shape) => ({
-          ...shape,
-          position: { x: geo.x, y: geo.y },
-        }));
+      // 矩形调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：旋转
+      // - 边缘控制点（n, s, w, e）：调整大小
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转矩形
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        const initialRotate = initial.rotate || 0;
+        const rad = degToRad(initialRotate);
+        const handleOffsetX = handlePos.includes("e") ? bounds.width / 2 : -bounds.width / 2;
+        const handleOffsetY = handlePos.includes("s") ? bounds.height / 2 : -bounds.height / 2;
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+        // 保持宽高不变
+        next.width = initial.width || 80;
+        next.height = initial.height || 40;
+      } else {
+        // 边缘控制点：调整大小
+        let newWidth = bounds.width;
+        let newHeight = bounds.height;
+        let offsetX = 0;
+        let offsetY = 0;
+        
+        if (handlePos.includes("e")) {
+          newWidth = Math.max(MIN_RECT_SIZE, bounds.width + deltaX);
+        }
+        if (handlePos.includes("w")) {
+          newWidth = Math.max(MIN_RECT_SIZE, bounds.width - deltaX);
+          offsetX = deltaX;
+        }
+        if (handlePos.includes("s")) {
+          newHeight = Math.max(MIN_RECT_SIZE, bounds.height + deltaY);
+        }
+        if (handlePos.includes("n")) {
+          newHeight = Math.max(MIN_RECT_SIZE, bounds.height - deltaY);
+          offsetY = deltaY;
+        }
+        
+        next.width = newWidth;
+        next.height = newHeight;
+        next.rotate = initial.rotate || 0; // 保持旋转角度不变
+        
+        // 更新位置（如果从左边或上边调整）
+        const currentPos = dragContext.initialCanvasPos || { x: 0, y: 0 };
+        if (handlePos.includes("w") || handlePos.includes("n")) {
+          const newCanvasX = handlePos.includes("w") ? currentPos.x + offsetX : currentPos.x;
+          const newCanvasY = handlePos.includes("n") ? currentPos.y + offsetY : currentPos.y;
+          const geo = convertToGeoCoords(newCanvasX, newCanvasY);
+          updateShape(dragContext.shapeId, (shape) => ({
+            ...shape,
+            position: { x: geo.x, y: geo.y },
+          }));
+        }
       }
     } else if (tool === "circle") {
-      // 圆形从中心向外扩展
-      const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
-      next.radius = Math.max(MIN_RADIUS, (initial.radius || MIN_RADIUS) + delta * sign);
-    } else if (tool === "triangle") {
-      const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
-      next.size = Math.max(MIN_TRIANGLE_SIZE, (initial.size || MIN_TRIANGLE_SIZE) + delta * sign);
-    } else if (tool === "sector") {
-      // 扇形调整逻辑：
-      // - 角落控制点（nw, ne, sw, se）：调整半径（大小）
-      // - 上下控制点（n, s）：只调整角度，不改变大小
-      // - 左右控制点（w, e）：调整半径（大小）
-      if (handlePos === "n" || handlePos === "s") {
-        // 上下控制点：只调整角度，不改变半径
-        const angleDelta = handlePos === "s" ? deltaY : -deltaY;
-        next.angle = Math.max(10, Math.min(360, (initial.angle || 60) + angleDelta / 2));
+      // 圆形调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：旋转
+      // - 边缘控制点（n, s, w, e）：调整半径
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转圆形
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        const initialRotate = initial.rotate || 0;
+        const radius = initial.radius || MIN_RADIUS;
+        const handleOffsetX = handlePos.includes("e") ? radius : -radius;
+        const handleOffsetY = handlePos.includes("s") ? radius : -radius;
+        const rad = degToRad(initialRotate);
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
         // 保持半径不变
-        next.radius = initial.radius || MIN_RADIUS;
+        next.radius = radius;
       } else {
-        // 角落或左右控制点：调整半径（大小）
+        // 边缘控制点：调整半径
         const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
         next.radius = Math.max(MIN_RADIUS, (initial.radius || MIN_RADIUS) + delta * sign);
-        // 保持角度不变
+        next.rotate = initial.rotate || 0; // 保持旋转角度不变
+      }
+    } else if (tool === "triangle") {
+      // 三角形调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：旋转
+      // - 边缘控制点（n, s, w, e）：调整大小
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转三角形
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        const initialRotate = initial.rotate || 0;
+        const size = initial.size || MIN_TRIANGLE_SIZE;
+        const handleOffsetX = handlePos.includes("e") ? size / 2 : -size / 2;
+        const handleOffsetY = handlePos.includes("s") ? size / 2 : -size / 2;
+        const rad = degToRad(initialRotate);
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+        // 保持大小不变
+        next.size = size;
+      } else {
+        // 边缘控制点：调整大小
+        const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
+        next.size = Math.max(MIN_TRIANGLE_SIZE, (initial.size || MIN_TRIANGLE_SIZE) + delta * sign);
+        next.rotate = initial.rotate || 0; // 保持旋转角度不变
+      }
+    } else if (tool === "sector") {
+      // 扇形调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：旋转扇形
+      // - 上下控制点（n, s）：调整扇形角度（开合角度）
+      // - 左右控制点（w, e）：调整半径（大小）
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转扇形
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        const initialRotate = initial.rotate || -30;
+        const radius = initial.radius || MIN_RADIUS;
+        const handleOffsetX = handlePos.includes("e") ? radius : -radius;
+        const handleOffsetY = handlePos.includes("s") ? radius : -radius;
+        const rad = degToRad(initialRotate);
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+        // 保持半径和角度不变
+        next.radius = radius;
         next.angle = initial.angle || 60;
+      } else if (handlePos === "n" || handlePos === "s") {
+        // 上下控制点：调整扇形角度（开合角度），不改变半径和旋转
+        const angleDelta = handlePos === "s" ? deltaY : -deltaY;
+        next.angle = Math.max(10, Math.min(360, (initial.angle || 60) + angleDelta / 2));
+        next.radius = initial.radius || MIN_RADIUS;
+        next.rotate = initial.rotate || -30;
+      } else {
+        // 左右控制点：调整半径（大小）
+        const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const sign = handlePos.includes("e") ? 1 : -1;
+        next.radius = Math.max(MIN_RADIUS, (initial.radius || MIN_RADIUS) + delta * sign);
+        next.angle = initial.angle || 60;
+        next.rotate = initial.rotate || -30;
       }
     } else if (tool === "text") {
       // 通过不同的控制点调整字体大小或旋转
