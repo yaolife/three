@@ -643,7 +643,7 @@ import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import RecordRTC from "recordrtc";
-import { uploadImage, saveGeneralPing } from "@/api/index";
+import { uploadImage, saveGeneralPing, getGeneralDetails } from "@/api/index";
 
 const route = useRoute();
 const router = useRouter();
@@ -3028,23 +3028,109 @@ const setCranePosition = () => {
   };
 
   // 加载项目数据
-  const loadProjectData = () => {
-    console.log("加载项目数据，项目ID:", projectId.value);
-    // 模拟加载一些起重机数据用于演示
-    const mockCranes = [
-      {
-        id: 1,
-        name: "起重机1",
-        type: "xxx履带式起重机",
-        color: "#26256B",
-        width: 10,
-        time: 10,
-        load: 10,
-        points: [],
-        position: null,
+  // 加载项目数据（编辑时调用）
+  const loadProjectData = async () => {
+    if (!projectId.value) {
+      console.log("项目ID不存在，跳过数据加载");
+      return;
+    }
+
+    try {
+      console.log("加载项目数据，项目ID:", projectId.value);
+      const response = await getGeneralDetails(projectId.value);
+      
+      if (response && response.code === "0" && response.data && response.data.flatInfo) {
+        const flatInfoList = response.data.flatInfo;
+        
+        // 转换为前端数据结构
+        const loadedCranes = flatInfoList.map((flatInfo) => {
+          const craneDetail = flatInfo.sysProjectFlatDetail;
+          const pointItems = flatInfo.sysProjectFlatDetailItem || [];
+          
+          // 转换点位数据
+          const points = pointItems.map((item) => {
+            // 转换日期格式（LocalDate -> Date string）
+            const formatLocalDate = (localDate) => {
+              if (!localDate) return null;
+              if (typeof localDate === 'string') return localDate;
+              if (localDate.year && localDate.month && localDate.day) {
+                const year = localDate.year;
+                const month = String(localDate.month).padStart(2, '0');
+                const day = String(localDate.day).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+              }
+              return null;
+            };
+            
+            // 确定点位类型
+            const type = item.occupyType === 0 ? "lifting" : "moving";
+            const isStart = item.pointType === 0;
+            
+            return {
+              id: item.id,
+              name: item.pointName || "",
+              x: typeof item.x === "number" ? item.x : parseFloat(item.x) || 0,
+              y: typeof item.y === "number" ? item.y : parseFloat(item.y) || 0,
+              type: type,
+              groundLoad: item.carryingCapacity || null,
+              area: item.area || "",
+              startTime: formatLocalDate(item.startTime),
+              endTime: formatLocalDate(item.endTime),
+              status: "completed",
+              occupyLength: item.pointLength || null,
+              occupyWidth: item.pointWidth || null,
+              rotateAngle: item.rotateAngle || null,
+              radius: item.workRadius || null,
+              amplitude: item.amplitude || null,
+              angle: 60,
+              isStart: isStart,
+              fileId: item.fileId || null,
+              carryingCapacity: item.carryingCapacity || null,
+              pointLength: item.pointLength || null,
+              pointWidth: item.pointWidth || null,
+              workRadius: item.workRadius || null,
+              turnAround: item.turnAround || null,
+            };
+          });
+          
+          // 构建起重机对象
+          return {
+            id: craneDetail.id,
+            name: craneDetail.craneName || "",
+            type: craneDetail.craneType || "",
+            color: craneDetail.color || "#26256B",
+            pathUseWidth: craneDetail.pathUseWidth || null,
+            useTime: craneDetail.useTime || null,
+            carryingCapacity: craneDetail.carryingCapacity || null,
+            points: points,
+          };
+        });
+        
+        // 更新起重机列表
+        cranes.value = loadedCranes;
+        
+        // 如果有数据，选中第一个起重机
+        if (loadedCranes.length > 0) {
+          selectCrane(loadedCranes[0]);
+        }
+        
+        // 重绘所有轨迹
+        nextTick(() => {
+          drawAllTrajectories();
+        });
+        
+        ElMessage.success("数据加载成功");
+      } else {
+        console.warn("接口返回数据格式异常:", response);
+        // 如果没有数据，使用默认空数据
+        cranes.value = [];
       }
-    ];
-    cranes.value = mockCranes;
+    } catch (error) {
+      console.error("加载项目数据失败:", error);
+      ElMessage.error("加载数据失败，请检查网络连接");
+      // 失败时使用默认空数据
+      cranes.value = [];
+    }
   };
 
   // 处理返回按钮点击
