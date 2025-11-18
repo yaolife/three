@@ -300,7 +300,8 @@ const handleEdit = (row) => {
     // 总平规划类型跳转到总平规划页面
     router.push({
       name: 'SitePlan',
-      params: { id: row.id }
+      params: { id: row.id },
+      query: { title: row.title || '' } // 传递项目标题作为 query 参数
     })
   } else {
     // 其他类型打开通用编辑对话框

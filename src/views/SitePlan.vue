@@ -771,7 +771,17 @@ pointIconImages.moving.src = movingIconSrc;
 
 Object.values(pointIconImages).forEach((img) => {
   img.onload = () => {
-    drawAllTrajectories();
+    // 延迟执行，确保 drawAllTrajectories 已经定义
+    if (typeof drawAllTrajectories === 'function') {
+      drawAllTrajectories();
+    } else {
+      // 如果函数还未定义，延迟执行
+      setTimeout(() => {
+        if (typeof drawAllTrajectories === 'function') {
+          drawAllTrajectories();
+        }
+      }, 100);
+    }
   };
 });
 
@@ -2030,7 +2040,9 @@ onMounted(() => {
   projectId.value = route.params.id || "";
   console.log("总平规划项目ID:", projectId.value);
   // 加载项目数据
-  loadProjectData();
+  if (projectId.value) {
+    loadProjectData();
+  }
   // 自动显示Dialog
   dialogVisible.value = false;
   
@@ -3194,23 +3206,44 @@ const setCranePosition = () => {
       console.log("总平详情API返回数据:", response);
       
       if (response && response.code === "0" && response.data) {
+        console.log("response.data 结构:", response.data);
+        console.log("response.data.sysProjectInfo:", response.data.sysProjectInfo);
+        
         // 设置项目标题（优先从 sysProjectInfo 获取）
+        let titleFound = false;
+        
         if (response.data.sysProjectInfo) {
           const title = response.data.sysProjectInfo.title;
+          console.log("从 sysProjectInfo 获取的 title:", title);
           if (title) {
-            projectTitle.value = title;
-            console.log("已设置项目标题:", projectTitle.value);
+            projectTitle.value = String(title).trim();
+            console.log("✓ 已设置项目标题:", projectTitle.value);
+            titleFound = true;
           } else {
             console.warn("sysProjectInfo.title 为空或未定义");
           }
         } else {
-          console.warn("response.data.sysProjectInfo 不存在，尝试其他方式获取项目标题");
-          // 如果 sysProjectInfo 不存在，尝试从其他可能的路径获取
-          // 例如：response.data.title 或其他可能的字段
+          console.warn("response.data.sysProjectInfo 不存在");
+        }
+        
+        // 如果还没有找到标题，尝试其他可能的路径
+        if (!titleFound) {
           if (response.data.title) {
-            projectTitle.value = response.data.title;
-            console.log("从 response.data.title 获取项目标题:", projectTitle.value);
+            projectTitle.value = String(response.data.title).trim();
+            console.log("✓ 从 response.data.title 获取项目标题:", projectTitle.value);
+            titleFound = true;
           }
+        }
+        
+        // 如果仍然没有找到，尝试从路由 query 参数获取（如果 AllProjects 传递了）
+        if (!titleFound && route.query.title) {
+          projectTitle.value = String(route.query.title).trim();
+          console.log("✓ 从路由 query 参数获取项目标题:", projectTitle.value);
+          titleFound = true;
+        }
+        
+        if (!titleFound) {
+          console.error("❌ 无法获取项目标题，所有尝试都失败了");
         }
         
         if (response.data.flatInfo) {
@@ -3345,6 +3378,16 @@ const setCranePosition = () => {
       cranes.value = [];
     }
   };
+
+  // 监听路由变化，确保在路由参数变化时重新加载数据
+  // 注意：必须在 loadProjectData 函数定义之后才能使用
+  watch(() => route.params.id, (newId) => {
+    if (newId && newId !== projectId.value) {
+      projectId.value = newId;
+      console.log("路由参数变化，项目ID:", projectId.value);
+      loadProjectData();
+    }
+  });
 
   // 处理返回按钮点击
   // 保存总平规划数据
