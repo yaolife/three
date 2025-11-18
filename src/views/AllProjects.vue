@@ -175,6 +175,17 @@ const formRules = ref({
   belongingDept: [{ required: true, message: '请输入创建部门', trigger: 'blur' }]
 })
 
+// 刷新项目列表的方法（供外部调用）
+const refreshProjectList = (projectType = null) => {
+  console.log('刷新项目列表，项目类型:', projectType);
+  
+  // 重置当前页为第一页
+  currentPage.value = 1;
+  
+  // 重新加载数据（loadProjectData 会根据当前路由的 projectTypeFilter 自动获取正确的项目类型）
+  loadProjectData();
+};
+
 // 初始化加载数据
 onMounted(() => {
   loadProjectData()
@@ -188,6 +199,12 @@ onMounted(() => {
   // 监听自定义事件，当用户已在全部项目页面时打开创建弹窗
   console.log('Adding openProjectDialog event listener');
   window.addEventListener('openProjectDialog', checkCreateFlag)
+  
+  // 监听刷新项目列表事件
+  window.addEventListener('refreshProjectList', (event) => {
+    const projectType = event.detail?.projectType;
+    refreshProjectList(projectType);
+  });
 
   // 添加全局方法，方便直接从App.vue调用
   window.openProjectDialogDirect = () => {
@@ -197,14 +214,22 @@ onMounted(() => {
       openCreateDialog();
     });
   }
+  
+  // 添加全局刷新方法，方便直接从App.vue调用
+  window.refreshProjectListDirect = (projectType) => {
+    console.log('Direct refresh project list called');
+    refreshProjectList(projectType);
+  }
 })
 
 // 组件卸载时清理事件监听器和状态
 onUnmounted(() => {
-  console.log('Removing openProjectDialog event listener');
+  console.log('Removing event listeners');
   window.removeEventListener('openProjectDialog', checkCreateFlag)
+  window.removeEventListener('refreshProjectList', refreshProjectList)
   // 移除全局方法
   delete window.openProjectDialogDirect;
+  delete window.refreshProjectListDirect;
   // 重置创建项目标志，避免遗留状态导致下次进入页面时误触发
   window.createProjectFlag = false;
 })
