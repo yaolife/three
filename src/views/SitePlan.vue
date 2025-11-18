@@ -3037,6 +3037,10 @@ const setCranePosition = () => {
 
     try {
       console.log("加载项目数据，项目ID:", projectId.value);
+      
+      // 清空之前的形状数据
+      shapeOverlays.value = [];
+      
       const response = await getGeneralDetails(projectId.value);
       
       if (response && response.code === "0" && response.data && response.data.flatInfo) {
@@ -3066,7 +3070,7 @@ const setCranePosition = () => {
             const type = item.occupyType === 0 ? "lifting" : "moving";
             const isStart = item.pointType === 0;
             
-            return {
+            const pointData = {
               id: item.id,
               name: item.pointName || "",
               x: typeof item.x === "number" ? item.x : parseFloat(item.x) || 0,
@@ -3091,6 +3095,23 @@ const setCranePosition = () => {
               workRadius: item.workRadius || null,
               turnAround: item.turnAround || null,
             };
+            
+            // 回显形状数据（如果存在）
+            if (item.shapes && Array.isArray(item.shapes) && item.shapes.length > 0) {
+              item.shapes.forEach((shapeData) => {
+                const shape = {
+                  id: shapeData.id || `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                  tool: shapeData.tool,
+                  pointId: item.id,
+                  craneId: craneDetail.id,
+                  position: shapeData.position || { x: pointData.x, y: pointData.y },
+                  config: shapeData.config || {},
+                };
+                shapeOverlays.value.push(shape);
+              });
+            }
+            
+            return pointData;
           });
           
           // 构建起重机对象
@@ -3191,6 +3212,14 @@ const handleSave = async () => {
           }
         };
 
+        // 获取该点位的所有形状数据
+        const shapes = getShapesForPoint(point.id).map((shape) => ({
+          id: shape.id,
+          tool: shape.tool,
+          config: shape.config || {},
+          position: shape.position || { x: point.x, y: point.y },
+        }));
+
         return {
           id: point.id || null,
           flatDetailId: crane.id || null,
@@ -3211,6 +3240,7 @@ const handleSave = async () => {
           pointType: pointType,
           fileId: point.fileId || null,
           itemIndex: pointIndex + 1,
+          shapes: shapes, // 添加形状数据
         };
       });
 
