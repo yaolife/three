@@ -1025,13 +1025,16 @@ const syncActivePointSelection = () => {
     activePointId.value = null;
     return;
   }
+  // 检查当前选中的点位是否仍然有效（包括移动点位）
   const validPoint = selectedCrane.value.points.find(
-    (point) => point.id === activePointId.value && point.type === "lifting"
+    (point) => point.id === activePointId.value
   );
   if (!validPoint) {
+    // 如果当前选中的点位不存在，则回退到第一个吊装点位
     const fallback = selectedCrane.value.points.find((point) => point.type === "lifting");
     activePointId.value = fallback ? fallback.id : null;
   }
+  // 如果当前选中的是移动点位，保留选中状态（不重置）
 };
 
 watch(
@@ -1077,10 +1080,7 @@ watch(
 );
 
 const handlePointItemClick = (point) => {
-  if (point.type !== "lifting") {
-    ElMessage.warning("当前仅支持在吊装点位上绘制");
-    return;
-  }
+  // 允许选中移动点位，只是不能绘制点位占位
   activePointId.value = point.id;
 };
 
@@ -1111,8 +1111,17 @@ const handleDrawingToolClick = async (toolType) => {
     ElMessage.warning("请先选择起重机");
     return;
   }
-  if (!activePoint.value || activePoint.value.type !== "lifting") {
+  
+  // 检查是否选中了点位
+  if (!activePointId.value) {
     ElMessage.warning("请先选择吊装点位");
+    return;
+  }
+  
+  // 检查选中的点位是否为吊装点位
+  const currentPoint = selectedCrane.value.points.find(p => p.id === activePointId.value);
+  if (!currentPoint || currentPoint.type !== "lifting") {
+    ElMessage.warning("当前仅支持在吊装点位上绘制");
     return;
   }
 
@@ -1276,6 +1285,16 @@ const handleShapeMouseDown = (item, event) => {
   event.preventDefault();
   event.stopPropagation();
   activeShapeId.value = item.id;
+  
+  // 在点位设置中选中该点位占位对应的点位
+  if (item.pointId && item.crane) {
+    // 确保选中的起重机是正确的
+    if (!selectedCrane.value || selectedCrane.value.id !== item.crane.id) {
+      selectCrane(item.crane);
+    }
+    activePointId.value = item.pointId;
+  }
+  
   dragContext.type = "move";
   dragContext.shapeId = item.id;
   dragContext.tool = item.tool;
@@ -2668,6 +2687,13 @@ const handleCanvasMouseDown = (event) => {
     // 如果点击的不是当前选中的起重机，切换到该起重机
     if (!selectedCrane.value || selectedCrane.value.id !== hitPoint.crane.id) {
       selectCrane(hitPoint.crane);
+      // 在 nextTick 中设置点位选中状态，确保在 syncActivePointSelection 之后执行
+      nextTick(() => {
+        activePointId.value = hitPoint.point.id;
+      });
+    } else {
+      // 在点位设置中选中该点位
+      activePointId.value = hitPoint.point.id;
     }
   } else {
     // 开始拖动Canvas
