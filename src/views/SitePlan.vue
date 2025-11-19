@@ -3407,7 +3407,6 @@ const handleSave = async () => {
     const sysProjectFlatAddUpdateDetail = cranes.value.map((crane, craneIndex) => {
       // 构建起重机信息
       const sysProjectFlatDetail = {
-        id: crane.id || null,
         projectId: projectId.value,
         craneName: crane.name || "",
         craneType: crane.type || "",
@@ -3507,7 +3506,6 @@ const handleSave = async () => {
         });
 
         return {
-          id: point.id || null,
           flatDetailId: crane.id || null,
           pointName: point.name || "",
           x: typeof point.x === "number" ? point.x : parseFloat(point.x) || 0,
