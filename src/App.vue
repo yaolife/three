@@ -98,10 +98,6 @@
           </template>
         </div>
         <div class="header-right">
-     
-          <el-button v-if="userStore.userState.isLoggedIn" type="default" size="small" @click="handleLogout" style="margin-left: 12px">
-            退出登录
-          </el-button>
           <el-button type="default" size="large" style="margin-left: 12px">
              <img
                  style="width: 22px; height: 22px;margin-right: 5px;"
