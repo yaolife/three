@@ -76,23 +76,26 @@
       <el-header v-if="!shouldHideHeader" class="header-container">
         <div class="header-left">
           <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
-        <el-button type="primary" size="large" @click="createProject">
-            <el-icon style="font-size: 10px; margin-right: 5px;background-color: white;color: #06F;padding: 2px;"><Plus /></el-icon>
-            创建项目
-          </el-button>
-          <div class="search-box">
-            <el-input 
-              v-model="searchTitle" 
-              placeholder="请输入项目标题" 
-              prefix-icon="Search" 
-              size="large"
-              @keyup.enter="handleSearch"
-              clearable
-            />
-            <el-button type="default" size="large" style="margin-left: 8px" @click="handleSearch">
-              搜索
+          <!-- 只在项目列表页面显示创建项目按钮和搜索框 -->
+          <template v-if="isProjectListPage">
+            <el-button type="primary" size="large" @click="createProject">
+              <el-icon style="font-size: 10px; margin-right: 5px;background-color: white;color: #06F;padding: 2px;"><Plus /></el-icon>
+              创建项目
             </el-button>
-          </div>
+            <div class="search-box">
+              <el-input 
+                v-model="searchTitle" 
+                placeholder="请输入项目标题" 
+                prefix-icon="Search" 
+                size="large"
+                @keyup.enter="handleSearch"
+                clearable
+              />
+              <el-button type="default" size="large" style="margin-left: 8px" @click="handleSearch">
+                搜索
+              </el-button>
+            </div>
+          </template>
         </div>
         <div class="header-right">
      
@@ -166,6 +169,12 @@ const shouldHideSidebar = computed(() => {
 // 判断是否应该隐藏顶部导航栏
 const shouldHideHeader = computed(() => {
   return route.meta.hideHeader || false;
+});
+
+// 判断是否是项目列表页面
+const isProjectListPage = computed(() => {
+  const projectListPaths = ['/all-projects', '/verification-projects', '/virtual-simulation', '/construction-plans'];
+  return projectListPaths.includes(route.path);
 });
 
 const activeMenu = computed(() => route.path || "/all-projects");
