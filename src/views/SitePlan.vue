@@ -6,6 +6,10 @@
         <el-button type="text" class="back-btn" @click="handleBack">
           <el-icon><ArrowLeft /></el-icon>
         </el-button>
+        <el-button type="text" class="login-btn" @click="showLoginDialog = true">
+          <el-icon><User /></el-icon>
+          <span>登录</span>
+        </el-button>
         <div class="project_title">{{ projectTitle || '总平规划xxx项目' }}</div>
       </div>
       <div class="header-content_right">
@@ -631,6 +635,57 @@
         </div>
       </div>
     </div>
+
+    <!-- 全局登录弹窗 -->
+    <Teleport to="body">
+      <el-dialog
+        v-model="showLoginDialog"
+        title=""
+        width="450px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        class="login-dialog"
+        align-center
+        append-to-body
+      >
+        <div class="login-dialog-content">
+          <div class="login-title-section">
+            <h2 class="login-main-title">光热三维施工仿真软件</h2>
+            <p class="login-sub-title">用户登录</p>
+          </div>
+          <p class="login-prompt-text">请输入您的用户名和密码</p>
+          <div class="login-form">
+            <div class="login-input-wrapper">
+              <el-icon class="input-icon"><User /></el-icon>
+              <el-input
+                v-model="loginForm.username"
+                placeholder="请输入用户名"
+                class="login-input"
+              />
+            </div>
+            <div class="login-input-wrapper">
+              <el-icon class="input-icon"><Lock /></el-icon>
+              <el-input
+                v-model="loginForm.password"
+                type="password"
+                placeholder="请输入密码"
+                class="login-input"
+                show-password
+                @keyup.enter="handleLogin"
+              />
+            </div>
+          </div>
+          <div class="login-buttons">
+            <el-button type="primary" class="login-confirm-btn" @click="handleLogin" :loading="isLogging">
+              确认登录
+            </el-button>
+            <el-button type="warning" class="login-offline-btn" @click="handleOfflineLogin">
+              离线登录
+            </el-button>
+          </div>
+        </div>
+      </el-dialog>
+    </Teleport>
   </div>
 </template>
 
@@ -638,13 +693,13 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { ArrowLeft, Search, Close } from "@element-plus/icons-vue";
+import { ArrowLeft, Search, Close, User, Lock } from "@element-plus/icons-vue";
 import startIconSrc from "@/images/point.png";
 import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import RecordRTC from "recordrtc";
-import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject } from "@/api/index";
+import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login } from "@/api/index";
 
 const route = useRoute();
 const router = useRouter();
@@ -695,6 +750,14 @@ const dragContext = reactive({
 // 点位相关数据
 const addPointDialogVisible = ref(false);
 const editPointDialogVisible = ref(false);
+
+// 登录相关
+const showLoginDialog = ref(false);
+const isLogging = ref(false);
+const loginForm = reactive({
+  username: "",
+  password: "",
+});
 
 // Canvas相关数据
 const canvas = ref(null);
@@ -3485,6 +3548,48 @@ const setCranePosition = () => {
 
   // 处理返回按钮点击
   // 保存总平规划数据
+
+// 处理登录
+const handleLogin = async () => {
+  if (!loginForm.username || !loginForm.password) {
+    ElMessage.warning("请输入用户名和密码");
+    return;
+  }
+
+  isLogging.value = true;
+  try {
+    const response = await login({
+      userName: loginForm.username,
+      password: loginForm.password,
+    });
+
+    if (response && response.code === "0") {
+      ElMessage.success("登录成功");
+      showLoginDialog.value = false;
+      // 保存登录信息
+      if (response.data && response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
+      // 清空表单
+      loginForm.username = "";
+      loginForm.password = "";
+    } else {
+      ElMessage.error(response?.msg || "登录失败，请检查用户名和密码");
+    }
+  } catch (error) {
+    console.error("登录失败:", error);
+    ElMessage.error("登录失败，请稍后重试");
+  } finally {
+    isLogging.value = false;
+  }
+};
+
+// 处理离线登录
+const handleOfflineLogin = () => {
+  // 暂时不做逻辑操作
+  showLoginDialog.value = false;
+};
+
 // 生成报告
 const handleGenerateReport = async () => {
   if (!projectId.value) {
@@ -4293,6 +4398,19 @@ const handleBack = () => {
   display: flex;
   align-items: center;
 }
+
+.login-btn {
+  color: #333;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 16px;
+}
+
+.login-btn:hover {
+  color: #409eff;
+}
 .header-content_right {
   display: flex;
   padding: 0 20px;
@@ -4971,5 +5089,165 @@ background: #FF8A37;
 /* 确保选择框的宽度 */
 .property-item .el-select {
   width: 120px;
+}
+
+/* 全局登录弹窗样式 */
+.login-dialog :deep(.el-dialog) {
+  margin: 0;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.login-dialog :deep(.el-dialog__header) {
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.login-dialog :deep(.el-dialog__body) {
+  padding: 0;
+}
+
+.login-dialog-content {
+  padding: 40px 50px;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 背景装饰 - 起重机轮廓 */
+.login-dialog-content::before {
+  content: '';
+  position: absolute;
+  bottom: -50px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M20 80 L30 60 L40 60 L40 40 L50 40 L50 20 L60 20 L60 40 L70 40 L70 60 L80 60 L80 80 Z' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.login-dialog-content::after {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 300px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Cpath d='M50 10 L50 30 L60 30 L60 50 L70 50 L70 70 L60 70 L60 90 L50 90 L50 110 L40 110 L40 90 L30 90 L30 70 L20 70 L20 50 L30 50 L30 30 L40 30 L40 10 Z' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.login-title-section {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-main-title {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+}
+
+.login-sub-title {
+  color: #fff;
+  font-size: 16px;
+  margin: 0;
+}
+
+.login-prompt-text {
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-form {
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-input-wrapper {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  z-index: 2;
+  font-size: 18px;
+}
+
+.login-input :deep(.el-input__wrapper) {
+  padding-left: 45px;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: none;
+}
+
+.login-input :deep(.el-input__wrapper:hover) {
+  box-shadow: none;
+}
+
+.login-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #409eff inset;
+}
+
+.login-input :deep(.el-input__inner) {
+  height: 45px;
+  line-height: 45px;
+}
+
+.login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-confirm-btn,
+.login-offline-btn {
+  width: 100%;
+  height: 45px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+}
+
+.login-confirm-btn {
+  background-color: #409eff;
+  border-color: #409eff;
+  color: #fff;
+}
+
+.login-confirm-btn:hover {
+  background-color: #66b1ff;
+  border-color: #66b1ff;
+}
+
+.login-offline-btn {
+  background-color: #e6a23c;
+  border-color: #e6a23c;
+  color: #fff;
+}
+
+.login-offline-btn:hover {
+  background-color: #ebb563;
+  border-color: #ebb563;
 }
 </style>

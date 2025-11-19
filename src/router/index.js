@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router"
 
 // 懒加载组件
-const Login = () => import("../views/Login.vue")
 const AllProjects = () => import("../views/AllProjects.vue")
 const RecycleBin = () => import("../views/RecycleBin.vue")
 const CalculationDetail = () => import("../views/CalculationDetail.vue")
@@ -13,15 +12,7 @@ const SitePlan = () => import("../views/SitePlan.vue")
 const routes = [
   {
     path: "/",
-    redirect: "/login",
-  },
-  {
-    path: "/login",
-    name: "Login",
-    component: Login,
-    meta: {
-      title: "用户登录",
-    },
+    redirect: "/all-projects",
   },
   {
     path: "/all-projects",
