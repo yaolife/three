@@ -138,14 +138,17 @@
     <Teleport to="body">
       <el-dialog
         v-model="showLoginDialog"
-        title=""
-        width="650px"
+        width="660px"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
         class="login-dialog"
         align-center
         append-to-body
+        :show-close="true"
       >
+        <template #header>
+          <span class="login-dialog-header-title">光热三维施工仿真软件</span>
+        </template>
         <div class="login-dialog-content">
           <div class="login-title-section">
             <h2 class="login-main-title">光热三维施工仿真软件</h2>
@@ -564,20 +567,45 @@ onMounted(() => {
 
 /* 全局登录弹窗样式 */
 .login-dialog :deep(.el-dialog) {
-  margin: 0;
+  margin: 0 !important;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  padding: 0 !important;
+}
+
+.login-dialog :deep(.el-dialog__wrapper) {
+  padding: 0 !important;
 }
 
 .login-dialog :deep(.el-dialog__header) {
-  padding: 0;
+  padding: 20px 20px 0 20px !important;
   margin-bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: none;
+}
+
+.login-dialog :deep(.el-dialog__headerbtn) {
+  top: 20px;
+  right: 20px;
 }
 
 .login-dialog :deep(.el-dialog__body) {
-  padding: 0;
+  padding: 0 !important;
+}
+
+.login-dialog :deep(.el-dialog__container) {
+  padding: 0 !important;
+}
+
+.login-dialog-header-title {
+  color:  #303030;
+  font-size: 12px;
+  font-weight: 600;
+  flex: 1;
 }
 
 .login-dialog-content {
@@ -585,13 +613,11 @@ onMounted(() => {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-  padding-top: 40px;
-border: 1px solid #C0C0C0;
+  padding: 40px 0 0 0;
   background-image: url('@/images/login_bg.png'), linear-gradient(180deg, #000 0%, #1F415C 69.71%, #000F1B 100%);
   background-size: cover, 100% 100%;
   background-position: center, center;
   background-repeat: no-repeat, no-repeat;
-  border-radius: 8px;
   position: relative;
   overflow: hidden;
 }
@@ -697,6 +723,8 @@ border: 1px solid #C0C0C0;
   width: 30%;
   position: relative;
   z-index: 1;
+  margin-bottom: 0;
+  padding-bottom: 40px;
 }
 
 .login-confirm-btn,
@@ -728,5 +756,12 @@ border: 1px solid #C0C0C0;
 .login-offline-btn:hover {
   background-color: #ebb563;
   border-color: #ebb563;
+}
+.el-dialog__header.show-close{
+  display: flex;
+  align-items: center;
+}
+:deep(.el-dialog__header){
+ padding-bottom: 0;
 }
 </style>
