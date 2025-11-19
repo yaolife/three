@@ -57,20 +57,20 @@
       <!-- 左侧导航菜单 -->
       <div class="left-sidebar">
         <div class="sidebar-header">
-          <div class="project_name">起重机路径列表</div>
+          <div class="project_name">起重机列表</div>
           <span class="add-btn" @click="addCrane">添加</span>
         </div>
         <div class="search-box">
           <el-input
             v-model="searchQuery"
-            placeholder="搜索列表"
+            placeholder="搜索起重机路径名称"
             prefix-icon="Search"
             size="small"
+            clearable
           />
-          <div class="search-btn">搜索</div>
         </div>
 
-        <!-- 起重机路径列表 -->
+        <!-- 起重机列表 -->
         <div class="crane-list">
           <div
             v-for="crane in filteredCranes"
