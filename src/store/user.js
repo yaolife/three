@@ -10,10 +10,11 @@ const userState = reactive({
 })
 
 // 登录方法
-const login = (username) => {
+const login = (username, userNickName = null) => {
   userState.isLoggedIn = true
   userState.userInfo.name = username
-  userState.userInfo.id = 'P100000' // 模拟工号
+  // 如果提供了 userNickName，使用它；否则使用模拟工号
+  userState.userInfo.id = userNickName || 'P100000'
 }
 
 // 登出方法

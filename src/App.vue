@@ -302,9 +302,12 @@ const handleLogin = async () => {
       if (response.data && response.data.token) {
         localStorage.setItem("token", response.data.token);
       }
-      // 设置用户状态
+      // 设置用户状态，使用接口返回的 userNickName 替换模拟工号
       if (response.data) {
-        userStore.login(response.data.userName || loginForm.username);
+        userStore.login(
+          response.data.userName || loginForm.username,
+          response.data.userNickName || null
+        );
       }
       // 清空表单
       loginForm.username = "";

@@ -700,6 +700,7 @@ import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import RecordRTC from "recordrtc";
 import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login } from "@/api/index";
+import userStore from "@/store/user.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -3569,6 +3570,13 @@ const handleLogin = async () => {
       // 保存登录信息
       if (response.data && response.data.token) {
         localStorage.setItem("token", response.data.token);
+      }
+      // 设置用户状态，使用接口返回的 userNickName 替换模拟工号
+      if (response.data) {
+        userStore.login(
+          response.data.userName || loginForm.username,
+          response.data.userNickName || null
+        );
       }
       // 清空表单
       loginForm.username = "";
