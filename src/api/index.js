@@ -550,7 +550,17 @@ export async function exportProject(params){
 export async function login(params){
   return post("/account/user/login", params)
 }
-
+/**
+ * 用户登出接口
+ * *
+ * @param {Object} params - 登出参数对象
+ * @param {string} params.userName - 用户名
+ * @param {string} params.password - 密码
+ * @returns {Promise} - 返回登录操作结果Promise对象，包含token等信息
+ */
+export async function loginOut(params){
+  return post("/account/user/loginOut", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -590,5 +600,6 @@ export default {
   copyProjectItem,
   updateProjectTitle,
   exportProject,
-  login
+  login,
+  loginOut
 }
