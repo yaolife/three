@@ -1,6 +1,24 @@
 const API_BASE_URL = "/server-api"
 
 /**
+ * 获取请求头，包含 token
+ * @returns {Object} - 请求头对象
+ */
+function getHeaders() {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  
+  // 从 localStorage 获取 token
+  const token = localStorage.getItem("token");
+  if (token) {
+    headers["Authorization"] = `${token}`;
+  }
+  
+  return headers;
+}
+
+/**
  * 通用GET请求方法
  * @param {string} url - 接口路径
  * @returns {Promise} - 返回Promise对象
@@ -9,9 +27,7 @@ async function get(url) {
   try {
     const response = await fetch(`${API_BASE_URL}${url}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getHeaders(),
     })
 
     if (!response.ok) {
@@ -36,9 +52,7 @@ async function post(url, data = {}) {
   try {
     const response = await fetch(`${API_BASE_URL}${url}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data),
     })
 
@@ -420,8 +434,16 @@ export async function uploadImage(file, fileName = "image.png") {
     const formData = new FormData();
     formData.append("file", fileToUpload);
     
+    // 获取请求头（不包含 Content-Type，让浏览器自动设置）
+    const headers = {};
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/file/upload/upload`, {
       method: "POST",
+      headers: headers,
       body: formData,
       // 不要手动设置 Content-Type，让浏览器自动设置（包括 boundary）
     });
@@ -484,9 +506,7 @@ export async function exportProject(params){
   try {
     const response = await fetch(`${API_BASE_URL}/projectFlat/exportReport`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getHeaders(),
       body: JSON.stringify(params),
     })
 
