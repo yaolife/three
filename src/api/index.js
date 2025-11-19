@@ -475,6 +475,14 @@ export async function copyProjectItem(params){
 export async function updateProjectTitle(params){
   return post("/projectInfo/updateProjectTitle", params)
 }
+/**
+ * 总平导出报告
+ * @param {string|number} projectId，- 项目ID，
+ * @returns {Promise} - 返回操作结果
+ */
+export async function exportProject(params){
+  return post("/projectFlat/exportReport", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -512,5 +520,6 @@ export default {
   saveGeneralPing,
   getGeneralDetails,
   copyProjectItem,
-  updateProjectTitle
+  updateProjectTitle,
+  exportProject,
 }
