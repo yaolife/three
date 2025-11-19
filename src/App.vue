@@ -81,8 +81,15 @@
             创建项目
           </el-button>
           <div class="search-box">
-            <el-input placeholder="请输入项目标题" prefix-icon="Search" size="large" />
-            <el-button type="default" size="large" style="margin-left: 8px">
+            <el-input 
+              v-model="searchTitle" 
+              placeholder="请输入项目标题" 
+              prefix-icon="Search" 
+              size="large"
+              @keyup.enter="handleSearch"
+              clearable
+            />
+            <el-button type="default" size="large" style="margin-left: 8px" @click="handleSearch">
               搜索
             </el-button>
           </div>
@@ -147,6 +154,9 @@ import userStore from './store/user.js';
 
 const route = useRoute();
 const router = useRouter();
+
+// 搜索关键词
+const searchTitle = ref("");
 
 // 判断是否应该隐藏侧边栏
 const shouldHideSidebar = computed(() => {
@@ -269,6 +279,25 @@ const handleCopy = () => {
     window.copyProjectDirect();
   } else {
     ElMessage.warning('复制功能暂不可用，请刷新页面后重试');
+  }
+};
+
+// 处理搜索按钮点击
+const handleSearch = () => {
+  console.log('搜索按钮被点击，搜索关键词:', searchTitle.value);
+  
+  // 检查当前是否在项目列表页面
+  const projectListPaths = ['/all-projects', '/verification-projects', '/virtual-simulation', '/construction-plans'];
+  if (!projectListPaths.includes(route.path)) {
+    ElMessage.warning('请在项目列表页面使用搜索功能');
+    return;
+  }
+  
+  // 调用 AllProjects 组件的搜索方法
+  if (window.searchProjectDirect) {
+    window.searchProjectDirect(searchTitle.value);
+  } else {
+    ElMessage.warning('搜索功能暂不可用，请刷新页面后重试');
   }
 };
 </script>

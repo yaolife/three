@@ -166,6 +166,8 @@ const createEmptyFormData = () => {
 const projectData = ref([])
 // 选中的项目数据
 const selectedProjects = ref([])
+// 搜索关键词
+const searchTitle = ref("")
 
 // 分页数据
 const currentPage = ref(1)
@@ -233,6 +235,12 @@ onMounted(() => {
     console.log('Direct copy project called');
     return copyProject();
   }
+  
+  // 添加全局搜索方法，方便直接从App.vue调用
+  window.searchProjectDirect = (title) => {
+    console.log('Direct search project called');
+    searchProject(title);
+  }
 })
 
 // 组件卸载时清理事件监听器和状态
@@ -244,6 +252,7 @@ onUnmounted(() => {
   delete window.openProjectDialogDirect;
   delete window.refreshProjectListDirect;
   delete window.copyProjectDirect;
+  delete window.searchProjectDirect;
   // 重置创建项目标志，避免遗留状态导致下次进入页面时误触发
   window.createProjectFlag = false;
 })
@@ -330,6 +339,20 @@ const copyProject = async () => {
   }
 };
 
+// 搜索项目的方法（供外部调用）
+const searchProject = (title = "") => {
+  console.log('搜索项目，关键词:', title);
+  
+  // 设置搜索关键词
+  searchTitle.value = title || "";
+  
+  // 重置当前页为第一页
+  currentPage.value = 1;
+  
+  // 重新加载数据
+  loadProjectData();
+};
+
 // 加载项目数据
 const loadProjectData = async () => {
   try {
@@ -340,6 +363,11 @@ const loadProjectData = async () => {
     
     if (projectTypeFilter.value !== null && projectTypeFilter.value !== undefined) {
       params.projectType = projectTypeFilter.value
+    }
+    
+    // 如果有搜索关键词，添加到参数中
+    if (searchTitle.value && searchTitle.value.trim()) {
+      params.title = searchTitle.value.trim()
     }
     
     const response = await getAllProject(params)
@@ -478,6 +506,8 @@ const resetForm = () => {
 
 watch(projectTypeFilter, () => {
   currentPage.value = 1
+  // 切换项目类型时清空搜索关键词
+  searchTitle.value = ""
   loadProjectData()
   resetForm()
 })
