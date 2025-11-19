@@ -203,7 +203,7 @@ import {
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
-import { login } from './api/index.js';
+import { login, loginOut } from './api/index.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -272,9 +272,19 @@ const handleLoginClick = () => {
   showLoginDialog.value = true;
 };
 
-const handleLogout = () => {
-  userStore.logout();
-  // 不再跳转到登录页面
+const handleLogout = async () => {
+  try {
+    // 调用退出登录接口
+    await loginOut();
+    // 清除本地状态
+    userStore.logout();
+    ElMessage.success("已退出登录");
+  } catch (error) {
+    console.error("退出登录失败:", error);
+    // 即使接口调用失败，也清除本地状态
+    userStore.logout();
+    ElMessage.warning("退出登录失败，已清除本地登录状态");
+  }
 };
 
 // 处理登录
