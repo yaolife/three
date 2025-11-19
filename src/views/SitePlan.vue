@@ -136,7 +136,7 @@
                 :precision="6"
                 :step="0.1"
                 placeholder="X坐标"
-                style="width: 120px"
+                style="width: 160px"
               />
             </div>
             <div class="property-item">
@@ -146,7 +146,7 @@
                 :precision="6"
                 :step="0.1"
                 placeholder="Y坐标"
-                style="width: 120px"
+                style="width: 160px"
               />
             </div>
             <div class="property-item">
@@ -235,7 +235,7 @@
                 :precision="6"
                 :step="0.1"
                 placeholder="X坐标"
-                style="width: 120px"
+                style="width: 160px"
               />
             </div>
             <div class="property-item">
@@ -245,7 +245,7 @@
                 :precision="6"
                 :step="0.1"
                 placeholder="Y坐标"
-                style="width: 120px"
+                style="width: 160px"
               />
             </div>
             
