@@ -467,6 +467,14 @@ export async function getGeneralDetails(projectId) {
 export async function copyProjectItem(params){
   return post("/projectInfo/copyProject", params)
 }
+/**
+ * 修改项目标题
+ * @param {string|number} projectId，title- 项目ID， 新标题
+ * @returns {Promise} - 返回操作结果
+ */
+export async function updateProjectTitle(params){
+  return post("/projectInfo/updateProjectTitle", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -503,5 +511,6 @@ export default {
   uploadImage,
   saveGeneralPing,
   getGeneralDetails,
-  copyProjectItem
+  copyProjectItem,
+  updateProjectTitle
 }
