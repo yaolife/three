@@ -188,7 +188,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from "vue";
+import { ref, computed, reactive, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   FolderOpened,
@@ -279,18 +279,28 @@ const handleLogout = async () => {
     // 清除本地状态
     userStore.logout();
     ElMessage.success("已退出登录");
-    // 跳转到全部项目页面并刷新
+    // 跳转到全部项目页面并清空数据
     router.push('/all-projects').then(() => {
-      triggerRefresh(null);
+      // 使用 nextTick 确保组件已挂载
+      nextTick(() => {
+        if (window.clearProjectListDirect) {
+          window.clearProjectListDirect();
+        }
+      });
     });
   } catch (error) {
     console.error("退出登录失败:", error);
     // 即使接口调用失败，也清除本地状态
     userStore.logout();
     ElMessage.warning("退出登录失败，已清除本地登录状态");
-    // 跳转到全部项目页面并刷新
+    // 跳转到全部项目页面并清空数据
     router.push('/all-projects').then(() => {
-      triggerRefresh(null);
+      // 使用 nextTick 确保组件已挂载
+      nextTick(() => {
+        if (window.clearProjectListDirect) {
+          window.clearProjectListDirect();
+        }
+      });
     });
   }
 };

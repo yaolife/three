@@ -230,6 +230,16 @@ onMounted(() => {
     refreshProjectList(projectType);
   }
   
+  // 添加全局清空数据方法，用于退出登录时清空数据
+  window.clearProjectListDirect = () => {
+    console.log('Direct clear project list called');
+    projectData.value = [];
+    total.value = 0;
+    currentPage.value = 1;
+    selectedProjects.value = [];
+    searchTitle.value = "";
+  }
+  
   // 添加全局复制方法，方便直接从App.vue调用
   window.copyProjectDirect = () => {
     console.log('Direct copy project called');
@@ -253,6 +263,7 @@ onUnmounted(() => {
   delete window.refreshProjectListDirect;
   delete window.copyProjectDirect;
   delete window.searchProjectDirect;
+  delete window.clearProjectListDirect;
   // 重置创建项目标志，避免遗留状态导致下次进入页面时误触发
   window.createProjectFlag = false;
 })
