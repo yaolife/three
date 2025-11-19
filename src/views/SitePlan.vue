@@ -3057,6 +3057,23 @@ const setCranePosition = () => {
         ElMessage.warning("吊装点位的结束日期不能早于开始日期");
         return;
       }
+      
+      // 校验：后面一个点的开始时间要大于等于前面一个点的结束时间
+      if (!isFirstPoint && currentPoints.length > 0) {
+        // 找到前一个吊装点位
+        for (let i = currentPoints.length - 1; i >= 0; i--) {
+          const prevPoint = currentPoints[i];
+          if (prevPoint.type === "lifting" && prevPoint.endTime) {
+            const prevEndTime = new Date(prevPoint.endTime);
+            const currentStartTime = new Date(newPoint.value.startTime);
+            if (currentStartTime < prevEndTime) {
+              ElMessage.warning(`当前点位的开始时间必须大于等于前一个吊装点位的结束时间（${prevPoint.endTime}）`);
+              return;
+            }
+            break;
+          }
+        }
+      }
     }
 
     const xCoord = typeof newPoint.value.x === "number" ? newPoint.value.x : parseFloat(newPoint.value.x) || 112;
@@ -3169,6 +3186,39 @@ const setCranePosition = () => {
       if (updatedPoint.endTime && new Date(updatedPoint.endTime) < new Date(updatedPoint.startTime)) {
         ElMessage.warning("吊装点位的结束日期不能早于开始日期");
         return;
+      }
+      
+      // 校验：后面一个点的开始时间要大于等于前面一个点的结束时间
+      // 检查前一个吊装点位
+      if (editingPointIndex.value > 0) {
+        for (let i = editingPointIndex.value - 1; i >= 0; i--) {
+          const prevPoint = currentPoints[i];
+          if (prevPoint.type === "lifting" && prevPoint.endTime) {
+            const prevEndTime = new Date(prevPoint.endTime);
+            const currentStartTime = new Date(updatedPoint.startTime);
+            if (currentStartTime < prevEndTime) {
+              ElMessage.warning(`当前点位的开始时间必须大于等于前一个吊装点位的结束时间（${prevPoint.endTime}）`);
+              return;
+            }
+            break;
+          }
+        }
+      }
+      
+      // 检查后一个吊装点位
+      if (updatedPoint.endTime && editingPointIndex.value < currentPoints.length - 1) {
+        for (let i = editingPointIndex.value + 1; i < currentPoints.length; i++) {
+          const nextPoint = currentPoints[i];
+          if (nextPoint.type === "lifting" && nextPoint.startTime) {
+            const currentEndTime = new Date(updatedPoint.endTime);
+            const nextStartTime = new Date(nextPoint.startTime);
+            if (nextStartTime < currentEndTime) {
+              ElMessage.warning(`后一个吊装点位的开始时间（${nextPoint.startTime}）必须大于等于当前点位的结束时间`);
+              return;
+            }
+            break;
+          }
+        }
       }
     } else {
       updatedPoint.startTime = null;
