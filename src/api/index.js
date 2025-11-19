@@ -481,7 +481,43 @@ export async function updateProjectTitle(params){
  * @returns {Promise} - 返回操作结果
  */
 export async function exportProject(params){
-  return post("/projectFlat/exportReport", params)
+  try {
+    const response = await fetch(`${API_BASE_URL}/projectFlat/exportReport`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    // 检查响应类型，如果是文件类型（Word/PDF），返回 blob
+    const contentType = response.headers.get("content-type") || ""
+    if (contentType.includes("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
+        contentType.includes("application/msword") ||
+        contentType.includes("application/pdf") ||
+        contentType.includes("application/octet-stream")) {
+      const blob = await response.blob()
+      // 根据 content-type 判断文件类型
+      let fileType = 'docx'
+      if (contentType.includes("application/pdf")) {
+        fileType = 'pdf'
+      } else if (contentType.includes("application/msword")) {
+        fileType = 'doc'
+      }
+      return { blob, type: fileType }
+    }
+
+    // 否则返回 JSON
+    const result = await response.json()
+    return result
+  } catch (error) {
+    console.error("导出报告失败:", error)
+    throw error
+  }
 }
 export default {
   getLiftingInfoPage,

@@ -24,7 +24,7 @@
               style="width: 20px; height: 20px; margin-right: 5px"
             /><span>保存</span>
           </div>
-          <div class="handle_btn_item">
+          <div class="handle_btn_item" @click="handleGenerateReport">
             <img
               src="@/images/report.png"
               alt="生成报告"
@@ -644,7 +644,7 @@ import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import RecordRTC from "recordrtc";
-import { uploadImage, saveGeneralPing, getGeneralDetails } from "@/api/index";
+import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject } from "@/api/index";
 
 const route = useRoute();
 const router = useRouter();
@@ -3435,6 +3435,42 @@ const setCranePosition = () => {
 
   // 处理返回按钮点击
   // 保存总平规划数据
+// 生成报告
+const handleGenerateReport = async () => {
+  if (!projectId.value) {
+    ElMessage.warning("项目ID不存在");
+    return;
+  }
+
+  try {
+    ElMessage.info("正在生成报告，请稍候...");
+    const response = await exportProject({ projectId: projectId.value });
+    
+    // 如果返回的是文件 blob（Word 或 PDF）
+    if (response && response.blob && (response.type === 'docx' || response.type === 'doc' || response.type === 'pdf')) {
+      // 创建下载链接
+      const url = window.URL.createObjectURL(response.blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fileExtension = response.type === 'pdf' ? 'pdf' : (response.type === 'doc' ? 'doc' : 'docx');
+      link.download = `项目报告_${projectId.value}_${Date.now()}.${fileExtension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      ElMessage.success("报告生成成功");
+    } else if (response && response.code === "0") {
+      // 如果接口返回的是 JSON，可能包含下载链接或其他信息
+      ElMessage.success(response.msg || "报告生成成功");
+    } else {
+      ElMessage.error(response?.msg || "报告生成失败");
+    }
+  } catch (error) {
+    console.error("生成报告失败:", error);
+    ElMessage.error("生成报告失败，请稍后重试");
+  }
+};
+
 const handleSave = async () => {
   if (!projectId.value) {
     ElMessage.warning("项目ID不存在");
