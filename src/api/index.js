@@ -553,7 +553,6 @@ export async function login(params){
 /**
  * 用户登出接口
  * *
- * @param {Object} params - 登出参数对象
  * @returns {Promise} - 返回登录操作结果Promise对象，包含token等信息
  */
 export async function loginOut(){
