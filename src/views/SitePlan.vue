@@ -664,7 +664,7 @@ const fileInput = ref(null);
 const cranes = ref([]);
 const selectedCrane = ref(null);
 const searchQuery = ref("");
-const craneCounter = ref(1); // 用于生成起重机名称，从2开始编号
+const craneCounter = ref(0); // 用于生成起重机名称，从1开始编号
 
 // 绘制工具栏相关状态
 const drawingToolOptions = [
@@ -2862,10 +2862,20 @@ const filteredCranes = computed(() => {
 
 // 添加起重机
 const addCrane = () => {
-  craneCounter.value++;
+  let nextNumber = 1;
+  
+  // 如果已有起重机，从最后一个起重机的名称中提取数字并加1
+  if (cranes.value.length > 0) {
+    const lastCrane = cranes.value[cranes.value.length - 1];
+    const match = lastCrane.name.match(/起重机(\d+)/);
+    if (match && match[1]) {
+      nextNumber = parseInt(match[1], 10) + 1;
+    }
+  }
+  
   const newCrane = {
     id: Date.now(),
-    name: `起重机${craneCounter.value}`,
+    name: `起重机${nextNumber}`,
     type: "xxx履带式起重机",
     color: "#26256B",
     width: 10,
