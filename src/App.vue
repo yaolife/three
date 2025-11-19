@@ -720,7 +720,7 @@ font-weight: 400;
 .login-buttons {
   flex-direction: column;
   gap: 15px;
-  width: 30%;
+  width: 25%;
   position: relative;
   z-index: 1;
   margin-bottom: 0;
@@ -730,6 +730,7 @@ font-weight: 400;
 .login-confirm-btn,
 .login-offline-btn {
   width: 100%;
+  margin-bottom: 10px;
   height: 45px;
   font-size: 16px;
   border-radius: 6px;
