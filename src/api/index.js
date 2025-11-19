@@ -12,7 +12,7 @@ function getHeaders() {
   // 从 localStorage 获取 token
   const token = localStorage.getItem("token");
   if (token) {
-    headers["Authorization"] = `${token}`;
+    headers["token"] = `${token}`;
   }
   
   return headers;
