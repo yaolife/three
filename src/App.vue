@@ -587,8 +587,10 @@ onMounted(() => {
     align-items: center;
   padding-top: 40px;
 border: 1px solid #C0C0C0;
-  background-image: url('@/assets/images/login_bg.png');
-background: linear-gradient(180deg, #000 0%, #1F415C 69.71%, #000F1B 100%);
+  background-image: url('@/images/login_bg.png'), linear-gradient(180deg, #000 0%, #1F415C 69.71%, #000F1B 100%);
+  background-size: cover, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
   border-radius: 8px;
   position: relative;
   overflow: hidden;
