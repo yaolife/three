@@ -139,6 +139,7 @@
       <el-dialog
         v-model="showLoginDialog"
         width="660px"
+        style="padding: 0;"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
         class="login-dialog"
@@ -147,7 +148,7 @@
         :show-close="true"
       >
         <template #header>
-          <span class="login-dialog-header-title">光热三维施工仿真软件</span>
+          <span class="login-dialog-header-title" >光热三维施工仿真软件</span>
         </template>
         <div class="login-dialog-content">
           <img src="@/images/zgh.png" alt="zgh" class="login-logo-img" />
@@ -606,7 +607,6 @@ onMounted(() => {
   color:  #303030;
   font-size: 12px;
   font-weight: 600;
-  flex: 1;
 }
 
 .login-dialog-content {
