@@ -310,7 +310,7 @@ export async function getCraneDataDetail(id) {
 }
 /**
  * 全部项目分页接口
- * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @param {object} params - 分页参数 { pageNum, pageSize,title }
  * @returns {Promise} - 返回分页数据
  */
 export function getAllProject(params) {

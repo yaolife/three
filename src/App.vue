@@ -81,7 +81,7 @@
             创建项目
           </el-button>
           <div class="search-box">
-            <el-input placeholder="搜索" prefix-icon="Search" size="large" />
+            <el-input placeholder="请输入项目标题" prefix-icon="Search" size="large" />
             <el-button type="default" size="large" style="margin-left: 8px">
               搜索
             </el-button>
