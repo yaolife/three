@@ -192,7 +192,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from "vue";
+import { ref, computed, reactive, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   FolderOpened,
@@ -419,6 +419,11 @@ const handleSearch = () => {
     ElMessage.warning('搜索功能暂不可用，请刷新页面后重试');
   }
 };
+
+// 页面加载时恢复用户状态
+onMounted(() => {
+  userStore.restoreUserState();
+});
 </script>
 
 <style scoped>
