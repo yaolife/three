@@ -332,6 +332,7 @@
                 type="primary"
                 @click="handleCompleteDrawing"
                 :disabled="!canCompleteDrawing"
+                :loading="isCompletingDrawing"
               >
                 完成绘制
               </el-button>
@@ -679,6 +680,7 @@ const activePointId = ref(null);
 const activeShapeId = ref(null);
 const isDraggingShape = ref(false);
 const isResizingShape = ref(false);
+const isCompletingDrawing = ref(false);
 const dragContext = reactive({
   type: null,
   shapeId: null,
@@ -1869,11 +1871,13 @@ const handleCompleteDrawing = async () => {
   drawAllTrajectories();
   await nextTick();
 
+  isCompletingDrawing.value = true;
   try {
     // 截取当前选中点位的图片
     const snapshot = capturePointSnapshot(currentPoint);
     if (!snapshot) {
       ElMessage.error("截图失败");
+      isCompletingDrawing.value = false;
       return;
     }
     
@@ -1904,6 +1908,8 @@ const handleCompleteDrawing = async () => {
   } catch (error) {
     console.error("完成绘制失败:", error);
     ElMessage.error("完成绘制失败");
+  } finally {
+    isCompletingDrawing.value = false;
   }
 };
 
