@@ -591,7 +591,7 @@ onMounted(() => {
 }
 
 .login-dialog :deep(.el-dialog__headerbtn) {
-  top: 20px;
+  top: 10px;
   right: 20px;
 }
 
@@ -607,6 +607,9 @@ onMounted(() => {
   color:  #303030;
   font-size: 12px;
   font-weight: 600;
+  margin-left: 16px;
+  position: relative;
+  top: 10px;
 }
 
 .login-dialog-content {
