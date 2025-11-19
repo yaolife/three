@@ -150,6 +150,7 @@
           <span class="login-dialog-header-title">光热三维施工仿真软件</span>
         </template>
         <div class="login-dialog-content">
+          <img src="@/images/zgh.png" alt="zgh" class="login-logo-img" />
           <div class="login-title-section">
             <h2 class="login-main-title">光热三维施工仿真软件</h2>
             <p class="login-sub-title">用户登录</p>
@@ -620,6 +621,16 @@ onMounted(() => {
   background-repeat: no-repeat, no-repeat;
   position: relative;
   overflow: hidden;
+}
+
+.login-logo-img {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+  max-width: 145px;
+  max-height: 60px;
+  object-fit: contain;
 }
 
 /* 背景装饰 - 起重机轮廓 */
