@@ -554,12 +554,10 @@ export async function login(params){
  * 用户登出接口
  * *
  * @param {Object} params - 登出参数对象
- * @param {string} params.userName - 用户名
- * @param {string} params.password - 密码
  * @returns {Promise} - 返回登录操作结果Promise对象，包含token等信息
  */
-export async function loginOut(params){
-  return post("/account/user/loginOut", params)
+export async function loginOut(){
+  return post("/account/user/loginOut")
 }
 export default {
   getLiftingInfoPage,
