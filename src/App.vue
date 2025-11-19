@@ -279,11 +279,19 @@ const handleLogout = async () => {
     // 清除本地状态
     userStore.logout();
     ElMessage.success("已退出登录");
+    // 跳转到全部项目页面并刷新
+    router.push('/all-projects').then(() => {
+      triggerRefresh(null);
+    });
   } catch (error) {
     console.error("退出登录失败:", error);
     // 即使接口调用失败，也清除本地状态
     userStore.logout();
     ElMessage.warning("退出登录失败，已清除本地登录状态");
+    // 跳转到全部项目页面并刷新
+    router.push('/all-projects').then(() => {
+      triggerRefresh(null);
+    });
   }
 };
 
@@ -318,6 +326,10 @@ const handleLogin = async () => {
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
+      // 跳转到全部项目页面并刷新
+      router.push('/all-projects').then(() => {
+        triggerRefresh(null);
+      });
     } else {
       ElMessage.error(response?.msg || "登录失败，请检查用户名和密码");
     }
