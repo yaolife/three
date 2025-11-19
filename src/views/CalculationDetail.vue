@@ -3359,6 +3359,7 @@ import {
   getCalculateHeightOrAngle,
   saveProjectDetail,
   getProjectAllDetail,
+  updateProjectTitle,
 } from "@/api/index.js";
 import {  getBoomType, craneType} from "@/utils/common.js";
 
@@ -4662,11 +4663,36 @@ const openEditTitleDialog = () => {
 };
 
 // 确认修改标题
-const confirmEditTitle = () => {
-  if (newTitle.value.trim()) {
-    projectTitle.value = newTitle.value.trim();
+const confirmEditTitle = async () => {
+  if (!newTitle.value.trim()) {
+    ElMessage.warning('请输入项目标题');
+    return;
   }
-  editTitleDialogVisible.value = false;
+  
+  const title = newTitle.value.trim();
+  const id = projectId.value;
+  
+  if (!id) {
+    ElMessage.error('项目ID不存在，无法更新标题');
+    return;
+  }
+  
+  try {
+    console.log('调用 updateProjectTitle 接口，参数:', { projectId: id, title });
+    const response = await updateProjectTitle({ projectId: id, title });
+    console.log('updateProjectTitle 接口返回:', response);
+    
+    if (response.code === '0') {
+      projectTitle.value = title;
+      ElMessage.success('项目标题修改成功');
+      editTitleDialogVisible.value = false;
+    } else {
+      ElMessage.error(response.msg || '修改失败');
+    }
+  } catch (error) {
+    console.error('修改项目标题失败:', error);
+    ElMessage.error('修改项目标题失败');
+  }
 };
 
 // 取消修改标题
