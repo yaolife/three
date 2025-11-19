@@ -139,7 +139,7 @@
       <el-dialog
         v-model="showLoginDialog"
         title=""
-        width="450px"
+        width="650px"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
         class="login-dialog"
@@ -581,8 +581,14 @@ onMounted(() => {
 }
 
 .login-dialog-content {
-  padding: 40px 50px;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  padding-top: 40px;
+border: 1px solid #C0C0C0;
+  background-image: url('@/assets/images/login_bg.png');
+background: linear-gradient(180deg, #000 0%, #1F415C 69.71%, #000F1B 100%);
   border-radius: 8px;
   position: relative;
   overflow: hidden;
@@ -596,7 +602,7 @@ onMounted(() => {
   left: -50px;
   width: 200px;
   height: 200px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M20 80 L30 60 L40 60 L40 40 L50 40 L50 20 L60 20 L60 40 L70 40 L70 60 L80 60 L80 80 Z' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
+
   opacity: 0.3;
   pointer-events: none;
 }
@@ -608,7 +614,6 @@ onMounted(() => {
   right: -50px;
   width: 200px;
   height: 300px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Cpath d='M50 10 L50 30 L60 30 L60 50 L70 50 L70 70 L60 70 L60 90 L50 90 L50 110 L40 110 L40 90 L30 90 L30 70 L20 70 L20 50 L30 50 L30 30 L40 30 L40 10 Z' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
   opacity: 0.3;
   pointer-events: none;
 }
@@ -643,6 +648,7 @@ onMounted(() => {
 }
 
 .login-form {
+  width: 50%;
   margin-bottom: 30px;
   position: relative;
   z-index: 1;
@@ -684,9 +690,9 @@ onMounted(() => {
 }
 
 .login-buttons {
-  display: flex;
   flex-direction: column;
   gap: 15px;
+  width: 30%;
   position: relative;
   z-index: 1;
 }
