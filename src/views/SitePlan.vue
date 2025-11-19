@@ -191,7 +191,7 @@
                   format="YYYY-MM-DD"
                 />
               </div>
-              <div class="property-item" v-if="!isAddingStartPoint">
+              <div class="property-item">
                 <label>结束日期</label>
                 <el-date-picker
                   v-model="newPoint.endTime"
@@ -277,7 +277,7 @@
                   format="YYYY-MM-DD"
                 />
               </div>
-              <div class="property-item" v-if="!isEditingStartPoint">
+              <div class="property-item">
                 <label>结束日期</label>
                 <el-date-picker
                   v-model="editingPoint.endTime"
@@ -898,7 +898,7 @@ const applyStartFlags = (points = []) => {
 
     if (point.isStart) {
       point.type = "lifting";
-      point.endTime = null;
+      // 起点也可以有结束时间，不再强制设置为null
       point.name = "起点1";
     }
 
@@ -3048,11 +3048,12 @@ const setCranePosition = () => {
         ElMessage.warning("请填写吊装点位的开始日期");
         return;
       }
-      if (!isFirstPoint && !isValidDateDay(newPoint.value.endTime)) {
-        ElMessage.warning("请填写吊装点位的结束日期");
+      // 起点也可以设置结束日期
+      if (newPoint.value.endTime && !isValidDateDay(newPoint.value.endTime)) {
+        ElMessage.warning("请填写正确的结束日期");
         return;
       }
-      if (!isFirstPoint && new Date(newPoint.value.endTime) < new Date(newPoint.value.startTime)) {
+      if (newPoint.value.endTime && new Date(newPoint.value.endTime) < new Date(newPoint.value.startTime)) {
         ElMessage.warning("吊装点位的结束日期不能早于开始日期");
         return;
       }
@@ -3070,7 +3071,7 @@ const setCranePosition = () => {
       type: pointType,
       isStart: isFirstPoint,
       startTime: pointType === "lifting" ? newPoint.value.startTime : null,
-      endTime: !isFirstPoint && pointType === "lifting" ? newPoint.value.endTime : null,
+      endTime: pointType === "lifting" ? newPoint.value.endTime : null,
       name: getNextPointName(pointType, currentPoints, isFirstPoint),
     };
 
@@ -3135,7 +3136,7 @@ const setCranePosition = () => {
       isStart,
       type: isStart ? "lifting" : point.type,
       startTime: point.startTime ? String(point.startTime) : null,
-      endTime: isStart ? null : point.endTime ? String(point.endTime) : null,
+      endTime: point.endTime ? String(point.endTime) : null,
     };
     // 打开编辑弹窗
     editPointDialogVisible.value = true;
@@ -3160,11 +3161,12 @@ const setCranePosition = () => {
         ElMessage.warning("请填写吊装点位的开始日期");
         return;
       }
-      if (!isStart && !isValidDateDay(updatedPoint.endTime)) {
-        ElMessage.warning("请填写吊装点位的结束日期");
+      // 起点也可以设置结束日期
+      if (updatedPoint.endTime && !isValidDateDay(updatedPoint.endTime)) {
+        ElMessage.warning("请填写正确的结束日期");
         return;
       }
-      if (!isStart && new Date(updatedPoint.endTime) < new Date(updatedPoint.startTime)) {
+      if (updatedPoint.endTime && new Date(updatedPoint.endTime) < new Date(updatedPoint.startTime)) {
         ElMessage.warning("吊装点位的结束日期不能早于开始日期");
         return;
       }
@@ -4080,7 +4082,10 @@ const handleBack = () => {
       const startPoint = startItem.point;
       const endPoint = endItem.point;
 
-      const startDate = parseDateValue(startPoint.startTime);
+      // 如果起点有结束时间，行驶时间从起点的结束时间开始计算；否则从起点的开始时间计算
+      const startDate = (startItem.idx === 0 && startPoint.endTime) 
+        ? parseDateValue(startPoint.endTime) 
+        : parseDateValue(startPoint.startTime);
       const endDate = parseDateValue(endPoint.startTime);
       let travelDays = Math.max(0, diffDays(startDate, endDate));
       if (travelDays <= 0) travelDays = 1;
