@@ -445,6 +445,9 @@ const craneSpecs = ref({
   totalBoomMaxLength: "",
 });
 
+// 保存从接口返回的 sysProjectTemplateCraneDetail.id
+const sysProjectTemplateCraneDetailId = ref(null);
+
 // 表格数据
 const mainBoomTableData = ref([]);
 const auxBoomTableData = ref([]);
@@ -512,6 +515,10 @@ onMounted(async () => {
         // 填充规格参数（从sysProjectTemplateCraneDetail中获取）
         if (data.sysProjectTemplateCraneDetail) {
           const detailData = data.sysProjectTemplateCraneDetail;
+          // 保存 id
+          if (detailData.id !== undefined && detailData.id !== null) {
+            sysProjectTemplateCraneDetailId.value = detailData.id;
+          }
           Object.keys(craneSpecs.value).forEach(key => {
             if (detailData[key] !== undefined) {
               craneSpecs.value[key] = detailData[key];
@@ -681,9 +688,17 @@ const handleConfirm = async () => {
     }));
 
     // 构造新的请求参数格式
+    const sysProjectTemplateCraneDetailData = {
+      ...craneSpecs.value
+    };
+    // 如果有从接口获取的 id，则添加到 sysProjectTemplateCraneDetail 对象中
+    if (sysProjectTemplateCraneDetailId.value !== null && sysProjectTemplateCraneDetailId.value !== undefined) {
+      sysProjectTemplateCraneDetailData.id = sysProjectTemplateCraneDetailId.value;
+    }
+    
     const requestParams = {
       craneInfoId: id,
-      sysProjectTemplateCraneDetail: craneSpecs.value,
+      sysProjectTemplateCraneDetail: sysProjectTemplateCraneDetailData,
       performanceInfoAddUpdateList: [
         {
           craneType: craneType, // 起重机类型，引用common.js里的craneType
