@@ -310,7 +310,7 @@ const copyProject = async () => {
   
   try {
     console.log('复制项目，项目ID:', selectedProject.id);
-    const response = await copyProjectItem(selectedProject.id);
+    const response = await copyProjectItem({ projectId: selectedProject.id });
     
     if (response.code === '0') {
       ElMessage.success('复制成功');
