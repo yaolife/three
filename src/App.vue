@@ -154,7 +154,7 @@
             <h2 class="login-main-title">光热三维施工仿真软件</h2>
             <p class="login-sub-title">用户登录</p>
           </div>
-          <p class="login-prompt-text">请输入您的用户名和密码</p>
+          <span class="login-prompt-text">请输入您的用户名和密码</span>
           <div class="login-form">
             <div class="login-input-wrapper">
               <el-icon class="input-icon"><User /></el-icon>
@@ -667,12 +667,12 @@ onMounted(() => {
 }
 
 .login-prompt-text {
-  color: #fff;
+  color: rgba(255, 255, 255, 0.70);
+font-weight: 400;
   font-size: 14px;
-  text-align: center;
-  margin-bottom: 30px;
+ width: 50%;
   position: relative;
-  z-index: 1;
+  z-index: 1; 
 }
 
 .login-form {
