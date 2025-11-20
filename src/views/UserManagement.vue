@@ -520,18 +520,18 @@ onMounted(() => {
 :deep(.user-dialog .el-dialog__header) {
   padding: 20px 24px;
   border-bottom: 1px solid #ebeef5;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color:#000;
   margin: 0;
 }
 
 :deep(.user-dialog .el-dialog__title) {
-  color: #fff;
+  color: #000;
   font-size: 18px;
   font-weight: 600;
 }
 
 :deep(.user-dialog .el-dialog__headerbtn .el-dialog__close) {
-  color: #fff;
+  color: #000;
   font-size: 20px;
 }
 
