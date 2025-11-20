@@ -55,14 +55,12 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="state" label="状态" width="120" align="center">
+          <el-table-column prop="state" label="状态" width="80" align="center">
             <template #default="scope">
               <el-switch
                 v-model="scope.row.state"
                 :active-value="0"
                 :inactive-value="1"
-                active-text="正常"
-                inactive-text="禁用"
                 @change="handleStatusChange(scope.row)"
               />
             </template>
