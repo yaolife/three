@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from "vue-router"
 
 // 懒加载组件
 const AllProjects = () => import("../views/AllProjects.vue")
-const RecycleBin = () => import("../views/RecycleBin.vue")
 const CalculationDetail = () => import("../views/CalculationDetail.vue")
 const DataManagement = () => import("../views/DataManagement.vue")
 const RiggingDetail = () => import("../views/RiggingDetail.vue")
@@ -81,14 +80,6 @@ const routes = [
     component: CraneDetail,
     meta: {
       title: "起重机详情",
-    },
-  },
-  {
-    path: "/recycle-bin",
-    name: "RecycleBin",
-    component: RecycleBin,
-    meta: {
-      title: "回收站",
     },
   },
   {

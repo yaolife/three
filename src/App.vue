@@ -63,10 +63,6 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>数据管理</span>
         </el-menu-item>
-        <el-menu-item index="/recycle-bin">
-          <el-icon><Delete /></el-icon>
-          <span>回收站</span>
-        </el-menu-item>
       </el-menu>
     </el-aside>
     
@@ -199,7 +195,6 @@ import {
   FolderOpened,
   VideoPlay,
   Document,
-  Delete,
   Plus,
   Search,
   DataAnalysis,
