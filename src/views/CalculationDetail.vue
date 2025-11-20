@@ -764,7 +764,7 @@
                 <div class="form-row">
                   <label class="form-label">设备型号</label>
                   <el-input
-                    v-model="activeSlingData.equipmentModel"
+                    v-model="commonDeviceSettings.equipmentModel"
                     placeholder="请输入设备型号"
                   />
                 </div>
@@ -774,21 +774,21 @@
                 <label class="form-label">设备重量<span>(G)</span></label>
                 <div class="input-with-unit">
                   <el-input-number
-                    v-model="activeSlingData.equipmentWeight"
+                    v-model="commonDeviceSettings.equipmentWeight"
                     controls-position="right"
                     :precision="2"
                   />
                   <span class="unit">t</span>
                 </div>
-                <el-radio-group v-model="activeSlingData.liftingType">
+                <el-radio-group v-model="commonDeviceSettings.liftingType">
                   <el-radio value="noBeam">无吊梁</el-radio>
                   <el-radio value="withBeam">有吊梁</el-radio>
                 </el-radio-group>
                 <el-checkbox
-                  v-model="activeSlingData.isSinglePointLifting"
+                  v-model="commonDeviceSettings.isSinglePointLifting"
                   style="margin-left: 20px"
                   @change="handleSinglePointLiftingChange"
-                  v-if="activeSlingData.liftingType !== 'withBeam'"
+                  v-if="commonDeviceSettings.liftingType !== 'withBeam'"
                 >
                   是否单点吊装
                 </el-checkbox>
@@ -797,14 +797,14 @@
               <!-- 有吊梁情况下显示平衡梁参数 -->
               <div
                 class="form-row"
-                v-if="activeSlingData.liftingType === 'withBeam'"
+                v-if="commonDeviceSettings.liftingType === 'withBeam'"
                 style="display: flex; gap: 20px"
               >
                 <div style="display: flex; align-items: center">
                   <label class="form-label">平衡梁重量<span>G1</span></label>
                   <div class="input-with-unit">
                     <el-input-number
-                      v-model="activeSlingData.beamWeight"
+                      v-model="commonDeviceSettings.beamWeight"
                       controls-position="right"
                       :precision="2"
                     />
@@ -818,7 +818,7 @@
                   <label class="form-label">平衡梁长度</label>
                   <div class="input-with-unit">
                     <el-input-number
-                      v-model="activeSlingData.beamLength"
+                      v-model="commonDeviceSettings.beamLength"
                       controls-position="right"
                       :precision="2"
                     />
@@ -832,7 +832,7 @@
                   >
                   <div class="input-with-unit">
                     <el-input-number
-                      v-model="activeSlingData.beamSlingWeight"
+                      v-model="commonDeviceSettings.beamSlingWeight"
                       controls-position="right"
                       :precision="2"
                     />
@@ -3440,16 +3440,17 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
     if (response.code === '0' && response.data) {
       const deviceData = response.data;
       if (isSlingTab) {
-        // 吊索具tab回显
-        activeSlingData.value.equipmentName = deviceData.deviceName ?? null;
-        activeSlingData.value.equipmentModel = deviceData.deviceType ?? null;
-        activeSlingData.value.manufacturer2 = deviceData.prodBusiness ?? null;
-        activeSlingData.value.templateDeviceId =
+        // 吊索具tab回显 - 更新共用设备设置
+        commonDeviceSettings.value.deviceName = deviceData.deviceName ?? null;
+        commonDeviceSettings.value.equipmentModel = deviceData.deviceType ?? null;
+        commonDeviceSettings.value.templateDeviceId =
           deviceId !== undefined && deviceId !== null ? deviceId : null;
         // 如果设备重量有值，也进行回显
         if (deviceData.weight) {
-          activeSlingData.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
+          commonDeviceSettings.value.equipmentWeight = parseFloat(deviceData.weight) || 0;
         }
+        // 同步到 selectedSlingDeviceId
+        selectedSlingDeviceId.value = commonDeviceSettings.value.templateDeviceId;
       } else if (isCrane2) {
         // 起重机2参数tab回显
         formData.value.equipmentName2 = deviceData.deviceName ?? null;
@@ -3475,12 +3476,12 @@ const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
   } else {
     // 当清空设备名称时，清除相应的回显信息
     if (isSlingTab) {
-      // 清除吊索具tab回显信息
-      activeSlingData.value.equipmentName = null;
-      activeSlingData.value.equipmentModel = null;
-      activeSlingData.value.manufacturer2 = null;
-      activeSlingData.value.equipmentWeight = 0;
-      activeSlingData.value.templateDeviceId = null;
+      // 清除吊索具tab回显信息 - 清除共用设备设置
+      commonDeviceSettings.value.deviceName = null;
+      commonDeviceSettings.value.equipmentModel = null;
+      commonDeviceSettings.value.equipmentWeight = 0;
+      commonDeviceSettings.value.templateDeviceId = null;
+      selectedSlingDeviceId.value = null;
     } else if (isCrane2) {
       // 清除起重机2参数tab回显信息
       formData.value.equipmentName2 = null;
@@ -3951,9 +3952,22 @@ const activeSlingData = computed(() => {
   return liftingFormDatas.value[activeSlingIndex.value];
 });
 
+// 共用的设备设置数据（所有吊索具共享）
+const commonDeviceSettings = ref({
+  templateDeviceId: null,
+  deviceName: null,
+  equipmentModel: null,
+  equipmentWeight: 0,
+  liftingType: "noBeam",
+  beamWeight: 0,
+  beamLength: 0,
+  beamSlingWeight: 0,
+  isSinglePointLifting: false,
+});
+
 const lowerPointCountOptions = computed(() => {
   // 如果有吊梁，去掉1，最小值为2
-  if (activeSlingData.value?.liftingType === 'withBeam') {
+  if (commonDeviceSettings.value?.liftingType === 'withBeam') {
     return [2, 3, 4, 6, 8];
   }
   // 无吊梁时，包含所有选项
@@ -3976,20 +3990,20 @@ const bottomDistanceFields = computed(() => {
 });
 
 watch(activeSlingIndex, (newIndex) => {
+  // 切换吊索具时，不再更新设备设置（因为设备设置是共用的）
+  // 只更新 selectedSlingDeviceId 用于显示
   const current = liftingFormDatas.value[newIndex];
   if (current) {
-    selectedSlingDeviceId.value =
-      current.templateDeviceId !== undefined && current.templateDeviceId !== null
-        ? current.templateDeviceId
-        : null;
+    // 设备设置是共用的，所以这里不需要更新
+    // selectedSlingDeviceId 应该始终显示共用设备设置的设备ID
+    selectedSlingDeviceId.value = commonDeviceSettings.value.templateDeviceId;
   }
 });
 
 watch(selectedSlingDeviceId, (newValue) => {
-  if (activeSlingData.value) {
-    activeSlingData.value.templateDeviceId =
-      newValue !== undefined && newValue !== null ? newValue : null;
-  }
+  // 更新共用设备设置的设备ID
+  commonDeviceSettings.value.templateDeviceId =
+    newValue !== undefined && newValue !== null ? newValue : null;
 });
 
 watch(
@@ -5773,10 +5787,22 @@ const populateLiftingDetails = (details = []) => {
     id: index + 1,
   }));
   activeSlingIndex.value = 0;
-  selectedSlingDeviceId.value =
-    mapped[0]?.templateDeviceId !== undefined && mapped[0]?.templateDeviceId !== null
-      ? mapped[0]?.templateDeviceId
-      : null;
+  
+  // 初始化共用设备设置（从第一个吊索具获取）
+  if (mapped.length > 0) {
+    const firstSling = mapped[0];
+    commonDeviceSettings.value.templateDeviceId = firstSling.templateDeviceId ?? null;
+    commonDeviceSettings.value.deviceName = firstSling.deviceName ?? null;
+    commonDeviceSettings.value.equipmentModel = firstSling.equipmentModel ?? null;
+    commonDeviceSettings.value.equipmentWeight = firstSling.equipmentWeight ?? 0;
+    commonDeviceSettings.value.liftingType = firstSling.liftingType === "withBeam" ? "withBeam" : "noBeam";
+    commonDeviceSettings.value.beamWeight = firstSling.beamWeight ?? 0;
+    commonDeviceSettings.value.beamLength = firstSling.beamLength ?? 0;
+    commonDeviceSettings.value.beamSlingWeight = firstSling.beamSlingWeight ?? 0;
+    commonDeviceSettings.value.isSinglePointLifting = firstSling.isSinglePointLifting ?? false;
+  }
+  
+  selectedSlingDeviceId.value = commonDeviceSettings.value.templateDeviceId;
 };
 
 const bearingTypeReverseMap = {
@@ -5981,24 +6007,32 @@ const buildCraneDetails = () => {
   return details;
 };
 
-const buildLiftingDetails = () =>
-  liftingFormDatas.value.map((sling, index) => ({
+const buildLiftingDetails = () => {
+  if (liftingFormDatas.value.length === 0) {
+    return [];
+  }
+  
+  // 使用共用的设备设置信息
+  const deviceSettings = commonDeviceSettings.value;
+  
+  // 为每个吊索具构建数据，使用共用的设备设置信息
+  return liftingFormDatas.value.map((sling, index) => ({
     projectId: toNullableString(projectId.value),
-    templateDeviceId: toNullableString(sling.templateDeviceId),
+    templateDeviceId: toNullableString(deviceSettings.templateDeviceId),
     templateCraneLiftingDetailId: toNullableString(
       sling.templateCraneLiftingDetailId
     ),
     liftingPosition: sling.isBottomSling ? 1 : 0,
-    type: sling.liftingType === "withBeam" ? 1 : 0,
+    type: deviceSettings.liftingType === "withBeam" ? 1 : 0,
     itemIndex: index + 1,
-    deviceName: toNullableString(sling.deviceName),
+    deviceName: toNullableString(deviceSettings.deviceName),
     deviceCode: toNullableString(sling.equipmentNumber),
-    deviceModel: toNullableString(sling.equipmentModel),
-    deviceWeight: toNumberOrNull(sling.equipmentWeight),
-    beamWeight: toNumberOrNull(sling.beamWeight),
-    beamLength: toNumberOrNull(sling.beamLength),
-    utensilWeight: toNumberOrNull(sling.beamSlingWeight),
-    liftingName: toNullableString(sling.deviceName),
+    deviceModel: toNullableString(deviceSettings.equipmentModel),
+    deviceWeight: toNumberOrNull(deviceSettings.equipmentWeight),
+    beamWeight: toNumberOrNull(deviceSettings.beamWeight),
+    beamLength: toNumberOrNull(deviceSettings.beamLength),
+    utensilWeight: toNumberOrNull(deviceSettings.beamSlingWeight),
+    liftingName: toNullableString(deviceSettings.deviceName),
     liftingType: toNumberOrNull(sling.slingType),
     prodBusiness: toNullableString(sling.manufacturer),
     normsModel: toNullableString(sling.productModel),
@@ -6034,6 +6068,7 @@ const buildLiftingDetails = () =>
       normalizeFactorItems(sling.liftingSystemItems || [])
     ),
   }));
+};
 
 const buildBearingDetail = () => {
   const bearingTypeMap = {
