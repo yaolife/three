@@ -65,8 +65,7 @@
               />
             </template>
           </el-table-column>
-          <el-table-column prop="ip" label="IP地址" min-width="150" />
-          <el-table-column prop="createBy" label="创建人" width="120" />
+          <el-table-column prop="ip" label="IP地址" min-width="120" />
           <el-table-column prop="createName" label="创建人名称" width="120" />
           <el-table-column prop="createTime" label="创建时间" width="180" />
           <el-table-column label="操作" width="200" fixed="right" align="center">
