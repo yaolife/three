@@ -127,6 +127,7 @@
           <el-input
             v-model="formData.userName"
             placeholder="请输入用户名"
+            :disabled="isEdit"
             clearable
           />
         </el-form-item>
