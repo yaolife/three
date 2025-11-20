@@ -107,13 +107,17 @@
       width="600px"
       :close-on-click-modal="false"
       class="user-dialog"
+      @close="handleDialogClose"
+      @opened="handleDialogOpened"
     >
       <el-form
+        v-if="dialogVisible"
         ref="formRef"
         :model="formData"
         :rules="formRules"
         label-width="100px"
         label-position="right"
+        :validate-on-rule-change="false"
       >
         <el-form-item label="用户昵称" prop="userNickName">
           <el-input
@@ -183,7 +187,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getUserInfoPage, addUserInfo, updateUserInfo, deleteUser, updateUserState } from "@/api/index.js";
@@ -361,24 +365,46 @@ const handlePageChange = (page) => {
 
 // 新增用户
 const handleAdd = () => {
+  // 先清除验证状态
+  if (formRef.value) {
+    formRef.value.clearValidate();
+  }
   isEdit.value = false;
   dialogTitle.value = "新增用户";
-  dialogVisible.value = true;
   resetForm();
+  dialogVisible.value = true;
+  // 使用 nextTick 确保 DOM 更新后再重置表单状态
+  nextTick(() => {
+    if (formRef.value) {
+      formRef.value.resetFields();
+      formRef.value.clearValidate();
+    }
+  });
 };
 
 // 编辑用户
 const handleEdit = (row) => {
+  // 先清除验证状态
+  if (formRef.value) {
+    formRef.value.clearValidate();
+  }
   isEdit.value = true;
   dialogTitle.value = "编辑用户";
   dialogVisible.value = true;
-  formData.id = row.id;
-  formData.userNickName = row.userNickName || "";
-  formData.userName = row.userName || "";
-  formData.password = ""; // 编辑时不显示密码，留空则不修改
-  formData.ip = row.ip || "";
-  formData.level = row.level !== undefined && row.level !== null ? Number(row.level) : 0;
-  formData.state = row.state !== undefined && row.state !== null ? Number(row.state) : 0;
+  // 使用 nextTick 确保 DOM 更新后再设置表单数据
+  nextTick(() => {
+    formData.id = row.id;
+    formData.userNickName = row.userNickName || "";
+    formData.userName = row.userName || "";
+    formData.password = ""; // 编辑时不显示密码，留空则不修改
+    formData.ip = row.ip || "";
+    formData.level = row.level !== undefined && row.level !== null ? Number(row.level) : 0;
+    formData.state = row.state !== undefined && row.state !== null ? Number(row.state) : 0;
+    // 再次清除验证状态，确保不会显示验证错误
+    if (formRef.value) {
+      formRef.value.clearValidate();
+    }
+  });
 };
 
 // 重置表单
@@ -390,9 +416,24 @@ const resetForm = () => {
   formData.ip = "";
   formData.level = 0;
   formData.state = 0;
+};
+
+// 弹窗打开后清除验证状态
+const handleDialogOpened = () => {
+  nextTick(() => {
+    if (formRef.value) {
+      formRef.value.clearValidate();
+    }
+  });
+};
+
+// 弹窗关闭时清除验证状态和重置表单
+const handleDialogClose = () => {
   if (formRef.value) {
+    formRef.value.resetFields();
     formRef.value.clearValidate();
   }
+  resetForm();
 };
 
 // 提交表单
