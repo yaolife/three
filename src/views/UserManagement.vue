@@ -135,11 +135,11 @@
           <el-input
             v-model="formData.password"
             type="password"
-            placeholder="请输入密码（8-16位，包含大小写字母和特殊字符）"
+            :placeholder="isEdit ? '留空则不修改密码' : '请输入密码（8-16位，包含大小写字母和特殊字符）'"
             show-password
             clearable
           />
-          <div class="password-tip">
+          <div class="password-tip" v-if="!isEdit">
             密码要求：8-16位，必须包含大小写字母和至少一个特殊字符
           </div>
         </el-form-item>
@@ -221,34 +221,36 @@ const formData = reactive({
 
 // 密码验证规则
 const validatePassword = (rule, value, callback) => {
-  // 新增和编辑时密码都必填
-  if (!value) {
+  // 新增时密码必填，编辑时密码可选
+  if (!isEdit.value && !value) {
     callback(new Error("请输入密码"));
     return;
   }
-  // 验证密码格式
-  if (value.length < 8) {
-    callback(new Error("密码长度不能少于8位"));
-    return;
-  }
-  if (value.length > 16) {
-    callback(new Error("密码长度不能超过16位"));
-    return;
-  }
-  // 检查是否包含大写字母
-  if (!/[A-Z]/.test(value)) {
-    callback(new Error("密码必须包含至少一个大写字母"));
-    return;
-  }
-  // 检查是否包含小写字母
-  if (!/[a-z]/.test(value)) {
-    callback(new Error("密码必须包含至少一个小写字母"));
-    return;
-  }
-  // 检查是否包含特殊字符
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) {
-    callback(new Error("密码必须包含至少一个特殊字符"));
-    return;
+  // 如果填写了密码，验证密码格式
+  if (value) {
+    if (value.length < 8) {
+      callback(new Error("密码长度不能少于8位"));
+      return;
+    }
+    if (value.length > 16) {
+      callback(new Error("密码长度不能超过16位"));
+      return;
+    }
+    // 检查是否包含大写字母
+    if (!/[A-Z]/.test(value)) {
+      callback(new Error("密码必须包含至少一个大写字母"));
+      return;
+    }
+    // 检查是否包含小写字母
+    if (!/[a-z]/.test(value)) {
+      callback(new Error("密码必须包含至少一个小写字母"));
+      return;
+    }
+    // 检查是否包含特殊字符
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) {
+      callback(new Error("密码必须包含至少一个特殊字符"));
+      return;
+    }
   }
   callback();
 };
@@ -272,8 +274,8 @@ const formRules = computed(() => ({
     { required: true, message: "请输入用户名", trigger: "blur" },
   ],
   password: [
-    // 新增和编辑时密码都必填
-    { required: true, message: "请输入密码", trigger: "blur" },
+    // 新增时密码必填，编辑时密码可选
+    ...(isEdit.value ? [] : [{ required: true, message: "请输入密码", trigger: "blur" }]),
     { validator: validatePassword, trigger: "blur" },
   ],
   ip: [
