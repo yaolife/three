@@ -10,7 +10,7 @@
             class="logo"
             :fit="'cover'"
           />
-          <span class="logo-text">{{ userStore.userState.userInfo.name }}[{{ userStore.userState.userInfo.id }}]</span>
+          <span class="logo-text">{{ userStore.userState.userInfo.id }}[{{ userStore.userState.userInfo.name }}]</span>
           <el-dropdown @command="handleCommand">
             <el-image
               src="/src/images/back.png"
