@@ -69,7 +69,7 @@
           <el-table-column prop="createBy" label="创建人" width="120" />
           <el-table-column prop="createName" label="创建人名称" width="120" />
           <el-table-column prop="createTime" label="创建时间" width="180" />
-          <el-table-column label="操作" width="150" fixed="right" align="center">
+          <el-table-column label="操作" width="200" fixed="right" align="center">
             <template #default="scope">
               <el-button
                 type="default"
@@ -77,6 +77,14 @@
                 @click="handleEdit(scope.row)"
               >
                 编辑
+              </el-button>
+              <el-button
+                type="danger"
+                size="small"
+                  style="margin-left: 8px"
+                @click="handleDelete(scope.row)"
+              >
+                删除
               </el-button>
             </template>
           </el-table-column>
@@ -176,8 +184,8 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { Plus } from "@element-plus/icons-vue";
-import { ElMessage } from "element-plus";
-import { getUserInfoPage, addUserInfo, updateUserInfo } from "@/api/index.js";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { getUserInfoPage, addUserInfo, updateUserInfo, deleteUser, updateUserState } from "@/api/index.js";
 
 // 搜索表单
 const searchForm = reactive({
@@ -401,14 +409,10 @@ const handleStatusChange = async (row) => {
   try {
     const params = {
       id: row.id,
-      userNickName: row.userNickName,
-      userName: row.userName,
-      ip: row.ip || "",
-      level: row.level,
       state: Number(row.state), // 确保是数字类型
     };
 
-    const response = await updateUserInfo(params);
+    const response = await updateUserState(params);
 
     if (response && response.code === "0") {
       ElMessage.success("状态更新成功");
@@ -423,6 +427,36 @@ const handleStatusChange = async (row) => {
     row.state = oldState;
     ElMessage.error("状态更新失败，请检查网络连接");
   }
+};
+
+// 删除用户
+const handleDelete = (row) => {
+  ElMessageBox.confirm(
+    `确定要删除用户"${row.userNickName || row.userName}"吗？`,
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  )
+    .then(async () => {
+      try {
+        const response = await deleteUser(row.id);
+        if (response && response.code === "0") {
+          ElMessage.success("删除成功");
+          fetchUserList();
+        } else {
+          ElMessage.error(response?.msg || "删除失败");
+        }
+      } catch (error) {
+        console.error("删除失败:", error);
+        ElMessage.error("删除失败，请检查网络连接");
+      }
+    })
+    .catch(() => {
+      ElMessage.info("已取消删除");
+    });
 };
 
 onMounted(() => {
