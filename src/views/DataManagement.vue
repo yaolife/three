@@ -71,7 +71,8 @@
                     <el-button
                       link
                       type="primary"
-                      size="small"
+                      style="color: white;"
+                      size="large"
                       @click="handleEdit(scope.row, 'crane')"
                     >
                       编辑
@@ -79,7 +80,7 @@
                     <el-button
                       link
                       type="danger"
-                      size="small"
+                      size="large"
                       @click="handleDelete(scope.row, 'crane')"
                     >
                       删除
@@ -159,7 +160,8 @@
                     <el-button
                       link
                       type="primary"
-                      size="small"
+                        style="color: white;"
+                      size="large"
                       @click="handleEdit(scope.row, 'rigging')"
                     >
                       编辑
@@ -167,7 +169,7 @@
                     <el-button
                       link
                       type="danger"
-                      size="small"
+                      size="large"
                       @click="handleDelete(scope.row, 'rigging')"
                     >
                       删除
@@ -238,7 +240,8 @@
                     <el-button
                       link
                       type="primary"
-                      size="small"
+                        style="color: white;"
+                      size="large"
                       @click="handleEdit(scope.row, 'equipment')"
                     >
                       编辑
@@ -246,7 +249,7 @@
                     <el-button
                       link
                       type="danger"
-                      size="small"
+                      size="large"
                       @click="handleDelete(scope.row, 'equipment')"
                     >
                       删除
