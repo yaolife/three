@@ -63,7 +63,10 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>数据管理</span>
         </el-menu-item>
-        <el-menu-item index="/user-management">
+        <el-menu-item 
+          v-if="userStore.userState.userInfo.level === 1" 
+          index="/user-management"
+        >
           <el-icon><User /></el-icon>
           <span>账号管理</span>
         </el-menu-item>
@@ -334,7 +337,8 @@ const handleLogin = async () => {
       if (response.data) {
         userStore.login(
           response.data.userName || loginForm.username,
-          response.data.userNickName || null
+          response.data.userNickName || null,
+          response.data.level !== undefined ? response.data.level : null
         );
       }
       // 清空表单
