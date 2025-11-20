@@ -555,7 +555,7 @@ onMounted(() => {
 }
 
 :deep(.user-dialog .el-dialog__headerbtn .el-dialog__close:hover) {
-  color: rgba(255, 255, 255, 0.8);
+  color: #000;
 }
 
 :deep(.user-dialog .el-dialog__body) {
