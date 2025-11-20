@@ -12,13 +12,19 @@
           <el-tab-pane label="起重机数据库" name="crane">
             <div class="tab-content">
               <div class="toolbar">
-                <el-input
-                  v-model="craneSearch"
-                  placeholder="搜索"
-                  prefix-icon="Search"
-                  style="width: 240px"
-                  clearable
-                />
+                <div class="search-group">
+                  <el-input
+                    v-model="craneSearch"
+                    placeholder="请输入起重机名称"
+                    prefix-icon="Search"
+                    style="width: 240px"
+                    clearable
+                    @keyup.enter="handleCraneSearch"
+                  />
+                  <el-button type="primary" @click="handleCraneSearch" style="margin-left: 8px">
+                    搜索
+                  </el-button>
+                </div>
                 <el-button type="primary" @click="handleAddCrane">
                   <el-icon><Plus /></el-icon>
                   新建
@@ -103,14 +109,19 @@
           <el-tab-pane label="吊索具数据库" name="rigging">
             <div class="tab-content">
               <div class="toolbar">
-                <el-input
-                  v-model="riggingSearch"
-                  placeholder="搜索"
-                  prefix-icon="Search"
-                  style="width: 240px"
-                  clearable
-                  @input="handleRiggingSearch"
-                />
+                <div class="search-group">
+                  <el-input
+                    v-model="riggingSearch"
+                    placeholder="请输入吊索具名称"
+                    prefix-icon="Search"
+                    style="width: 240px"
+                    clearable
+                    @keyup.enter="handleRiggingSearch"
+                  />
+                  <el-button type="primary" @click="handleRiggingSearch" style="margin-left: 8px">
+                    搜索
+                  </el-button>
+                </div>
                 <el-button type="primary" @click="handleAddRigging">
                   <el-icon><Plus /></el-icon>
                   新建
@@ -193,13 +204,19 @@
           <el-tab-pane label="设备数据库" name="equipment">
             <div class="tab-content">
               <div class="toolbar">
-                <el-input
-                  v-model="equipmentSearch"
-                  placeholder="搜索"
-                  prefix-icon="Search"
-                  style="width: 240px"
-                  clearable
-                />
+                <div class="search-group">
+                  <el-input
+                    v-model="equipmentSearch"
+                    placeholder="请输入设备名称"
+                    prefix-icon="Search"
+                    style="width: 240px"
+                    clearable
+                    @keyup.enter="handleEquipmentSearch"
+                  />
+                  <el-button type="primary" @click="handleEquipmentSearch" style="margin-left: 8px">
+                    搜索
+                  </el-button>
+                </div>
                 <el-button type="primary" @click="handleAddEquipment">
                   <el-icon><Plus /></el-icon>
                   新建
@@ -736,10 +753,17 @@ const handleRiggingNext = async () => {
 const fetchCraneData = async () => {
   craneLoading.value = true;
   try {
-    const response = await getCraneInfoPage({
+    const params = {
       pageNum: cranePage.value,
       pageSize: cranePageSize.value,
-    });
+    };
+    
+    // 如果有搜索关键词，添加搜索参数
+    if (craneSearch.value && craneSearch.value.trim()) {
+      params.machineName = craneSearch.value.trim();
+    }
+    
+    const response = await getCraneInfoPage(params);
 
     if (response && response.code === "0") {
       // 对返回的数据进行类型翻译处理
@@ -765,13 +789,26 @@ const handleCranePageChange = (page) => {
   fetchCraneData();
 };
 
+// 起重机搜索
+const handleCraneSearch = () => {
+  cranePage.value = 1; // 重置到第一页
+  fetchCraneData();
+};
+
 const fetchRiggingData = async () => {
   riggingLoading.value = true;
   try {
-    const response = await getLiftingInfoPage({
+    const params = {
       pageNum: riggingPage.value,
       pageSize: riggingPageSize.value,
-    });
+    };
+    
+    // 如果有搜索关键词，添加搜索参数
+    if (riggingSearch.value && riggingSearch.value.trim()) {
+      params.liftingName = riggingSearch.value.trim();
+    }
+    
+    const response = await getLiftingInfoPage(params);
 
     if (response && response.code === "0") {
       // 对返回的数据进行类型翻译处理
@@ -797,15 +834,10 @@ const handleRiggingPageChange = (page) => {
   fetchRiggingData();
 };
 
-let searchTimer = null;
+// 吊索具搜索
 const handleRiggingSearch = () => {
-  if (searchTimer) {
-    clearTimeout(searchTimer);
-  }
-  searchTimer = setTimeout(() => {
-    riggingPage.value = 1; // Reset to first page on search
-    fetchRiggingData();
-  }, 500);
+  riggingPage.value = 1; // 重置到第一页
+  fetchRiggingData();
 };
 
 watch(activeTab, (newTab) => {
@@ -858,10 +890,17 @@ const handleEquipmentSubmit = async () => {
 const fetchEquipmentData = async () => {
   equipmentLoading.value = true;
   try {
-    const response = await getDeviceInfoPage({
+    const params = {
       pageNum: equipmentPage.value,
       pageSize: equipmentPageSize.value,
-    });
+    };
+    
+    // 如果有搜索关键词，添加搜索参数
+    if (equipmentSearch.value && equipmentSearch.value.trim()) {
+      params.deviceName = equipmentSearch.value.trim();
+    }
+    
+    const response = await getDeviceInfoPage(params);
 
     if (response && response.code === "0") {
       equipmentData.value = response.data.records || [];
@@ -880,6 +919,12 @@ const fetchEquipmentData = async () => {
 // 设备分页变化
 const handleEquipmentPageChange = (page) => {
   equipmentPage.value = page;
+  fetchEquipmentData();
+};
+
+// 设备搜索
+const handleEquipmentSearch = () => {
+  equipmentPage.value = 1; // 重置到第一页
   fetchEquipmentData();
 };
 
@@ -938,6 +983,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.search-group {
+  display: flex;
+  align-items: center;
 }
 
 .pagination {
