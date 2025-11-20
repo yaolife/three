@@ -39,7 +39,7 @@
         class="el-menu-vertical-demo"
         background-color="#191919"
         text-color="#bfcbd9"
-        active-text-color="rgba(0, 132, 255, 0.34)"
+        active-text-color="#FFFFFF"
         router
       >
         <el-menu-item index="/all-projects">
@@ -479,6 +479,27 @@ onMounted(() => {
   justify-content: center;
   padding: 20px 0;
   border-bottom: 1px solid #435971;
+}
+
+/* 选中菜单项的文字样式和背景色 - 增强可读性 */
+:deep(.el-menu-item.is-active) {
+  color: #FFFFFF !important;
+  font-weight: 600;
+  background-color: rgba(0, 132, 255, 0.34) !important;
+}
+
+:deep(.el-menu-item.is-active span) {
+  color: #FFFFFF !important;
+  font-weight: 600;
+}
+
+:deep(.el-menu-item.is-active .el-icon) {
+  color: #FFFFFF !important;
+}
+
+/* 选中菜单项悬停效果 */
+:deep(.el-menu-item.is-active:hover) {
+  background-color: rgba(0, 132, 255, 0.5) !important;
 }
 
 .user-info {
