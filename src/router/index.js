@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from "vue-router"
 const AllProjects = () => import("../views/AllProjects.vue")
 const CalculationDetail = () => import("../views/CalculationDetail.vue")
 const DataManagement = () => import("../views/DataManagement.vue")
+const UserManagement = () => import("../views/UserManagement.vue")
 const RiggingDetail = () => import("../views/RiggingDetail.vue")
 const CraneDetail = () => import("../views/CraneDetail.vue")
 const SitePlan = () => import("../views/SitePlan.vue")
@@ -64,6 +65,14 @@ const routes = [
     component: DataManagement,
     meta: {
       title: "数据管理",
+    },
+  },
+  {
+    path: "/user-management",
+    name: "UserManagement",
+    component: UserManagement,
+    meta: {
+      title: "账号管理",
     },
   },
   {

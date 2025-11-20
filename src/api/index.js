@@ -585,6 +585,7 @@ export function addUserInfo(params) {
   "userName": "用户名24",
   "password": "密码84",
   "ip": "ip地址64",
+  state: 0正常1禁用；
   "level": 0 } 1管理员 0普通用户
  
  */

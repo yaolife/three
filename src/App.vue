@@ -63,6 +63,10 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>数据管理</span>
         </el-menu-item>
+        <el-menu-item index="/user-management">
+          <el-icon><User /></el-icon>
+          <span>账号管理</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     
