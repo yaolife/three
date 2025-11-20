@@ -860,7 +860,13 @@
                   type="primary"
                   class="sling-tab-button"
                   :class="{
+                    'sling-tab-button-active': activeSlingIndex === index,
                     'sling-tab-button-inactive': activeSlingIndex !== index,
+                  }"
+                  :style="{
+                    background: activeSlingIndex === index ? '#0775DB' : '#D4D4D4',
+                    color: '#FFF',
+                    border: 'none'
                   }"
                   @click="activeSlingIndex = index"
                 >
@@ -6610,8 +6616,6 @@ const handleSave = async (section) => {
 }
 
 .sling-tab-button {
-  background: #1890ff;
-  color: white;
   border: none;
   padding: 8px 24px;
   font-size: 14px;
@@ -6619,18 +6623,24 @@ const handleSave = async (section) => {
   border-radius: 4px;
 }
 
-.sling-tab-button:hover {
-  background: #40a9ff;
-  color: white;
+.sling-tab-button-active {
+  background: #0775DB !important;
+  color: #FFF !important;
+}
+
+.sling-tab-button-active:hover {
+  background: #0775DB !important;
+  color: #FFF !important;
 }
 
 .sling-tab-button-inactive {
-  background: #d4d4d4;
-  color: #666;
+  background: #D4D4D4 !important;
+  color: #FFF !important;
 }
 
 .sling-tab-button-inactive:hover {
-  background: #e0e0e0;
+  background: #D4D4D4 !important;
+  color: #FFF !important;
 }
 
 .remove-sling-button {
