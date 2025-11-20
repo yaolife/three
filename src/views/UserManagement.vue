@@ -125,8 +125,9 @@
         <el-form-item label="用户名" prop="userName">
           <el-input
             v-model="formData.userName"
-            placeholder="请输入用户名"
+            placeholder="请输入用户名（只能包含英文和数字）"
             :disabled="isEdit"
+            @input="handleUserNameInput"
             clearable
           />
         </el-form-item>
@@ -254,6 +255,20 @@ const validatePassword = (rule, value, callback) => {
   callback();
 };
 
+// 用户名验证规则
+const validateUserName = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error("请输入用户名"));
+    return;
+  }
+  // 只能包含英文和数字
+  if (!/^[a-zA-Z0-9]+$/.test(value)) {
+    callback(new Error("用户名只能包含英文和数字"));
+    return;
+  }
+  callback();
+};
+
 // IP地址验证规则
 const validateIp = (rule, value, callback) => {
   // 新增和编辑时IP地址都必填
@@ -271,6 +286,7 @@ const formRules = computed(() => ({
   ],
   userName: [
     { required: true, message: "请输入用户名", trigger: "blur" },
+    { validator: validateUserName, trigger: "blur" },
   ],
   password: [
     // 新增时密码必填，编辑时密码可选
@@ -329,6 +345,12 @@ const fetchUserList = async () => {
 const handleSearch = () => {
   currentPage.value = 1;
   fetchUserList();
+};
+
+// 处理用户名输入，只允许英文和数字
+const handleUserNameInput = (value) => {
+  // 过滤掉非英文和数字的字符
+  formData.userName = value.replace(/[^a-zA-Z0-9]/g, '');
 };
 
 // 分页变化
