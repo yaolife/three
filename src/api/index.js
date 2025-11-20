@@ -3,7 +3,7 @@ import { ElMessage } from "element-plus";
 const API_BASE_URL = "/server-api"
 
 /**
- * 检查响应结果，如果 code 为 400，提示重新登录
+ * 检查响应结果，如果 code 为 401，提示重新登录
  * @param {Object} result - API 响应结果
  */
 function checkResponseCode(result) {
@@ -55,7 +55,7 @@ async function get(url) {
     }
 
     const result = await response.json()
-    // 检查 code 是否为 400
+    // 检查 code 是否为 401
     checkResponseCode(result)
     return result
   } catch (error) {
@@ -87,7 +87,7 @@ async function post(url, data = {}) {
     }
 
     const result = await response.json()
-    // 检查 code 是否为 400
+    // 检查 code 是否为 401
     checkResponseCode(result)
     return result
   } catch (error) {
@@ -485,7 +485,7 @@ export async function uploadImage(file, fileName = "image.png") {
     }
 
     const result = await response.json();
-    // 检查 code 是否为 400
+    // 检查 code 是否为 401
     checkResponseCode(result);
     return result;
   } catch (error) {
@@ -571,7 +571,7 @@ export async function exportProject(params){
 
     // 否则返回 JSON
     const result = await response.json()
-    // 检查 code 是否为 400
+    // 检查 code 是否为 401
     checkResponseCode(result)
     return result
   } catch (error) {
