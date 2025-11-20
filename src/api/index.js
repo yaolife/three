@@ -7,7 +7,7 @@ const API_BASE_URL = "/server-api"
  * @param {Object} result - API 响应结果
  */
 function checkResponseCode(result) {
-  if (result && (result.code === 400 || result.code === "400")) {
+  if (result && (result.code === 401 || result.code === "401")) {
     ElMessage.warning("请重新登录");
     // 清除登录状态
     localStorage.removeItem("token");
