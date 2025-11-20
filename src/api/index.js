@@ -1,4 +1,24 @@
+import { ElMessage } from "element-plus";
+
 const API_BASE_URL = "/server-api"
+
+/**
+ * 检查响应结果，如果 code 为 400，提示重新登录
+ * @param {Object} result - API 响应结果
+ */
+function checkResponseCode(result) {
+  if (result && (result.code === 400 || result.code === "400")) {
+    ElMessage.warning("请重新登录");
+    // 清除登录状态
+    localStorage.removeItem("token");
+    localStorage.removeItem("userInfo");
+    // 跳转到全部项目页面
+    if (typeof window !== "undefined" && window.location.pathname !== "/all-projects") {
+      window.location.href = "/all-projects";
+    }
+    throw new Error("请重新登录");
+  }
+}
 
 /**
  * 获取请求头，包含 token
@@ -35,8 +55,14 @@ async function get(url) {
     }
 
     const result = await response.json()
+    // 检查 code 是否为 400
+    checkResponseCode(result)
     return result
   } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
     console.error("API请求失败:", error)
     throw error
   }
@@ -61,8 +87,14 @@ async function post(url, data = {}) {
     }
 
     const result = await response.json()
+    // 检查 code 是否为 400
+    checkResponseCode(result)
     return result
   } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
     console.error("API请求失败:", error)
     throw error
   }
@@ -453,8 +485,14 @@ export async function uploadImage(file, fileName = "image.png") {
     }
 
     const result = await response.json();
+    // 检查 code 是否为 400
+    checkResponseCode(result);
     return result;
   } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error;
+    }
     console.error("文件上传API请求失败:", error);
     throw error;
   }
@@ -533,8 +571,14 @@ export async function exportProject(params){
 
     // 否则返回 JSON
     const result = await response.json()
+    // 检查 code 是否为 400
+    checkResponseCode(result)
     return result
   } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
     console.error("导出报告失败:", error)
     throw error
   }
