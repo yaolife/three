@@ -72,9 +72,8 @@
           <el-table-column label="操作" width="150" fixed="right" align="center">
             <template #default="scope">
               <el-button
-                link
-                type="primary"
-                size="large"
+                type="default"
+                size="small"
                 @click="handleEdit(scope.row)"
               >
                 编辑

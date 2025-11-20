@@ -592,6 +592,29 @@ export function addUserInfo(params) {
 export function updateUserInfo(params) {
   return post("/account/user/update", params)
 }
+/**
+ * 账号列表/删除账号
+ * @param {string|number} id - 账号ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function deleteUser(id) {
+  try {
+    const url = `/account/user/delete/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("删除账号API请求失败:", error)
+    throw error
+  }
+}
+/**
+ * 修改账号状态的接口
+ * @param {object} params - 参数{ "id": "用户id82",
+  "state": 0 }
+ * @returns {Promise} - 
+ */
+export function updateUserState(params) {
+  return post("/account/user/setUserState", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -635,5 +658,7 @@ export default {
   loginOut,
   getUserInfoPage,
   addUserInfo,
-  updateUserInfo
+  updateUserInfo,
+  deleteUser,
+  updateUserState
 }
