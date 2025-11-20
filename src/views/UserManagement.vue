@@ -135,11 +135,11 @@
           <el-input
             v-model="formData.password"
             type="password"
-            :placeholder="isEdit ? '留空则不修改密码' : '请输入密码（8-16位，包含大小写字母和特殊字符）'"
+            placeholder="请输入密码（8-16位，包含大小写字母和特殊字符）"
             show-password
             clearable
           />
-          <div class="password-tip" v-if="!isEdit">
+          <div class="password-tip">
             密码要求：8-16位，必须包含大小写字母和至少一个特殊字符
           </div>
         </el-form-item>
@@ -183,7 +183,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getUserInfoPage, addUserInfo, updateUserInfo, deleteUser, updateUserState } from "@/api/index.js";
@@ -221,40 +221,50 @@ const formData = reactive({
 
 // 密码验证规则
 const validatePassword = (rule, value, callback) => {
-  if (!isEdit.value && !value) {
+  // 新增和编辑时密码都必填
+  if (!value) {
     callback(new Error("请输入密码"));
     return;
   }
-  if (value && value.length < 8) {
+  // 验证密码格式
+  if (value.length < 8) {
     callback(new Error("密码长度不能少于8位"));
     return;
   }
-  if (value && value.length > 16) {
+  if (value.length > 16) {
     callback(new Error("密码长度不能超过16位"));
     return;
   }
-  if (value) {
-    // 检查是否包含大写字母
-    if (!/[A-Z]/.test(value)) {
-      callback(new Error("密码必须包含至少一个大写字母"));
-      return;
-    }
-    // 检查是否包含小写字母
-    if (!/[a-z]/.test(value)) {
-      callback(new Error("密码必须包含至少一个小写字母"));
-      return;
-    }
-    // 检查是否包含特殊字符
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) {
-      callback(new Error("密码必须包含至少一个特殊字符"));
-      return;
-    }
+  // 检查是否包含大写字母
+  if (!/[A-Z]/.test(value)) {
+    callback(new Error("密码必须包含至少一个大写字母"));
+    return;
+  }
+  // 检查是否包含小写字母
+  if (!/[a-z]/.test(value)) {
+    callback(new Error("密码必须包含至少一个小写字母"));
+    return;
+  }
+  // 检查是否包含特殊字符
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) {
+    callback(new Error("密码必须包含至少一个特殊字符"));
+    return;
+  }
+  callback();
+};
+
+// IP地址验证规则
+const validateIp = (rule, value, callback) => {
+  // 新增和编辑时IP地址都必填
+  if (!value) {
+    callback(new Error("请输入IP地址"));
+    return;
   }
   callback();
 };
 
 // 表单验证规则
-const formRules = {
+const formRules = computed(() => ({
   userNickName: [
     { required: true, message: "请输入用户昵称", trigger: "blur" },
   ],
@@ -262,12 +272,19 @@ const formRules = {
     { required: true, message: "请输入用户名", trigger: "blur" },
   ],
   password: [
+    // 新增和编辑时密码都必填
+    { required: true, message: "请输入密码", trigger: "blur" },
     { validator: validatePassword, trigger: "blur" },
+  ],
+  ip: [
+    // 新增和编辑时IP地址都必填
+    { required: true, message: "请输入IP地址", trigger: "blur" },
+    { validator: validateIp, trigger: "blur" },
   ],
   level: [
     { required: true, message: "请选择账号级别", trigger: "change" },
   ],
-};
+}));
 
 // 获取用户列表
 const fetchUserList = async () => {
