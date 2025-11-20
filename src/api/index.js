@@ -558,6 +558,39 @@ export async function login(params){
 export async function loginOut(){
   return post("/account/user/loginOut")
 }
+/**
+ * 账号管理菜单分页接口
+ * @param {object} params - 分页参数 { pageNum, pageSize,  "userNickName": "用户昵称",
+  "userName": "用户名", }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getUserInfoPage(params) {
+  return post("/account/user/page", params)
+}
+/**
+ * 账号管理菜单新增用户接口
+ * @param {object} params -  { "userNickName": "用户昵称62",
+  "userName": "用户名24",
+  "password": "密码84",
+  "ip": "ip地址64",
+  "level": 0 } 1管理员 0普通用户
+ 
+ */
+export function addUserInfo(params) {
+  return post("/account/user/save", params)
+}
+/**
+ * 账号管理菜单修改用户信息接口
+ * @param {object} params -  {  "id": "id102","userNickName": "用户昵称62",
+  "userName": "用户名24",
+  "password": "密码84",
+  "ip": "ip地址64",
+  "level": 0 } 1管理员 0普通用户
+ 
+ */
+export function updateUserInfo(params) {
+  return post("/account/user/update", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -598,5 +631,8 @@ export default {
   updateProjectTitle,
   exportProject,
   login,
-  loginOut
+  loginOut,
+  getUserInfoPage,
+  addUserInfo,
+  updateUserInfo
 }
