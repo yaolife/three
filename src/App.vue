@@ -776,7 +776,4 @@ font-weight: 400;
   display: flex;
   align-items: center;
 }
-:deep(.el-dialog__header){
- padding-bottom: 0;
-}
 </style>
