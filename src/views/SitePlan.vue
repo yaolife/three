@@ -6,10 +6,6 @@
         <el-button type="text" class="back-btn" @click="handleBack">
           <el-icon><ArrowLeft /></el-icon>
         </el-button>
-        <el-button type="text" class="login-btn" @click="showLoginDialog = true">
-          <el-icon><User /></el-icon>
-          <span>登录</span>
-        </el-button>
         <div class="project_title">{{ projectTitle || '总平规划xxx项目' }}</div>
       </div>
       <div class="header-content_right">
