@@ -174,7 +174,7 @@
                   :step="1"
                   placeholder="10"
                 />
-                <span class="unit">t</span>
+                <span class="unit">t/m²</span>
               </div>
               <div class="property-item">
                 <label>区域场地</label>
@@ -261,7 +261,7 @@
                   :step="1"
                   placeholder="10"
                 />
-                <span class="unit">t</span>
+                <span class="unit">t/m²</span>
               </div>
               <div class="property-item">
                 <label>区域场地</label>
@@ -517,7 +517,7 @@
                 :step="1"
                 placeholder="10"
               />
-              <span class="unit">t</span>
+              <span class="unit">t/m²</span>
             </div>
           </div>
           <div class="point_setting">
