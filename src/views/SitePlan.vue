@@ -1630,8 +1630,15 @@ const resizeShapeWithDelta = (deltaX, deltaY) => {
         // 计算初始控制点位置（考虑旋转）
         const initialRotate = initial.rotate || 0;
         const rad = degToRad(initialRotate);
-        const handleOffsetX = handlePos.includes("e") ? bounds.width / 2 : -bounds.width / 2;
-        const handleOffsetY = handlePos.includes("s") ? bounds.height / 2 : -bounds.height / 2;
+        
+        // 使用文字的实际宽度和高度来计算控制点位置
+        const fontSize = initial.fontSize || 14;
+        const textContent = initial.text || "文字";
+        const textWidth = textContent.length * fontSize * 0.6;
+        const textHeight = fontSize;
+        
+        const handleOffsetX = handlePos.includes("e") ? textWidth / 2 : -textWidth / 2;
+        const handleOffsetY = handlePos.includes("s") ? textHeight / 2 : -textHeight / 2;
         const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
         const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
         const initialHandleX = centerX + rotatedOffsetX;
@@ -1650,11 +1657,33 @@ const resizeShapeWithDelta = (deltaX, deltaY) => {
         while (angleDiff > 180) angleDiff -= 360;
         while (angleDiff < -180) angleDiff += 360;
         
+        // 平滑旋转，避免跳跃
         next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+        // 保持字体大小不变
+        next.fontSize = fontSize;
       } else {
         // 边缘控制点：调整字体大小
-        const sizeDelta = Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : deltaX;
-        next.fontSize = Math.max(MIN_FONT_SIZE, (initial.fontSize || 14) + sizeDelta);
+        // 使用更平滑的缩放算法，根据移动距离计算缩放比例
+        const currentFontSize = initial.fontSize || 14;
+        const textContent = initial.text || "文字";
+        const textWidth = textContent.length * currentFontSize * 0.6;
+        const textHeight = currentFontSize;
+        
+        // 根据控制点位置确定缩放方向
+        let scaleFactor = 1;
+        if (handlePos === "n" || handlePos === "s") {
+          // 上下控制点：根据垂直移动调整字体大小
+          scaleFactor = 1 + (deltaY / textHeight);
+        } else if (handlePos === "e" || handlePos === "w") {
+          // 左右控制点：根据水平移动调整字体大小
+          scaleFactor = 1 + (deltaX / textWidth);
+        }
+        
+        // 计算新的字体大小，限制在合理范围内
+        const newFontSize = Math.max(MIN_FONT_SIZE, Math.min(200, currentFontSize * scaleFactor));
+        next.fontSize = Math.round(newFontSize * 10) / 10; // 保留一位小数，使缩放更平滑
+        // 保持旋转角度不变
+        next.rotate = initial.rotate || 0;
       }
     }
     return next;
@@ -1773,14 +1802,19 @@ const getShapeBounds = (item) => {
   }
   if (item.tool === "text") {
     const fontSize = config.fontSize || 14;
-    const textWidth = (config.text || "文字").length * fontSize * 0.6;
+    const textContent = config.text || "文字";
+    // 更准确地计算文字宽度，考虑字符间距
+    const textWidth = Math.max(textContent.length * fontSize * 0.6, fontSize * 2);
+    const textHeight = fontSize;
+    // 添加一些边距，使控制点更容易点击
+    const padding = 4;
     return {
-      left: item.canvasX - textWidth / 2,
-      right: item.canvasX + textWidth / 2,
-      top: item.canvasY - fontSize / 2,
-      bottom: item.canvasY + fontSize / 2,
-      width: textWidth,
-      height: fontSize,
+      left: item.canvasX - textWidth / 2 - padding,
+      right: item.canvasX + textWidth / 2 + padding,
+      top: item.canvasY - textHeight / 2 - padding,
+      bottom: item.canvasY + textHeight / 2 + padding,
+      width: textWidth + padding * 2,
+      height: textHeight + padding * 2,
     };
   }
   return null;
