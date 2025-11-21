@@ -182,7 +182,10 @@
                   <span class="unit">m²</span>
               </div>
               <div class="property-item">
-                <label>开始日期</label>
+                <label>
+                  开始日期
+                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
+                </label>
                 <el-date-picker
                   v-model="newPoint.startTime"
                   type="date"
@@ -192,7 +195,10 @@
                 />
               </div>
               <div class="property-item">
-                <label>结束日期</label>
+                <label>
+                  结束日期
+                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
+                </label>
                 <el-date-picker
                   v-model="newPoint.endTime"
                   type="date"
@@ -279,7 +285,10 @@
                 <el-input v-model="editingPoint.area" placeholder="区域场地" />
               </div>
               <div class="property-item">
-                <label>开始日期</label>
+                <label>
+                  开始日期
+                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
+                </label>
                 <el-date-picker
                   v-model="editingPoint.startTime"
                   type="date"
@@ -289,7 +298,10 @@
                 />
               </div>
               <div class="property-item">
-                <label>结束日期</label>
+                <label>
+                  结束日期
+                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
+                </label>
                 <el-date-picker
                   v-model="editingPoint.endTime"
                   type="date"
@@ -3161,16 +3173,18 @@ const setCranePosition = () => {
     const pointType = isFirstPoint ? "lifting" : newPoint.value.type;
 
     if (pointType === "lifting") {
+      // 开始日期必填
       if (!isValidDateDay(newPoint.value.startTime)) {
         ElMessage.warning("请填写吊装点位的开始日期");
         return;
       }
-      // 起点也可以设置结束日期
-      if (newPoint.value.endTime && !isValidDateDay(newPoint.value.endTime)) {
-        ElMessage.warning("请填写正确的结束日期");
+      // 结束日期必填
+      if (!newPoint.value.endTime || !isValidDateDay(newPoint.value.endTime)) {
+        ElMessage.warning("请填写吊装点位的结束日期");
         return;
       }
-      if (newPoint.value.endTime && new Date(newPoint.value.endTime) < new Date(newPoint.value.startTime)) {
+      // 结束日期不能早于开始日期
+      if (new Date(newPoint.value.endTime) < new Date(newPoint.value.startTime)) {
         ElMessage.warning("吊装点位的结束日期不能早于开始日期");
         return;
       }
@@ -3292,16 +3306,18 @@ const setCranePosition = () => {
     };
 
     if (updatedPoint.type === "lifting") {
+      // 开始日期必填
       if (!isValidDateDay(updatedPoint.startTime)) {
         ElMessage.warning("请填写吊装点位的开始日期");
         return;
       }
-      // 起点也可以设置结束日期
-      if (updatedPoint.endTime && !isValidDateDay(updatedPoint.endTime)) {
-        ElMessage.warning("请填写正确的结束日期");
+      // 结束日期必填
+      if (!updatedPoint.endTime || !isValidDateDay(updatedPoint.endTime)) {
+        ElMessage.warning("请填写吊装点位的结束日期");
         return;
       }
-      if (updatedPoint.endTime && new Date(updatedPoint.endTime) < new Date(updatedPoint.startTime)) {
+      // 结束日期不能早于开始日期
+      if (new Date(updatedPoint.endTime) < new Date(updatedPoint.startTime)) {
         ElMessage.warning("吊装点位的结束日期不能早于开始日期");
         return;
       }
