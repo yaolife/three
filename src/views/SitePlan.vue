@@ -201,6 +201,17 @@
                   format="YYYY-MM-DD"
                 />
               </div>
+              <div class="property-item">
+                <label>备注</label>
+                <el-input
+                  v-model="newPoint.remarks"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入备注"
+                  maxlength="500"
+                  show-word-limit
+                />
+              </div>
             </template>
             
           </div>
@@ -285,6 +296,17 @@
                   placeholder="请选择结束日期"
                   value-format="YYYY-MM-DD"
                   format="YYYY-MM-DD"
+                />
+              </div>
+              <div class="property-item">
+                <label>备注</label>
+                <el-input
+                  v-model="editingPoint.remarks"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入备注"
+                  maxlength="500"
+                  show-word-limit
                 />
               </div>
             </template>
@@ -937,6 +959,7 @@ const createBasePoint = (overrides = {}) => ({
   area: "",
   startTime: null,
   endTime: null,
+  remarks: "",
   status: "completed",
   occupyLength: 16,
   occupyWidth: 0.5,
@@ -3248,6 +3271,7 @@ const setCranePosition = () => {
       type: isStart ? "lifting" : point.type,
       startTime: point.startTime ? String(point.startTime) : null,
       endTime: point.endTime ? String(point.endTime) : null,
+      remarks: point.remarks || "",
     };
     // 打开编辑弹窗
     editPointDialogVisible.value = true;
@@ -3471,6 +3495,7 @@ const setCranePosition = () => {
                 area: item.area || "",
                 startTime: formatLocalDate(item.startTime),
                 endTime: formatLocalDate(item.endTime),
+                remarks: item.remarks || "",
                 status: "completed",
                 occupyLength: item.pointLength || null,
                 occupyWidth: item.pointWidth || null,
@@ -3787,6 +3812,7 @@ const handleSave = async () => {
           area: point.area || null,
           startTime: formatDate(point.startTime),
           endTime: formatDate(point.endTime),
+          remarks: point.remarks || null,
           pointLength: point.occupyLength || point.pointLength || null,
           pointWidth: point.occupyWidth || point.pointWidth || null,
           rotateAngle: point.rotateAngle || null,
