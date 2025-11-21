@@ -48,6 +48,7 @@
           </el-table-column>
           <el-table-column prop="userNickName" label="用户昵称" min-width="120" />
           <el-table-column prop="userName" label="用户名" min-width="120" />
+          <el-table-column prop="userUnit" label="用户单位" min-width="150" />
           <el-table-column prop="level" label="账号级别" width="120" align="center">
             <template #default="scope">
               <el-tag :type="scope.row.level === 1 ? 'danger' : 'info'">
@@ -135,6 +136,13 @@
             clearable
           />
         </el-form-item>
+        <el-form-item label="用户单位" prop="userUnit">
+          <el-input
+            v-model="formData.userUnit"
+            placeholder="请输入用户单位"
+            clearable
+          />
+        </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input
             v-model="formData.password"
@@ -217,6 +225,7 @@ const formData = reactive({
   id: "",
   userNickName: "",
   userName: "",
+  userUnit: "",
   password: "",
   ip: "",
   level: 0,
@@ -396,6 +405,7 @@ const handleEdit = (row) => {
     formData.id = row.id;
     formData.userNickName = row.userNickName || "";
     formData.userName = row.userName || "";
+    formData.userUnit = row.userUnit || "";
     formData.password = ""; // 编辑时不显示密码，留空则不修改
     formData.ip = row.ip || "";
     formData.level = row.level !== undefined && row.level !== null ? Number(row.level) : 0;
@@ -412,6 +422,7 @@ const resetForm = () => {
   formData.id = "";
   formData.userNickName = "";
   formData.userName = "";
+  formData.userUnit = "";
   formData.password = "";
   formData.ip = "";
   formData.level = 0;
@@ -448,6 +459,7 @@ const handleSubmit = async () => {
       const params = {
         userNickName: formData.userNickName,
         userName: formData.userName,
+        userUnit: formData.userUnit || null,
         ip: formData.ip,
         level: formData.level,
       };
