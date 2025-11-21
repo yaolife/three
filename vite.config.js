@@ -13,8 +13,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/server-api": {
+        target: "http://172.10.30.135/photothermal",
          //target: "http://172.10.30.135:18080",
-         target: "http://192.168.21.64:18080",//国虎
+         //target: "http://192.168.21.64:18080",//国虎
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/server-api/, ""),
       },
