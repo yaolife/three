@@ -470,7 +470,8 @@ export async function uploadImage(file, fileName = "image.png") {
     const headers = {};
     const token = localStorage.getItem("token");
     if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+      // 使用与其他接口一致的 token 字段格式
+      headers["token"] = token;
     }
     
     const response = await fetch(`${API_BASE_URL}/file/upload/upload`, {
