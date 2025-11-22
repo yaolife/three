@@ -673,6 +673,14 @@ export async function deleteUser(id) {
 export function updateUserState(params) {
   return post("/account/user/setUserState", params)
 }
+/**
+ * 账号管理导出
+ * @param {object} params - 参数{ "userNickName": "  "userName": "用户名117",}
+ * @returns {Promise} - 
+ */
+export function exportUser(params) {
+  return post("/account/user/export", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -718,5 +726,6 @@ export default {
   addUserInfo,
   updateUserInfo,
   deleteUser,
-  updateUserState
+  updateUserState,
+  exportUser,
 }
