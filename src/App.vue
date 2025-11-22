@@ -110,16 +110,7 @@
               />
             <span>云端数据同步</span>
           </el-button>   
-          <el-button type="default" size="large" style="margin-left: 12px" @click="handleRefresh">
-              <img
-                 style="width: 22px; height: 22px;margin-right: 5px;"
-                src="@/images/refresh.png"
-                alt="更新"
-                :fit="'cover'"
-              />
-              <span>更新</span>
-          </el-button>
-              <el-button type="default" size="large" style="margin-left: 12px" @click="handleCopy">
+          <el-button type="default" size="large" style="margin-left: 12px" @click="handleCopy">
                   <img
                  style="width: 22px; height: 22px;margin-right: 5px;"
                 src="@/images/copy.png"
@@ -368,38 +359,6 @@ const handleOfflineLogin = () => {
 const handleCommand = (command) => {
   if (command === 'logout') {
     handleLogout();
-  }
-};
-
-// 处理更新按钮点击
-const handleRefresh = () => {
-  console.log('更新按钮被点击，当前路由:', route.path);
-  
-  // 根据当前路由路径确定项目类型
-  let projectType = null;
-  
-  if (route.path === '/verification-projects') {
-    projectType = 0; // 校核计算项目
-  } else if (route.path === '/virtual-simulation') {
-    projectType = 1; // 虚拟仿真项目
-  } else if (route.path === '/construction-plans') {
-    projectType = 2; // 总平规划项目
-  } else if (route.path === '/all-projects') {
-    projectType = null; // 全部项目，不传 projectType
-  }
-  
-  // 如果当前不在项目列表页面，先导航到对应的页面
-  const projectListPaths = ['/all-projects', '/verification-projects', '/virtual-simulation', '/construction-plans'];
-  if (!projectListPaths.includes(route.path)) {
-    // 不在项目列表页面，导航到全部项目页面
-    router.push('/all-projects');
-    // 等待路由切换完成后再触发刷新
-    setTimeout(() => {
-      triggerRefresh(null);
-    }, 100);
-  } else {
-    // 在当前页面触发刷新
-    triggerRefresh(projectType);
   }
 };
 
