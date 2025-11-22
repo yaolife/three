@@ -29,10 +29,16 @@
               搜索
             </el-button>
           </div>
-          <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon>
-            新增用户
-          </el-button>
+          <div style="display: flex; gap: 12px;">
+            <el-button type="primary" @click="handleAdd">
+              <el-icon><Plus /></el-icon>
+              新增用户
+            </el-button>
+            <el-button type="success" @click="handleExport" :loading="exportLoading">
+              <el-icon><Download /></el-icon>
+              导出
+            </el-button>
+          </div>
         </div>
 
         <el-table
@@ -196,9 +202,9 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from "vue";
-import { Plus } from "@element-plus/icons-vue";
+import { Plus, Download } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getUserInfoPage, addUserInfo, updateUserInfo, deleteUser, updateUserState } from "@/api/index.js";
+import { getUserInfoPage, addUserInfo, updateUserInfo, deleteUser, updateUserState, exportUser } from "@/api/index.js";
 
 // 搜索表单
 const searchForm = reactive({
@@ -209,6 +215,7 @@ const searchForm = reactive({
 // 表格数据
 const tableData = ref([]);
 const loading = ref(false);
+const exportLoading = ref(false);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
@@ -551,6 +558,52 @@ const handleDelete = (row) => {
     .catch(() => {
       ElMessage.info("已取消删除");
     });
+};
+
+// 导出用户数据
+const handleExport = async () => {
+  exportLoading.value = true;
+  try {
+    // 构建导出参数，使用当前搜索条件
+    const params = {};
+    if (searchForm.userNickName && searchForm.userNickName.trim()) {
+      params.userNickName = searchForm.userNickName.trim();
+    }
+    if (searchForm.userName && searchForm.userName.trim()) {
+      params.userName = searchForm.userName.trim();
+    }
+    
+    const response = await exportUser(params);
+    
+    // 如果返回的是文件 blob（Excel）
+    if (response && response.blob && (response.type === 'xlsx' || response.type === 'xls')) {
+      // 创建下载链接
+      const url = window.URL.createObjectURL(response.blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fileExtension = response.type === 'xls' ? 'xls' : 'xlsx';
+      const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      link.download = `用户数据_${timestamp}.${fileExtension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      ElMessage.success("导出成功");
+    } else if (response && response.code === "0") {
+      // 如果接口返回的是 JSON，可能包含下载链接或其他信息
+      ElMessage.success(response.msg || "导出成功");
+    } else {
+      ElMessage.error(response?.msg || "导出失败");
+    }
+  } catch (error) {
+    console.error("导出用户数据失败:", error);
+    // 如果是"请重新登录"错误，不显示错误提示（checkResponseCode已经处理）
+    if (error.message !== "请重新登录") {
+      ElMessage.error("导出失败，请检查网络连接");
+    }
+  } finally {
+    exportLoading.value = false;
+  }
 };
 
 onMounted(() => {

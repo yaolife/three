@@ -675,11 +675,48 @@ export function updateUserState(params) {
 }
 /**
  * 账号管理导出
- * @param {object} params - 参数{ "userNickName": "  "userName": "用户名117",}
- * @returns {Promise} - 
+ * @param {object} params - 参数{ "userNickName": "用户昵称", "userName": "用户名"}
+ * @returns {Promise} - 返回blob文件或JSON结果
  */
-export function exportUser(params) {
-  return post("/account/user/export", params)
+export async function exportUser(params) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/account/user/export`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(params),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    // 检查响应类型，如果是文件类型（Excel），返回 blob
+    const contentType = response.headers.get("content-type") || ""
+    if (contentType.includes("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
+        contentType.includes("application/vnd.ms-excel") ||
+        contentType.includes("application/octet-stream")) {
+      const blob = await response.blob()
+      // 根据 content-type 判断文件类型
+      let fileType = 'xlsx'
+      if (contentType.includes("application/vnd.ms-excel")) {
+        fileType = 'xls'
+      }
+      return { blob, type: fileType }
+    }
+
+    // 否则返回 JSON
+    const result = await response.json()
+    // 检查 code 是否为 401
+    checkResponseCode(result)
+    return result
+  } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
+    console.error("导出用户数据失败:", error)
+    throw error
+  }
 }
 export default {
   getLiftingInfoPage,
