@@ -12,9 +12,9 @@ function checkResponseCode(result) {
     // 清除登录状态
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
-    // 使用 Vue Router 跳转而不是 window.location.href，避免页面完全刷新
-    // 这样可以保持 Vue 应用状态，避免在跳转后立即调用需要 token 的接口
+    // 触发自定义事件，通知 App.vue 更新登录状态
     if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("tokenCleared"));
       // 延迟跳转，确保当前请求的错误处理完成
       setTimeout(() => {
         // 如果当前不在全部项目页面，使用 Vue Router 跳转

@@ -461,6 +461,19 @@ onMounted(() => {
   userStore.restoreUserState();
   // 暴露 router 实例到 window，供 api/index.js 中的 checkResponseCode 使用
   window.__VUE_ROUTER__ = router;
+  
+  // 监听 token 被清除的事件，同步更新登录状态
+  window.addEventListener("tokenCleared", () => {
+    userStore.logout();
+  });
+  
+  // 监听 storage 变化事件（处理跨标签页的情况）
+  window.addEventListener("storage", (e) => {
+    if (e.key === "token" && !e.newValue) {
+      // token 被清除
+      userStore.logout();
+    }
+  });
 });
 </script>
 

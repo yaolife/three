@@ -54,7 +54,18 @@ const restoreUserState = () => {
       console.error('恢复用户状态失败:', error)
       // 如果解析失败，清除无效数据
       localStorage.removeItem('userInfo')
+      // 确保登录状态为 false
+      userState.isLoggedIn = false
+      userState.userInfo.name = ''
+      userState.userInfo.id = ''
+      userState.userInfo.level = null
     }
+  } else {
+    // 如果没有 token 或 userInfo，确保登录状态为 false
+    userState.isLoggedIn = false
+    userState.userInfo.name = ''
+    userState.userInfo.id = ''
+    userState.userInfo.level = null
   }
 }
 
