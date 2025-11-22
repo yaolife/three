@@ -459,6 +459,8 @@ const handleSearch = () => {
 // 页面加载时恢复用户状态
 onMounted(() => {
   userStore.restoreUserState();
+  // 暴露 router 实例到 window，供 api/index.js 中的 checkResponseCode 使用
+  window.__VUE_ROUTER__ = router;
 });
 </script>
 

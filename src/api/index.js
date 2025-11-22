@@ -12,9 +12,22 @@ function checkResponseCode(result) {
     // 清除登录状态
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
-    // 跳转到全部项目页面
-    if (typeof window !== "undefined" && window.location.pathname !== "/all-projects") {
-      window.location.href = "/all-projects";
+    // 使用 Vue Router 跳转而不是 window.location.href，避免页面完全刷新
+    // 这样可以保持 Vue 应用状态，避免在跳转后立即调用需要 token 的接口
+    if (typeof window !== "undefined") {
+      // 延迟跳转，确保当前请求的错误处理完成
+      setTimeout(() => {
+        // 如果当前不在全部项目页面，使用 Vue Router 跳转
+        if (window.location.pathname !== "/all-projects") {
+          // 检查是否有 Vue Router 实例可用（由 App.vue 暴露）
+          if (window.__VUE_ROUTER__) {
+            window.__VUE_ROUTER__.push("/all-projects");
+          } else {
+            // 如果没有 Vue Router，使用 window.location.href
+            window.location.href = "/all-projects";
+          }
+        }
+      }, 100);
     }
     throw new Error("请重新登录");
   }
