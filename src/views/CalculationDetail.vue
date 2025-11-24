@@ -706,8 +706,11 @@
               @click="handleSave('crane')"
               >保存</el-button
             >
-            <el-button type="primary" @click="showCalculationResult"
+            <el-button type="primary" @click="showCalculationResult()"
               >计算结果</el-button
+            >
+            <el-button type="primary" @click="handleExportConfirm('crane')"
+              >导出</el-button
             >
           </div>
         </el-scrollbar>
@@ -1220,8 +1223,11 @@
               @click="handleSave('lifting')"
               >保存</el-button
             >
-            <el-button type="primary" @click="showLiftingResult"
+            <el-button type="primary" @click="showLiftingResult()"
               >计算结果</el-button
+            >
+            <el-button type="primary" @click="handleExportConfirm('lifting')"
+              >导出</el-button
             >
           </div>
         </el-scrollbar>
@@ -1381,8 +1387,11 @@
               @click="handleSave('foundation')"
               >保存</el-button
             >
-            <el-button type="primary" @click="calculateFoundation"
+            <el-button type="primary" @click="calculateFoundation()"
               >计算结果</el-button
+            >
+            <el-button type="primary" @click="handleExportConfirm('foundation')"
+              >导出</el-button
             >
           </div>
         </el-scrollbar>
@@ -3350,7 +3359,7 @@ import {
   Histogram,
   DocumentCopy, // 添加复制图标
 } from "@element-plus/icons-vue";
-import { ElMessage } from "element-plus"; // Corrected import statement for ElMessage
+import { ElMessage, ElMessageBox } from "element-plus"; // Corrected import statement for ElMessage
 import {
   getLiftingMenuOne,
   getLiftingMenuTwo,
@@ -3366,6 +3375,9 @@ import {
   saveProjectDetail,
   getProjectAllDetail,
   updateProjectTitle,
+  exportCraneReport,
+  exportLiftingReport,
+  exportBearingReport,
 } from "@/api/index.js";
 import {  getBoomType, craneType} from "@/utils/common.js";
 
@@ -4055,6 +4067,10 @@ const selectionResults = ref([]); // 智能选型结果列表
 const intelligentSelectionLoading = ref(false); // 智能选型加载状态
 const liftingResultDialog3Visible = ref(false);
 
+// 弹窗显示控制标识常量
+const SHOW_DIALOG = false; // 显示弹窗（点击计算结果按钮时使用）
+const HIDE_DIALOG = true;  // 隐藏弹窗（导出时使用，只获取结果）
+
 const currentIntelligentSelectionKey = computed(() =>
   currentCraneIndex.value === 1 ? "crane2" : "crane1"
 );
@@ -4478,42 +4494,56 @@ const calculateLiftingResult = (sling) => {
 };
 
 // 显示吊索具计算结果
-const showLiftingResult = () => {
+// @param {boolean} silent - 是否静默模式：false=显示弹窗（点击计算结果按钮），true=不显示弹窗（导出时使用）
+const showLiftingResult = (silent = false) => {
   // 非空校验
     if (!selectedSlingDeviceId.value) {
     ElMessage.warning('请选择设备名称');
-    return;
+    return null;
   }
   if (!activeSlingData.value.deviceName) {
     ElMessage.warning('请输入吊索具名称');
-    return;
+    return null;
   }
   if (!activeSlingData.value.height || parseFloat(activeSlingData.value.height) <= 0) {
     ElMessage.warning('请计算有效的吊索具高度');
-    return;
+    return null;
   }
   if (!activeSlingData.value.angle || parseFloat(activeSlingData.value.angle) <= 0) {
     ElMessage.warning('请计算有效的吊索具角度');
-    return;
+    return null;
   }
   
-  // 场景判断
-  if (activeSlingData.value.liftingType === "noBeam") {
-    // 无吊梁情况
-    if (
-      activeSlingData.value.topPointCount === 1 &&
-      activeSlingData.value.bottomPointCount === 1
-    ) {
-      // 场景一：无吊梁且上/下部吊点数量均为1
-      liftingResultDialog1Visible.value = true;
-    } else if (activeSlingData.value.bottomPointCount > 1) {
-      // 场景二：无吊梁且下部吊点数量大于1
-      liftingResultDialog2Visible.value = true;
+  // 计算所有吊索具的结果
+  const liftingResults = liftingFormDatas.value.map((sling, index) => {
+    const result = calculateLiftingResult(sling);
+    return {
+      itemIndex: index,
+      result: parseFloat(result.result.toFixed(2))
+    };
+  });
+  // 场景判断：如果不是静默模式（点击计算结果按钮），显示弹窗
+  // silent 默认为 false，只有当 silent 为 true 或 HIDE_DIALOG 时才不显示
+  if (!silent || silent === SHOW_DIALOG) {
+    if (activeSlingData.value.liftingType === "noBeam") {
+      // 无吊梁情况
+      if (
+        activeSlingData.value.topPointCount === 1 &&
+        activeSlingData.value.bottomPointCount === 1
+      ) {
+        // 场景一：无吊梁且上/下部吊点数量均为1
+        liftingResultDialog1Visible.value = true;
+      } else if (activeSlingData.value.bottomPointCount > 1) {
+        // 场景二：无吊梁且下部吊点数量大于1
+        liftingResultDialog2Visible.value = true;
+      }
+    } else if (activeSlingData.value.liftingType === "withBeam") {
+      // 场景三：有吊梁
+      liftingResultDialog3Visible.value = true;
     }
-  } else if (activeSlingData.value.liftingType === "withBeam") {
-    // 场景三：有吊梁
-    liftingResultDialog3Visible.value = true;
   }
+
+  return liftingResults;
 };
 
 // 单机吊装计算结果数据
@@ -4559,27 +4589,28 @@ const doubleResult = ref({
 });
 
 // 显示计算结果弹窗
-const showCalculationResult = () => {
+// @param {boolean} silent - 是否静默模式：false=显示弹窗（点击计算结果按钮），true=不显示弹窗（导出时使用）
+const showCalculationResult = (silent = false) => {
   // 根据当前激活的起重机参数tab进行相应的非空校验
   if (craneParamsTab.value === 'crane1') {
     // 起重机参数1内容下，只校验起重机1的名称和设备名称
     if (!selectedCraneId.value) {
       ElMessage.warning('请选择起重机名称');
-      return;
+      return null;
     }
     if (!selectedDeviceId.value) {
       ElMessage.warning('请选择设备名称');
-      return;
+      return null;
     }
   } else if (craneParamsTab.value === 'crane2') {
     // 起重机参数2内容下，只校验起重机2的名称和设备名称
     if (!selectedCraneId2.value) {
       ElMessage.warning('请选择起重机2的名称');
-      return;
+      return null;
     }
     if (!selectedDeviceId2.value) {
       ElMessage.warning('请选择起重机2的设备名称');
-      return;
+      return null;
     }
   }
   const activeCraneKey = currentCraneKey.value;
@@ -4631,7 +4662,15 @@ const showCalculationResult = () => {
       factorProduct: activeWeightData.factorProduct,
     };
 
-    singleCraneDialogVisible.value = true;
+    // 如果不是静默模式（点击计算结果按钮），显示弹窗
+    // silent 默认为 false，只有当 silent 为 true 或 HIDE_DIALOG 时才不显示
+    if (!silent || silent === SHOW_DIALOG) {
+      singleCraneDialogVisible.value = true;
+    }
+    return {
+      result1: parseFloat(calculationResult.toFixed(2)),
+      result2: null
+    };
   } else {
     const crane1WeightData = collectCraneWeightData("crane1");
     const crane2WeightData = collectCraneWeightData("crane2");
@@ -4689,8 +4728,18 @@ const showCalculationResult = () => {
       factorProduct: crane1WeightData.factorProduct,
     };
 
-    doubleCraneDialogVisible.value = true;
+    // 如果不是静默模式（点击计算结果按钮），显示弹窗
+    // silent 默认为 false，只有当 silent 为 true 或 HIDE_DIALOG 时才不显示
+    if (!silent || silent === SHOW_DIALOG) {
+      doubleCraneDialogVisible.value = true;
+    }
+    return {
+      result1: parseFloat(calculationResult1.toFixed(2)),
+      result2: parseFloat(calculationResult2.toFixed(2))
+    };
   }
+  
+  return null;
 };
 
 const projectTitle = ref("XXXX设备吊装项目方案");
@@ -4781,7 +4830,8 @@ const foundationCalculationResult = ref({
 });
 
 // 地基承载力计算方法
-const calculateFoundation = () => {
+// @param {boolean} silent - 是否静默模式：false=显示弹窗（点击计算结果按钮），true=不显示弹窗（导出时使用）
+const calculateFoundation = (silent = false) => {
   // 计算接地面积 A = L4 × 2B1
   const groundArea =
     foundationData.value.trackGroundLengthL4 *
@@ -4813,8 +4863,15 @@ const calculateFoundation = () => {
     },
   };
 
-  // 显示计算结果弹窗
-  foundationResultDialogVisible.value = true;
+  // 如果不是静默模式（点击计算结果按钮），显示弹窗
+  // silent 默认为 false，只有当 silent 为 true 或 HIDE_DIALOG 时才不显示
+  if (!silent || silent === SHOW_DIALOG) {
+    foundationResultDialogVisible.value = true;
+  }
+  
+  // 返回计算结果字符串
+  const resultText = `履带接地面积计算结果A= ${foundationCalculationResult.value.calculationProcess.area.toFixed(2)} m²\nT:履带平均接地比压= ${foundationCalculationResult.value.calculationProcess.pressure.toFixed(2)} kPa`;
+  return resultText;
 };
 
 // 重置地基承载力数据
@@ -6153,6 +6210,169 @@ const handleSave = async (section) => {
     ElMessage.error("保存失败，请稍后重试");
   } finally {
     saveLoading[section] = false;
+  }
+};
+
+// 打开导出确认MessageBox
+const handleExportConfirm = async (type) => {
+  try {
+    await ElMessageBox.confirm(
+      '导出会自动保存当前页面的信息',
+      '导出确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    
+    // 用户点击确定，执行导出
+    await handleExport(type);
+  } catch (error) {
+    // 用户点击取消，不执行任何操作
+    if (error !== 'cancel') {
+      console.error('导出确认失败:', error);
+    }
+  }
+};
+
+// 执行导出
+const handleExport = async (type) => {
+  try {
+    // 先保存当前页面信息
+    await handleSave(type);
+    
+    // 等待保存完成
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const projectIdValue = projectId.value;
+    if (!projectIdValue) {
+      ElMessage.error("项目ID不存在，无法导出");
+      return;
+    }
+
+    if (type === 'crane') {
+      // 起重机校核计算导出
+      // 先调用计算结果方法（静默模式，不显示弹窗）获取结果
+      const result = showCalculationResult(HIDE_DIALOG);
+      
+      if (!result) {
+        ElMessage.error("无法获取计算结果，请先完成计算");
+        return;
+      }
+
+      const params = {
+        projectId: projectIdValue,
+        result1: result.result1 || null,
+        result2: result.result2 || null
+      };
+
+      const response = await exportCraneReport(params);
+      
+      if (response && response.code === '0') {
+        // 处理文件下载
+        if (response.data && response.data.body) {
+          // 根据实际文件类型设置MIME类型，docx文件
+          const blob = new Blob([response.data.body], { 
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+          });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `起重机校核计算结果_${projectIdValue}.docx`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          ElMessage.success("导出成功");
+        } else {
+          ElMessage.success("导出成功");
+        }
+      } else {
+        ElMessage.error(response?.message || "导出失败");
+      }
+    } else if (type === 'lifting') {
+      // 吊索具校核计算导出
+      // 先调用计算结果方法（静默模式，不显示弹窗）获取结果
+      const liftingResults = showLiftingResult(HIDE_DIALOG);
+      
+      if (!liftingResults || liftingResults.length === 0) {
+        ElMessage.error("无法获取计算结果，请先完成计算");
+        return;
+      }
+
+      const params = {
+        projectId: projectIdValue,
+        liftingResults: liftingResults
+      };
+
+      const response = await exportLiftingReport(params);
+      
+      if (response && response.code === '0') {
+        // 处理文件下载
+        if (response.data && response.data.body) {
+          // 根据实际文件类型设置MIME类型，docx文件
+          const blob = new Blob([response.data.body], { 
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+          });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `吊索具校核计算结果_${projectIdValue}.docx`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          ElMessage.success("导出成功");
+        } else {
+          ElMessage.success("导出成功");
+        }
+      } else {
+        ElMessage.error(response?.message || "导出失败");
+      }
+    } else if (type === 'foundation') {
+      // 地基承载力校核计算导出
+      // 先调用计算结果方法（静默模式，不显示弹窗）获取结果
+      const result = calculateFoundation(HIDE_DIALOG);
+      
+      if (!result) {
+        ElMessage.error("无法获取计算结果，请先完成计算");
+        return;
+      }
+
+      const params = {
+        projectId: projectIdValue,
+        result: result
+      };
+
+      const response = await exportBearingReport(params);
+      
+      if (response && response.code === '0') {
+        // 处理文件下载
+        if (response.data && response.data.body) {
+          // 根据实际文件类型设置MIME类型，docx文件
+          const blob = new Blob([response.data.body], { 
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+          });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `地基承载力校核计算结果_${projectIdValue}.docx`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          ElMessage.success("导出成功");
+        } else {
+          ElMessage.success("导出成功");
+        }
+      } else {
+        ElMessage.error(response?.message || "导出失败");
+      }
+    }
+  } catch (error) {
+    console.error("导出失败:", error);
+    ElMessage.error("导出失败，请稍后重试");
   }
 };
 </script>
