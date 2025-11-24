@@ -3193,7 +3193,7 @@
           "
         >
           <div>
-            T:履带平均接地比压=
+                T:履带平均接地比压=
             {{
               foundationCalculationResult.calculationProcess.pressure.toFixed(
                 2
@@ -4869,9 +4869,11 @@ const calculateFoundation = (silent = false) => {
     foundationResultDialogVisible.value = true;
   }
   
-  // 返回计算结果字符串
-  const resultText = `履带接地面积计算结果A= ${foundationCalculationResult.value.calculationProcess.area.toFixed(2)} m²\nT:履带平均接地比压= ${foundationCalculationResult.value.calculationProcess.pressure.toFixed(2)} kPa`;
-  return resultText;
+  // 返回计算结果对象，包含 area 和 pressure
+  return {
+    area: groundArea,
+    pressure: averagePressure
+  };
 };
 
 // 重置地基承载力数据
@@ -4937,9 +4939,9 @@ A：履带接地面积=${foundationCalculationResult.value.calculationProcess.ar
     2
   )} m²
 
-T:履带平均接地比压= ${foundationCalculationResult.value.calculationProcess.pressure.toFixed(
-    0
-  )}t
+A:履带接地面积= ${foundationCalculationResult.value.calculationProcess.area.toFixed(
+    2
+  )}m²
 
 结论
 履带平均接地比压计算结果为${foundationCalculationResult.value.calculationProcess.pressure.toFixed(
@@ -6342,7 +6344,8 @@ const handleExport = async (type) => {
 
       const params = {
         projectId: projectIdValue,
-        result: result
+        result: result.pressure.toFixed(2), // 履带平均接地比压的值
+        area: result.area.toFixed(2) // 履带接地面积的值
       };
 
       const response = await exportBearingReport(params);
