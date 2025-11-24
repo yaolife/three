@@ -895,7 +895,7 @@
                 :fit="'cover'"
                 @click="addNewSling"
                 v-if="
-                  activeSlingData.liftingType === 'noBeam'
+                  commonDeviceSettings.liftingType === 'noBeam'
                     ? !activeSlingData.isSinglePointLifting
                     : true
                 "
@@ -4086,21 +4086,21 @@ const selectedModel = ref(null);
 
  let isInitializingFromApi = true;
 
-// 监听吊装类型变化，切换时重置吊索具配置到默认初始状态
+// 监听commonDeviceSettings.liftingType变化，切换时重置吊索具配置到默认初始状态
 watch(
-  () => activeSlingData.value?.liftingType, // Use optional chaining to safely access liftingType
+  () => commonDeviceSettings.value.liftingType,
   (newType, oldType) => {
     if (isInitializingFromApi) {
       return;
     }
     // When switching from 'noBeam' to 'withBeam'
     if (newType === "withBeam" && oldType === "noBeam") {
-    const hasExistingBottom = liftingFormDatas.value.some(
-      (s) => s.liftingType === "withBeam" && s.isBottomSling
-    );
-    if (hasExistingBottom) {
-      return;
-    }
+      const hasExistingBottom = liftingFormDatas.value.some(
+        (s) => s.liftingType === "withBeam" && s.isBottomSling
+      );
+      if (hasExistingBottom) {
+        return;
+      }
       // 使用第一个吊索具作为模板
       const templateSling = liftingFormDatas.value[0];
       if (templateSling) {
@@ -4112,6 +4112,10 @@ watch(
         upperSling.id = 1;
         upperSling.isBottomSling = false;
         upperSling.liftingType = "withBeam";
+        // 同步更新吊梁相关属性
+        upperSling.beamWeight = commonDeviceSettings.value.beamWeight || 0;
+        upperSling.beamLength = commonDeviceSettings.value.beamLength || 0;
+        upperSling.beamSlingWeight = commonDeviceSettings.value.beamSlingWeight || 0;
         upperSling.liftingSystemItems = cloneLiftingSystemItems(
           upperSling.liftingSystemItems
         );
@@ -4122,6 +4126,10 @@ watch(
         lowerSling.liftingType = "withBeam";
         lowerSling.isBottomSling = true;
         lowerSling.bottomPointCount = 4; // 设置下部吊索具的下部吊点数量默认值为4
+        // 同步更新吊梁相关属性
+        lowerSling.beamWeight = commonDeviceSettings.value.beamWeight || 0;
+        lowerSling.beamLength = commonDeviceSettings.value.beamLength || 0;
+        lowerSling.beamSlingWeight = commonDeviceSettings.value.beamSlingWeight || 0;
         lowerSling.liftingSystemItems = cloneLiftingSystemItems(
           lowerSling.liftingSystemItems
         );
@@ -4130,7 +4138,7 @@ watch(
         liftingFormDatas.value.push(upperSling);
         liftingFormDatas.value.push(lowerSling);
 
-        // 默认选中第一个（上部吊索具）
+        // 默认选中第一个（上部吊索具01）
         activeSlingIndex.value = 0;
       }
     }
@@ -4147,6 +4155,20 @@ watch(
         liftingFormDatas.value = [firstSling];
         activeSlingIndex.value = 0;
       }
+    }
+  }
+);
+
+// 监听activeSlingData.liftingType变化，同步更新commonDeviceSettings（用于向后兼容）
+watch(
+  () => activeSlingData.value?.liftingType,
+  (newType) => {
+    if (isInitializingFromApi) {
+      return;
+    }
+    // 同步更新commonDeviceSettings.liftingType
+    if (newType && commonDeviceSettings.value.liftingType !== newType) {
+      commonDeviceSettings.value.liftingType = newType;
     }
   }
 );
@@ -4176,10 +4198,11 @@ const getInitialSlingData = (templateSling) => {
 };
 
 const addNewSling = () => {
-  if (activeSlingData.value.liftingType === "withBeam") {
+  // 使用commonDeviceSettings.liftingType来判断，因为这是用户实际切换的值
+  if (commonDeviceSettings.value.liftingType === "withBeam") {
     // 有吊梁情况下，显示选择弹窗
     showSlingTypeDialog.value = true;
-  } else if (activeSlingData.value.liftingType === "noBeam") {
+  } else if (commonDeviceSettings.value.liftingType === "noBeam") {
     // 无吊梁情况下，复制第一个吊索具（索引0）的初始化内容
     const newId = liftingFormDatas.value.length + 1;
     const firstSling = liftingFormDatas.value[0];
