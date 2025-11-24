@@ -718,6 +718,46 @@ export async function exportUser(params) {
     throw error
   }
 }
+/**
+ * 导出起重机计算结果报告
+ * @param {object} params - 参数{ "projectId": "result1",
+  "result2": 0 }
+ * @returns {Promise} - 
+ */
+export function exportCraneReport(params) {
+  return post("/crane/detail/exportReport", params)
+}
+/**
+ * 导出吊索具计算结果报告
+ * @param {object} params - 参数{
+  "projectId": "项目id45",
+  "liftingResults": [
+    {
+      "itemIndex": 902,
+      "result": 932.7201017714301
+    },
+    {
+      "itemIndex": 902,
+      "result": 932.7201017714301
+    }
+  ]
+}
+ * @returns {Promise} - 
+ */
+export function exportLiftingReport(params) {
+  return post("/lifting/detail/exportReport", params)
+}
+/**
+ * 导出地基承载力计算结果报告
+ * @param {object} params - 参数{
+  "projectId": "项目id116",
+  "result": "计算结果18"
+}
+ * @returns {Promise} - 
+ */
+export function exportBearingReport(params) {
+  return post("/bearing/detail/exportReport", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -765,4 +805,7 @@ export default {
   deleteUser,
   updateUserState,
   exportUser,
+  exportCraneReport,
+  exportLiftingReport,
+  exportBearingReport
 }
