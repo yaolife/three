@@ -3224,7 +3224,7 @@
         </div>
         <div class="section-content conclusion" style="padding: 12px">
           履带平均接地比压计算结果为{{
-            foundationCalculationResult.calculationProcess.pressure.toFixed(0)
+            foundationCalculationResult.calculationProcess.pressure.toFixed(2)
           }}t
         </div>
       </div>
