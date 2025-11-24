@@ -1456,7 +1456,7 @@
     append-to-body
   >
     <div class="calculation-result">
-      <h3>xxxxxx方案项目起重机校核计算</h3>
+      <h3>{{ projectTitle }}起重机校核计算</h3>
 
       <div class="result-section">
         <div class="section-title">
@@ -1614,7 +1614,7 @@
     append-to-body
   >
     <div class="calculation-result">
-      <h3>xxxxxx方案项目吊索具校核计算</h3>
+      <h3>{{ projectTitle }}吊索具校核计算</h3>
 
       <!-- 循环显示所有吊索具信息 -->
       <div
@@ -1915,7 +1915,7 @@
     append-to-body
   >
     <div class="calculation-result">
-      <h3>xxxxxx方案项目吊索具校核计算</h3>
+      <h3>{{ projectTitle }}吊索具校核计算</h3>
 
       <!-- 循环显示所有吊索具信息 -->
       <div
@@ -2229,7 +2229,7 @@
     append-to-body
   >
     <div class="calculation-result">
-      <h3>xxxxxx方案项目吊索具校核计算</h3>
+      <h3>{{ projectTitle }}吊索具校核计算</h3>
 
       <!-- 循环显示所有吊索具信息 -->
       <div
@@ -2647,7 +2647,7 @@
     append-to-body
   >
     <div class="calculation-result">
-      <h3>xxxxxx方案项目起重机校核计算</h3>
+      <h3>{{ projectTitle }}起重机校核计算</h3>
 
       <div class="result-section">
         <div class="section-title">
@@ -3021,7 +3021,7 @@
     append-to-body
   >
     <div class="calculation-result foundation-result">
-      <h3>xxxxx方案项目地基承载力校核计算</h3>
+      <h3>{{ projectTitle }}地基承载力校核计算</h3>
 
       <div class="result-section">
         <div
@@ -4904,7 +4904,7 @@ const handleFoundationDialogClose = () => {
 
 const copyFoundationResult = () => {
   const resultText = `
-xxxxx方案项目地基承载力校核计算
+${projectTitle.value}地基承载力校核计算
 
 履带信息
 履带名称：${foundationCalculationResult.value.trackInfo.name}  型号：${
