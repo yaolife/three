@@ -114,6 +114,52 @@ async function post(url, data = {}) {
 }
 
 /**
+ * 文件下载POST请求方法
+ * @param {string} url - 接口路径
+ * @param {object} data - 请求数据
+ * @returns {Promise} - 返回Promise对象，包含arraybuffer数据
+ */
+async function postFile(url, data = {}) {
+  try {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    // 检查响应头中的Content-Type
+    const contentType = response.headers.get("content-type")
+    
+    // 如果是JSON响应（可能是错误信息），先解析JSON
+    if (contentType && contentType.includes("application/json")) {
+      const result = await response.json()
+      checkResponseCode(result)
+      return result
+    }
+
+    // 否则返回arraybuffer
+    const arrayBuffer = await response.arrayBuffer()
+    return {
+      code: "0",
+      data: {
+        body: new Uint8Array(arrayBuffer)
+      }
+    }
+  } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
+    console.error("文件下载请求失败:", error)
+    throw error
+  }
+}
+
+/**
  * 吊索具数据库分页接口
  * @param {object} params - 分页参数 { pageNum, pageSize, search }
  * @returns {Promise} - 返回分页数据
@@ -725,7 +771,7 @@ export async function exportUser(params) {
  * @returns {Promise} - 
  */
 export function exportCraneReport(params) {
-  return post("/crane/detail/exportReport", params)
+  return postFile("/crane/detail/exportReport", params)
 }
 /**
  * 导出吊索具计算结果报告
@@ -745,7 +791,7 @@ export function exportCraneReport(params) {
  * @returns {Promise} - 
  */
 export function exportLiftingReport(params) {
-  return post("/lifting/detail/exportReport", params)
+  return postFile("/lifting/detail/exportReport", params)
 }
 /**
  * 导出地基承载力计算结果报告
@@ -756,7 +802,7 @@ export function exportLiftingReport(params) {
  * @returns {Promise} - 
  */
 export function exportBearingReport(params) {
-  return post("/bearing/detail/exportReport", params)
+  return postFile("/bearing/detail/exportReport", params)
 }
 export default {
   getLiftingInfoPage,
