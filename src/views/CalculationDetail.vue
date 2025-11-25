@@ -6191,9 +6191,11 @@ const buildSavePayload = () => ({
   sysProjectBearingDetail: buildBearingDetail(),
 });
 
-const handleSave = async (section) => {
+const handleSave = async (section, silent = false) => {
   if (!projectId.value) {
-    ElMessage.warning("未找到项目ID，无法保存");
+    if (!silent) {
+      ElMessage.warning("未找到项目ID，无法保存");
+    }
     return;
   }
   if (saveLoading[section]) {
@@ -6204,13 +6206,19 @@ const handleSave = async (section) => {
     const payload = buildSavePayload();
     const response = await saveProjectDetail(payload);
     if (response?.code === "0") {
-      ElMessage.success("保存成功");
+      if (!silent) {
+        ElMessage.success("保存成功");
+      }
     } else {
-      ElMessage.error(response?.message || "保存失败");
+      if (!silent) {
+        ElMessage.error(response?.message || "保存失败");
+      }
     }
   } catch (error) {
     console.error("保存项目详情失败:", error);
-    ElMessage.error("保存失败，请稍后重试");
+    if (!silent) {
+      ElMessage.error("保存失败，请稍后重试");
+    }
   } finally {
     saveLoading[section] = false;
   }
@@ -6413,19 +6421,19 @@ const handleExportAll = async () => {
       return;
     }
 
-    // 先保存所有tab的数据
+    // 先保存所有tab的数据（静默模式，不显示提示）
     ElMessage.info("正在保存数据...");
     
     // 保存起重机校核计算数据
-    await handleSave('crane');
+    await handleSave('crane', true);
     await new Promise(resolve => setTimeout(resolve, 300));
     
     // 保存吊索具校核计算数据
-    await handleSave('lifting');
+    await handleSave('lifting', true);
     await new Promise(resolve => setTimeout(resolve, 300));
     
     // 保存地基承载力校核计算数据
-    await handleSave('foundation');
+    await handleSave('foundation', true);
     await new Promise(resolve => setTimeout(resolve, 300));
 
     // 获取所有tab的计算结果
