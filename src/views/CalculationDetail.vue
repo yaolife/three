@@ -6121,7 +6121,7 @@ const buildLiftingDetails = () => {
     beamWeight: toNumberOrNull(deviceSettings.beamWeight),
     beamLength: toNumberOrNull(deviceSettings.beamLength),
     utensilWeight: toNumberOrNull(deviceSettings.beamSlingWeight),
-    liftingName: toNullableString(deviceSettings.deviceName),
+    liftingName: toNullableString(sling.deviceName),
     liftingType: toNumberOrNull(sling.slingType),
     prodBusiness: toNullableString(sling.manufacturer),
     normsModel: toNullableString(sling.productModel),
