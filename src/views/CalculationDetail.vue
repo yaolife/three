@@ -97,7 +97,7 @@
           </template>
         </el-tab-pane>
       </el-tabs>
-      <el-button type="primary">导出</el-button>
+      <el-button type="primary" @click="handleExportAllConfirm">导出</el-button>
     </div>
 
     <div class="content-wrapper">
@@ -3378,6 +3378,7 @@ import {
   exportCraneReport,
   exportLiftingReport,
   exportBearingReport,
+  exportProjectReport,
 } from "@/api/index.js";
 import {  getBoomType, craneType} from "@/utils/common.js";
 
@@ -6375,6 +6376,107 @@ const handleExport = async (type) => {
     }
   } catch (error) {
     console.error("导出失败:", error);
+    ElMessage.error("导出失败，请稍后重试");
+  }
+};
+
+// 统一导出所有tab的数据
+// 打开统一导出确认MessageBox
+const handleExportAllConfirm = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '导出会保存每个tab下的页面信息',
+      '导出确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    
+    // 用户点击确定，执行统一导出
+    await handleExportAll();
+  } catch (error) {
+    // 用户点击取消，不执行任何操作
+    if (error !== 'cancel') {
+      console.error('导出确认失败:', error);
+    }
+  }
+};
+
+// 执行统一导出所有tab的数据
+const handleExportAll = async () => {
+  try {
+    const projectIdValue = projectId.value;
+    if (!projectIdValue) {
+      ElMessage.error("项目ID不存在，无法导出");
+      return;
+    }
+
+    // 先保存所有tab的数据
+    ElMessage.info("正在保存数据...");
+    
+    // 保存起重机校核计算数据
+    await handleSave('crane');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // 保存吊索具校核计算数据
+    await handleSave('lifting');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // 保存地基承载力校核计算数据
+    await handleSave('foundation');
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // 获取所有tab的计算结果
+    const craneResult = showCalculationResult(HIDE_DIALOG);
+    const liftingResults = showLiftingResult(HIDE_DIALOG);
+    const foundationResult = calculateFoundation(HIDE_DIALOG);
+
+    // 构建导出参数
+    const params = {
+      projectId: projectIdValue,
+      crane: craneResult ? {
+        result1: craneResult.result1 || null,
+        result2: craneResult.result2 || null
+      } : null,
+      lifting: liftingResults && liftingResults.length > 0 ? {
+        liftingResults: liftingResults
+      } : null,
+      bearing: foundationResult ? {
+        area: foundationResult.area.toFixed(2),
+        result: foundationResult.pressure.toFixed(2)
+      } : null
+    };
+
+    // 调用统一导出接口
+    ElMessage.info("正在生成报告...");
+    const response = await exportProjectReport(params);
+    
+    if (response && response.code === '0') {
+      // 处理文件下载
+      if (response.data && response.data.body) {
+        // 根据实际文件类型设置MIME类型，docx文件
+        const blob = new Blob([response.data.body], { 
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `项目计算结果报告_${projectIdValue}.docx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        ElMessage.success("导出成功");
+      } else {
+        ElMessage.success("导出成功");
+      }
+    } else {
+      ElMessage.error(response?.message || "导出失败");
+    }
+  } catch (error) {
+    console.error("统一导出失败:", error);
     ElMessage.error("导出失败，请稍后重试");
   }
 };
