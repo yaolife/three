@@ -804,6 +804,37 @@ export function exportLiftingReport(params) {
 export function exportBearingReport(params) {
   return postFile("/bearing/detail/exportReport", params)
 }
+
+/**
+ *页面右上角的导出（导出项目结果）
+ * @param {object} params - 参数{
+  "projectId": "项目id20",
+  "crane": {
+    "result1": 563.1891485218611,
+    "result2": 205.6890937120473
+  },
+  "lifting": {
+    "liftingResults": [
+      {
+        "itemIndex": 58,
+        "result": 754.4566021117876
+      },
+      {
+        "itemIndex": 58,
+        "result": 754.4566021117876
+      }
+    ]
+  },
+  "bearing": {
+    "area": "接地面积108",
+    "result": "计算结果60"
+  }
+}
+ * @returns {Promise} - 
+ */
+export function exportProjectReport(params) {
+  return postFile("/projectInfo/exportReport", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -853,5 +884,6 @@ export default {
   exportUser,
   exportCraneReport,
   exportLiftingReport,
-  exportBearingReport
+  exportBearingReport,
+  exportProjectReport,
 }
