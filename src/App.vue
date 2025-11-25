@@ -352,8 +352,16 @@ const handleLogin = async () => {
 
 // 处理离线登录
 const handleOfflineLogin = () => {
-  // 暂时不做逻辑操作
+  // 设置离线登录状态（不保存token）
+  userStore.login('离线用户', 'OFFLINE_USER', null);
   showLoginDialog.value = false;
+  ElMessage.success("离线登录成功");
+  // 跳转到全部项目页面并刷新
+  router.push('/all-projects').then(() => {
+    nextTick(() => {
+      triggerRefresh(null);
+    });
+  });
 };
 
 const handleCommand = (command) => {

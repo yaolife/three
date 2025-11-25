@@ -8,6 +8,14 @@ const API_BASE_URL = "/server-api"
  */
 function checkResponseCode(result) {
   if (result && (result.code === 401 || result.code === "401")) {
+    // 检查是否是离线登录（没有token）
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // 离线登录时，不处理401错误，直接返回结果
+      // 让调用方自己处理错误
+      return;
+    }
+    
     ElMessage.warning("请重新登录");
     // 清除登录状态
     localStorage.removeItem("token");

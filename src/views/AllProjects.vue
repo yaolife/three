@@ -366,16 +366,6 @@ const searchProject = (title = "") => {
 
 // 加载项目数据
 const loadProjectData = async () => {
-  // 检查 token 是否存在，如果不存在则不调用接口
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.log('Token不存在，跳过获取项目列表');
-    // 清空数据，避免显示旧数据
-    projectData.value = [];
-    total.value = 0;
-    return;
-  }
-  
   try {
     const params = {
       pageNum: currentPage.value,
