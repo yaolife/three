@@ -578,6 +578,7 @@
                   <div class="form-row weight-set">
                     <el-checkbox
                       v-model="currentWeightSettings.isEquipmentWeightChecked"
+                      :disabled="true"
                     />
                     <label class="form-label">设备重量<span>(G)</span></label>
                     <div class="input-with-unit">
@@ -3700,7 +3701,7 @@ const handleTabChange = (tabName) => {
 };
 
 const defaultWeightSettings = () => ({
-  isEquipmentWeightChecked: false,
+  isEquipmentWeightChecked: true, // 设备重量始终选中
   equipmentWeight: 0,
   isHookWeightChecked: false,
   hookWeightG1: 0,
@@ -3812,7 +3813,7 @@ const setEquipmentWeightForCrane = (weight, key) => {
       : 0;
   const safeWeight = Number.isFinite(numericWeight) ? numericWeight : 0;
   targetSettings.equipmentWeight = safeWeight;
-  targetSettings.isEquipmentWeightChecked = safeWeight > 0;
+  targetSettings.isEquipmentWeightChecked = true; // 设备重量始终选中
 };
 
 // 监听起重机1参数变化，自动调用getCalculateInfo接口
@@ -5603,7 +5604,7 @@ const buildWeightSettingsFromDetail = (detail) => {
   settings.wireRopeWeightG2 = toNumberOrZero(detail?.weightG2);
   settings.slingsWeightG3 = toNumberOrZero(detail?.weightG3);
   settings.otherWeightG4 = toNumberOrZero(detail?.weightG4);
-  settings.isEquipmentWeightChecked = settings.equipmentWeight > 0;
+  settings.isEquipmentWeightChecked = true; // 设备重量始终选中
   settings.isHookWeightChecked = settings.hookWeightG1 > 0;
   settings.isWireRopeWeightChecked = settings.wireRopeWeightG2 > 0;
   settings.isSlingsWeightChecked = settings.slingsWeightG3 > 0;
