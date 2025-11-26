@@ -3394,6 +3394,9 @@ const saveLoading = reactive({
 
 const craneTemplateDetailId1 = ref("");
 const craneTemplateDetailId2 = ref("");
+// 存储sysProjectTemplateCrane的id值
+const craneTemplateId1 = ref("");
+const craneTemplateId2 = ref("");
 
 const projectId = computed(() => {
   const currentRoute = router.currentRoute?.value || {};
@@ -3602,13 +3605,21 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
         craneData.id ??
         response.data?.sysProjectTemplateCraneDetail?.id ??
         craneId;
+      // 保存sysProjectTemplateCrane的id值
+      const templateCraneId = response.data?.sysProjectTemplateCrane?.id;
       if (isSecondCrane) {
         craneTemplateDetailId2.value = templateDetailId
           ? String(templateDetailId)
           : "";
+        craneTemplateId2.value = templateCraneId
+          ? String(templateCraneId)
+          : "";
       } else {
         craneTemplateDetailId1.value = templateDetailId
           ? String(templateDetailId)
+          : "";
+        craneTemplateId1.value = templateCraneId
+          ? String(templateCraneId)
           : "";
       }
       
@@ -5653,6 +5664,12 @@ const applyCraneDetailToForm = (detail, craneKey) => {
       detail.templateCraneDetailId !== null
         ? String(detail.templateCraneDetailId)
         : null;
+    // 保存时templateCraneDetailId使用的是sysProjectTemplateCrane.id，所以加载时设置到craneTemplateId1
+    craneTemplateId1.value =
+      detail.templateCraneDetailId !== undefined &&
+      detail.templateCraneDetailId !== null
+        ? String(detail.templateCraneDetailId)
+        : "";
     craneTemplateDetailId1.value =
       detail.templateCraneDetailId !== undefined &&
       detail.templateCraneDetailId !== null
@@ -5669,6 +5686,12 @@ const applyCraneDetailToForm = (detail, craneKey) => {
       detail.templateCraneDetailId !== null
         ? String(detail.templateCraneDetailId)
         : null;
+    // 保存时templateCraneDetailId使用的是sysProjectTemplateCrane.id，所以加载时设置到craneTemplateId2
+    craneTemplateId2.value =
+      detail.templateCraneDetailId !== undefined &&
+      detail.templateCraneDetailId !== null
+        ? String(detail.templateCraneDetailId)
+        : "";
     craneTemplateDetailId2.value =
       detail.templateCraneDetailId !== undefined &&
       detail.templateCraneDetailId !== null
@@ -5703,6 +5726,8 @@ const populateCraneDetails = (details = []) => {
   selectedDeviceId2.value = null;
   craneTemplateDetailId1.value = null;
   craneTemplateDetailId2.value = null;
+  craneTemplateId1.value = "";
+  craneTemplateId2.value = "";
 
   if (!Array.isArray(details) || !details.length) {
     formData.value = {
@@ -6013,8 +6038,8 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
     ),
     templateCraneDetailId: toNullableString(
       isSecondCrane
-        ? craneTemplateDetailId2.value ?? selectedCraneId2.value
-        : craneTemplateDetailId1.value ?? selectedCraneId.value
+        ? craneTemplateId2.value || craneTemplateDetailId2.value || selectedCraneId2.value
+        : craneTemplateId1.value || craneTemplateDetailId1.value || selectedCraneId.value
     ),
     craneType,
     type: formData.value.liftingMethod === "double" ? "double" : "single",
