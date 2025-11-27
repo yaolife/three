@@ -3121,7 +3121,7 @@
             <span class="info-label">履带接地面积计算结果A=</span>
             <span class="info-value"
               >{{
-                foundationCalculationResult.calculationProcess.area.toFixed(2)
+                formatNumber(foundationCalculationResult.calculationProcess.area).toFixed(2)
               }}
               m²</span
             >
@@ -3172,7 +3172,7 @@
             </div>
             <div class="weight-item">
               A：履带接地面积={{
-                foundationCalculationResult.calculationProcess.area.toFixed(2)
+                formatNumber(foundationCalculationResult.calculationProcess.area).toFixed(2)
               }}
               m²
             </div>
@@ -3196,9 +3196,7 @@
           <div>
                 T:履带平均接地比压=
             {{
-              foundationCalculationResult.calculationProcess.pressure.toFixed(
-                2
-              )
+              formatNumber(foundationCalculationResult.calculationProcess.pressure).toFixed(2)
             }}t
           </div>
           <el-button
@@ -3225,7 +3223,7 @@
         </div>
         <div class="section-content conclusion" style="padding: 12px">
           履带平均接地比压计算结果为{{
-            foundationCalculationResult.calculationProcess.pressure.toFixed(2)
+            formatNumber(foundationCalculationResult.calculationProcess.pressure).toFixed(2)
           }}t
         </div>
       </div>
@@ -4842,6 +4840,14 @@ const foundationCalculationResult = ref({
   },
 });
 
+// 辅助函数：格式化数字，如果是NaN或无效值则返回0
+const formatNumber = (value) => {
+  if (value === null || value === undefined || isNaN(value) || !isFinite(value)) {
+    return 0;
+  }
+  return Number(value);
+};
+
 // 地基承载力计算方法
 // @param {boolean} silent - 是否静默模式：false=显示弹窗（点击计算结果按钮），true=不显示弹窗（导出时使用）
 const calculateFoundation = (silent = false) => {
@@ -4852,9 +4858,10 @@ const calculateFoundation = (silent = false) => {
     foundationData.value.bearingWidth;
 
   // 计算平均接地比压 T = W × g / A
-  const averagePressure =
-    (foundationData.value.craneWeightW * foundationData.value.gravityAccel) /
-    groundArea;
+  // 如果groundArea为0，则averagePressure为0（避免除以0导致NaN）
+  const averagePressure = groundArea > 0
+    ? (foundationData.value.craneWeightW * foundationData.value.gravityAccel) / groundArea
+    : 0;
 
   // 准备计算结果数据
   foundationCalculationResult.value = {
@@ -4871,8 +4878,8 @@ const calculateFoundation = (silent = false) => {
       groundLength: `${foundationData.value.trackGroundLengthL4 || 6}m`,
     },
     calculationProcess: {
-      area: groundArea,
-      pressure: averagePressure,
+      area: formatNumber(groundArea),
+      pressure: formatNumber(averagePressure),
     },
   };
 
@@ -4884,8 +4891,8 @@ const calculateFoundation = (silent = false) => {
   
   // 返回计算结果对象，包含 area 和 pressure
   return {
-    area: groundArea,
-    pressure: averagePressure
+    area: formatNumber(groundArea),
+    pressure: formatNumber(averagePressure)
   };
 };
 
@@ -4938,7 +4945,7 @@ A = L4 × 2B1
 L4：履带接地长度=${foundationData.value.trackGroundLengthL4}m
 B1：左或右侧履带板宽度=${foundationData.value.bearingWidth}m
 
-履带接地面积计算结果A= ${foundationCalculationResult.value.calculationProcess.area.toFixed(
+履带接地面积计算结果A= ${formatNumber(foundationCalculationResult.value.calculationProcess.area).toFixed(
     2
   )} m²
 
@@ -4948,17 +4955,17 @@ T = W × g / A
 
 W：起重机设计自重=${foundationData.value.craneWeightW}t
 g：重力加速度=${foundationData.value.gravityAccel} m/s²
-A：履带接地面积=${foundationCalculationResult.value.calculationProcess.area.toFixed(
+A：履带接地面积=${formatNumber(foundationCalculationResult.value.calculationProcess.area).toFixed(
     2
   )} m²
 
-A:履带接地面积= ${foundationCalculationResult.value.calculationProcess.area.toFixed(
+A:履带接地面积= ${formatNumber(foundationCalculationResult.value.calculationProcess.area).toFixed(
     2
   )}m²
 
 结论
-履带平均接地比压计算结果为${foundationCalculationResult.value.calculationProcess.pressure.toFixed(
-    0
+履带平均接地比压计算结果为${formatNumber(foundationCalculationResult.value.calculationProcess.pressure).toFixed(
+    2
   )}t
   `.trim();
 
@@ -6379,8 +6386,8 @@ const handleExport = async (type) => {
 
       const params = {
         projectId: projectIdValue,
-        result: result.pressure.toFixed(2), // 履带平均接地比压的值
-        area: result.area.toFixed(2) // 履带接地面积的值
+        result: formatNumber(result.pressure).toFixed(2), // 履带平均接地比压的值
+        area: formatNumber(result.area).toFixed(2) // 履带接地面积的值
       };
 
       const response = await exportBearingReport(params);
@@ -6481,8 +6488,8 @@ const handleExportAll = async () => {
         }))
       } : null,
       bearing: foundationResult ? {
-        area: foundationResult.area !== undefined && foundationResult.area !== null ? foundationResult.area.toFixed(2) : null,
-        result: foundationResult.pressure !== undefined && foundationResult.pressure !== null ? foundationResult.pressure.toFixed(2) : null
+        area: foundationResult.area !== undefined && foundationResult.area !== null ? formatNumber(foundationResult.area).toFixed(2) : null,
+        result: foundationResult.pressure !== undefined && foundationResult.pressure !== null ? formatNumber(foundationResult.pressure).toFixed(2) : null
       } : null
     };
 
