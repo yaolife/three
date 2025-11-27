@@ -6471,15 +6471,18 @@ const handleExportAll = async () => {
     const params = {
       projectId: projectIdValue,
       crane: craneResult ? {
-        result1: craneResult.result1 || null,
-        result2: craneResult.result2 || null
+        result1: craneResult.result1 !== undefined && craneResult.result1 !== null ? craneResult.result1 : null,
+        result2: craneResult.result2 !== undefined && craneResult.result2 !== null ? craneResult.result2 : null
       } : null,
       lifting: liftingResults && liftingResults.length > 0 ? {
-        liftingResults: liftingResults
+        liftingResults: liftingResults.map(item => ({
+          itemIndex: item.itemIndex !== undefined && item.itemIndex !== null ? item.itemIndex : null,
+          result: item.result !== undefined && item.result !== null ? item.result : null
+        }))
       } : null,
       bearing: foundationResult ? {
-        area: foundationResult.area.toFixed(2),
-        result: foundationResult.pressure.toFixed(2)
+        area: foundationResult.area !== undefined && foundationResult.area !== null ? foundationResult.area.toFixed(2) : null,
+        result: foundationResult.pressure !== undefined && foundationResult.pressure !== null ? foundationResult.pressure.toFixed(2) : null
       } : null
     };
 
