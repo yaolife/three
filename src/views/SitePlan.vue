@@ -363,15 +363,6 @@
             <div class="toolbar-actions">
               <el-button
                 size="small"
-                type="primary"
-                @click="handleCompleteDrawing"
-                :disabled="!canCompleteDrawing"
-                :loading="isCompletingDrawing"
-              >
-                完成绘制
-              </el-button>
-              <el-button
-                size="small"
                 type="default"
                 class="clear-shapes-btn"
                 :disabled="!canCompleteDrawing"
@@ -729,7 +720,7 @@ import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import RecordRTC from "recordrtc";
-import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login } from "@/api/index";
+import { saveGeneralPing, getGeneralDetails, exportProject, login } from "@/api/index";
 import userStore from "@/store/user.js";
 
 const route = useRoute();
@@ -766,7 +757,6 @@ const activePointId = ref(null);
 const activeShapeId = ref(null);
 const isDraggingShape = ref(false);
 const isResizingShape = ref(false);
-const isCompletingDrawing = ref(false);
 const dragContext = reactive({
   type: null,
   shapeId: null,
@@ -1981,84 +1971,6 @@ const drawTextShape = (coords, config = {}) => {
   ctx.value.textBaseline = "middle";
   ctx.value.fillText(config.text || "文字", coords.x, coords.y);
   ctx.value.restore();
-};
-
-const handleCompleteDrawing = async () => {
-  if (!selectedCrane.value) {
-    ElMessage.warning("请先选择起重机");
-    return;
-  }
-
-  // 检查是否选中了点位
-  if (!activePointId.value) {
-    ElMessage.warning("请先在点位设置中选择一个点位");
-    return;
-  }
-
-  // 获取当前选中的点位
-  const currentPoint = selectedCrane.value.points.find(p => p.id === activePointId.value);
-  if (!currentPoint) {
-    ElMessage.warning("选中的点位不存在");
-    return;
-  }
-
-  // 只处理吊装点位，移动点位不上传
-  if (currentPoint.type !== "lifting") {
-    ElMessage.warning("移动点位没有点位占位，无需上传图片");
-    return;
-  }
-
-  // 检查是否有绘制图形
-  const shapes = getShapesForPoint(currentPoint.id);
-  if (shapes.length === 0) {
-    ElMessage.warning("请先绘制形状");
-    return;
-  }
-
-  // 重绘所有轨迹，确保截图准确
-  drawAllTrajectories();
-  await nextTick();
-
-  isCompletingDrawing.value = true;
-  try {
-    // 截取当前选中点位的图片
-    const snapshot = capturePointSnapshot(currentPoint);
-    if (!snapshot) {
-      ElMessage.error("截图失败");
-      isCompletingDrawing.value = false;
-      return;
-    }
-    
-    // 将 base64 转换为 Blob
-    const blob = await base64ToBlob(snapshot);
-    
-    // 生成文件名（使用点位名称和时间戳）
-    const fileName = `${currentPoint.name || "point"}_${Date.now()}.png`;
-    
-    // 上传图片（以文件流形式）
-    const response = await uploadImage(blob, fileName);
-    
-    if (response && response.code === "0" && response.data && response.data.fileId) {
-      // 将 fileId 存储到点位数据中
-      const pointIndex = selectedCrane.value.points.findIndex(p => p.id === currentPoint.id);
-      if (pointIndex !== -1) {
-        selectedCrane.value.points[pointIndex].fileId = response.data.fileId;
-        // 同步更新到 cranes 数组
-        const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
-        if (craneIndex !== -1) {
-          cranes.value[craneIndex].points[pointIndex].fileId = response.data.fileId;
-        }
-      }
-      ElMessage.success(`完成绘制，图片上传成功`);
-    } else {
-      ElMessage.error(response?.msg || "图片上传失败");
-    }
-  } catch (error) {
-    console.error("完成绘制失败:", error);
-    ElMessage.error("完成绘制失败");
-  } finally {
-    isCompletingDrawing.value = false;
-  }
 };
 
 const capturePointSnapshot = (point) => {
@@ -3717,6 +3629,10 @@ const handleSave = async () => {
   }
 
   try {
+    // 重绘所有轨迹，确保截图准确
+    drawAllTrajectories();
+    await nextTick();
+
     // 构建接口所需的数据格式
     const sysProjectFlatAddUpdateDetail = cranes.value.map((crane, craneIndex) => {
       // 构建起重机信息
@@ -3762,7 +3678,8 @@ const handleSave = async () => {
 
         // 获取该点位的所有形状数据（包括多个文字）
         // 每个形状都有独立的位置坐标（position），支持一个点位上有多个文字
-        const shapes = getShapesForPoint(point.id).map((shape) => {
+        const rawShapes = getShapesForPoint(point.id);
+        const shapes = rawShapes.map((shape) => {
           const config = shape.config || {};
           const tool = shape.tool;
           
@@ -3819,6 +3736,15 @@ const handleSave = async () => {
           };
         });
 
+        // 仅对有占位截图需求的点位（吊装点位且有形状）生成截图文件
+        let file = null;
+        if (occupyType === 0 && rawShapes.length > 0) {
+          const snapshot = capturePointSnapshot(point);
+          if (snapshot) {
+            file = snapshot;
+          }
+        }
+
         return {
           flatDetailId: crane.id || null,
           pointName: point.name || "",
@@ -3837,7 +3763,10 @@ const handleSave = async () => {
           turnAround: point.turnAround || null,
           occupyType: occupyType,
           pointType: pointType,
-          fileId: point.fileId || null,
+          // 后端不再使用 fileId，这里统一置为 null
+          fileId: null,
+          // 将截图文件数据直接挂到点位对象上，供后端接收处理
+          file: file,
           itemIndex: pointIndex + 1,
           shapes: shapes.length > 0 ? JSON.stringify(shapes) : null, // 将形状数组转为字符串
         };
