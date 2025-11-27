@@ -4866,14 +4866,12 @@ const calculateFoundation = (silent = false) => {
   // 准备计算结果数据
   foundationCalculationResult.value = {
     trackInfo: {
-      name: foundationData.value.trackName || "S",
-      model: foundationData.value.trackModel || "HS-0000",
-      specifications: `左或右侧履带板宽度${
-        foundationData.value.bearingWidth 
-      }m、起重机设计自重、重力加速度。`,
+      name: foundationData.value.trackName || "",
+      model: foundationData.value.trackModel || "",
+      specifications: `左或右侧履带板宽度${foundationData.value.bearingWidth || 0}m、履带接地长度${foundationData.value.trackGroundLengthL4 || 0}m、起重机设计自重${foundationData.value.craneWeightW || 0}t、重力加速度${foundationData.value.gravityAccel || 0}m/s²。`,
     },
     otherParams: {
-      groundLength: `${foundationData.value.trackGroundLengthL4}m`,
+      groundLength: `${foundationData.value.trackGroundLengthL4 || 0}m`,
     },
     calculationProcess: {
       area: formatNumber(groundArea),
