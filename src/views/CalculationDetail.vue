@@ -4868,10 +4868,8 @@ const calculateFoundation = (silent = false) => {
     trackInfo: {
       name: foundationData.value.trackName || "S",
       model: foundationData.value.trackModel || "HS-0000",
-      specifications: `左侧履带宽度${
-        foundationData.value.bearingWidth || 26
-      }m、右侧履带宽度${
-        foundationData.value.bearingWidth || 26
+      specifications: `左或右侧履带板宽度${
+        foundationData.value.bearingWidth 
       }m、起重机设计自重、重力加速度。`,
     },
     otherParams: {
