@@ -5608,10 +5608,19 @@ const buildWeightSettingsFromDetail = (detail) => {
   settings.slingsWeightG3 = toNumberOrZero(detail?.weightG3);
   settings.otherWeightG4 = toNumberOrZero(detail?.weightG4);
   settings.isEquipmentWeightChecked = true; // 设备重量始终选中
-  settings.isHookWeightChecked = settings.hookWeightG1 > 0;
-  settings.isWireRopeWeightChecked = settings.wireRopeWeightG2 > 0;
-  settings.isSlingsWeightChecked = settings.slingsWeightG3 > 0;
-  settings.isOtherWeightChecked = settings.otherWeightG4 > 0;
+  // 优先使用接口返回的选中状态，如果没有则根据重量值判断
+  settings.isHookWeightChecked = detail?.weightG1Select !== undefined && detail?.weightG1Select !== null 
+    ? (detail.weightG1Select === 1) 
+    : (settings.hookWeightG1 > 0);
+  settings.isWireRopeWeightChecked = detail?.weightG2Select !== undefined && detail?.weightG2Select !== null 
+    ? (detail.weightG2Select === 1) 
+    : (settings.wireRopeWeightG2 > 0);
+  settings.isSlingsWeightChecked = detail?.weightG3Select !== undefined && detail?.weightG3Select !== null 
+    ? (detail.weightG3Select === 1) 
+    : (settings.slingsWeightG3 > 0);
+  settings.isOtherWeightChecked = detail?.weightG4Select !== undefined && detail?.weightG4Select !== null 
+    ? (detail.weightG4Select === 1) 
+    : (settings.otherWeightG4 > 0);
   return settings;
 };
 
@@ -6100,6 +6109,10 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
     weightG2: toNumberOrNull(weightSettings.wireRopeWeightG2),
     weightG3: toNumberOrNull(weightSettings.slingsWeightG3),
     weightG4: toNumberOrNull(weightSettings.otherWeightG4),
+    weightG1Select: weightSettings.isHookWeightChecked ? 1 : 0,
+    weightG2Select: weightSettings.isWireRopeWeightChecked ? 1 : 0,
+    weightG3Select: weightSettings.isSlingsWeightChecked ? 1 : 0,
+    weightG4Select: weightSettings.isOtherWeightChecked ? 1 : 0,
     weightSet: JSON.stringify(normalizeFactorItems(weightItems)),
   };
   if (isSecondCrane && formData.value.liftingMethod === "double") {
