@@ -4873,7 +4873,7 @@ const calculateFoundation = (silent = false) => {
       }m、起重机设计自重、重力加速度。`,
     },
     otherParams: {
-      groundLength: `${foundationData.value.trackGroundLengthL4 || 6}m`,
+      groundLength: `${foundationData.value.trackGroundLengthL4}m`,
     },
     calculationProcess: {
       area: formatNumber(groundArea),
