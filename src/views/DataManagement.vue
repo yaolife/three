@@ -416,6 +416,7 @@ import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem } from "@/api/index.js";
+import userStore from "@/store/user.js";
 
 const router = useRouter();
 
@@ -751,6 +752,15 @@ const handleRiggingNext = async () => {
 };
 
 const fetchCraneData = async () => {
+  // 检查登录状态，如果未登录或登录失败，不加载数据
+  if (!userStore.userState.isLoggedIn) {
+    console.log('用户未登录，不加载起重机数据');
+    craneData.value = [];
+    craneTotal.value = 0;
+    craneLoading.value = false;
+    return;
+  }
+  
   craneLoading.value = true;
   try {
     const params = {
@@ -774,10 +784,16 @@ const fetchCraneData = async () => {
       }));
       craneTotal.value = response.data.total || 0;
     } else {
+      // 如果登录失败，清空数据
+      craneData.value = [];
+      craneTotal.value = 0;
       ElMessage.error(response?.message || "获取起重机数据失败");
     }
   } catch (error) {
     console.error("获取起重机数据失败:", error);
+    // 清空数据
+    craneData.value = [];
+    craneTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     craneLoading.value = false;
@@ -796,6 +812,15 @@ const handleCraneSearch = () => {
 };
 
 const fetchRiggingData = async () => {
+  // 检查登录状态，如果未登录或登录失败，不加载数据
+  if (!userStore.userState.isLoggedIn) {
+    console.log('用户未登录，不加载吊索具数据');
+    riggingData.value = [];
+    riggingTotal.value = 0;
+    riggingLoading.value = false;
+    return;
+  }
+  
   riggingLoading.value = true;
   try {
     const params = {
@@ -819,10 +844,16 @@ const fetchRiggingData = async () => {
       }));
       riggingTotal.value = response.data.total || 0;
     } else {
+      // 如果登录失败，清空数据
+      riggingData.value = [];
+      riggingTotal.value = 0;
       ElMessage.error(response?.message || "获取数据失败");
     }
   } catch (error) {
     console.error("获取吊索具数据失败:", error);
+    // 清空数据
+    riggingData.value = [];
+    riggingTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     riggingLoading.value = false;
@@ -888,6 +919,15 @@ const handleEquipmentSubmit = async () => {
 
 // 获取设备数据
 const fetchEquipmentData = async () => {
+  // 检查登录状态，如果未登录或登录失败，不加载数据
+  if (!userStore.userState.isLoggedIn) {
+    console.log('用户未登录，不加载设备数据');
+    equipmentData.value = [];
+    equipmentTotal.value = 0;
+    equipmentLoading.value = false;
+    return;
+  }
+  
   equipmentLoading.value = true;
   try {
     const params = {
@@ -906,10 +946,16 @@ const fetchEquipmentData = async () => {
       equipmentData.value = response.data.records || [];
       equipmentTotal.value = response.data.total || 0;
     } else {
+      // 如果登录失败，清空数据
+      equipmentData.value = [];
+      equipmentTotal.value = 0;
       ElMessage.error(response?.message || "获取设备数据失败");
     }
   } catch (error) {
     console.error("获取设备数据失败:", error);
+    // 清空数据
+    equipmentData.value = [];
+    equipmentTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     equipmentLoading.value = false;
@@ -935,6 +981,19 @@ watch(activeTab, (newTab) => {
     fetchCraneData();
   } else if (newTab === "equipment" && equipmentData.value.length === 0) {
     fetchEquipmentData();
+  }
+});
+
+// 监听登录状态变化，如果未登录则清空数据
+watch(() => userStore.userState.isLoggedIn, (isLoggedIn) => {
+  if (!isLoggedIn) {
+    console.log('登录状态变化：用户已退出，清空数据管理数据');
+    craneData.value = [];
+    craneTotal.value = 0;
+    riggingData.value = [];
+    riggingTotal.value = 0;
+    equipmentData.value = [];
+    equipmentTotal.value = 0;
   }
 });
 

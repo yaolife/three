@@ -127,6 +127,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem } from '../api/index.js'
+import userStore from '../store/user.js'
 
 // 初始化 router 和 route
 const router = useRouter()
@@ -366,6 +367,14 @@ const searchProject = (title = "") => {
 
 // 加载项目数据
 const loadProjectData = async () => {
+  // 检查登录状态，如果未登录或登录失败，不加载数据
+  if (!userStore.userState.isLoggedIn) {
+    console.log('用户未登录，不加载项目数据');
+    projectData.value = [];
+    total.value = 0;
+    return;
+  }
+  
   try {
     const params = {
       pageNum: currentPage.value,
@@ -387,10 +396,18 @@ const loadProjectData = async () => {
       projectData.value = response.data.records || []
       total.value = response.data.total || 0
     } else {
+      // 如果登录失败，清空数据
+      if (response.code !== '0') {
+        projectData.value = [];
+        total.value = 0;
+      }
       ElMessage.error(response.msg || '获取项目列表失败')
     }
   } catch (error) {
     console.error('获取项目列表失败:', error)
+    // 清空数据
+    projectData.value = [];
+    total.value = 0;
     // 如果是"请重新登录"错误，不显示错误提示（checkResponseCode已经处理）
     if (error.message !== '请重新登录') {
       ElMessage.error('获取项目列表失败')
@@ -524,6 +541,18 @@ watch(projectTypeFilter, () => {
   searchTitle.value = ""
   loadProjectData()
   resetForm()
+})
+
+// 监听登录状态变化，如果未登录则清空数据
+watch(() => userStore.userState.isLoggedIn, (isLoggedIn) => {
+  if (!isLoggedIn) {
+    console.log('登录状态变化：用户已退出，清空项目数据');
+    projectData.value = [];
+    total.value = 0;
+    currentPage.value = 1;
+    selectedProjects.value = [];
+    searchTitle.value = "";
+  }
 })
 
 
