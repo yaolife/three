@@ -401,7 +401,7 @@
             @wheel="handleCanvasWheel"
           ></canvas>
           <svg
-            v-if="selectedCrane && canvasSize.width && canvasSize.height"
+            v-if="canvasSize.width && canvasSize.height"
             class="shape-overlay"
             :width="canvasSize.width"
             :height="canvasSize.height"
@@ -491,6 +491,14 @@
               </g>
             </g>
           </svg>
+          
+          <!-- 调试信息（开发环境显示） -->
+          <div v-if="false" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px; font-size: 12px; z-index: 10000; border-radius: 4px;">
+            <div>shapeOverlays: {{ shapeOverlays.length }}</div>
+            <div>renderedShapeItems: {{ renderedShapeItems.length }}</div>
+            <div>canvasSize: {{ canvasSize.width }}x{{ canvasSize.height }}</div>
+            <div>selectedCrane: {{ selectedCrane?.name || '无' }}</div>
+          </div>
         </div>
 
         <!-- 任务属性编辑悬浮框 -->
@@ -1066,8 +1074,21 @@ const activePoint = computed(() => {
   return fallback || null;
 });
 
-const getShapesForPoint = (pointId) =>
-  shapeOverlays.value.filter((shape) => shape.pointId === pointId);
+const getShapesForPoint = (pointId) => {
+  if (!pointId) return [];
+  
+  // 首先尝试精确匹配
+  let matched = shapeOverlays.value.filter((shape) => shape.pointId === pointId);
+  
+  // 如果精确匹配失败，尝试字符串匹配（处理类型不匹配的情况）
+  if (matched.length === 0) {
+    matched = shapeOverlays.value.filter((shape) => 
+      String(shape.pointId) === String(pointId)
+    );
+  }
+  
+  return matched;
+};
 
 const canCompleteDrawing = computed(() => {
   if (!activePoint.value) return false;
@@ -1085,11 +1106,104 @@ const renderedShapeItems = computed(() => {
   imageHeight.value;
   canvasSize.width;
   canvasSize.height;
-  if (!canvas.value) return [];
-  return shapeOverlays.value
-    .map((shape) => {
-      const matched = findPointById(shape.pointId, shape.craneId);
-      if (!matched) return null;
+  shapeOverlays.value.length; // 强制依赖 shapeOverlays
+  cranes.value.length; // 强制依赖 cranes
+  selectedCrane.value?.id; // 强制依赖 selectedCrane
+  
+  // 基本条件检查
+  if (!canvas.value) {
+    console.debug("renderedShapeItems: canvas 不存在");
+    return [];
+  }
+  if (!canvasSize.width || !canvasSize.height) {
+    console.debug("renderedShapeItems: canvas 尺寸未初始化", { width: canvasSize.width, height: canvasSize.height });
+    return [];
+  }
+  if (shapeOverlays.value.length === 0) {
+    return [];
+  }
+  if (cranes.value.length === 0) {
+    console.debug("renderedShapeItems: 没有起重机数据");
+    return [];
+  }
+  
+  const result = shapeOverlays.value
+    .map((shape, index) => {
+      // 首先尝试通过 craneId 和 pointId 精确匹配
+      let matched = findPointById(shape.pointId, shape.craneId);
+      
+      // 如果找不到，尝试在所有起重机中查找（通过 ID）
+      if (!matched) {
+        for (const crane of cranes.value) {
+          const point = crane.points?.find(p => p.id === shape.pointId);
+          if (point) {
+            console.debug(`形状[${index}] ${shape.id} 通过全局查找找到点位: ${point.name}`);
+            matched = { crane, point };
+            break;
+          }
+        }
+      }
+      
+      // 如果还是找不到，尝试通过位置坐标匹配
+      if (!matched && shape.position) {
+        for (const crane of cranes.value) {
+          const point = crane.points?.find(p => {
+            const dx = Math.abs(p.x - shape.position.x);
+            const dy = Math.abs(p.y - shape.position.y);
+            return dx < 0.1 && dy < 0.1;
+          });
+          if (point) {
+            console.debug(`形状[${index}] ${shape.id} 通过坐标匹配找到点位: ${point.name} (${point.x}, ${point.y})`);
+            matched = { crane, point };
+            break;
+          }
+        }
+      }
+      
+      // 如果还是找不到，尝试通过起重机 ID 和点位名称匹配
+      if (!matched && shape.craneId) {
+        const crane = cranes.value.find(c => c.id === shape.craneId);
+        if (crane && crane.points) {
+          // 尝试通过位置坐标找到最接近的点位
+          let closestPoint = null;
+          let minDistance = Infinity;
+          crane.points.forEach(point => {
+            if (shape.position) {
+              const dx = point.x - shape.position.x;
+              const dy = point.y - shape.position.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              if (distance < minDistance && distance < 1.0) {
+                minDistance = distance;
+                closestPoint = point;
+              }
+            }
+          });
+          if (closestPoint) {
+            console.debug(`形状[${index}] ${shape.id} 通过最近距离匹配找到点位: ${closestPoint.name}`);
+            matched = { crane, point: closestPoint };
+          }
+        }
+      }
+      
+      // 即使找不到点位，也尝试通过 position 直接渲染
+      if (!matched) {
+        console.warn(`形状[${index}] ${shape.id} 无法匹配到点位，尝试直接使用 position 渲染`);
+        if (shape.position) {
+          // 直接使用保存的 position 坐标进行渲染
+          const baseCoords = convertToCanvasCoords(shape.position.x, shape.position.y);
+          return {
+            ...shape,
+            canvasX: baseCoords.x,
+            canvasY: baseCoords.y,
+            baseCoords,
+            geoPosition: shape.position,
+            point: { x: shape.position.x, y: shape.position.y }, // 临时点位数据
+            crane: cranes.value.find(c => c.id === shape.craneId) || cranes.value[0], // 尝试找到起重机，否则使用第一个
+          };
+        }
+        return null;
+      }
+      
       const geoPosition = shape.position || matched.point;
       const baseCoords = convertToCanvasCoords(geoPosition.x, geoPosition.y);
       return {
@@ -1103,6 +1217,9 @@ const renderedShapeItems = computed(() => {
       };
     })
     .filter(Boolean);
+  
+  console.debug(`renderedShapeItems: 返回 ${result.length} 个可渲染的形状`);
+  return result;
 });
 
 const syncActivePointSelection = () => {
@@ -1128,6 +1245,46 @@ watch(
     nextTick(() => {
       syncActivePointSelection();
     });
+  }
+);
+
+// 监听 shapeOverlays 变化，强制触发重新渲染
+watch(
+  () => shapeOverlays.value.length,
+  (newLength, oldLength) => {
+    console.log(`shapeOverlays 数量变化: ${oldLength} -> ${newLength}`);
+    if (newLength > 0) {
+      nextTick(() => {
+        // 强制触发 renderedShapeItems 重新计算
+        const items = renderedShapeItems.value;
+        console.log(`watch: 强制刷新后 renderedShapeItems 数量:`, items.length);
+        // 如果数量不匹配，再次强制更新
+        if (items.length !== newLength) {
+          setTimeout(() => {
+            shapeOverlays.value = [...shapeOverlays.value];
+            const items2 = renderedShapeItems.value;
+            console.log(`watch: 延迟刷新后 renderedShapeItems 数量:`, items2.length);
+          }, 100);
+        }
+      });
+    }
+  },
+  { immediate: true }
+);
+
+// 监听 cranes 变化，重新匹配形状数据
+watch(
+  () => cranes.value.length,
+  () => {
+    if (shapeOverlays.value.length > 0 && cranes.value.length > 0) {
+      console.log(`cranes 数量变化，重新匹配形状数据`);
+      nextTick(() => {
+        // 强制更新 shapeOverlays 以触发重新匹配
+        shapeOverlays.value = [...shapeOverlays.value];
+        const items = renderedShapeItems.value;
+        console.log(`重新匹配后 renderedShapeItems 数量:`, items.length);
+      });
+    }
   }
 );
 
@@ -2101,7 +2258,54 @@ const isAddingStartPoint = computed(() => newPoint.value?.isStart === true);
 
 const isEditingStartPoint = computed(() => editingPointIndex.value === 0);
 
-onMounted(() => {
+// 全局测试函数，可以在浏览器控制台调用
+window.testShapeRender = () => {
+  console.log("========== 手动测试形状渲染 ==========");
+  console.log("shapeOverlays 数量:", shapeOverlays.value.length);
+  console.log("renderedShapeItems 数量:", renderedShapeItems.value.length);
+  console.log("canvasSize:", canvasSize);
+  console.log("canvas 存在:", !!canvas.value);
+  console.log("selectedCrane:", selectedCrane.value?.name);
+  console.log("cranes 数量:", cranes.value.length);
+  
+  // 如果有形状数据但没有渲染，尝试强制刷新
+  if (shapeOverlays.value.length > 0 && renderedShapeItems.value.length === 0) {
+    console.log("尝试强制刷新...");
+    shapeOverlays.value = [...shapeOverlays.value];
+    nextTick(() => {
+      const items = renderedShapeItems.value;
+      console.log("强制刷新后 renderedShapeItems 数量:", items.length);
+      if (items.length === 0) {
+        console.warn("⚠️ 强制刷新后仍然无法渲染");
+        // 尝试添加一个测试形状
+        if (cranes.value.length > 0 && cranes.value[0].points?.length > 0) {
+          const testPoint = cranes.value[0].points[0];
+          const testShape = {
+            id: 'manual_test_' + Date.now(),
+            tool: 'rectangle',
+            pointId: testPoint.id,
+            craneId: cranes.value[0].id,
+            position: { x: testPoint.x, y: testPoint.y },
+            config: { width: 100, height: 50, fill: 'rgba(255,0,0,0.5)', stroke: '#ff0000' }
+          };
+          shapeOverlays.value = [...shapeOverlays.value, testShape];
+          nextTick(() => {
+            const testItems = renderedShapeItems.value;
+            console.log("添加测试形状后 renderedShapeItems 数量:", testItems.length);
+            if (testItems.length > 0) {
+              console.log("✅ 测试形状可以渲染，说明渲染逻辑正常");
+            } else {
+              console.error("❌ 测试形状也无法渲染，说明渲染逻辑有问题");
+            }
+          });
+        }
+      }
+    });
+  }
+  console.log("========== 手动测试完成 ==========");
+};
+
+onMounted(async () => {
   // 从路由参数获取项目ID
   projectId.value = route.params.id || "";
   console.log("总平规划项目ID:", projectId.value);
@@ -2119,6 +2323,23 @@ onMounted(() => {
   
   // 监听窗口大小变化，重新调整Canvas大小
   window.addEventListener('resize', handleResize);
+  
+  // 在页面加载完成后，延迟检查渲染状态
+  setTimeout(() => {
+    if (shapeOverlays.value.length > 0) {
+      console.log("页面加载完成，检查渲染状态...");
+      const items = renderedShapeItems.value;
+      console.log("页面加载后 renderedShapeItems 数量:", items.length);
+      if (items.length === 0) {
+        console.warn("⚠️ 页面加载后形状未渲染，尝试强制刷新");
+        shapeOverlays.value = [...shapeOverlays.value];
+        nextTick(() => {
+          const items2 = renderedShapeItems.value;
+          console.log("强制刷新后 renderedShapeItems 数量:", items2.length);
+        });
+      }
+    }
+  }, 2000);
 });
 
 // 处理图片加载
@@ -3336,18 +3557,40 @@ const setCranePosition = () => {
     }
 
     try {
-      console.log("加载项目数据，项目ID:", projectId.value);
+      console.log("========== 开始加载项目数据 ==========");
+      console.log("项目ID:", projectId.value);
       
       // 清空之前的形状数据
       shapeOverlays.value = [];
+      console.log("已清空之前的形状数据");
       
       const response = await getGeneralDetails(projectId.value);
       
-      console.log("总平详情API返回数据:", response);
+      console.log("========== 总平详情API返回数据 ==========");
+      console.log("完整响应:", JSON.stringify(response, null, 2));
       
       if (response && response.code === "0" && response.data) {
         console.log("response.data 结构:", response.data);
         console.log("response.data.sysProjectInfo:", response.data.sysProjectInfo);
+        console.log("response.data.flatInfo:", response.data.flatInfo);
+        
+        // 检查 flatInfo 中每个点位的 shapes 数据
+        if (response.data.flatInfo && Array.isArray(response.data.flatInfo)) {
+          response.data.flatInfo.forEach((flatInfo, index) => {
+            console.log(`flatInfo[${index}]:`, flatInfo);
+            if (flatInfo.sysProjectFlatDetailItem && Array.isArray(flatInfo.sysProjectFlatDetailItem)) {
+              flatInfo.sysProjectFlatDetailItem.forEach((item, itemIndex) => {
+                console.log(`  点位[${itemIndex}]:`, {
+                  id: item.id,
+                  pointName: item.pointName,
+                  hasShapes: !!item.shapes,
+                  shapesType: typeof item.shapes,
+                  shapesValue: item.shapes ? (typeof item.shapes === 'string' ? item.shapes.substring(0, 100) : item.shapes) : null
+                });
+              });
+            }
+          });
+        }
         
         // 设置项目标题（优先从 sysProjectInfo 获取）
         let titleFound = false;
@@ -3388,6 +3631,9 @@ const setCranePosition = () => {
         
         if (response.data.flatInfo) {
           const flatInfoList = response.data.flatInfo;
+          
+          // 先收集所有形状数据，稍后添加
+          const shapesToAdd = [];
           
           // 转换为前端数据结构
           const loadedCranes = flatInfoList.map((flatInfo) => {
@@ -3440,20 +3686,39 @@ const setCranePosition = () => {
                 turnAround: item.turnAround || null,
               };
               
-              // 回显形状数据（如果存在）
+              // 收集形状数据（如果存在），稍后添加到 shapeOverlays
               // 支持一个点位上有多个文字，每个文字都有独立的位置坐标
-              if (item.shapes) {
+              console.log(`检查点位 ${item.pointName} (ID: ${item.id}) 的形状数据:`, {
+                hasShapes: !!item.shapes,
+                shapesType: typeof item.shapes,
+                shapesValue: item.shapes
+              });
+              
+              // 尝试多种可能的字段名
+              const shapesData = item.shapes || item.shapeData || item.shape || item.drawingShapes;
+              
+              if (shapesData) {
                 try {
+                  console.log(`点位 ${item.pointName} (ID: ${item.id}) 找到形状数据，类型:`, typeof shapesData);
                   // 将字符串转为数组
                   let shapesArray = [];
-                  if (typeof item.shapes === 'string') {
-                    shapesArray = JSON.parse(item.shapes);
-                  } else if (Array.isArray(item.shapes)) {
-                    shapesArray = item.shapes;
+                  if (typeof shapesData === 'string') {
+                    try {
+                      shapesArray = JSON.parse(shapesData);
+                      console.log(`点位 ${item.pointName} JSON解析成功，数量:`, shapesArray.length);
+                    } catch (parseError) {
+                      console.error(`点位 ${item.pointName} JSON解析失败:`, parseError, shapesData);
+                    }
+                  } else if (Array.isArray(shapesData)) {
+                    shapesArray = shapesData;
+                    console.log(`点位 ${item.pointName} 形状数据是数组，数量:`, shapesArray.length);
+                  } else {
+                    console.warn(`点位 ${item.pointName} 形状数据格式未知:`, shapesData);
                   }
                   
                   if (Array.isArray(shapesArray) && shapesArray.length > 0) {
-                    shapesArray.forEach((shapeData) => {
+                    console.log(`点位 ${item.pointName} 解析后的形状数组:`, shapesArray);
+                    shapesArray.forEach((shapeData, shapeIndex) => {
                       // 每个形状（包括文字）都有独立的位置坐标
                       // position 保存的是地理坐标（x, y），用于回显时正确定位
                       const shape = {
@@ -3464,12 +3729,17 @@ const setCranePosition = () => {
                         position: shapeData.position || { x: pointData.x, y: pointData.y }, // 使用保存的位置坐标
                         config: shapeData.config || {}, // 包含文字内容（text 属性）和其他配置
                       };
-                      shapeOverlays.value.push(shape);
+                      console.log(`  形状[${shapeIndex}]:`, shape);
+                      shapesToAdd.push(shape);
                     });
+                  } else {
+                    console.warn(`点位 ${item.pointName} 形状数组为空或无效`);
                   }
                 } catch (error) {
-                  console.error("解析形状数据失败:", error, item.shapes);
+                  console.error(`点位 ${item.pointName} 解析形状数据失败:`, error, shapesData);
                 }
+              } else {
+                console.log(`点位 ${item.pointName} (ID: ${item.id}) 没有形状数据`);
               }
               
               return pointData;
@@ -3491,9 +3761,174 @@ const setCranePosition = () => {
           // 更新起重机列表
           cranes.value = loadedCranes;
           
-          // 如果有数据，选中第一个起重机
+          // 等待 DOM 更新
+          await nextTick();
+          
+          // 等待 Canvas 初始化
+          if (!canvasSize.width || !canvasSize.height) {
+            let retries = 0;
+            while ((!canvasSize.width || !canvasSize.height) && retries < 20) {
+              await new Promise(resolve => setTimeout(resolve, 50));
+              retries++;
+            }
+          }
+          
+          // 在 selectCrane 之前添加形状数据，避免 selectCrane 修改点位数据导致 ID 不匹配
+          if (shapesToAdd.length > 0) {
+            console.log(`========== 开始添加形状数据 ==========`);
+            console.log(`准备添加 ${shapesToAdd.length} 个形状到 shapeOverlays`);
+            console.log(`当前起重机数量:`, cranes.value.length);
+            console.log(`当前点位总数:`, cranes.value.reduce((sum, crane) => sum + (crane.points?.length || 0), 0));
+            
+            // 验证形状数据中的点位 ID 是否存在于起重机数据中
+            shapesToAdd.forEach((shape, index) => {
+              const matched = findPointById(shape.pointId, shape.craneId);
+              if (!matched) {
+                console.warn(`形状[${index}] ${shape.id} 无法找到点位 pointId=${shape.pointId}, craneId=${shape.craneId}`);
+                // 尝试在所有起重机中查找
+                for (const crane of cranes.value) {
+                  const point = crane.points?.find(p => p.id === shape.pointId);
+                  if (point) {
+                    console.log(`  通过全局查找找到点位: ${point.name} (ID: ${point.id})`);
+                    shape.craneId = crane.id;
+                    break;
+                  }
+                }
+                
+                // 如果还是找不到，尝试通过位置坐标匹配
+                if (!matched && shape.position) {
+                  for (const crane of cranes.value) {
+                    const point = crane.points?.find(p => 
+                      Math.abs(p.x - shape.position.x) < 0.1 && 
+                      Math.abs(p.y - shape.position.y) < 0.1
+                    );
+                    if (point) {
+                      console.log(`  通过坐标匹配找到点位: ${point.name} (ID: ${point.id})`);
+                      shape.pointId = point.id;
+                      shape.craneId = crane.id;
+                      break;
+                    }
+                  }
+                }
+              } else {
+                console.log(`形状[${index}] ${shape.id} 成功匹配到点位: ${matched.point.name} (ID: ${matched.point.id})`);
+              }
+            });
+            
+            // 添加形状数据
+            shapeOverlays.value = [...shapesToAdd];
+            console.log(`已添加，当前 shapeOverlays 数量:`, shapeOverlays.value.length);
+            
+            // 强制触发响应式更新
+            await nextTick();
+            
+            // 再次强制更新，确保 Vue 响应式系统能检测到变化
+            shapeOverlays.value = [...shapeOverlays.value];
+            await nextTick();
+            
+            console.log(`========== 形状数据添加完成 ==========`);
+          }
+          
+          // 如果有数据，选中第一个起重机（在添加形状之后）
           if (loadedCranes.length > 0) {
             selectCrane(loadedCranes[0]);
+            await nextTick();
+            
+            // 再次强制更新 shapeOverlays，确保在 selectCrane 之后也能正确渲染
+            if (shapesToAdd.length > 0) {
+              // 多次强制刷新，确保响应式更新
+              for (let i = 0; i < 3; i++) {
+                shapeOverlays.value = [...shapeOverlays.value];
+                await nextTick();
+                await new Promise(resolve => setTimeout(resolve, 50));
+              }
+              
+              // 延迟再次强制刷新，确保所有响应式更新都完成
+              setTimeout(() => {
+                shapeOverlays.value = [...shapeOverlays.value];
+                const renderedItems = renderedShapeItems.value;
+                console.log(`========== 延迟刷新验证 ==========`);
+                console.log(`延迟刷新后 renderedShapeItems 数量:`, renderedItems.length);
+                console.log(`延迟刷新后 shapeOverlays 数量:`, shapeOverlays.value.length);
+                
+                // 输出所有形状的详细信息
+                renderedItems.forEach((item, index) => {
+                  console.log(`渲染项[${index}]:`, {
+                    id: item.id,
+                    tool: item.tool,
+                    canvasX: item.canvasX,
+                    canvasY: item.canvasY,
+                    pointId: item.pointId,
+                    craneId: item.craneId,
+                    position: item.geoPosition
+                  });
+                });
+                
+                // 如果还是没有渲染，尝试添加一个测试形状
+                if (renderedItems.length === 0 && shapeOverlays.value.length > 0) {
+                  console.warn("⚠️ 形状数据存在但无法渲染，尝试添加测试形状");
+                  const testShape = {
+                    id: 'test_' + Date.now(),
+                    tool: 'rectangle',
+                    pointId: loadedCranes[0].points?.[0]?.id || null,
+                    craneId: loadedCranes[0].id,
+                    position: loadedCranes[0].points?.[0] ? { x: loadedCranes[0].points[0].x, y: loadedCranes[0].points[0].y } : { x: 0, y: 0 },
+                    config: { width: 100, height: 50, fill: 'rgba(255,0,0,0.3)', stroke: '#ff0000' }
+                  };
+                  shapeOverlays.value = [...shapeOverlays.value, testShape];
+                  setTimeout(() => {
+                    const testRendered = renderedShapeItems.value;
+                    console.log(`测试形状渲染结果:`, testRendered.length);
+                    if (testRendered.length > 0) {
+                      console.log("✅ 测试形状可以渲染，说明渲染逻辑正常，问题在于数据匹配");
+                    } else {
+                      console.error("❌ 测试形状也无法渲染，说明渲染逻辑有问题");
+                    }
+                  }, 100);
+                }
+                console.log(`========== 延迟刷新验证完成 ==========`);
+              }, 1000);
+            }
+            
+            // 验证形状数据是否正确渲染（在 selectCrane 之后）
+            if (shapesToAdd.length > 0) {
+              await nextTick();
+              const renderedItems = renderedShapeItems.value;
+              console.log(`========== 渲染验证 ==========`);
+              console.log(`shapeOverlays 数量:`, shapeOverlays.value.length);
+              console.log(`renderedShapeItems 数量:`, renderedItems.length);
+              console.log(`canvasSize:`, { width: canvasSize.width, height: canvasSize.height });
+              console.log(`canvas 存在:`, !!canvas.value);
+              console.log(`selectedCrane:`, selectedCrane.value?.name);
+              
+              // 输出所有 shapeOverlays 的详细信息
+              console.log(`所有 shapeOverlays:`, shapeOverlays.value.map(s => ({
+                id: s.id,
+                tool: s.tool,
+                pointId: s.pointId,
+                craneId: s.craneId,
+                position: s.position
+              })));
+              
+              if (renderedItems.length !== shapesToAdd.length) {
+                console.warn(`警告：只有 ${renderedItems.length}/${shapesToAdd.length} 个形状成功渲染`);
+                // 输出无法渲染的形状
+                shapesToAdd.forEach((shape, index) => {
+                  const rendered = renderedItems.find(item => item.id === shape.id);
+                  if (!rendered) {
+                    console.warn(`  形状[${index}] ${shape.id} 未渲染`, {
+                      pointId: shape.pointId,
+                      craneId: shape.craneId,
+                      position: shape.position,
+                      matched: findPointById(shape.pointId, shape.craneId)
+                    });
+                  }
+                });
+              } else {
+                console.log(`✅ 所有 ${renderedItems.length} 个形状成功渲染`);
+              }
+              console.log(`========== 渲染验证完成 ==========`);
+            }
           }
           
           // 重绘所有轨迹
@@ -3720,7 +4155,49 @@ const handleSave = async () => {
         // 获取该点位的所有形状数据（包括多个文字）
         // 每个形状都有独立的位置坐标（position），支持一个点位上有多个文字
         const rawShapes = getShapesForPoint(point.id);
-        const shapes = rawShapes.map((shape) => {
+        
+        // 调试：检查形状数据获取情况
+        console.log(`========== 保存时检查点位 ${point.name} (ID: ${point.id}) ==========`);
+        console.log(`点位类型: ${point.type}, occupyType: ${occupyType}`);
+        console.log(`getShapesForPoint 返回的形状数量:`, rawShapes.length);
+        console.log(`所有 shapeOverlays:`, shapeOverlays.value.map(s => ({
+          id: s.id,
+          tool: s.tool,
+          pointId: s.pointId,
+          craneId: s.craneId,
+          pointIdType: typeof s.pointId,
+          pointIdValue: s.pointId,
+          pointIdMatch: s.pointId === point.id,
+          pointIdStringMatch: String(s.pointId) === String(point.id)
+        })));
+        
+        // 如果通过 point.id 找不到，尝试通过字符串匹配
+        let shapesToSave = rawShapes;
+        if (rawShapes.length === 0) {
+          console.warn(`⚠️ 通过 point.id (${point.id}) 找不到形状，尝试其他匹配方式`);
+          // 尝试字符串匹配
+          const stringMatched = shapeOverlays.value.filter((shape) => 
+            String(shape.pointId) === String(point.id)
+          );
+          if (stringMatched.length > 0) {
+            console.log(`通过字符串匹配找到 ${stringMatched.length} 个形状`);
+            shapesToSave = stringMatched;
+          } else {
+            // 尝试通过 craneId 和坐标匹配
+            const craneMatched = shapeOverlays.value.filter((shape) => 
+              shape.craneId === crane.id && 
+              shape.position &&
+              Math.abs(shape.position.x - point.x) < 0.1 &&
+              Math.abs(shape.position.y - point.y) < 0.1
+            );
+            if (craneMatched.length > 0) {
+              console.log(`通过坐标匹配找到 ${craneMatched.length} 个形状`);
+              shapesToSave = craneMatched;
+            }
+          }
+        }
+        
+        const shapes = shapesToSave.map((shape) => {
           const config = shape.config || {};
           const tool = shape.tool;
           
@@ -3799,6 +4276,16 @@ const handleSave = async () => {
           itemIndex: pointIndex + 1,
           shapes: shapes.length > 0 ? JSON.stringify(shapes) : null, // 将形状数组转为字符串
         };
+        
+        // 调试：输出保存的形状数据
+        if (shapes.length > 0) {
+          console.log(`点位 ${point.name} 保存的形状数据:`, shapes);
+          console.log(`点位 ${point.name} 保存的 shapes JSON:`, JSON.stringify(shapes));
+        } else {
+          console.log(`点位 ${point.name} 没有形状数据需要保存`);
+        }
+        
+        return pointData;
       });
 
       // 确保第一条是吊装点位（occupyType=0）
@@ -3818,6 +4305,63 @@ const handleSave = async () => {
       projectId: projectId.value,
       sysProjectFlatAddUpdateDetail,
     };
+
+    // 调试：检查保存的数据中是否包含 shapes
+    console.log("========== 保存数据检查 ==========");
+    console.log("当前 shapeOverlays 总数:", shapeOverlays.value.length);
+    console.log("所有 shapeOverlays 详情:", shapeOverlays.value.map(s => ({
+      id: s.id,
+      tool: s.tool,
+      pointId: s.pointId,
+      pointIdType: typeof s.pointId,
+      craneId: s.craneId,
+      position: s.position,
+      config: s.config
+    })));
+    console.log("完整保存数据:", JSON.stringify(payload, null, 2));
+    sysProjectFlatAddUpdateDetail.forEach((craneData, craneIndex) => {
+      console.log(`起重机 ${craneIndex + 1}: ${craneData.sysProjectFlatDetail.craneName}`);
+      console.log(`  起重机详情:`, craneData.sysProjectFlatDetail);
+      craneData.points.forEach((point, pointIndex) => {
+        console.log(`  点位 ${point.pointName} (索引 ${pointIndex + 1}):`, {
+          id: point.flatDetailId,
+          pointName: point.pointName,
+          x: point.x,
+          y: point.y,
+          hasShapes: !!point.shapes,
+          shapesType: typeof point.shapes,
+          shapesLength: point.shapes ? point.shapes.length : 0,
+          shapesPreview: point.shapes ? point.shapes.substring(0, 200) : null
+        });
+        if (point.shapes) {
+          try {
+            const shapesData = JSON.parse(point.shapes);
+            console.log(`    形状数据解析成功，数量: ${shapesData.length}`, shapesData);
+          } catch (e) {
+            console.error(`    形状数据解析失败:`, e);
+          }
+        } else {
+          // 如果该点位没有 shapes，检查 shapeOverlays 中是否有该点位的形状
+          const crane = cranes.value.find(c => c.id === craneData.sysProjectFlatDetail.id || c.name === craneData.sysProjectFlatDetail.craneName);
+          if (crane) {
+            const matchedPoint = crane.points?.find(p => p.name === point.pointName || (Math.abs(p.x - point.x) < 0.1 && Math.abs(p.y - point.y) < 0.1));
+            if (matchedPoint) {
+              const shapesForPoint = getShapesForPoint(matchedPoint.id);
+              if (shapesForPoint.length > 0) {
+                console.warn(`    ⚠️ 该点位在 shapeOverlays 中有 ${shapesForPoint.length} 个形状，但保存时未包含！`);
+                console.warn(`    点位 ID 匹配情况:`, {
+                  pointIdInSave: point.flatDetailId,
+                  pointIdInCrane: matchedPoint.id,
+                  pointIdMatch: point.flatDetailId === matchedPoint.id,
+                  shapesPointIds: shapesForPoint.map(s => s.pointId)
+                });
+              }
+            }
+          }
+        }
+      });
+    });
+    console.log("========== 保存数据检查完成 ==========");
 
     // 调用保存接口
     const response = await saveGeneralPing(payload);
