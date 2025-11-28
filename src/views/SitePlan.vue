@@ -3567,9 +3567,6 @@ const setCranePosition = () => {
       const response = await getGeneralDetails(projectId.value);
       
       if (response && response.code === "0" && response.data) {
-        console.log("response.data 结构:", response.data);
-        console.log("response.data.sysProjectInfo:", response.data.sysProjectInfo);
-        console.log("response.data.flatInfo:", response.data.flatInfo);
         
         // 检查 flatInfo 中每个点位的 shapes 数据
         if (response.data.flatInfo && Array.isArray(response.data.flatInfo)) {
