@@ -242,7 +242,11 @@ if (typeof window.createProjectFlag === 'undefined') {
 }
 
 const createProject = () => {
-  console.log('Create project button clicked');
+  // 未登录时，只提示，不打开登录弹窗，也不加载任何数据
+  if (!userStore.userState.isLoggedIn) {
+    ElMessage.warning('请先登录');
+    return;
+  }
   
   // 检查当前是否已经在全部项目页面
   if (route.path === '/all-projects') {
