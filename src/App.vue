@@ -173,10 +173,10 @@
             </div>
           </div>
           <div class="login-buttons">
-            <el-button type="primary" class="login-confirm-btn" @click="handleLogin" :loading="isLogging">
+            <el-button type="primary" class="login-confirm-btn" @click="handleLogin" :loading="isConfirmLogging">
               确认登录
             </el-button>
-            <el-button type="warning" class="login-offline-btn" @click="handleOfflineLogin" :loading="isLogging">
+            <el-button type="warning" class="login-offline-btn" @click="handleOfflineLogin" :loading="isAdminLogging">
               管理员登录
             </el-button>
           </div>
@@ -211,7 +211,9 @@ const searchTitle = ref("");
 
 // 登录相关
 const showLoginDialog = ref(false);
-const isLogging = ref(false);
+// 分开两个 loading 状态，避免两个按钮同时 loading
+const isConfirmLogging = ref(false);
+const isAdminLogging = ref(false);
 const loginForm = reactive({
   username: "",
   password: "",
@@ -307,14 +309,14 @@ const handleLogout = async () => {
   }
 };
 
-// 处理登录
+// 处理登录（确认登录）
 const handleLogin = async () => {
   if (!loginForm.username || !loginForm.password) {
     ElMessage.warning("请输入用户名和密码");
     return;
   }
 
-  isLogging.value = true;
+  isConfirmLogging.value = true;
   try {
     const response = await login({
       userName: loginForm.username,
@@ -351,18 +353,18 @@ const handleLogin = async () => {
     console.error("登录失败:", error);
     ElMessage.error("登录失败，请稍后重试");
   } finally {
-    isLogging.value = false;
+    isConfirmLogging.value = false;
   }
 };
 
-// 处理管理员登录
+// 处理管理员登录（管理员登录独立 loading）
 const handleOfflineLogin = async () => {
   if (!loginForm.username || !loginForm.password) {
     ElMessage.warning("请输入用户名和密码");
     return;
   }
 
-  isLogging.value = true;
+  isAdminLogging.value = true;
   try {
     const response = await login({
       userName: loginForm.username,
@@ -399,7 +401,7 @@ const handleOfflineLogin = async () => {
     console.error("管理员登录失败:", error);
     ElMessage.error("管理员登录失败，请稍后重试");
   } finally {
-    isLogging.value = false;
+    isAdminLogging.value = false;
   }
 };
 
