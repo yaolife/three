@@ -3566,9 +3566,6 @@ const setCranePosition = () => {
       
       const response = await getGeneralDetails(projectId.value);
       
-      console.log("========== 总平详情API返回数据 ==========");
-      console.log("完整响应:", JSON.stringify(response, null, 2));
-      
       if (response && response.code === "0" && response.data) {
         console.log("response.data 结构:", response.data);
         console.log("response.data.sysProjectInfo:", response.data.sysProjectInfo);
