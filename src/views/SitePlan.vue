@@ -720,7 +720,7 @@ import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import RecordRTC from "recordrtc";
-import { saveGeneralPing, getGeneralDetails, exportProject, login } from "@/api/index";
+import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login } from "@/api/index";
 import userStore from "@/store/user.js";
 
 const route = useRoute();
@@ -3633,6 +3633,47 @@ const handleSave = async () => {
     drawAllTrajectories();
     await nextTick();
 
+    // 先上传所有需要占位截图的点位图片，获取 fileId
+    // 遍历所有起重机及其点位
+    for (const crane of cranes.value) {
+      for (const point of crane.points || []) {
+        // 只处理吊装点位（occupyType=0）且有形状的点位
+        if (point.type === "lifting") {
+          const shapes = getShapesForPoint(point.id);
+          if (shapes.length > 0) {
+            try {
+              // 截取当前点位的图片
+              const snapshot = capturePointSnapshot(point);
+              if (snapshot) {
+                // 将 base64 转换为 Blob
+                const blob = await base64ToBlob(snapshot);
+                
+                // 生成文件名（使用点位名称和时间戳）
+                const fileName = `${point.name || "point"}_${Date.now()}.png`;
+                
+                // 上传图片（以文件流形式）
+                const response = await uploadImage(blob, fileName);
+                
+                if (response && response.code === "0" && response.data && response.data.fileId) {
+                  // 将 fileId 存储到点位数据中
+                  const pointIndex = crane.points.findIndex(p => p.id === point.id);
+                  if (pointIndex !== -1) {
+                    crane.points[pointIndex].fileId = response.data.fileId;
+                  }
+                } else {
+                  console.error(`点位 ${point.name} 图片上传失败:`, response?.msg);
+                  ElMessage.warning(`点位 ${point.name} 图片上传失败`);
+                }
+              }
+            } catch (error) {
+              console.error(`点位 ${point.name} 图片上传失败:`, error);
+              ElMessage.warning(`点位 ${point.name} 图片上传失败`);
+            }
+          }
+        }
+      }
+    }
+
     // 构建接口所需的数据格式
     const sysProjectFlatAddUpdateDetail = cranes.value.map((crane, craneIndex) => {
       // 构建起重机信息
@@ -3736,15 +3777,6 @@ const handleSave = async () => {
           };
         });
 
-        // 仅对有占位截图需求的点位（吊装点位且有形状）生成截图文件
-        let file = null;
-        if (occupyType === 0 && rawShapes.length > 0) {
-          const snapshot = capturePointSnapshot(point);
-          if (snapshot) {
-            file = snapshot;
-          }
-        }
-
         return {
           flatDetailId: crane.id || null,
           pointName: point.name || "",
@@ -3763,10 +3795,7 @@ const handleSave = async () => {
           turnAround: point.turnAround || null,
           occupyType: occupyType,
           pointType: pointType,
-          // 后端不再使用 fileId，这里统一置为 null
-          fileId: null,
-          // 将截图文件数据直接挂到点位对象上，供后端接收处理
-          file: file,
+          fileId: point.fileId || null,
           itemIndex: pointIndex + 1,
           shapes: shapes.length > 0 ? JSON.stringify(shapes) : null, // 将形状数组转为字符串
         };
@@ -4802,7 +4831,6 @@ const handleBack = () => {
   box-shadow: 0 8px 30px rgba(15, 35, 95, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.6);
   z-index: 5;
-  min-width: 600px;
   white-space: nowrap;
 }
 
