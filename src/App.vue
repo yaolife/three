@@ -176,8 +176,8 @@
             <el-button type="primary" class="login-confirm-btn" @click="handleLogin" :loading="isLogging">
               确认登录
             </el-button>
-            <el-button type="warning" class="login-offline-btn" @click="handleOfflineLogin">
-              离线登录
+            <el-button type="warning" class="login-offline-btn" @click="handleOfflineLogin" :loading="isLogging">
+              管理员登录
             </el-button>
           </div>
         </div>
@@ -315,6 +315,7 @@ const handleLogin = async () => {
     const response = await login({
       userName: loginForm.username,
       password: loginForm.password,
+      loginType: 0, // 0是确认登录
     });
 
     if (response && response.code === "0") {
@@ -350,18 +351,52 @@ const handleLogin = async () => {
   }
 };
 
-// 处理离线登录
-const handleOfflineLogin = () => {
-  // 设置离线登录状态（不保存token）
-  userStore.login('离线用户', 'OFFLINE_USER', null);
-  showLoginDialog.value = false;
-  ElMessage.success("离线登录成功");
-  // 跳转到全部项目页面并刷新
-  router.push('/all-projects').then(() => {
-    nextTick(() => {
-      triggerRefresh(null);
+// 处理管理员登录
+const handleOfflineLogin = async () => {
+  if (!loginForm.username || !loginForm.password) {
+    ElMessage.warning("请输入用户名和密码");
+    return;
+  }
+
+  isLogging.value = true;
+  try {
+    const response = await login({
+      userName: loginForm.username,
+      password: loginForm.password,
+      loginType: 1, // 1是管理员登录
     });
-  });
+
+    if (response && response.code === "0") {
+      ElMessage.success("管理员登录成功");
+      showLoginDialog.value = false;
+      // 保存登录信息
+      if (response.data && response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
+      // 设置用户状态，使用接口返回的 userNickName 替换模拟工号
+      if (response.data) {
+        userStore.login(
+          response.data.userName || loginForm.username,
+          response.data.userNickName || null,
+          response.data.level !== undefined ? response.data.level : null
+        );
+      }
+      // 清空表单
+      loginForm.username = "";
+      loginForm.password = "";
+      // 跳转到全部项目页面并刷新
+      router.push('/all-projects').then(() => {
+        triggerRefresh(null);
+      });
+    } else {
+      ElMessage.error(response?.msg || "管理员登录失败，请检查用户名和密码");
+    }
+  } catch (error) {
+    console.error("管理员登录失败:", error);
+    ElMessage.error("管理员登录失败，请稍后重试");
+  } finally {
+    isLogging.value = false;
+  }
 };
 
 const handleCommand = (command) => {
