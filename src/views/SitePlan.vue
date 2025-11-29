@@ -929,8 +929,9 @@ const defaultShapeConfigs = {
   rectangle: withOffsetDefaults({
     width: 80,
     height: 40,
-    fill: "rgba(255, 202, 133, 0.35)",
-    stroke: "#F59A23",
+    // 使用与平面图明显区分的冷色调
+    fill: "rgba(0, 160, 233, 0.35)", // 蓝青色半透明
+    stroke: "#00A0E9",
     rotate: 0,
   }),
   circle: withOffsetDefaults({
@@ -948,8 +949,9 @@ const defaultShapeConfigs = {
   sector: withOffsetDefaults({
     radius: 90,
     angle: 60,
-    fill: "rgba(255, 196, 112, 0.25)",
-    stroke: "#F59A23",
+    // 扇形初始化颜色改为红色
+    fill: "rgba(245, 108, 108, 0.25)",
+    stroke: "#F56C6C",
     rotate: -30,
   }),
   text: withOffsetDefaults({
