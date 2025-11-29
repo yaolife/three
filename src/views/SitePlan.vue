@@ -2562,6 +2562,11 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
       if (activeSegment.type === 'travel') {
         const fromCoords = plan.coords[activeSegment.fromIndex];
         const toCoords = plan.coords[activeSegment.toIndex];
+        // 计算当前段的方向角度（用于旋转起重机模型）
+        const angle = Math.atan2(
+          toCoords.y - fromCoords.y,
+          toCoords.x - fromCoords.x
+        );
         const elapsed = Math.max(0, currentTime - activeSegment.startTime);
         const progress = activeSegment.duration > 0 ? Math.min(elapsed / activeSegment.duration, 1) : 1;
         const currentX = fromCoords.x + (toCoords.x - fromCoords.x) * progress;
@@ -2576,14 +2581,16 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
         ctx.value.stroke();
         ctx.value.restore();
 
-        // 绘制起重机模型图片
+        // 绘制起重机模型图片，并保持与路径方向平行
         ctx.value.save();
         if (craneModelImage.complete) {
           const imageSize = 24; // 图片大小
+          ctx.value.translate(currentX, currentY);
+          ctx.value.rotate(angle);
           ctx.value.drawImage(
             craneModelImage,
-            currentX - imageSize / 2,
-            currentY - imageSize / 2,
+            -imageSize / 2,
+            -imageSize / 2,
             imageSize,
             imageSize
           );
@@ -2591,14 +2598,30 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
         ctx.value.restore();
       } else if (activeSegment.type === 'dwell') {
         const pointCoords = plan.coords[activeSegment.pointIndex];
+        // 停留段：使用上一段行驶段的方向保持图片与路径平行
+        let angle = 0;
+        const prevTravel = [...plan.segments]
+          .filter(s => s.type === 'travel' && s.startTime <= currentTime)
+          .pop();
+        if (prevTravel) {
+          const prevFrom = plan.coords[prevTravel.fromIndex];
+          const prevTo = plan.coords[prevTravel.toIndex];
+          angle = Math.atan2(
+            prevTo.y - prevFrom.y,
+            prevTo.x - prevFrom.x
+          );
+        }
+
         // 绘制起重机模型图片
         ctx.value.save();
         if (craneModelImage.complete) {
           const imageSize = 24; // 图片大小
+          ctx.value.translate(pointCoords.x, pointCoords.y);
+          ctx.value.rotate(angle);
           ctx.value.drawImage(
             craneModelImage,
-            pointCoords.x - imageSize / 2,
-            pointCoords.y - imageSize / 2,
+            -imageSize / 2,
+            -imageSize / 2,
             imageSize,
             imageSize
           );
@@ -2636,6 +2659,11 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
         if (activeSegment.type === 'travel') {
           const fromCoords = plan.coords[activeSegment.fromIndex];
           const toCoords = plan.coords[activeSegment.toIndex];
+          // 计算当前段的方向角度（用于旋转起重机模型）
+          const angle = Math.atan2(
+            toCoords.y - fromCoords.y,
+            toCoords.x - fromCoords.x
+          );
           const elapsed = Math.max(0, currentTime - activeSegment.startTime);
           const progress = activeSegment.duration > 0 ? Math.min(elapsed / activeSegment.duration, 1) : 1;
           const currentX = fromCoords.x + (toCoords.x - fromCoords.x) * progress;
@@ -2650,14 +2678,16 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
           ctx.value.stroke();
           ctx.value.restore();
 
-          // 绘制起重机模型图片
+          // 绘制起重机模型图片，并保持与路径方向平行
           ctx.value.save();
           if (craneModelImage.complete) {
             const imageSize = 24; // 图片大小
+            ctx.value.translate(currentX, currentY);
+            ctx.value.rotate(angle);
             ctx.value.drawImage(
               craneModelImage,
-              currentX - imageSize / 2,
-              currentY - imageSize / 2,
+              -imageSize / 2,
+              -imageSize / 2,
               imageSize,
               imageSize
             );
@@ -2665,14 +2695,30 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
           ctx.value.restore();
         } else if (activeSegment.type === 'dwell') {
           const pointCoords = plan.coords[activeSegment.pointIndex];
+          // 停留段：使用上一段行驶段的方向保持图片与路径平行
+          let angle = 0;
+          const prevTravel = [...plan.segments]
+            .filter(s => s.type === 'travel' && s.startTime <= currentTime)
+            .pop();
+          if (prevTravel) {
+            const prevFrom = plan.coords[prevTravel.fromIndex];
+            const prevTo = plan.coords[prevTravel.toIndex];
+            angle = Math.atan2(
+              prevTo.y - prevFrom.y,
+              prevTo.x - prevFrom.x
+            );
+          }
+
           // 绘制起重机模型图片
           ctx.value.save();
           if (craneModelImage.complete) {
             const imageSize = 24; // 图片大小
+            ctx.value.translate(pointCoords.x, pointCoords.y);
+            ctx.value.rotate(angle);
             ctx.value.drawImage(
               craneModelImage,
-              pointCoords.x - imageSize / 2,
-              pointCoords.y - imageSize / 2,
+              -imageSize / 2,
+              -imageSize / 2,
               imageSize,
               imageSize
             );
