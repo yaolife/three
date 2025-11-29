@@ -387,6 +387,10 @@
             src="@/images/planning.png"
             alt="总平规划图"
             class="plan-image"
+            :style="{
+              transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+              transformOrigin: '0 0'
+            }"
             @load="handleImageLoad"
             @error="handleImageError"
           />
@@ -406,6 +410,10 @@
             :width="canvasSize.width"
             :height="canvasSize.height"
             :viewBox="`0 0 ${canvasSize.width} ${canvasSize.height}`"
+            :style="{
+              transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+              transformOrigin: '0 0'
+            }"
           >
             <g
               v-for="item in renderedShapeItems"
@@ -2430,7 +2438,7 @@ const coordMaxY = ref(50);
 
 // 将地理坐标转换为Canvas坐标
 // 坐标系统：X和Y是地理坐标（例如112.000000, 38.000000）
-// 需要映射到图片在canvas上的实际位置
+// 需要映射到图片在canvas上的实际位置（变换前的坐标，transform会自动应用）
 const convertToCanvasCoords = (x, y) => {
   if (!imageRef.value || !canvas.value) {
     console.warn('图片或Canvas未加载，使用默认映射');
@@ -2439,14 +2447,8 @@ const convertToCanvasCoords = (x, y) => {
   }
   
   try {
+    // 获取图片的显示尺寸（变换后的尺寸）
     const imageRect = imageRef.value.getBoundingClientRect();
-    const containerRect = canvas.value.parentElement.getBoundingClientRect();
-    
-    // 计算图片在容器中的偏移（相对于容器）
-    const imageOffsetX = imageRect.left - containerRect.left;
-    const imageOffsetY = imageRect.top - containerRect.top;
-    
-    // 获取图片实际显示尺寸
     const displayedWidth = imageRect.width;
     const displayedHeight = imageRect.height;
     
@@ -2463,13 +2465,13 @@ const convertToCanvasCoords = (x, y) => {
       return { x: x * 5, y: y * 5 };
     }
     
-    // 将地理坐标归一化（允许超出范围，以便支持更大的坐标范围）
+    // 将地理坐标归一化
     const normalizedX = (x - coordMinX.value) / coordRangeX;
     const normalizedY = (y - coordMinY.value) / coordRangeY;
     
-    // 映射到图片坐标
-    const canvasX = imageOffsetX + normalizedX * displayedWidth;
-    const canvasY = imageOffsetY + normalizedY * displayedHeight;
+    // 映射到图片坐标（变换前的坐标，transform会自动应用）
+    const canvasX = normalizedX * (displayedWidth / scale.value);
+    const canvasY = normalizedY * (displayedHeight / scale.value);
     
     return { x: canvasX, y: canvasY };
   } catch (error) {
@@ -2479,21 +2481,15 @@ const convertToCanvasCoords = (x, y) => {
   }
 };
 
-// 将Canvas坐标转换为地理坐标
+// 将Canvas坐标转换为地理坐标（canvasX和canvasY是变换前的坐标）
 const convertToGeoCoords = (canvasX, canvasY) => {
   if (!imageRef.value || !canvas.value) {
     return { x: canvasX / 5, y: canvasY / 5 };
   }
   
   try {
+    // 获取图片的显示尺寸（变换后的尺寸）
     const imageRect = imageRef.value.getBoundingClientRect();
-    const containerRect = canvas.value.parentElement.getBoundingClientRect();
-    
-    // 计算图片在容器中的偏移
-    const imageOffsetX = imageRect.left - containerRect.left;
-    const imageOffsetY = imageRect.top - containerRect.top;
-    
-    // 获取图片实际显示尺寸
     const displayedWidth = imageRect.width;
     const displayedHeight = imageRect.height;
     
@@ -2501,13 +2497,9 @@ const convertToGeoCoords = (canvasX, canvasY) => {
       return { x: canvasX / 5, y: canvasY / 5 };
     }
     
-    // 计算相对于图片的坐标
-    const relativeX = canvasX - imageOffsetX;
-    const relativeY = canvasY - imageOffsetY;
-    
-    // 归一化到0-1范围
-    const normalizedX = relativeX / displayedWidth;
-    const normalizedY = relativeY / displayedHeight;
+    // canvasX和canvasY是变换前的坐标，需要归一化
+    const normalizedX = canvasX / (displayedWidth / scale.value);
+    const normalizedY = canvasY / (displayedHeight / scale.value);
     
     // 转换为地理坐标
     const coordRangeX = coordMaxX.value - coordMinX.value;
@@ -2739,6 +2731,11 @@ const drawAllTrajectories = () => {
   // 清空Canvas
   ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
   
+  // 应用变换：先平移，再缩放
+  ctx.value.save();
+  ctx.value.translate(offsetX.value, offsetY.value);
+  ctx.value.scale(scale.value, scale.value);
+  
   // 先绘制背景图片（如果存在）
   if (imageRef.value && imageRef.value.complete) {
     ctx.value.save();
@@ -2859,17 +2856,25 @@ const drawAllTrajectories = () => {
   if ((isPlaying.value && animationPlan.value) || isPlayingAll.value) {
     drawPlaybackProgress();
   }
+  
+  // 恢复变换
+  ctx.value.restore();
 };
 
-// 获取鼠标在Canvas上的坐标
+// 获取鼠标在Canvas上的坐标（考虑transform的逆变换）
 const getMouseCanvasPos = (event) => {
   if (!canvas.value) return { x: 0, y: 0 };
   
   const rect = canvas.value.getBoundingClientRect();
-  return {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top
-  };
+  // 获取鼠标在Canvas元素上的像素坐标
+  const pixelX = event.clientX - rect.left;
+  const pixelY = event.clientY - rect.top;
+  
+  // 应用transform的逆变换：先反向缩放，再反向平移
+  const x = (pixelX - offsetX.value) / scale.value;
+  const y = (pixelY - offsetY.value) / scale.value;
+  
+  return { x, y };
 };
 
 // 检测鼠标是否点击在点位上
@@ -3122,17 +3127,21 @@ const handleCanvasMouseUp = (event) => {
 const handleCanvasWheel = (event) => {
   event.preventDefault();
   
-  const mouseX = event.clientX - canvas.value.offsetLeft;
-  const mouseY = event.clientY - canvas.value.offsetTop;
+  const rect = canvas.value.getBoundingClientRect();
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
   
   const scaleRatio = event.deltaY > 0 ? 0.9 : 1.1;
   const newScale = Math.max(0.1, Math.min(5, scale.value * scaleRatio));
   
   // 调整偏移量以保持鼠标位置不变
-  const scaleChange = newScale / scale.value;
+  // 鼠标在变换前坐标系中的位置
+  const worldX = (mouseX - offsetX.value) / scale.value;
+  const worldY = (mouseY - offsetY.value) / scale.value;
   
-  offsetX.value = mouseX - (mouseX - offsetX.value) * scaleChange;
-  offsetY.value = mouseY - (mouseY - offsetY.value) * scaleChange;
+  // 计算新的偏移量，使鼠标位置在变换后坐标系中保持不变
+  offsetX.value = mouseX - worldX * newScale;
+  offsetY.value = mouseY - worldY * newScale;
   
   scale.value = newScale;
   
