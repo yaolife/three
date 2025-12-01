@@ -4335,20 +4335,14 @@ const handleSave = async () => {
         } else {
           console.log(`点位 ${point.name} 没有形状数据需要保存`);
         }
-        
-        return pointData;
       });
 
-      // 确保第一条是吊装点位（occupyType=0）
-      const liftingPoints = points.filter((p) => p.occupyType === 0);
-      const movingPoints = points.filter((p) => p.occupyType === 1);
-      
-      // 重新排序：先吊装点位，后移动点位
-      const sortedPoints = [...liftingPoints, ...movingPoints];
+      // 按照起重机任务属性编辑栏里的点位设置顺序（即 crane.points 的原始顺序）传给接口
+      // 不再重新排序，保持吊装点位和移动点位的原始间隔顺序
 
       return {
         sysProjectFlatDetail,
-        points: sortedPoints,
+        points: points,
       };
     });
 
