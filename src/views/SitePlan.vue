@@ -943,8 +943,8 @@ const getStartIconWithColor = (color) => {
 
 const pointIconSizes = {
   start: 22,
-  lifting: 24,
-  moving: 24,
+  lifting: 22, // 吊装点图标略小
+  moving: 18,  // 移动点位图标更小一点
 };
 
 const pointIconSrcMap = {
@@ -972,27 +972,27 @@ const withOffsetDefaults = (config = {}) => ({
 
 const defaultShapeConfigs = {
   rectangle: withOffsetDefaults({
-    width: 80,
-    height: 40,
+    width: 64,
+    height: 32,
     // 使用与平面图明显区分的冷色调
     fill: "rgba(0, 160, 233, 0.35)", // 蓝青色半透明
     stroke: "#00A0E9",
     rotate: 0,
   }),
   circle: withOffsetDefaults({
-    radius: 38,
+    radius: 30,
     fill: "rgba(38, 132, 255, 0.25)",
     stroke: "#2684FF",
     rotate: 0,
   }),
   triangle: withOffsetDefaults({
-    size: 72,
+    size: 56,
     fill: "rgba(245, 108, 108, 0.25)",
     stroke: "#F56C6C",
     rotate: 0,
   }),
   sector: withOffsetDefaults({
-    radius: 90,
+    radius: 72,
     angle: 60,
     // 扇形初始化颜色改为红色
     fill: "rgba(245, 108, 108, 0.25)",
