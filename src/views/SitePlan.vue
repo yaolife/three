@@ -520,6 +520,35 @@
               <el-input v-model="selectedCrane.name" placeholder="请输入名称" />
             </div>
             <div class="property-item">
+              <label>起重机类型</label>
+              <el-select
+                v-model="selectedCrane.craneCategory"
+                placeholder="请选择起重机类型"
+                @change="handleCraneCategoryChange"
+                style="width: 100%;"
+              >
+                <el-option label="汽车式" value="1" />
+                <el-option label="履带式" value="2" />
+              </el-select>
+            </div>
+            <div class="property-item">
+              <label>选择起重机</label>
+              <el-select
+                v-model="selectedCrane.templateCraneDetailId"
+                placeholder="请选择起重机"
+                :disabled="!selectedCrane.craneCategory"
+                @change="handleTemplateCraneChange"
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="item in craneSelectionOptions[selectedCrane.id] || []"
+                  :key="item.craneInfoId"
+                  :label="item.machineName"
+                  :value="item.craneInfoId"
+                />
+              </el-select>
+            </div>
+            <div class="property-item">
           <label>路径颜色</label>
           <div class="color-input-wrapper">
             <el-color-picker
@@ -736,7 +765,7 @@ import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import RecordRTC from "recordrtc";
-import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login } from "@/api/index";
+import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login, intelligentCraneSelection } from "@/api/index";
 import userStore from "@/store/user.js";
 
 const route = useRoute();
@@ -758,6 +787,8 @@ const cranes = ref([]);
 const selectedCrane = ref(null);
 const searchQuery = ref("");
 const craneCounter = ref(0); // 用于生成起重机名称，从1开始编号
+// 起重机智能选型结果（按起重机ID存储）
+const craneSelectionOptions = ref({});
 
 // 绘制工具栏相关状态
 const drawingToolOptions = [
@@ -3149,6 +3180,50 @@ const handleCanvasWheel = (event) => {
   drawAllTrajectories();
 };
 
+// 起重机类型变化处理（汽车式 / 履带式）
+const handleCraneCategoryChange = async (category) => {
+  if (!selectedCrane.value) return;
+
+  const craneId = selectedCrane.value.id;
+  // 更新当前选中起重机的数据
+  selectedCrane.value.craneCategory = category;
+  selectedCrane.value.templateCraneDetailId = null;
+
+  const craneIndex = cranes.value.findIndex((c) => c.id === craneId);
+  if (craneIndex !== -1) {
+    cranes.value[craneIndex].craneCategory = category;
+    cranes.value[craneIndex].templateCraneDetailId = null;
+  }
+
+  // 调用智能选型接口，获取当前类型下的起重机列表
+  try {
+    const response = await intelligentCraneSelection({ type: Number(category) });
+    if (response && response.code === "0" && Array.isArray(response.data)) {
+      craneSelectionOptions.value[craneId] = response.data;
+    } else {
+      craneSelectionOptions.value[craneId] = [];
+      ElMessage.error(response?.msg || "获取起重机列表失败");
+    }
+  } catch (error) {
+    console.error("智能选型接口调用失败:", error);
+    craneSelectionOptions.value[craneId] = [];
+    ElMessage.error("获取起重机列表失败");
+  }
+};
+
+// 选择起重机（智能选型结果）
+const handleTemplateCraneChange = (craneInfoId) => {
+  if (!selectedCrane.value) return;
+
+  const craneId = selectedCrane.value.id;
+  selectedCrane.value.templateCraneDetailId = craneInfoId;
+
+  const craneIndex = cranes.value.findIndex((c) => c.id === craneId);
+  if (craneIndex !== -1) {
+    cranes.value[craneIndex].templateCraneDetailId = craneInfoId;
+  }
+};
+
 // 颜色变化处理
 const onColorChange = () => {
   // 更新原数据中的对应起重机颜色
@@ -3222,6 +3297,8 @@ const addCrane = () => {
     id: Date.now(),
     name: `起重机${nextNumber}`,
     type: "xxx履带式起重机",
+    craneCategory: null, // 起重机类型：'1' 汽车式，'2' 履带式
+    templateCraneDetailId: null, // 智能选型返回的 craneInfoId
     color: "#26256B",
     width: 10,
     time: 10,
@@ -3797,10 +3874,21 @@ const setCranePosition = () => {
             });
             
             // 构建起重机对象
+            // 注意：后端 type 可能是数字，这里统一转成字符串以适配下拉框
+            const craneCategory =
+              craneDetail.type === 0 || craneDetail.type === "0"
+                ? "0"
+                : craneDetail.type != null
+                ? String(craneDetail.type)
+                : null;
+
+            // 构建起重机对象
             return {
               id: craneDetail.id,
               name: craneDetail.craneName || "",
               type: craneDetail.craneType || "",
+              craneCategory,
+              templateCraneDetailId: craneDetail.templateCraneDetailId || null,
               color: craneDetail.color || "#26256B",
               pathUseWidth: craneDetail.pathUseWidth || null,
               useTime: craneDetail.useTime || null,
@@ -3811,6 +3899,38 @@ const setCranePosition = () => {
         
           // 更新起重机列表
           cranes.value = loadedCranes;
+
+          // 根据已保存的起重机类型，预加载每个起重机的智能选型结果，用于下拉回显
+          const cranesWithCategory = loadedCranes.filter(
+            (crane) => crane.craneCategory
+          );
+          if (cranesWithCategory.length > 0) {
+            try {
+              await Promise.all(
+                cranesWithCategory.map(async (crane) => {
+                  try {
+                    const resp = await intelligentCraneSelection({
+                      type: Number(crane.craneCategory),
+                    });
+                    if (resp && resp.code === "0" && Array.isArray(resp.data)) {
+                      craneSelectionOptions.value[crane.id] = resp.data;
+                    } else {
+                      craneSelectionOptions.value[crane.id] = [];
+                    }
+                  } catch (e) {
+                    console.error(
+                      "加载起重机智能选型数据失败:",
+                      crane.id,
+                      e
+                    );
+                    craneSelectionOptions.value[crane.id] = [];
+                  }
+                })
+              );
+            } catch (e) {
+              console.error("批量加载起重机智能选型数据失败:", e);
+            }
+          }
           
           // 等待 DOM 更新
           await nextTick();
@@ -4162,17 +4282,23 @@ const handleSave = async () => {
 
     // 构建接口所需的数据格式
     const sysProjectFlatAddUpdateDetail = cranes.value.map((crane, craneIndex) => {
-      // 构建起重机信息
-      const sysProjectFlatDetail = {
-        projectId: projectId.value,
-        craneName: crane.name || "",
-        craneType: crane.type || "",
-        color: crane.color || "#26256B",
-        pathUseWidth: crane.pathUseWidth || null,
-        useTime: crane.useTime || null,
-        carryingCapacity: crane.carryingCapacity || null,
-        itemIndex: craneIndex + 1,
-      };
+    // 构建起重机信息
+    const sysProjectFlatDetail = {
+      projectId: projectId.value,
+      craneName: crane.name || "",
+      craneType: crane.type || "",
+      // 注意：后端期望 type 为数字，这里统一转换为 number
+      type:
+        crane.craneCategory !== null && crane.craneCategory !== undefined
+          ? Number(crane.craneCategory)
+          : null,
+      templateCraneDetailId: crane.templateCraneDetailId || null,
+      color: crane.color || "#26256B",
+      pathUseWidth: crane.pathUseWidth || null,
+      useTime: crane.useTime || null,
+      carryingCapacity: crane.carryingCapacity || null,
+      itemIndex: craneIndex + 1,
+    };
 
       // 构建点位数组，确保第一条是吊装点位
       const points = (crane.points || []).map((point, pointIndex) => {
