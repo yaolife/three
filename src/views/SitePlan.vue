@@ -1523,9 +1523,9 @@ const handleUndoShape = () => {
   ElMessage.success("已撤销选中的图形");
 };
 
-const MIN_RECT_SIZE = 24;
-const MIN_RADIUS = 12;
-const MIN_TRIANGLE_SIZE = 32;
+const MIN_RECT_SIZE = 20;
+const MIN_RADIUS = 10;
+const MIN_TRIANGLE_SIZE = 26;
 const MIN_FONT_SIZE = 12;
 let pointerListenersAttached = false;
 
