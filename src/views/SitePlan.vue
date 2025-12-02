@@ -764,6 +764,7 @@ import startIconSrc from "@/images/point.png";
 import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
+import carModelSrc from "@/images/car_model.png";
 import RecordRTC from "recordrtc";
 import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login, intelligentCraneSelection } from "@/api/index";
 import userStore from "@/store/user.js";
@@ -883,12 +884,17 @@ const pointIconImages = {
 // 起重机模型图片（用于路径运动轨迹）
 const craneModelImage = new Image();
 craneModelImage.src = craneModelSrc;
-craneModelImage.onload = () => {
-  // 图片加载完成后重绘轨迹
+const carModelImage = new Image();
+carModelImage.src = carModelSrc;
+
+const onModelImageLoaded = () => {
   if (ctx.value) {
     drawAllTrajectories();
   }
 };
+
+craneModelImage.onload = onModelImageLoaded;
+carModelImage.onload = onModelImageLoaded;
 
 // 生成带颜色的SVG DataURL函数
 const createStartIconSvg = (color = '#07AA74') => {
@@ -2562,6 +2568,20 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
       const currentTime = Math.min(playbackElapsed.value, plan.totalDuration);
       const color = plan.color || '#26256B';
 
+      // 根据当前正在播放的起重机类型选择模型图片
+      let currentCraneImage = craneModelImage;
+      if (playingCraneId.value != null) {
+        const playingCrane = cranes.value.find(
+          (c) => c.id === playingCraneId.value
+        );
+        const category = playingCrane?.craneCategory;
+        if (category === "1") {
+          currentCraneImage = carModelImage;
+        } else if (category === "2") {
+          currentCraneImage = craneModelImage;
+        }
+      }
+
       plan.segments.forEach((segment) => {
         if (segment.type !== 'travel') return;
         if (currentTime < segment.startTime + segment.duration) return;
@@ -2606,12 +2626,12 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
 
         // 绘制起重机模型图片，并保持与路径方向平行
         ctx.value.save();
-        if (craneModelImage.complete) {
+        if (currentCraneImage.complete) {
           const imageSize = 24; // 图片大小
           ctx.value.translate(currentX, currentY);
           ctx.value.rotate(angle);
           ctx.value.drawImage(
-            craneModelImage,
+            currentCraneImage,
             -imageSize / 2,
             -imageSize / 2,
             imageSize,
@@ -2637,12 +2657,12 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
 
         // 绘制起重机模型图片
         ctx.value.save();
-        if (craneModelImage.complete) {
+        if (currentCraneImage.complete) {
           const imageSize = 24; // 图片大小
           ctx.value.translate(pointCoords.x, pointCoords.y);
           ctx.value.rotate(angle);
           ctx.value.drawImage(
-            craneModelImage,
+            currentCraneImage,
             -imageSize / 2,
             -imageSize / 2,
             imageSize,
@@ -2655,9 +2675,21 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
     
     // 处理播放所有路径的情况
     else if (isPlayingAll.value) {
-      Object.values(animationPlans.value).forEach((plan) => {
+      Object.entries(animationPlans.value).forEach(([craneId, plan]) => {
         const currentTime = Math.min(playbackElapsed.value, plan.totalDuration);
         const color = plan.color || '#26256B';
+
+        // 为当前起重机选择合适的模型图片
+        let currentCraneImage = craneModelImage;
+        const crane = cranes.value.find(
+          (c) => String(c.id) === String(craneId)
+        );
+        const category = crane?.craneCategory;
+        if (category === "1") {
+          currentCraneImage = carModelImage;
+        } else if (category === "2") {
+          currentCraneImage = craneModelImage;
+        }
 
         plan.segments.forEach((segment) => {
           if (segment.type !== 'travel') return;
@@ -2703,12 +2735,12 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
 
           // 绘制起重机模型图片，并保持与路径方向平行
           ctx.value.save();
-          if (craneModelImage.complete) {
+          if (currentCraneImage.complete) {
             const imageSize = 24; // 图片大小
             ctx.value.translate(currentX, currentY);
             ctx.value.rotate(angle);
             ctx.value.drawImage(
-              craneModelImage,
+              currentCraneImage,
               -imageSize / 2,
               -imageSize / 2,
               imageSize,
@@ -2734,12 +2766,12 @@ const drawCraneTrajectory = (crane, isHighlighted = false) => {
 
           // 绘制起重机模型图片
           ctx.value.save();
-          if (craneModelImage.complete) {
+          if (currentCraneImage.complete) {
             const imageSize = 24; // 图片大小
             ctx.value.translate(pointCoords.x, pointCoords.y);
             ctx.value.rotate(angle);
             ctx.value.drawImage(
-              craneModelImage,
+              currentCraneImage,
               -imageSize / 2,
               -imageSize / 2,
               imageSize,
