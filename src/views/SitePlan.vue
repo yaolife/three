@@ -621,7 +621,7 @@
                 /> -->
                 <img 
                   v-else-if="point.type === 'lifting'" 
-                  src="@/images/crane_point.png" 
+                  :src="selectedCrane?.craneCategory === '1' ? carModelSrc : craneModelSrc" 
                   alt="吊装点位" 
                   style="width: 16px; height: 16px; margin-right: 8px"
                 />
@@ -2895,6 +2895,10 @@ const drawAllTrajectories = () => {
     let iconImage;
     if (iconKey === 'start') {
       iconImage = getStartIconWithColor(color);
+    } else if (iconKey === 'lifting') {
+      // 吊装点位使用起重机模型图片：汽车式用 car_model，履带式用 crane_model
+      const category = crane && crane.craneCategory;
+      iconImage = category === '1' ? carModelImage : craneModelImage;
     } else {
       iconImage = pointIconImages[iconKey];
     }
