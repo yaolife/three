@@ -791,6 +791,9 @@ const craneCounter = ref(0); // 用于生成起重机名称，从1开始编号
 // 起重机智能选型结果（按起重机ID存储）
 const craneSelectionOptions = ref({});
 
+// 保存按钮防抖相关
+const isSaving = ref(false); // 是否正在保存
+
 // 绘制工具栏相关状态
 const drawingToolOptions = [
   { type: "rectangle", label: "矩形" },
@@ -4260,6 +4263,12 @@ const handleGenerateReport = async () => {
 };
 
 const handleSave = async () => {
+  // 防抖处理：如果正在保存，直接返回
+  if (isSaving.value) {
+    ElMessage.warning("正在保存中，请勿重复点击");
+    return;
+  }
+
   if (!projectId.value) {
     ElMessage.warning("项目ID不存在");
     return;
@@ -4269,6 +4278,9 @@ const handleSave = async () => {
     ElMessage.warning("请先添加起重机路径");
     return;
   }
+
+  // 设置保存状态，防止重复点击
+  isSaving.value = true;
 
   try {
     // 重绘所有轨迹，确保截图准确
@@ -4581,6 +4593,9 @@ const handleSave = async () => {
   } catch (error) {
     console.error("保存总平规划失败:", error);
     ElMessage.error("保存失败，请检查网络连接");
+  } finally {
+    // 保存完成后，清除保存状态
+    isSaving.value = false;
   }
 };
 
