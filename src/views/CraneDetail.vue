@@ -523,7 +523,12 @@ onMounted(async () => {
         craneInfo.value.manufacturer = data.prodBusiness || route.query.manufacturer;
         craneInfo.value.model = data.model || route.query.model;
         craneInfo.value.craneType = data.type || route.query.craneType;
-        craneInfo.value.push = data.push !== undefined && data.push !== null ? data.push : (route.query.push ? parseInt(route.query.push) : 0);
+        // 从 sysProjectTemplateCrane 对象中获取 push 值，如果没有则从 data.push 或路由参数获取
+        if (data.sysProjectTemplateCrane && data.sysProjectTemplateCrane.push !== undefined && data.sysProjectTemplateCrane.push !== null) {
+          craneInfo.value.push = parseInt(data.sysProjectTemplateCrane.push) || 0;
+        } else {
+          craneInfo.value.push = data.push !== undefined && data.push !== null ? parseInt(data.push) : (route.query.push ? parseInt(route.query.push) : 0);
+        }
         
         // 填充规格参数（从sysProjectTemplateCraneDetail中获取）
         if (data.sysProjectTemplateCraneDetail) {
