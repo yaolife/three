@@ -1497,7 +1497,7 @@
       <div class="result-section">
         <div class="section-title">计算过程</div>
         <div class="section-content calculation-process">
-          <div class="process-text">已知单台计算机吊装公式为：</div>
+          <div class="process-text">已知单台起重机吊装公式为：</div>
           <div class="process-text">
             （设备重量G+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
             <template
