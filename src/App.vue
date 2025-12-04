@@ -101,7 +101,7 @@
           </template>
         </div>
         <div class="header-right">
-          <el-button type="default" size="large" style="margin-left: 12px">
+          <el-button type="default" size="large" style="margin-left: 12px" @click="handleDataSynchronization">
              <img
                  style="width: 22px; height: 22px;margin-right: 5px;"
                 src="@/images/synchronize.png"
@@ -127,6 +127,214 @@
         <router-view />
       </el-main>
     </el-container>
+
+    <!-- 云端数据同步弹窗 -->
+    <Teleport to="body">
+      <el-dialog
+        v-model="showSyncDialog"
+        title="云端数据同步"
+        width="90%"
+        :close-on-click-modal="false"
+        align-center
+        append-to-body
+        :show-close="true"
+        class="sync-dialog"
+      >
+        <div class="sync-dialog-content">
+          <el-tabs v-model="syncActiveTab" class="sync-tabs">
+            <!-- 起重机数据库 -->
+            <el-tab-pane label="起重机数据库" name="crane">
+              <div class="sync-tab-content">
+                <div class="sync-toolbar">
+                  <div class="search-group">
+                    <el-input
+                      v-model="syncCraneSearch"
+                      placeholder="请输入起重机名称"
+                      prefix-icon="Search"
+                      style="width: 240px"
+                      clearable
+                      @keyup.enter="handleSyncCraneSearch"
+                    />
+                    <el-button type="primary" @click="handleSyncCraneSearch" style="margin-left: 8px">
+                      搜索
+                    </el-button>
+                  </div>
+                </div>
+                <el-table
+                  :data="syncCraneData"
+                  v-loading="syncCraneLoading"
+                  style="width: 100%"
+                  :header-cell-style="{ background: '#f5f7fa' }"
+                  @selection-change="handleSyncCraneSelectionChange"
+                >
+                  <el-table-column type="selection" width="55" />
+                  <el-table-column label="序号" width="80">
+                    <template #default="scope">
+                      {{ scope.$index + 1 + (syncCranePage - 1) * syncCranePageSize }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="machineName" label="起重机名称" min-width="150" />
+                  <el-table-column prop="type" label="类型" min-width="120">
+                    <template #default="scope">
+                      {{ translateCraneType(scope.row.type) }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="model" label="型号" min-width="150" />
+                  <el-table-column label="是否推送" width="120">
+                    <template #default="scope">
+                      <el-switch
+                        v-model="scope.row.push"
+                        :active-value="1"
+                        :inactive-value="0"
+                        disabled
+                      />
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
+                  <el-table-column prop="createName" label="创建人" width="120" />
+                  <el-table-column prop="createTime" label="录入时间" width="180" />
+                </el-table>
+                <el-pagination
+                  v-model:current-page="syncCranePage"
+                  :page-size="syncCranePageSize"
+                  :total="syncCraneTotal"
+                  layout="total, prev, pager, next"
+                  class="pagination"
+                  @current-change="handleSyncCranePageChange"
+                />
+              </div>
+            </el-tab-pane>
+
+            <!-- 吊索具数据库 -->
+            <el-tab-pane label="吊索具数据库" name="rigging">
+              <div class="sync-tab-content">
+                <div class="sync-toolbar">
+                  <div class="search-group">
+                    <el-input
+                      v-model="syncRiggingSearch"
+                      placeholder="请输入吊索具名称"
+                      prefix-icon="Search"
+                      style="width: 240px"
+                      clearable
+                      @keyup.enter="handleSyncRiggingSearch"
+                    />
+                    <el-button type="primary" @click="handleSyncRiggingSearch" style="margin-left: 8px">
+                      搜索
+                    </el-button>
+                  </div>
+                </div>
+                <el-table
+                  :data="syncRiggingData"
+                  v-loading="syncRiggingLoading"
+                  style="width: 100%"
+                  :header-cell-style="{ background: '#f5f7fa' }"
+                  @selection-change="handleSyncRiggingSelectionChange"
+                >
+                  <el-table-column type="selection" width="55" />
+                  <el-table-column label="序号" width="80">
+                    <template #default="scope">
+                      {{ scope.$index + 1 + (syncRiggingPage - 1) * syncRiggingPageSize }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="liftingName" label="吊索具名称" min-width="150" />
+                  <el-table-column prop="liftingType" label="类型" min-width="120">
+                    <template #default="scope">
+                      {{ translateLiftingType(scope.row.liftingType) }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="twoLiftingName" label="子类型" width="120" />
+                  <el-table-column label="是否推送" width="120">
+                    <template #default="scope">
+                      <el-switch
+                        v-model="scope.row.push"
+                        :active-value="1"
+                        :inactive-value="0"
+                        disabled
+                      />
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
+                  <el-table-column prop="createName" label="创建人" width="80" />
+                  <el-table-column prop="createTime" label="录入时间" width="180" />
+                </el-table>
+                <el-pagination
+                  v-model:current-page="syncRiggingPage"
+                  :page-size="syncRiggingPageSize"
+                  :total="syncRiggingTotal"
+                  layout="total, prev, pager, next"
+                  class="pagination"
+                  @current-change="handleSyncRiggingPageChange"
+                />
+              </div>
+            </el-tab-pane>
+
+            <!-- 设备数据库 -->
+            <el-tab-pane label="设备数据库" name="equipment">
+              <div class="sync-tab-content">
+                <div class="sync-toolbar">
+                  <div class="search-group">
+                    <el-input
+                      v-model="syncEquipmentSearch"
+                      placeholder="请输入设备名称"
+                      prefix-icon="Search"
+                      style="width: 240px"
+                      clearable
+                      @keyup.enter="handleSyncEquipmentSearch"
+                    />
+                    <el-button type="primary" @click="handleSyncEquipmentSearch" style="margin-left: 8px">
+                      搜索
+                    </el-button>
+                  </div>
+                </div>
+                <el-table
+                  :data="syncEquipmentData"
+                  v-loading="syncEquipmentLoading"
+                  style="width: 100%"
+                  :header-cell-style="{ background: '#f5f7fa' }"
+                  @selection-change="handleSyncEquipmentSelectionChange"
+                >
+                  <el-table-column type="selection" width="55" />
+                  <el-table-column label="序号" width="80">
+                    <template #default="scope">
+                      {{ scope.$index + 1 + (syncEquipmentPage - 1) * syncEquipmentPageSize }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="deviceName" label="设备名称" min-width="150" />
+                  <el-table-column prop="deviceType" label="型号" min-width="120" />
+                  <el-table-column label="是否推送" width="120">
+                    <template #default="scope">
+                      <el-switch
+                        v-model="scope.row.push"
+                        :active-value="1"
+                        :inactive-value="0"
+                        disabled
+                      />
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
+                  <el-table-column prop="createName" label="创建人" width="120" />
+                  <el-table-column prop="createTime" label="录入时间" width="180" />
+                </el-table>
+                <el-pagination
+                  v-model:current-page="syncEquipmentPage"
+                  :page-size="syncEquipmentPageSize"
+                  :total="syncEquipmentTotal"
+                  layout="total, prev, pager, next"
+                  class="pagination"
+                  @current-change="handleSyncEquipmentPageChange"
+                />
+              </div>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+        <template #footer>
+          <div class="sync-dialog-footer">
+            <el-button @click="handleCancelSync">取消同步</el-button>
+            <el-button type="primary" @click="handleConfirmSync">确定同步</el-button>
+          </div>
+        </template>
+      </el-dialog>
+    </Teleport>
 
     <!-- 全局登录弹窗 -->
     <Teleport to="body">
@@ -187,7 +395,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted, nextTick } from "vue";
+import { ref, computed, reactive, onMounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   FolderOpened,
@@ -201,13 +409,45 @@ import {
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
-import { login, loginOut } from './api/index.js';
+import { login, loginOut, getCraneInfoPage, getLiftingInfoPage, getDeviceInfoPage, dataSynchronization } from './api/index.js';
+import { translateLiftingType, translateCraneType } from './utils/common.js';
 
 const route = useRoute();
 const router = useRouter();
 
 // 搜索关键词
 const searchTitle = ref("");
+
+// 云端数据同步弹窗相关
+const showSyncDialog = ref(false);
+const syncActiveTab = ref("crane");
+
+// 起重机同步数据
+const syncCraneSearch = ref("");
+const syncCranePage = ref(1);
+const syncCranePageSize = ref(10);
+const syncCraneTotal = ref(0);
+const syncCraneData = ref([]);
+const syncCraneLoading = ref(false);
+const syncCraneSelected = ref([]);
+
+// 吊索具同步数据
+const syncRiggingSearch = ref("");
+const syncRiggingPage = ref(1);
+const syncRiggingPageSize = ref(10);
+const syncRiggingTotal = ref(0);
+const syncRiggingData = ref([]);
+const syncRiggingLoading = ref(false);
+const syncRiggingSelected = ref([]);
+
+// 设备同步数据
+const syncEquipmentSearch = ref("");
+const syncEquipmentPage = ref(1);
+const syncEquipmentPageSize = ref(10);
+const syncEquipmentTotal = ref(0);
+const syncEquipmentData = ref([]);
+const syncEquipmentLoading = ref(false);
+const syncEquipmentSelected = ref([]);
 
 // 登录相关
 const showLoginDialog = ref(false);
@@ -463,6 +703,268 @@ const handleSearch = () => {
     ElMessage.warning('搜索功能暂不可用，请刷新页面后重试');
   }
 };
+
+// 处理云端数据同步按钮点击
+const handleDataSynchronization = () => {
+  if (!userStore.userState.isLoggedIn) {
+    ElMessage.warning('请先登录');
+    return;
+  }
+  showSyncDialog.value = true;
+  syncActiveTab.value = "crane";
+  // 重置数据
+  syncCranePage.value = 1;
+  syncRiggingPage.value = 1;
+  syncEquipmentPage.value = 1;
+  syncCraneSelected.value = [];
+  syncRiggingSelected.value = [];
+  syncEquipmentSelected.value = [];
+  // 加载数据
+  fetchSyncCraneData();
+  fetchSyncRiggingData();
+  fetchSyncEquipmentData();
+};
+
+// 获取同步起重机数据
+const fetchSyncCraneData = async () => {
+  syncCraneLoading.value = true;
+  try {
+    const params = {
+      pageNum: syncCranePage.value,
+      pageSize: syncCranePageSize.value,
+      push: 1, // 只获取推送的数据
+    };
+    
+    if (syncCraneSearch.value && syncCraneSearch.value.trim()) {
+      params.machineName = syncCraneSearch.value.trim();
+    }
+    
+    const response = await getCraneInfoPage(params);
+
+    if (response && response.code === "0") {
+      const records = response.data.records || [];
+      syncCraneData.value = records.map((item) => ({
+        ...item,
+        typeDisplay: translateCraneType(item.type),
+        originalType: item.type,
+        type: translateCraneType(item.type),
+        push: item.push !== undefined && item.push !== null ? item.push : 0,
+      }));
+      syncCraneTotal.value = response.data.total || 0;
+    } else {
+      syncCraneData.value = [];
+      syncCraneTotal.value = 0;
+      ElMessage.error(response?.message || "获取起重机数据失败");
+    }
+  } catch (error) {
+    console.error("获取起重机数据失败:", error);
+    syncCraneData.value = [];
+    syncCraneTotal.value = 0;
+    ElMessage.error("获取数据失败，请检查网络连接");
+  } finally {
+    syncCraneLoading.value = false;
+  }
+};
+
+// 获取同步吊索具数据
+const fetchSyncRiggingData = async () => {
+  syncRiggingLoading.value = true;
+  try {
+    const params = {
+      pageNum: syncRiggingPage.value,
+      pageSize: syncRiggingPageSize.value,
+      push: 1, // 只获取推送的数据
+    };
+    
+    if (syncRiggingSearch.value && syncRiggingSearch.value.trim()) {
+      params.liftingName = syncRiggingSearch.value.trim();
+    }
+    
+    const response = await getLiftingInfoPage(params);
+
+    if (response && response.code === "0") {
+      const records = response.data.records || [];
+      syncRiggingData.value = records.map((item) => ({
+        ...item,
+        liftingType: translateLiftingType(item.liftingType),
+        push: item.push !== undefined && item.push !== null ? item.push : 0,
+      }));
+      syncRiggingTotal.value = response.data.total || 0;
+    } else {
+      syncRiggingData.value = [];
+      syncRiggingTotal.value = 0;
+      ElMessage.error(response?.message || "获取数据失败");
+    }
+  } catch (error) {
+    console.error("获取吊索具数据失败:", error);
+    syncRiggingData.value = [];
+    syncRiggingTotal.value = 0;
+    ElMessage.error("获取数据失败，请检查网络连接");
+  } finally {
+    syncRiggingLoading.value = false;
+  }
+};
+
+// 获取同步设备数据
+const fetchSyncEquipmentData = async () => {
+  syncEquipmentLoading.value = true;
+  try {
+    const params = {
+      pageNum: syncEquipmentPage.value,
+      pageSize: syncEquipmentPageSize.value,
+      push: 1, // 只获取推送的数据
+    };
+    
+    if (syncEquipmentSearch.value && syncEquipmentSearch.value.trim()) {
+      params.deviceName = syncEquipmentSearch.value.trim();
+    }
+    
+    const response = await getDeviceInfoPage(params);
+
+    if (response && response.code === "0") {
+      const records = response.data.records || [];
+      syncEquipmentData.value = records.map((item) => ({
+        ...item,
+        push: item.push !== undefined && item.push !== null ? item.push : 0,
+      }));
+      syncEquipmentTotal.value = response.data.total || 0;
+    } else {
+      syncEquipmentData.value = [];
+      syncEquipmentTotal.value = 0;
+      ElMessage.error(response?.message || "获取设备数据失败");
+    }
+  } catch (error) {
+    console.error("获取设备数据失败:", error);
+    syncEquipmentData.value = [];
+    syncEquipmentTotal.value = 0;
+    ElMessage.error("获取数据失败，请检查网络连接");
+  } finally {
+    syncEquipmentLoading.value = false;
+  }
+};
+
+// 起重机分页变化
+const handleSyncCranePageChange = (page) => {
+  syncCranePage.value = page;
+  fetchSyncCraneData();
+};
+
+// 起重机搜索
+const handleSyncCraneSearch = () => {
+  syncCranePage.value = 1;
+  fetchSyncCraneData();
+};
+
+// 吊索具分页变化
+const handleSyncRiggingPageChange = (page) => {
+  syncRiggingPage.value = page;
+  fetchSyncRiggingData();
+};
+
+// 吊索具搜索
+const handleSyncRiggingSearch = () => {
+  syncRiggingPage.value = 1;
+  fetchSyncRiggingData();
+};
+
+// 设备分页变化
+const handleSyncEquipmentPageChange = (page) => {
+  syncEquipmentPage.value = page;
+  fetchSyncEquipmentData();
+};
+
+// 设备搜索
+const handleSyncEquipmentSearch = () => {
+  syncEquipmentPage.value = 1;
+  fetchSyncEquipmentData();
+};
+
+// 选择变化处理
+const handleSyncCraneSelectionChange = (selection) => {
+  syncCraneSelected.value = selection;
+};
+
+const handleSyncRiggingSelectionChange = (selection) => {
+  syncRiggingSelected.value = selection;
+};
+
+const handleSyncEquipmentSelectionChange = (selection) => {
+  syncEquipmentSelected.value = selection;
+};
+
+// 取消同步
+const handleCancelSync = () => {
+  showSyncDialog.value = false;
+};
+
+// 确定同步
+const handleConfirmSync = async () => {
+  // 收集所有选中的数据
+  const syncData = [];
+  
+  // 起重机数据 (type: 0)
+  if (syncCraneSelected.value.length > 0) {
+    syncData.push({
+      type: 0,
+      dataId: syncCraneSelected.value.map(item => item.id)
+    });
+  }
+  
+  // 吊索具数据 (type: 1)
+  if (syncRiggingSelected.value.length > 0) {
+    syncData.push({
+      type: 1,
+      dataId: syncRiggingSelected.value.map(item => item.id)
+    });
+  }
+  
+  // 设备数据 (type: 2)
+  if (syncEquipmentSelected.value.length > 0) {
+    syncData.push({
+      type: 2,
+      dataId: syncEquipmentSelected.value.map(item => item.id)
+    });
+  }
+  
+  if (syncData.length === 0) {
+    ElMessage.warning("请至少选择一条数据进行同步");
+    return;
+  }
+  
+  try {
+    // 调用同步接口
+    for (const item of syncData) {
+      const response = await dataSynchronization(item);
+      if (response && response.code === '0') {
+        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : '设备'}数据同步成功`);
+      } else {
+        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : '设备'}数据同步失败`);
+      }
+    }
+    // 关闭弹窗
+    showSyncDialog.value = false;
+    // 清空选择
+    syncCraneSelected.value = [];
+    syncRiggingSelected.value = [];
+    syncEquipmentSelected.value = [];
+  } catch (error) {
+    console.error("数据同步失败:", error);
+    ElMessage.error("数据同步失败，请检查网络连接");
+  }
+};
+
+// 监听同步弹窗tab切换
+watch(syncActiveTab, (newTab) => {
+  if (showSyncDialog.value) {
+    if (newTab === "crane" && syncCraneData.value.length === 0) {
+      fetchSyncCraneData();
+    } else if (newTab === "rigging" && syncRiggingData.value.length === 0) {
+      fetchSyncRiggingData();
+    } else if (newTab === "equipment" && syncEquipmentData.value.length === 0) {
+      fetchSyncEquipmentData();
+    }
+  }
+});
 
 // 页面加载时恢复用户状态
 onMounted(() => {
@@ -822,5 +1324,48 @@ font-weight: 400;
 .el-dialog__header.show-close{
   display: flex;
   align-items: center;
+}
+
+/* 云端数据同步弹窗样式 */
+.sync-dialog :deep(.el-dialog__body) {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.sync-dialog-content {
+  min-height: 400px;
+}
+
+.sync-tabs {
+  width: 100%;
+}
+
+.sync-tab-content {
+  padding: 20px 0;
+}
+
+.sync-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sync-toolbar .search-group {
+  display: flex;
+  align-items: center;
+}
+
+.sync-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.sync-dialog .pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
 }
 </style>
