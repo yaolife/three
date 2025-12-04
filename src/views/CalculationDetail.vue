@@ -1529,16 +1529,16 @@
             <div class="weight-item">
               G：设备重量={{ singleResult.equipmentWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="singleResult.hookWeightChecked">
               G1：吊钩重量={{ singleResult.hookWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="singleResult.wireRopeWeightChecked">
               G2：计算钢丝绳重量={{ singleResult.wireRopeWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="singleResult.slingsWeightChecked">
               G3：吊索具重量={{ singleResult.slingsWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="singleResult.otherWeightChecked">
               G4：其他计算重量={{ singleResult.otherWeight }}t
             </div>
             <!-- 动态显示选中的系数，按照X1, X2, X3...的顺序 -->
@@ -2736,16 +2736,16 @@
             <div class="weight-item">
               G0：单台起重机所承担最大设备重量={{ doubleResult.G0 }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="doubleResult.hookWeightChecked">
               G1：吊钩重量={{ doubleResult.hookWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="doubleResult.wireRopeWeightChecked">
               G2：计算钢丝绳重量={{ doubleResult.wireRopeWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="doubleResult.slingsWeightChecked">
               G3：吊索具重量={{ doubleResult.slingsWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="doubleResult.otherWeightChecked">
               G4：其他计算重量={{ doubleResult.otherWeight }}t
             </div>
             <!-- 动态显示选中的系数，按照X1, X2, X3...的顺序 -->
@@ -4605,6 +4605,11 @@ const singleResult = ref({
   factorProduct: 1, // Initialize to 1
   calculationResult: 0,
   isQualified: false,
+  // 对应重量计算设置中各项是否勾选
+  hookWeightChecked: false,
+  wireRopeWeightChecked: false,
+  slingsWeightChecked: false,
+  otherWeightChecked: false,
   selectedFactors: [], // Added to hold the selected factors for display
 });
 
@@ -4628,6 +4633,11 @@ const doubleResult = ref({
   calculationResult2: 0,
   isQualified1: false,
   isQualified2: false,
+  // 对应重量计算设置中各项是否勾选（使用起重机1的设置）
+  hookWeightChecked: false,
+  wireRopeWeightChecked: false,
+  slingsWeightChecked: false,
+  otherWeightChecked: false,
   selectedFactors: [], // Added to hold the selected factors for display
 });
 
@@ -4682,18 +4692,36 @@ const showCalculationResult = (silent = false) => {
         100
       : 0;
 
+    // 根据勾选状态动态拼接“其它参数”文案
+    const settings = activeWeightData.settings || {};
+    const otherParts = [];
+    if (settings.isHookWeightChecked) {
+      otherParts.push(
+        `吊钩重量${activeWeightData.hookWeightG1.toFixed(2)}t`
+      );
+    }
+    if (settings.isWireRopeWeightChecked) {
+      otherParts.push(
+        `计算钢丝绳重量${activeWeightData.wireRopeWeightG2.toFixed(2)}t`
+      );
+    }
+    if (settings.isSlingsWeightChecked) {
+      otherParts.push(
+        `吊索具重量${activeWeightData.slingsWeightG3.toFixed(2)}t`
+      );
+    }
+    if (settings.isOtherWeightChecked) {
+      otherParts.push(
+        `其他计算重量${activeWeightData.otherWeightG4.toFixed(2)}t`
+      );
+    }
+
     singleResult.value = {
       liftingMethod: "单机吊装",
       craneName: craneName,
       equipmentName: equipmentName,
       totalWeight: activeWeightData.totalWeight.toFixed(2),
-      otherParams: `吊钩重量${activeWeightData.hookWeightG1.toFixed(
-        2
-      )}t、计算钢丝绳重量${activeWeightData.wireRopeWeightG2.toFixed(
-        2
-      )}t、吊索具重量${activeWeightData.slingsWeightG3.toFixed(
-        2
-      )}t、其他计算重量${activeWeightData.otherWeightG4.toFixed(2)}t`,
+      otherParams: otherParts.join("、"),
       hookWeight: activeWeightData.hookWeightG1.toFixed(2),
       wireRopeWeight: activeWeightData.wireRopeWeightG2.toFixed(2),
       slingsWeight: activeWeightData.slingsWeightG3.toFixed(2),
@@ -4703,6 +4731,10 @@ const showCalculationResult = (silent = false) => {
       isQualified: calculationResult < 100, // 修改合格判断逻辑，等于100%时不满足要求
       selectedFactors: activeWeightData.selectedFactors,
       factorProduct: activeWeightData.factorProduct,
+      hookWeightChecked: !!settings.isHookWeightChecked,
+      wireRopeWeightChecked: !!settings.isWireRopeWeightChecked,
+      slingsWeightChecked: !!settings.isSlingsWeightChecked,
+      otherWeightChecked: !!settings.isOtherWeightChecked,
     };
 
     // 如果不是静默模式（点击计算结果按钮），显示弹窗
@@ -4743,20 +4775,37 @@ const showCalculationResult = (silent = false) => {
         100
       : 0;
 
-    // 填充双机吊装结果数据
+    // 填充双机吊装结果数据（使用起重机1的重量设置做展示）
+    const crane1Settings = crane1WeightData.settings || {};
+    const otherParts = [];
+    if (crane1Settings.isHookWeightChecked) {
+      otherParts.push(
+        `吊钩重量${crane1WeightData.hookWeightG1.toFixed(2)}t`
+      );
+    }
+    if (crane1Settings.isWireRopeWeightChecked) {
+      otherParts.push(
+        `计算钢丝绳重量${crane1WeightData.wireRopeWeightG2.toFixed(2)}t`
+      );
+    }
+    if (crane1Settings.isSlingsWeightChecked) {
+      otherParts.push(
+        `吊索具重量${crane1WeightData.slingsWeightG3.toFixed(2)}t`
+      );
+    }
+    if (crane1Settings.isOtherWeightChecked) {
+      otherParts.push(
+        `其他计算重量${crane1WeightData.otherWeightG4.toFixed(2)}t`
+      );
+    }
+
     doubleResult.value = {
       liftingMethod: "双机吊装",
       craneName1: formData.value.craneName || "起重机1",
       craneName2: formData.value.craneName2 || "起重机2",
       equipmentName: formData.value.equipmentName,
       totalWeight: crane1WeightData.totalWeight.toFixed(2),
-      otherParams: `吊钩重量${crane1WeightData.hookWeightG1.toFixed(
-        2
-      )}t、计算钢丝绳重量${crane1WeightData.wireRopeWeightG2.toFixed(
-        2
-      )}t、吊索具重量${crane1WeightData.slingsWeightG3.toFixed(
-        2
-      )}t、其他计算重量${crane1WeightData.otherWeightG4.toFixed(2)}t`,
+      otherParams: otherParts.join("、"),
       hookWeight: crane1WeightData.hookWeightG1.toFixed(2),
       wireRopeWeight: crane1WeightData.wireRopeWeightG2.toFixed(2),
       slingsWeight: crane1WeightData.slingsWeightG3.toFixed(2),
@@ -4769,6 +4818,10 @@ const showCalculationResult = (silent = false) => {
       isQualified2: calculationResult2 < 75, // 修改合格判断逻辑，等于75%时不满足要求
       selectedFactors: crane1WeightData.selectedFactors,
       factorProduct: crane1WeightData.factorProduct,
+      hookWeightChecked: !!crane1Settings.isHookWeightChecked,
+      wireRopeWeightChecked: !!crane1Settings.isWireRopeWeightChecked,
+      slingsWeightChecked: !!crane1Settings.isSlingsWeightChecked,
+      otherWeightChecked: !!crane1Settings.isOtherWeightChecked,
     };
 
     // 如果不是静默模式（点击计算结果按钮），显示弹窗
