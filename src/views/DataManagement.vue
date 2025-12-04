@@ -435,7 +435,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem, cranePush } from "@/api/index.js";
 import userStore from "@/store/user.js";
 
 const router = useRouter();
@@ -843,28 +843,12 @@ const handleCraneSearch = () => {
 // 处理推送状态变化
 const handlePushChange = async (row) => {
   try {
-    // 使用原始类型值（数字），如果没有则尝试从 type 字段推断
-    let typeValue = row.originalType;
-    if (typeValue === undefined || typeValue === null) {
-      // 如果 originalType 不存在，尝试从 type 字段反向推断
-      const typeMap = {
-        '汽车式': 1,
-        '履带式': 2,
-        '塔吊': 3,
-      };
-      typeValue = typeMap[row.type] || row.type;
-    }
-    
     const requestParams = {
       id: row.id,
-      machineName: row.machineName,
-      type: typeValue,
-      model: row.model,
-      prodBusiness: row.prodBusiness,
       push: row.push || 0,
     };
     
-    const response = await editCraneInfo(requestParams);
+    const response = await cranePush(requestParams);
     
     if (response && response.code === '0') {
       ElMessage.success("更新成功");
