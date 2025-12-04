@@ -1,6 +1,13 @@
 <template>
   <div class="all-projects-container">
     <el-card class="project-table-card">
+      <!-- 上传按钮 -->
+      <div class="table-header-actions" v-if="canShowUpload">
+        <el-button type="primary" @click="handleUpload">
+          <el-icon><Upload /></el-icon>
+          上传
+        </el-button>
+      </div>
       
       <!-- 项目列表表格 -->
       <el-table 
@@ -126,7 +133,8 @@
 import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem } from '../api/index.js'
+import { Upload } from '@element-plus/icons-vue'
+import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem, pushProject } from '../api/index.js'
 import userStore from '../store/user.js'
 
 // 初始化 router 和 route
@@ -142,6 +150,11 @@ const projectTypeFilter = computed(() => {
     return Number.isNaN(parsed) ? null : parsed
   }
   return null
+})
+
+// 判断是否显示上传按钮（loginType为0时显示）
+const canShowUpload = computed(() => {
+  return userStore.userState.userInfo?.loginType === 0;
 })
 
 const resolveDefaultProjectType = () =>
@@ -307,6 +320,38 @@ const checkCreateFlag = () => {
 const handleSelectionChange = (selection) => {
   selectedProjects.value = selection;
   console.log('选中的项目:', selection);
+};
+
+// 处理上传按钮点击
+const handleUpload = async () => {
+  // 检查是否至少选中一个项目
+  if (!selectedProjects.value || selectedProjects.value.length === 0) {
+    ElMessage.warning('请至少选择一个项目进行上传');
+    return;
+  }
+  
+  // 收集选中的项目ID
+  const ids = selectedProjects.value.map(item => item.id).filter(id => id !== null && id !== undefined);
+  
+  if (ids.length === 0) {
+    ElMessage.warning('选中的项目数据异常，无法上传');
+    return;
+  }
+  
+  try {
+    const response = await pushProject({ ids });
+    
+    if (response && response.code === '0') {
+      ElMessage.success('上传成功');
+      // 清空选中状态
+      selectedProjects.value = [];
+    } else {
+      ElMessage.error(response?.msg || '上传失败');
+    }
+  } catch (error) {
+    console.error('上传项目失败:', error);
+    ElMessage.error('上传失败，请检查网络连接');
+  }
 };
 
 // 复制项目的方法（供外部调用）
@@ -590,6 +635,14 @@ defineExpose({
 
 .project-table-card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.table-header-actions {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
 }
 
 .create-project-btn-container {

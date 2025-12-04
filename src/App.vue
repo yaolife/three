@@ -540,7 +540,8 @@ const handleLogin = async () => {
         userStore.login(
           response.data.userName || loginForm.username,
           response.data.userNickName || null,
-          response.data.level !== undefined ? response.data.level : null
+          response.data.level !== undefined ? response.data.level : null,
+          0 // loginType: 0是确认登录
         );
       }
       // 清空表单
@@ -588,7 +589,8 @@ const handleOfflineLogin = async () => {
         userStore.login(
           response.data.userName || loginForm.username,
           response.data.userNickName || null,
-          response.data.level !== undefined ? response.data.level : null
+          response.data.level !== undefined ? response.data.level : null,
+          1 // loginType: 1是管理员登录
         );
       }
       // 清空表单
