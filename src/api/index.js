@@ -880,6 +880,14 @@ export function devicePush(params) {
 export function dataSynchronization(params) {
   return post("/template/dataSynchronization", params)
 }
+/**
+ *推送项目数据到远程的接口
+ * @param {object} params - 参数{ids;["id"] id集合}
+ * @returns {Promise} - 
+ */
+export function pushProject(params) {
+  return post("/projectInfo/dataUpload", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -934,5 +942,6 @@ export default {
   cranePush,
   liftingPush,
   devicePush,
-  dataSynchronization
+  dataSynchronization,
+  pushProject
 }
