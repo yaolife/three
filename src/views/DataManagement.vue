@@ -108,14 +108,16 @@
                   </template>
                 </el-table-column>
               </el-table>
-              <el-pagination
-                v-model:current-page="cranePage"
-                :page-size="cranePageSize"
-                :total="craneTotal"
-                layout="total, prev, pager, next"
-                class="pagination"
-                @current-change="handleCranePageChange"
-              />
+              <div class="pagination-container">
+                <div class="pagination-info">共 {{ craneTotal }} 条</div>
+                <el-pagination
+                  v-model:current-page="cranePage"
+                  :page-size="cranePageSize"
+                  :total="craneTotal"
+                  layout="prev, pager, next"
+                  @current-change="handleCranePageChange"
+                />
+              </div>
             </div>
           </el-tab-pane>
 
@@ -217,14 +219,16 @@
                 </el-table-column>
               </el-table>
               <!-- Update pagination to trigger API call on page change -->
-              <el-pagination
-                v-model:current-page="riggingPage"
-                :page-size="riggingPageSize"
-                :total="riggingTotal"
-                layout="total, prev, pager, next"
-                class="pagination"
-                @current-change="handleRiggingPageChange"
-              />
+              <div class="pagination-container">
+                <div class="pagination-info">共 {{ riggingTotal }} 条</div>
+                <el-pagination
+                  v-model:current-page="riggingPage"
+                  :page-size="riggingPageSize"
+                  :total="riggingTotal"
+                  layout="prev, pager, next"
+                  @current-change="handleRiggingPageChange"
+                />
+              </div>
             </div>
           </el-tab-pane>
 
@@ -315,14 +319,16 @@
                   </template>
                 </el-table-column>
               </el-table>
-              <el-pagination
-                v-model:current-page="equipmentPage"
-                :page-size="equipmentPageSize"
-                :total="equipmentTotal"
-                layout="total, prev, pager, next"
-                class="pagination"
-                @current-change="handleEquipmentPageChange"
-              />
+              <div class="pagination-container">
+                <div class="pagination-info">共 {{ equipmentTotal }} 条</div>
+                <el-pagination
+                  v-model:current-page="equipmentPage"
+                  :page-size="equipmentPageSize"
+                  :total="equipmentTotal"
+                  layout="prev, pager, next"
+                  @current-change="handleEquipmentPageChange"
+                />
+              </div>
             </div>
           </el-tab-pane>
 
@@ -402,14 +408,16 @@
                   </template>
                 </el-table-column>
               </el-table>
-              <el-pagination
-                v-model:current-page="craneModelPage"
-                :page-size="craneModelPageSize"
-                :total="craneModelTotal"
-                layout="total, prev, pager, next"
-                class="pagination"
-                @current-change="handleCraneModelPageChange"
-              />
+              <div class="pagination-container">
+                <div class="pagination-info">共 {{ craneModelTotal }} 条</div>
+                <el-pagination
+                  v-model:current-page="craneModelPage"
+                  :page-size="craneModelPageSize"
+                  :total="craneModelTotal"
+                  layout="prev, pager, next"
+                  @current-change="handleCraneModelPageChange"
+                />
+              </div>
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -1585,6 +1593,19 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 0 20px;
+}
+
+.pagination-info {
+  color: #606266;
+  font-size: 14px;
 }
 
 .dialog-footer {
