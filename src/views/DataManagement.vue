@@ -625,7 +625,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="craneModelDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleCraneModelSubmit">确定</el-button>
+          <el-button type="primary" :loading="craneModelSubmitting" @click="handleCraneModelSubmit">确定</el-button>
         </div>
       </template>
     </el-dialog>
@@ -727,6 +727,7 @@ const craneModelForm = ref({
   push: 0,
 });
 const craneModelFile = ref(null);
+const craneModelSubmitting = ref(false);
 
 // 子类型选项
 const subTypeOptions = ref([]);
@@ -1368,6 +1369,7 @@ const handleCraneModelSubmit = async () => {
   }
 
   try {
+    craneModelSubmitting.value = true;
     // 先上传模型文件，获取 fileId
     const uploadRes = await uploadImage(
       craneModelFile.value,
@@ -1409,6 +1411,8 @@ const handleCraneModelSubmit = async () => {
   } catch (error) {
     console.error("新增起重机模型库失败:", error);
     ElMessage.error("新增失败，请检查网络连接");
+  } finally {
+    craneModelSubmitting.value = false;
   }
 };
 
