@@ -3827,6 +3827,11 @@ watch(
     if (isInitializingFromApi) {
       return;
     }
+    // 如果未选择起重机，给出提示并不调用接口
+    if (!selectedCraneId.value) {
+      ElMessage.warning('请先选择起重机');
+      return;
+    }
     // 确保所有必要参数都有值
     if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
       try {
@@ -3836,7 +3841,8 @@ watch(
           l2: formData.value.auxBoomLength,
           theta2: formData.value.auxBoomAngle,
           craneType: craneType,// 起重机类型
-          armType: formData.value.armType//吊臂类型
+          armType: formData.value.armType,//吊臂类型
+          templateCraneId: selectedCraneId.value // 当前选中的起重机ID
         });
         
         if (response.code === '0' && response.data) {
@@ -3869,6 +3875,11 @@ watch(
     if (isInitializingFromApi) {
       return;
     }
+    // 如果未选择起重机2，给出提示并不调用接口
+    if (!selectedCraneId2.value) {
+      ElMessage.warning('请先选择起重机');
+      return;
+    }
     // 确保所有必要参数都有值
     if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
       try {
@@ -3878,7 +3889,8 @@ watch(
           l2: formData.value.auxBoomLength2,
           theta2: formData.value.auxBoomAngle2,
            craneType: craneType,// 起重机类型
-          armType: formData.value.armType2//吊臂类型
+          armType: formData.value.armType2,//吊臂类型
+          templateCraneId: selectedCraneId2.value // 当前选中的起重机2的ID
         });
         
         if (response.code === '0' && response.data) {
