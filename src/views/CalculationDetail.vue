@@ -3827,9 +3827,8 @@ watch(
     if (isInitializingFromApi) {
       return;
     }
-    // 如果未选择起重机，给出提示并不调用接口
+    // 如果未选择起重机，不调用接口也不提示
     if (!selectedCraneId.value) {
-      ElMessage.warning('请先选择起重机');
       return;
     }
     // 确保所有必要参数都有值
@@ -3879,9 +3878,8 @@ watch(
     if (isInitializingFromApi) {
       return;
     }
-    // 如果未选择起重机2，给出提示并不调用接口
+    // 如果未选择起重机2，不调用接口也不提示
     if (!selectedCraneId2.value) {
-      ElMessage.warning('请先选择起重机');
       return;
     }
     // 确保所有必要参数都有值
