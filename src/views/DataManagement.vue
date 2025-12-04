@@ -62,6 +62,19 @@
                   min-width="150"
                 />
                 <el-table-column
+                  label="是否推送"
+                  width="120"
+                >
+                  <template #default="scope">
+                    <el-switch
+                      v-model="scope.row.push"
+                      :active-value="1"
+                      :inactive-value="0"
+                      @change="handlePushChange(scope.row)"
+                    />
+                  </template>
+                </el-table-column>
+                <el-table-column
                   prop="prodBusiness"
                   label="生产厂家"
                   min-width="150"
@@ -315,6 +328,13 @@
         <el-form-item label="生产厂家">
           <el-input v-model="craneForm.prodBusiness" placeholder="请输入生产厂家（例如：三一重工）" />
         </el-form-item>
+        <el-form-item label="是否推送">
+          <el-switch
+            v-model="craneForm.push"
+            :active-value="1"
+            :inactive-value="0"
+          />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -479,6 +499,7 @@ const craneForm = ref({
   type: "",
   model: "",
   prodBusiness: "",
+  push: 0, // 是否推送，0否1是
 });
 
 // 子类型选项
@@ -520,6 +541,7 @@ const handleAddCrane = () => {
     type: "",
     model: "",
     prodBusiness: "",
+    push: 0, // 是否推送，0否1是
   };
 };
 
@@ -566,14 +588,17 @@ const handleEdit = (row, type) => {
     });
   } else if (type === "crane") {
     // 起重机编辑，跳转到起重机详情页面
+    // 使用原始类型值（数字）
+    const typeValue = row.originalType !== undefined && row.originalType !== null ? row.originalType : row.type;
     router.push({
       path: "/crane-detail",
       query: {
         id: row.id,
         craneName: row.machineName,
-        craneType: row.type,
+        craneType: typeValue,
         model: row.model,
-        manufacturer: row.prodBusiness
+        manufacturer: row.prodBusiness,
+        push: row.push !== undefined && row.push !== null ? row.push : 0
       }
     });
   } else if (type === "equipment") {
@@ -659,6 +684,7 @@ const handleCraneNext = async () => {
       type: craneForm.value.type,
       model: craneForm.value.model,
       prodBusiness: craneForm.value.prodBusiness,
+      push: craneForm.value.push || 0, // 是否推送，0否1是
     };
 
     const response = await editCraneInfo(requestParams);
@@ -780,7 +806,10 @@ const fetchCraneData = async () => {
       const records = response.data.records || [];
       craneData.value = records.map((item) => ({
         ...item,
-        type: translateCraneType(item.type),
+        typeDisplay: translateCraneType(item.type), // 用于显示的翻译后的类型
+        originalType: item.type, // 保存原始类型值（数字）
+        type: translateCraneType(item.type), // 保持兼容性
+        push: item.push !== undefined && item.push !== null ? item.push : 0, // 确保 push 字段存在
       }));
       craneTotal.value = response.data.total || 0;
     } else {
@@ -809,6 +838,47 @@ const handleCranePageChange = (page) => {
 const handleCraneSearch = () => {
   cranePage.value = 1; // 重置到第一页
   fetchCraneData();
+};
+
+// 处理推送状态变化
+const handlePushChange = async (row) => {
+  try {
+    // 使用原始类型值（数字），如果没有则尝试从 type 字段推断
+    let typeValue = row.originalType;
+    if (typeValue === undefined || typeValue === null) {
+      // 如果 originalType 不存在，尝试从 type 字段反向推断
+      const typeMap = {
+        '汽车式': 1,
+        '履带式': 2,
+        '塔吊': 3,
+      };
+      typeValue = typeMap[row.type] || row.type;
+    }
+    
+    const requestParams = {
+      id: row.id,
+      machineName: row.machineName,
+      type: typeValue,
+      model: row.model,
+      prodBusiness: row.prodBusiness,
+      push: row.push || 0,
+    };
+    
+    const response = await editCraneInfo(requestParams);
+    
+    if (response && response.code === '0') {
+      ElMessage.success("更新成功");
+    } else {
+      // 如果更新失败，恢复原值
+      row.push = row.push === 1 ? 0 : 1;
+      ElMessage.error(response?.message || "更新失败");
+    }
+  } catch (error) {
+    console.error("更新推送状态失败:", error);
+    // 如果更新失败，恢复原值
+    row.push = row.push === 1 ? 0 : 1;
+    ElMessage.error("更新失败，请检查网络连接");
+  }
 };
 
 const fetchRiggingData = async () => {

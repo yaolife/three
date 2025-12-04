@@ -41,6 +41,17 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="是否推送">
+                <el-switch
+                  v-model="craneInfo.push"
+                  :active-value="1"
+                  :inactive-value="0"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-form>
       </div>
 
@@ -424,6 +435,7 @@ const craneInfo = ref({
   manufacturer: "",
   model: "",
   craneType: "",
+  push: 0, // 是否推送，0否1是
 });
 
 // 起重机规格参数
@@ -511,6 +523,7 @@ onMounted(async () => {
         craneInfo.value.manufacturer = data.prodBusiness || route.query.manufacturer;
         craneInfo.value.model = data.model || route.query.model;
         craneInfo.value.craneType = data.type || route.query.craneType;
+        craneInfo.value.push = data.push !== undefined && data.push !== null ? data.push : (route.query.push ? parseInt(route.query.push) : 0);
         
         // 填充规格参数（从sysProjectTemplateCraneDetail中获取）
         if (data.sysProjectTemplateCraneDetail) {
@@ -573,6 +586,7 @@ onMounted(async () => {
     const manufacturer = route.query.manufacturer;
     const model = route.query.model;
     const craneType = route.query.craneType;
+    const push = route.query.push;
 
     if (craneName) {
       craneInfo.value.craneName = craneName;
@@ -585,6 +599,9 @@ onMounted(async () => {
     }
     if (craneType) {
       craneInfo.value.craneType = craneType;
+    }
+    if (push !== undefined && push !== null) {
+      craneInfo.value.push = parseInt(push) || 0;
     }
   }
 });
@@ -696,8 +713,18 @@ const handleConfirm = async () => {
       sysProjectTemplateCraneDetailData.id = sysProjectTemplateCraneDetailId.value;
     }
     
+    // 构造 sysProjectTemplateCraneDTO 参数（起重机设置最上面的5个参数）
+    const sysProjectTemplateCraneDTO = {
+      machineName: craneInfo.value.craneName || "",
+      type: craneInfo.value.craneType ? parseInt(craneInfo.value.craneType) : null,
+      model: craneInfo.value.model || "",
+      prodBusiness: craneInfo.value.manufacturer || "",
+      push: craneInfo.value.push !== undefined && craneInfo.value.push !== null ? parseInt(craneInfo.value.push) : 0
+    };
+    
     const requestParams = {
       craneInfoId: id,
+      sysProjectTemplateCraneDTO: sysProjectTemplateCraneDTO,
       sysProjectTemplateCraneDetail: sysProjectTemplateCraneDetailData,
       performanceInfoAddUpdateList: [
         {
