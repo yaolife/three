@@ -7,6 +7,22 @@ import VueKonva from 'vue-konva'
 import router from './router'
 // 引入全局样式文件
 import './assets/styles/global.css'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+
+// 自定义 Element Plus 语言配置，修改分页里的 "Go to" 和 "10/page" 文案
+const customLocale = {
+  ...zhCn,
+  el: {
+    ...(zhCn.el || {}),
+    pagination: {
+      ...(zhCn.el?.pagination || {}),
+      // 改成 "去"
+      goto: '去',
+      // pageSize 下拉里的后缀，从 "条/页" 改成 "/页"，例如 "10/页"
+      pagesize: '/页'
+    }
+  }
+}
 
 const app = createApp(App)
 
@@ -15,7 +31,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
-app.use(ElementPlus)
+app.use(ElementPlus, { locale: customLocale })
 app.use(VueKonva)
 app.use(router)
 app.mount('#app')
