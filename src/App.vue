@@ -101,7 +101,13 @@
           </template>
         </div>
         <div class="header-right">
-          <el-button type="default" size="large" style="margin-left: 12px" @click="handleDataSynchronization">
+          <el-button 
+            v-if="userStore.userState.userInfo?.loginType === 0"
+            type="default" 
+            size="large" 
+            style="margin-left: 12px" 
+            @click="handleDataSynchronization"
+          >
              <img
                  style="width: 22px; height: 22px;margin-right: 5px;"
                 src="@/images/synchronize.png"
