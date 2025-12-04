@@ -1,11 +1,6 @@
 <template>
   <div class="data-management-container">
     <el-card class="page-card">
-      <template #header>
-        <div class="card-header">
-          <span>数据管理</span>
-        </div>
-      </template>
       <div class="page-content">
         <el-tabs v-model="activeTab" class="data-tabs">
           <!-- 起重机数据库 -->
