@@ -869,7 +869,7 @@ const playingCraneId = ref(null);
 const playbackElapsed = ref(0);
 const animationPlan = ref(null);
 const playbackAnimationFrame = ref(null);
-const secondsPerDay = 3;
+const secondsPerDay = 1;
 
 // 录制相关状态
 const isGlobalRecording = ref(false);
@@ -3202,7 +3202,7 @@ const handleCanvasWheel = (event) => {
   const mouseY = event.clientY - rect.top;
   
   const scaleRatio = event.deltaY > 0 ? 0.9 : 1.1;
-  const newScale = Math.max(0.1, Math.min(5, scale.value * scaleRatio));
+  const newScale = Math.max(1, Math.min(5, scale.value * scaleRatio));
   
   // 调整偏移量以保持鼠标位置不变
   // 鼠标在变换前坐标系中的位置
