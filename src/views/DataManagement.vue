@@ -169,6 +169,19 @@
                 </el-table-column>
                 <el-table-column prop="twoLiftingName" label="子类型" width="120" />
                 <el-table-column
+                  label="是否推送"
+                  width="120"
+                >
+                  <template #default="scope">
+                    <el-switch
+                      v-model="scope.row.push"
+                      :active-value="1"
+                      :inactive-value="0"
+                      @change="handleRiggingPushChange(scope.row)"
+                    />
+                  </template>
+                </el-table-column>
+                <el-table-column
                   prop="prodBusiness"
                   label="生产厂家"
                   min-width="150"
@@ -379,6 +392,13 @@
             placeholder="请输入生产厂家"
           />
         </el-form-item>
+        <el-form-item label="是否推送">
+          <el-switch
+            v-model="riggingForm.push"
+            :active-value="1"
+            :inactive-value="0"
+          />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -435,7 +455,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem, cranePush } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem, cranePush, liftingPush } from "@/api/index.js";
 import userStore from "@/store/user.js";
 
 const router = useRouter();
@@ -490,6 +510,7 @@ const riggingForm = ref({
   subType: "",
   liftingName: "",
   prodBusiness: "",
+  push: 0, // 是否推送，0否1是
 });
 
 // 新建起重机弹窗
@@ -553,6 +574,7 @@ const handleAddRigging = () => {
     subType: "",
     liftingName: "",
     prodBusiness: "",
+    push: 0, // 是否推送，0否1是
   };
   subTypeOptions.value = [];
 };
@@ -736,7 +758,8 @@ const handleRiggingNext = async () => {
   try {
     // 准备请求参数
     const requestParams = {
-      ...riggingForm.value
+      ...riggingForm.value,
+      push: riggingForm.value.push || 0, // 是否推送，0否1是
     };
     
     // 如果选择了子类型，从subTypeOptions中获取对应的liftingTypeName和liftingType
@@ -840,7 +863,7 @@ const handleCraneSearch = () => {
   fetchCraneData();
 };
 
-// 处理推送状态变化
+// 处理推送状态变化（起重机）
 const handlePushChange = async (row) => {
   try {
     const requestParams = {
@@ -849,6 +872,31 @@ const handlePushChange = async (row) => {
     };
     
     const response = await cranePush(requestParams);
+    
+    if (response && response.code === '0') {
+      ElMessage.success("更新成功");
+    } else {
+      // 如果更新失败，恢复原值
+      row.push = row.push === 1 ? 0 : 1;
+      ElMessage.error(response?.message || "更新失败");
+    }
+  } catch (error) {
+    console.error("更新推送状态失败:", error);
+    // 如果更新失败，恢复原值
+    row.push = row.push === 1 ? 0 : 1;
+    ElMessage.error("更新失败，请检查网络连接");
+  }
+};
+
+// 处理推送状态变化（吊索具）
+const handleRiggingPushChange = async (row) => {
+  try {
+    const requestParams = {
+      id: row.id,
+      push: row.push || 0,
+    };
+    
+    const response = await liftingPush(requestParams);
     
     if (response && response.code === '0') {
       ElMessage.success("更新成功");
@@ -895,6 +943,7 @@ const fetchRiggingData = async () => {
       riggingData.value = records.map((item) => ({
         ...item,
         liftingType: translateLiftingType(item.liftingType),
+        push: item.push !== undefined && item.push !== null ? item.push : 0, // 确保 push 字段存在
       }));
       riggingTotal.value = response.data.total || 0;
     } else {

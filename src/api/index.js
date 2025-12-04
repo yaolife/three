@@ -854,6 +854,24 @@ export function cranePush(params) {
   return post("/template/crane/updatePush", params)
 }
 
+/**
+ * 吊索具数据库table列是否推送开关接口
+ * @param {object} params - 参数{ "id": "用户id82",
+  "push": 0 }
+ * @returns {Promise} - 
+ */
+export function liftingPush(params) {
+  return post("/template/liftingInfo/updatePush", params)
+}
+/**
+ * 设备数据库table列是否推送开关接口
+ * @param {object} params - 参数{ "id": "用户id82",
+  "push": 0 }
+ * @returns {Promise} - 
+ */
+export function devicePush(params) {
+  return post("/template/device/updatePush", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -905,5 +923,7 @@ export default {
   exportLiftingReport,
   exportBearingReport,
   exportProjectReport,
-  cranePush
+  cranePush,
+  liftingPush,
+  devicePush
 }
