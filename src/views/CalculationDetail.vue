@@ -1475,7 +1475,7 @@
                 formData.auxBoomLength
               }}m、主臂角度{{ formData.mainBoomAngle }}°、副臂角度{{
                 formData.auxBoomAngle
-              }}°、吊钩最大起升高度xxx
+              }}°、吊钩最大起升高度{{ formData.hookHeight }}m
             </div>
           </div>
         </div>
@@ -2666,7 +2666,7 @@
                 formData.auxBoomLength
               }}m、主臂角度{{ formData.mainBoomAngle }}°、副臂角度{{
                 formData.auxBoomAngle
-              }}°、吊钩最大起升高度xxx
+              }}°、吊钩最大起升高度{{ formData.hookHeight }}m
             </div>
           </div>
         </div>
@@ -2682,7 +2682,7 @@
                 formData.auxBoomLength2
               }}m、主臂角度{{ formData.mainBoomAngle2 }}°、副臂角度{{
                 formData.auxBoomAngle2
-              }}°、吊钩最大起升高度xxx
+              }}°、吊钩最大起升高度{{ formData.hookHeight2 }}m
             </div>
           </div>
         </div>
