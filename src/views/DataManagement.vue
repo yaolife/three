@@ -354,6 +354,7 @@
                 style="width: 100%"
                 :header-cell-style="{ background: '#f5f7fa' }"
               >
+                <el-table-column type="selection" width="55" />
                 <el-table-column label="序号" width="80">
                   <template #default="scope">
                     {{ scope.$index + 1 + (craneModelPage - 1) * craneModelPageSize }}
