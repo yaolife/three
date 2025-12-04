@@ -41,7 +41,7 @@
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20">
+          <el-row v-if="canShowPush" :gutter="20">
             <el-col :span="12">
               <el-form-item label="是否推送">
                 <el-switch
@@ -419,12 +419,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { Plus } from '@element-plus/icons-vue';
 import { getCraneDetail, confirmUpdateCraneDetail } from "@/api/index.js";
 import { getCraneTypeOptions, craneType } from "@/utils/common.js";
+import userStore from "@/store/user.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -506,6 +507,11 @@ const handleDeleteAuxBoomRow2 = (index) => {
 
 // 起重机类型选项
 const craneTypeOptions = getCraneTypeOptions();
+
+// 判断用户是否有权限显示推送功能（level为1时显示）
+const canShowPush = computed(() => {
+  return userStore.userState.userInfo?.level === 1;
+});
 
 // 初始化数据
 onMounted(async () => {

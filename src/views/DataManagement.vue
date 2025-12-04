@@ -62,6 +62,7 @@
                   min-width="150"
                 />
                 <el-table-column
+                  v-if="canShowPush"
                   label="是否推送"
                   width="120"
                 >
@@ -169,6 +170,7 @@
                 </el-table-column>
                 <el-table-column prop="twoLiftingName" label="子类型" width="120" />
                 <el-table-column
+                  v-if="canShowPush"
                   label="是否推送"
                   width="120"
                 >
@@ -267,6 +269,7 @@
                 />
                 <el-table-column prop="deviceType" label="型号" min-width="120" />
                 <el-table-column
+                  v-if="canShowPush"
                   label="是否推送"
                   width="120"
                 >
@@ -353,7 +356,7 @@
         <el-form-item label="生产厂家">
           <el-input v-model="craneForm.prodBusiness" placeholder="请输入生产厂家（例如：三一重工）" />
         </el-form-item>
-        <el-form-item label="是否推送">
+        <el-form-item v-if="canShowPush" label="是否推送">
           <el-switch
             v-model="craneForm.push"
             :active-value="1"
@@ -404,7 +407,7 @@
             placeholder="请输入生产厂家"
           />
         </el-form-item>
-        <el-form-item label="是否推送">
+        <el-form-item v-if="canShowPush" label="是否推送">
           <el-switch
             v-model="riggingForm.push"
             :active-value="1"
@@ -479,7 +482,7 @@
             style="width: 50%"
           />
         </el-form-item>
-        <el-form-item label="是否推送">
+        <el-form-item v-if="canShowPush" label="是否推送">
           <el-switch
             v-model="equipmentForm.push"
             :active-value="1"
@@ -498,7 +501,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -508,6 +511,11 @@ import userStore from "@/store/user.js";
 const router = useRouter();
 
 import { translateLiftingType, translateCraneType, getCraneTypeOptions } from "@/utils/common.js";
+
+// 判断用户是否有权限显示推送功能（level为1时显示）
+const canShowPush = computed(() => {
+  return userStore.userState.userInfo?.level === 1;
+});
 
 // 当前激活的标签页
 const activeTab = ref("crane");
