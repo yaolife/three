@@ -4012,6 +4012,18 @@ const commonDeviceSettings = ref({
   isSinglePointLifting: false,
 });
 
+// 同步共用设备重量到所有吊索具配置，确保计算结果和弹窗中的设备重量使用最新值
+watch(
+  () => commonDeviceSettings.value.equipmentWeight,
+  (newWeight) => {
+    if (isInitializingFromApi) return;
+    const weight = toNumberOrZero(newWeight);
+    liftingFormDatas.value.forEach((sling) => {
+      sling.equipmentWeight = weight;
+    });
+  }
+);
+
 const lowerPointCountOptions = computed(() => {
   // 如果有吊梁，去掉1，最小值为2
   if (commonDeviceSettings.value?.liftingType === 'withBeam') {
