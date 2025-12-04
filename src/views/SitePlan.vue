@@ -2489,9 +2489,9 @@ const coordMaxX = ref(120);
 const coordMinY = ref(30);
 const coordMaxY = ref(50);
 
-// 将地理坐标转换为Canvas坐标（与分辨率无关）
+// 将地理坐标转换为Canvas坐标
 // 坐标系统：X和Y是地理坐标（例如112.000000, 38.000000）
-// 使用底图的原始尺寸进行归一化，保证在不同分辨率/窗口尺寸下位置一致
+// 需要映射到图片在canvas上的实际位置（变换前的坐标，transform会自动应用）
 const convertToCanvasCoords = (x, y) => {
   if (!imageRef.value || !canvas.value) {
     console.warn('图片或Canvas未加载，使用默认映射');
@@ -2500,12 +2500,13 @@ const convertToCanvasCoords = (x, y) => {
   }
   
   try {
-    // 使用图片的原始尺寸，而不是当前显示尺寸，避免不同分辨率导致偏移
-    const baseWidth = imageNaturalWidth.value || imageRef.value.naturalWidth || imageRef.value.width;
-    const baseHeight = imageNaturalHeight.value || imageRef.value.naturalHeight || imageRef.value.height;
+    // 获取图片的显示尺寸（变换后的尺寸）
+    const imageRect = imageRef.value.getBoundingClientRect();
+    const displayedWidth = imageRect.width;
+    const displayedHeight = imageRect.height;
     
-    if (!baseWidth || !baseHeight) {
-      console.warn('图片原始尺寸无效，使用默认映射');
+    if (displayedWidth === 0 || displayedHeight === 0) {
+      console.warn('图片尺寸为0，使用默认映射');
       return { x: x * 5, y: y * 5 };
     }
     
@@ -2521,9 +2522,9 @@ const convertToCanvasCoords = (x, y) => {
     const normalizedX = (x - coordMinX.value) / coordRangeX;
     const normalizedY = (y - coordMinY.value) / coordRangeY;
     
-    // 映射到图片原始坐标（变换前的坐标，transform 会统一应用缩放和平移）
-    const canvasX = normalizedX * baseWidth;
-    const canvasY = normalizedY * baseHeight;
+    // 映射到图片坐标（变换前的坐标，transform会自动应用）
+    const canvasX = normalizedX * (displayedWidth / scale.value);
+    const canvasY = normalizedY * (displayedHeight / scale.value);
     
     return { x: canvasX, y: canvasY };
   } catch (error) {
@@ -2533,24 +2534,25 @@ const convertToCanvasCoords = (x, y) => {
   }
 };
 
-// 将Canvas坐标转换为地理坐标（canvasX和canvasY是变换前的坐标，基于图片原始尺寸）
+// 将Canvas坐标转换为地理坐标（canvasX和canvasY是变换前的坐标）
 const convertToGeoCoords = (canvasX, canvasY) => {
   if (!imageRef.value || !canvas.value) {
     return { x: canvasX / 5, y: canvasY / 5 };
   }
   
   try {
-    // 使用图片的原始尺寸进行反算，保证在不同分辨率/窗口尺寸下结果一致
-    const baseWidth = imageNaturalWidth.value || imageRef.value.naturalWidth || imageRef.value.width;
-    const baseHeight = imageNaturalHeight.value || imageRef.value.naturalHeight || imageRef.value.height;
+    // 获取图片的显示尺寸（变换后的尺寸）
+    const imageRect = imageRef.value.getBoundingClientRect();
+    const displayedWidth = imageRect.width;
+    const displayedHeight = imageRect.height;
     
-    if (!baseWidth || !baseHeight) {
+    if (displayedWidth === 0 || displayedHeight === 0) {
       return { x: canvasX / 5, y: canvasY / 5 };
     }
     
-    // canvasX 和 canvasY 是基于图片原始尺寸的坐标，直接按原始尺寸归一化
-    const normalizedX = canvasX / baseWidth;
-    const normalizedY = canvasY / baseHeight;
+    // canvasX和canvasY是变换前的坐标，需要归一化
+    const normalizedX = canvasX / (displayedWidth / scale.value);
+    const normalizedY = canvasY / (displayedHeight / scale.value);
     
     // 转换为地理坐标
     const coordRangeX = coordMaxX.value - coordMinX.value;

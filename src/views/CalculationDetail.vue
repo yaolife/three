@@ -1497,7 +1497,7 @@
       <div class="result-section">
         <div class="section-title">计算过程</div>
         <div class="section-content calculation-process">
-          <div class="process-text">已知单台起重机吊装公式为：</div>
+          <div class="process-text">已知单台计算机吊装公式为：</div>
           <div class="process-text">
             （设备重量G+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
             <template
@@ -2666,7 +2666,7 @@
                 formData.auxBoomLength
               }}m、主臂角度{{ formData.mainBoomAngle }}°、副臂角度{{
                 formData.auxBoomAngle
-              }}°、吊钩最大起升高度{{ formData.hookHeight }}m
+              }}°、吊钩最大起升高度xxx
             </div>
           </div>
         </div>
@@ -2682,7 +2682,7 @@
                 formData.auxBoomLength2
               }}m、主臂角度{{ formData.mainBoomAngle2 }}°、副臂角度{{
                 formData.auxBoomAngle2
-              }}°、吊钩最大起升高度{{ formData.hookHeight2 }}m
+              }}°、吊钩最大起升高度xxx
             </div>
           </div>
         </div>
@@ -4421,12 +4421,18 @@ const activeLiftingSystemItems = computed(() => {
 });
 
 // 计算角度的正弦值（将角度转换为弧度后再计算正弦值）
+// 修正：避免出现 sin(角度) = 0 导致后续计算结果为 Infinity
 const calculateSinValue = (angle) => {
   if (!angle || isNaN(angle)) return 0;
   // 将角度转换为弧度：弧度 = 角度 × π / 180
   const radians = (angle * Math.PI) / 180;
   // 计算正弦值
-  return Math.sin(radians);
+  const sin = Math.sin(radians);
+  // 避免出现 0 或极小值，防止后续除以 sin 时得到 Infinity
+  if (!Number.isFinite(sin) || Math.abs(sin) < 1e-6) {
+    return sin >= 0 ? 1e-6 : -1e-6;
+  }
+  return sin;
 };
 
 // 计算吊索具校核结果
@@ -4515,6 +4521,12 @@ const calculateLiftingResult = (sling) => {
     }
   }
 
+  // 如果结果不是有限数（如 Infinity 或 NaN），按 0 处理，视为不合格
+  if (!Number.isFinite(result)) {
+    result = 0;
+    isQualified = false;
+  }
+
   // 默认返回
   return {
     result: result,
@@ -4545,10 +4557,12 @@ const showLiftingResult = (silent = false) => {
   
   // 计算所有吊索具的结果
   const liftingResults = liftingFormDatas.value.map((sling, index) => {
-    const result = calculateLiftingResult(sling);
+    const { result } = calculateLiftingResult(sling);
+    const numeric = Number(result);
+    const safe = Number.isFinite(numeric) ? numeric : 0;
     return {
       itemIndex: index,
-      result: parseFloat(result.result.toFixed(2))
+      result: parseFloat(safe.toFixed(2)),
     };
   });
   // 场景判断：如果不是静默模式（点击计算结果按钮），显示弹窗
