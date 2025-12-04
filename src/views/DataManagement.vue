@@ -112,10 +112,12 @@
                 <div class="pagination-info">共 {{ craneTotal }} 条</div>
                 <el-pagination
                   v-model:current-page="cranePage"
-                  :page-size="cranePageSize"
+                  v-model:page-size="cranePageSize"
+                  :page-sizes="[10, 20, 50, 100]"
                   :total="craneTotal"
-                  layout="prev, pager, next"
+                  layout="prev, pager, next, jumper, sizes"
                   @current-change="handleCranePageChange"
+                  @size-change="handleCranePageSizeChange"
                 />
               </div>
             </div>
@@ -223,10 +225,12 @@
                 <div class="pagination-info">共 {{ riggingTotal }} 条</div>
                 <el-pagination
                   v-model:current-page="riggingPage"
-                  :page-size="riggingPageSize"
+                  v-model:page-size="riggingPageSize"
+                  :page-sizes="[10, 20, 50, 100]"
                   :total="riggingTotal"
-                  layout="prev, pager, next"
+                  layout="prev, pager, next, jumper, sizes"
                   @current-change="handleRiggingPageChange"
+                  @size-change="handleRiggingPageSizeChange"
                 />
               </div>
             </div>
@@ -323,10 +327,12 @@
                 <div class="pagination-info">共 {{ equipmentTotal }} 条</div>
                 <el-pagination
                   v-model:current-page="equipmentPage"
-                  :page-size="equipmentPageSize"
+                  v-model:page-size="equipmentPageSize"
+                  :page-sizes="[10, 20, 50, 100]"
                   :total="equipmentTotal"
-                  layout="prev, pager, next"
+                  layout="prev, pager, next, jumper, sizes"
                   @current-change="handleEquipmentPageChange"
+                  @size-change="handleEquipmentPageSizeChange"
                 />
               </div>
             </div>
@@ -412,10 +418,12 @@
                 <div class="pagination-info">共 {{ craneModelTotal }} 条</div>
                 <el-pagination
                   v-model:current-page="craneModelPage"
-                  :page-size="craneModelPageSize"
+                  v-model:page-size="craneModelPageSize"
+                  :page-sizes="[10, 20, 50, 100]"
                   :total="craneModelTotal"
-                  layout="prev, pager, next"
+                  layout="prev, pager, next, jumper, sizes"
                   @current-change="handleCraneModelPageChange"
+                  @size-change="handleCraneModelPageSizeChange"
                 />
               </div>
             </div>
@@ -1109,6 +1117,13 @@ const handleCranePageChange = (page) => {
   fetchCraneData();
 };
 
+// 起重机每页条数变化
+const handleCranePageSizeChange = (size) => {
+  cranePageSize.value = size;
+  cranePage.value = 1;
+  fetchCraneData();
+};
+
 // 起重机搜索
 const handleCraneSearch = () => {
   cranePage.value = 1; // 重置到第一页
@@ -1251,6 +1266,13 @@ const handleRiggingSearch = () => {
   fetchRiggingData();
 };
 
+// 吊索具每页条数变化
+const handleRiggingPageSizeChange = (size) => {
+  riggingPageSize.value = size;
+  riggingPage.value = 1;
+  fetchRiggingData();
+};
+
 watch(activeTab, (newTab) => {
   if (newTab === "rigging" && riggingData.value.length === 0) {
     fetchRiggingData();
@@ -1361,6 +1383,13 @@ const handleCraneModelPageChange = (page) => {
 
 // 起重机模型库搜索
 const handleCraneModelSearch = () => {
+  craneModelPage.value = 1;
+  fetchCraneModelData();
+};
+
+// 起重机模型库每页条数变化
+const handleCraneModelPageSizeChange = (size) => {
+  craneModelPageSize.value = size;
   craneModelPage.value = 1;
   fetchCraneModelData();
 };
@@ -1507,6 +1536,13 @@ const handleEquipmentPageChange = (page) => {
 // 设备搜索
 const handleEquipmentSearch = () => {
   equipmentPage.value = 1; // 重置到第一页
+  fetchEquipmentData();
+};
+
+// 设备每页条数变化
+const handleEquipmentPageSizeChange = (size) => {
+  equipmentPageSize.value = size;
+  equipmentPage.value = 1;
   fetchEquipmentData();
 };
 
