@@ -545,7 +545,7 @@
         <el-form-item label="生产厂家">
           <el-input v-model="equipmentForm.prodBusiness" placeholder="请输入生产厂家" />
         </el-form-item>
-        <el-form-item label="重量(kg)">
+        <el-form-item label="重量(t)">
           <el-input-number
             v-model="equipmentForm.weight"
             :precision="2"
