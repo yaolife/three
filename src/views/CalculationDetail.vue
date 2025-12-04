@@ -3852,10 +3852,14 @@ watch(
           if (response.data.cranePerformanceData && response.data.cranePerformanceData.liftingCapacity) {
             formData.value.ratedLoad = response.data.cranePerformanceData.liftingCapacity;
           }
+        } else {
+          // 接口返回的异常信息弹出提示
+          ElMessage.error(response?.msg || '获取起重机计算信息失败');
         }
       } catch (error) {
         console.error('调用getCalculateInfo接口失败:', error);
-        // 错误处理：可以选择显示提示或者忽略，不影响用户操作
+        // 网络或其他异常也提示
+        ElMessage.error('获取起重机计算信息失败，请检查网络连接');
       }
     }
   },
@@ -3900,10 +3904,14 @@ watch(
           if (response.data.cranePerformanceData && response.data.cranePerformanceData.liftingCapacity) {
             formData.value.ratedLoad2 = response.data.cranePerformanceData.liftingCapacity;
           }
+        } else {
+          // 接口返回的异常信息弹出提示（起重机2）
+          ElMessage.error(response?.msg || '获取起重机2计算信息失败');
         }
       } catch (error) {
         console.error('调用getCalculateInfo接口失败(起重机2):', error);
-        // 错误处理：可以选择显示提示或者忽略，不影响用户操作
+        // 网络或其他异常也提示
+        ElMessage.error('获取起重机2计算信息失败，请检查网络连接');
       }
     }
   },
