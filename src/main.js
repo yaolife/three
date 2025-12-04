@@ -16,8 +16,8 @@ const customLocale = {
     ...(zhCn.el || {}),
     pagination: {
       ...(zhCn.el?.pagination || {}),
-      // 改成 "去"
-      goto: '去',
+      // 改成 "至"
+      goto: '至',
       // pageSize 下拉里的后缀，从 "条/页" 改成 "/页"，例如 "10/页"
       pagesize: '/页'
     }
