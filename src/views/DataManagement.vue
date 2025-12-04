@@ -266,7 +266,19 @@
                   min-width="150"
                 />
                 <el-table-column prop="deviceType" label="型号" min-width="120" />
-              
+                <el-table-column
+                  label="是否推送"
+                  width="120"
+                >
+                  <template #default="scope">
+                    <el-switch
+                      v-model="scope.row.push"
+                      :active-value="1"
+                      :inactive-value="0"
+                      @change="handleDevicePushChange(scope.row)"
+                    />
+                  </template>
+                </el-table-column>
                 <el-table-column
                   prop="prodBusiness"
                   label="生产厂家"
@@ -439,6 +451,13 @@
         <el-form-item label="高度(m)">
           <el-input v-model="equipmentForm.height" placeholder="请输入高度" />
         </el-form-item>
+        <el-form-item label="是否推送">
+          <el-switch
+            v-model="equipmentForm.push"
+            :active-value="1"
+            :inactive-value="0"
+          />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -455,7 +474,7 @@ import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem, cranePush, liftingPush } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem, cranePush, liftingPush, devicePush } from "@/api/index.js";
 import userStore from "@/store/user.js";
 
 const router = useRouter();
@@ -500,7 +519,8 @@ const equipmentForm = ref({
   weight: "",
   length: "",
   width: "",
-  height: ""
+  height: "",
+  push: 0, // 是否推送，0否1是
 });
 
 // 新建吊索具弹窗
@@ -591,7 +611,8 @@ const handleAddEquipment = () => {
     weight: "",
     length: "",
     width: "",
-    height: ""
+    height: "",
+    push: 0, // 是否推送，0否1是
   };
 };
 
@@ -635,7 +656,8 @@ const handleEdit = (row, type) => {
       weight: row.weight || "",
       length: row.length || "",
       width: row.width || "",
-      height: row.height || ""
+      height: row.height || "",
+      push: row.push !== undefined && row.push !== null ? row.push : 0
     };
   }
 };
@@ -913,6 +935,31 @@ const handleRiggingPushChange = async (row) => {
   }
 };
 
+// 处理推送状态变化（设备）
+const handleDevicePushChange = async (row) => {
+  try {
+    const requestParams = {
+      id: row.id,
+      push: row.push || 0,
+    };
+    
+    const response = await devicePush(requestParams);
+    
+    if (response && response.code === '0') {
+      ElMessage.success("更新成功");
+    } else {
+      // 如果更新失败，恢复原值
+      row.push = row.push === 1 ? 0 : 1;
+      ElMessage.error(response?.message || "更新失败");
+    }
+  } catch (error) {
+    console.error("更新推送状态失败:", error);
+    // 如果更新失败，恢复原值
+    row.push = row.push === 1 ? 0 : 1;
+    ElMessage.error("更新失败，请检查网络连接");
+  }
+};
+
 const fetchRiggingData = async () => {
   // 检查登录状态，如果未登录或登录失败，不加载数据
   if (!userStore.userState.isLoggedIn) {
@@ -1001,7 +1048,8 @@ const handleEquipmentSubmit = async () => {
   try {
     // 准备请求参数
     const requestParams = {
-      ...equipmentForm.value
+      ...equipmentForm.value,
+      push: equipmentForm.value.push || 0, // 是否推送，0否1是
     };
 
     const response = await editDeviceInfo(requestParams);
@@ -1046,7 +1094,11 @@ const fetchEquipmentData = async () => {
     const response = await getDeviceInfoPage(params);
 
     if (response && response.code === "0") {
-      equipmentData.value = response.data.records || [];
+      const records = response.data.records || [];
+      equipmentData.value = records.map((item) => ({
+        ...item,
+        push: item.push !== undefined && item.push !== null ? item.push : 0, // 确保 push 字段存在
+      }));
       equipmentTotal.value = response.data.total || 0;
     } else {
       // 如果登录失败，清空数据
