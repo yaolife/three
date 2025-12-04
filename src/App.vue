@@ -295,6 +295,52 @@
                 />
               </div>
             </el-tab-pane>
+
+            <!-- 起重机模型库 -->
+            <el-tab-pane label="起重机模型库" name="craneModel">
+              <div class="sync-tab-content">
+                <div class="sync-toolbar">
+                  <div class="search-group">
+                    <el-input
+                      v-model="syncCraneModelSearch"
+                      placeholder="请输入模型名称"
+                      prefix-icon="Search"
+                      style="width: 240px"
+                      clearable
+                      @keyup.enter="handleSyncCraneModelSearch"
+                    />
+                    <el-button type="primary" @click="handleSyncCraneModelSearch" style="margin-left: 8px">
+                      搜索
+                    </el-button>
+                  </div>
+                </div>
+                <el-table
+                  :data="syncCraneModelData"
+                  v-loading="syncCraneModelLoading"
+                  style="width: 100%"
+                  :header-cell-style="{ background: '#f5f7fa' }"
+                  @selection-change="handleSyncCraneModelSelectionChange"
+                >
+                  <el-table-column type="selection" width="55" />
+                  <el-table-column label="序号" width="80">
+                    <template #default="scope">
+                      {{ scope.$index + 1 + (syncCraneModelPage - 1) * syncCraneModelPageSize }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="modelName" label="模型名称" min-width="150" />
+                  <el-table-column prop="createName" label="创建人" width="120" />
+                  <el-table-column prop="createTime" label="录入时间" width="180" />
+                </el-table>
+                <el-pagination
+                  v-model:current-page="syncCraneModelPage"
+                  :page-size="syncCraneModelPageSize"
+                  :total="syncCraneModelTotal"
+                  layout="total, prev, pager, next"
+                  class="pagination"
+                  @current-change="handleSyncCraneModelPageChange"
+                />
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </div>
         <template #footer>
@@ -379,7 +425,7 @@ import {
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
-import { login, loginOut, getCraneInfoPage, getLiftingInfoPage, getDeviceInfoPage, dataSynchronization } from './api/index.js';
+import { login, loginOut, getCraneInfoPage, getLiftingInfoPage, getDeviceInfoPage, getCraneModelPage, dataSynchronization } from './api/index.js';
 import { translateLiftingType, translateCraneType } from './utils/common.js';
 
 const route = useRoute();
@@ -418,6 +464,15 @@ const syncEquipmentTotal = ref(0);
 const syncEquipmentData = ref([]);
 const syncEquipmentLoading = ref(false);
 const syncEquipmentSelected = ref([]);
+
+// 起重机模型库同步数据
+const syncCraneModelSearch = ref("");
+const syncCraneModelPage = ref(1);
+const syncCraneModelPageSize = ref(10);
+const syncCraneModelTotal = ref(0);
+const syncCraneModelData = ref([]);
+const syncCraneModelLoading = ref(false);
+const syncCraneModelSelected = ref([]);
 
 // 登录相关
 const showLoginDialog = ref(false);
@@ -688,13 +743,16 @@ const handleDataSynchronization = () => {
   syncCranePage.value = 1;
   syncRiggingPage.value = 1;
   syncEquipmentPage.value = 1;
+  syncCraneModelPage.value = 1;
   syncCraneSelected.value = [];
   syncRiggingSelected.value = [];
   syncEquipmentSelected.value = [];
+  syncCraneModelSelected.value = [];
   // 加载数据
   fetchSyncCraneData();
   fetchSyncRiggingData();
   fetchSyncEquipmentData();
+  fetchSyncCraneModelData();
 };
 
 // 获取同步起重机数据
@@ -735,6 +793,44 @@ const fetchSyncCraneData = async () => {
     ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     syncCraneLoading.value = false;
+  }
+};
+
+// 获取同步起重机模型库数据
+const fetchSyncCraneModelData = async () => {
+  syncCraneModelLoading.value = true;
+  try {
+    const params = {
+      pageNum: syncCraneModelPage.value,
+      pageSize: syncCraneModelPageSize.value,
+      push: 1, // 只获取推送的数据
+    };
+
+    if (syncCraneModelSearch.value && syncCraneModelSearch.value.trim()) {
+      params.modelName = syncCraneModelSearch.value.trim();
+    }
+
+    const response = await getCraneModelPage(params);
+
+    if (response && response.code === "0") {
+      const records = response.data.records || [];
+      syncCraneModelData.value = records.map((item) => ({
+        ...item,
+        push: item.push !== undefined && item.push !== null ? item.push : 0,
+      }));
+      syncCraneModelTotal.value = response.data.total || 0;
+    } else {
+      syncCraneModelData.value = [];
+      syncCraneModelTotal.value = 0;
+      ElMessage.error(response?.message || "获取起重机模型库数据失败");
+    }
+  } catch (error) {
+    console.error("获取起重机模型库数据失败:", error);
+    syncCraneModelData.value = [];
+    syncCraneModelTotal.value = 0;
+    ElMessage.error("获取数据失败，请检查网络连接");
+  } finally {
+    syncCraneModelLoading.value = false;
   }
 };
 
@@ -851,6 +947,18 @@ const handleSyncEquipmentSearch = () => {
   fetchSyncEquipmentData();
 };
 
+// 起重机模型库分页变化
+const handleSyncCraneModelPageChange = (page) => {
+  syncCraneModelPage.value = page;
+  fetchSyncCraneModelData();
+};
+
+// 起重机模型库搜索
+const handleSyncCraneModelSearch = () => {
+  syncCraneModelPage.value = 1;
+  fetchSyncCraneModelData();
+};
+
 // 选择变化处理
 const handleSyncCraneSelectionChange = (selection) => {
   syncCraneSelected.value = selection;
@@ -862,6 +970,10 @@ const handleSyncRiggingSelectionChange = (selection) => {
 
 const handleSyncEquipmentSelectionChange = (selection) => {
   syncEquipmentSelected.value = selection;
+};
+
+const handleSyncCraneModelSelectionChange = (selection) => {
+  syncCraneModelSelected.value = selection;
 };
 
 // 取消同步
@@ -898,6 +1010,14 @@ const handleConfirmSync = async () => {
     });
   }
   
+  // 起重机模型库数据 (type: 3)
+  if (syncCraneModelSelected.value.length > 0) {
+    syncData.push({
+      type: 3,
+      dataId: syncCraneModelSelected.value.map(item => item.id)
+    });
+  }
+  
   if (syncData.length === 0) {
     ElMessage.warning("请至少选择一条数据进行同步");
     return;
@@ -908,9 +1028,9 @@ const handleConfirmSync = async () => {
     for (const item of syncData) {
       const response = await dataSynchronization(item);
       if (response && response.code === '0') {
-        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : '设备'}数据同步成功`);
+        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '起重机模型库'}数据同步成功`);
       } else {
-        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : '设备'}数据同步失败`);
+        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '起重机模型库'}数据同步失败`);
       }
     }
     // 关闭弹窗
@@ -919,6 +1039,7 @@ const handleConfirmSync = async () => {
     syncCraneSelected.value = [];
     syncRiggingSelected.value = [];
     syncEquipmentSelected.value = [];
+    syncCraneModelSelected.value = [];
   } catch (error) {
     console.error("数据同步失败:", error);
     ElMessage.error("数据同步失败，请检查网络连接");
@@ -934,6 +1055,8 @@ watch(syncActiveTab, (newTab) => {
       fetchSyncRiggingData();
     } else if (newTab === "equipment" && syncEquipmentData.value.length === 0) {
       fetchSyncEquipmentData();
+    } else if (newTab === "craneModel" && syncCraneModelData.value.length === 0) {
+      fetchSyncCraneModelData();
     }
   }
 });
