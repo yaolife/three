@@ -901,8 +901,31 @@ export function getCraneModelPage(params) {
  * @param {object} params - 分页参数 { id, modeName }
  * @returns {Promise} - 返回操作结果
  */
-export function editModelInfo(params) {
+export function addModelInfo(params) {
   return post("/template/model/addUpdate", params)
+}
+/**
+ * 删除起重机模型库数据
+ * @param {string|number} id - 模版ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function deleteModelItem(id) {
+  try {
+    const url = `/template/model/deleteById/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("删除起重机模型数据API请求失败:", error)
+    throw error
+  }
+}
+/**
+ * 起重机模型库table列是否推送开关接口
+ * @param {object} params - 参数{ "id": "用户id82",
+  "push": 0 }
+ * @returns {Promise} - 
+ */
+export function modelPush(params) {
+  return post("/template/model/updatePush", params)
 }
 export default {
   getLiftingInfoPage,
@@ -961,5 +984,7 @@ export default {
   dataSynchronization,
   pushProject,
   getCraneModelPage,
-  editModelInfo
+  addModelInfo,
+  deleteModelItem,
+  modelPush
 }
