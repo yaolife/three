@@ -872,6 +872,14 @@ export function liftingPush(params) {
 export function devicePush(params) {
   return post("/template/device/updatePush", params)
 }
+/**
+ * 云端数据同步接口
+ * @param {object} params - 参数{type : 0,"0：起重机，1：吊索具，2：设备,dataId;["id"] id集合}
+ * @returns {Promise} - 
+ */
+export function dataSynchronization(params) {
+  return post("/template/dataSynchronization", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -925,5 +933,6 @@ export default {
   exportProjectReport,
   cranePush,
   liftingPush,
-  devicePush
+  devicePush,
+  dataSynchronization
 }
