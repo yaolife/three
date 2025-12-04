@@ -440,16 +440,44 @@
           <el-input v-model="equipmentForm.prodBusiness" placeholder="请输入生产厂家" />
         </el-form-item>
         <el-form-item label="重量(kg)">
-          <el-input v-model="equipmentForm.weight" placeholder="请输入重量" />
+          <el-input-number
+            v-model="equipmentForm.weight"
+            :precision="2"
+            :min="0"
+            :step="0.01"
+            placeholder="请输入重量"
+            style="width: 50%"
+          />
         </el-form-item>
         <el-form-item label="长度(m)">
-          <el-input v-model="equipmentForm.length" placeholder="请输入长度" />
+          <el-input-number
+            v-model="equipmentForm.length"
+            :precision="2"
+            :min="0"
+            :step="0.01"
+            placeholder="请输入长度"
+            style="width: 50%"
+          />
         </el-form-item>
         <el-form-item label="宽度(m)">
-          <el-input v-model="equipmentForm.width" placeholder="请输入宽度" />
+          <el-input-number
+            v-model="equipmentForm.width"
+            :precision="2"
+            :min="0"
+            :step="0.01"
+            placeholder="请输入宽度"
+            style="width: 50%"
+          />
         </el-form-item>
         <el-form-item label="高度(m)">
-          <el-input v-model="equipmentForm.height" placeholder="请输入高度" />
+          <el-input-number
+            v-model="equipmentForm.height"
+            :precision="2"
+            :min="0"
+            :step="0.01"
+            placeholder="请输入高度"
+            style="width: 50%"
+          />
         </el-form-item>
         <el-form-item label="是否推送">
           <el-switch
