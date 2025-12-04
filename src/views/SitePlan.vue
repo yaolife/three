@@ -517,7 +517,11 @@
           <div class="panel-content">
             <div class="property-item">
               <label>名称</label>
-              <el-input v-model="selectedCrane.name" placeholder="请输入名称" />
+              <el-input 
+                v-model="selectedCrane.name" 
+                placeholder="请输入名称"
+                @blur="handleCraneNameBlur"
+              />
             </div>
             <div class="property-item">
               <label>起重机类型</label>
@@ -818,6 +822,15 @@ const dragContext = reactive({
   initialCanvasPos: { x: 0, y: 0 },
   initialBounds: null,
 });
+
+// 起重机名称失焦时，同步更新左侧起重机列表中的名称
+const handleCraneNameBlur = () => {
+  if (!selectedCrane.value) return;
+  const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+  if (craneIndex !== -1) {
+    cranes.value[craneIndex].name = selectedCrane.value.name || '';
+  }
+};
 
 // 点位相关数据
 const addPointDialogVisible = ref(false);
