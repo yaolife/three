@@ -1,8 +1,9 @@
 <template>
   <div class="all-projects-container">
     <el-card class="project-table-card">
-      <!-- 上传按钮 -->
-      <div class="table-header-actions" v-if="canShowUpload">
+      <!-- 上传按钮工具栏 -->
+      <div class="table-toolbar" v-if="canShowUpload">
+        <div class="toolbar-spacer"></div>
         <el-button type="primary" @click="handleUpload">
           <el-icon><Upload /></el-icon>
           上传
@@ -635,14 +636,18 @@ defineExpose({
 
 .project-table-card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
 }
 
-.table-header-actions {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 10;
+.table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 3px 20px;
+  margin-bottom: 0;
+}
+
+.toolbar-spacer {
+  flex: 1;
 }
 
 .create-project-btn-container {
