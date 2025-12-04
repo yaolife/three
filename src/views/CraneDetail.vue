@@ -41,6 +41,17 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <el-row v-if="canShowPush" :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="是否推送">
+                <el-switch
+                  v-model="craneInfo.push"
+                  :active-value="1"
+                  :inactive-value="0"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-form>
       </div>
 
@@ -408,12 +419,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { Plus } from '@element-plus/icons-vue';
 import { getCraneDetail, confirmUpdateCraneDetail } from "@/api/index.js";
 import { getCraneTypeOptions, craneType } from "@/utils/common.js";
+import userStore from "@/store/user.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -424,6 +436,7 @@ const craneInfo = ref({
   manufacturer: "",
   model: "",
   craneType: "",
+  push: 0, // 是否推送，0否1是
 });
 
 // 起重机规格参数
@@ -445,6 +458,9 @@ const craneSpecs = ref({
   totalBoomMaxLength: "",
 });
 
+// 保存从接口返回的 sysProjectTemplateCraneDetail.id
+const sysProjectTemplateCraneDetailId = ref(null);
+
 // 表格数据
 const mainBoomTableData = ref([]);
 const auxBoomTableData = ref([]);
@@ -454,7 +470,7 @@ const auxBoomTableData2 = ref([]);
 const handleAddMainBoomRow = () => {
   mainBoomTableData.value.push({
     workingRadius: "",
-    mainBoomLength: "",
+    mainBoomMaxLength: "",
     liftingCapacity: "",
   });
 };
@@ -492,6 +508,11 @@ const handleDeleteAuxBoomRow2 = (index) => {
 // 起重机类型选项
 const craneTypeOptions = getCraneTypeOptions();
 
+// 判断用户是否有权限显示推送功能（level为1时显示）
+const canShowPush = computed(() => {
+  return userStore.userState.userInfo?.level === 1;
+});
+
 // 初始化数据
 onMounted(async () => {
   // 从路由参数获取ID
@@ -508,10 +529,20 @@ onMounted(async () => {
         craneInfo.value.manufacturer = data.prodBusiness || route.query.manufacturer;
         craneInfo.value.model = data.model || route.query.model;
         craneInfo.value.craneType = data.type || route.query.craneType;
+        // 从 sysProjectTemplateCrane 对象中获取 push 值，如果没有则从 data.push 或路由参数获取
+        if (data.sysProjectTemplateCrane && data.sysProjectTemplateCrane.push !== undefined && data.sysProjectTemplateCrane.push !== null) {
+          craneInfo.value.push = parseInt(data.sysProjectTemplateCrane.push) || 0;
+        } else {
+          craneInfo.value.push = data.push !== undefined && data.push !== null ? parseInt(data.push) : (route.query.push ? parseInt(route.query.push) : 0);
+        }
         
         // 填充规格参数（从sysProjectTemplateCraneDetail中获取）
         if (data.sysProjectTemplateCraneDetail) {
           const detailData = data.sysProjectTemplateCraneDetail;
+          // 保存 id
+          if (detailData.id !== undefined && detailData.id !== null) {
+            sysProjectTemplateCraneDetailId.value = detailData.id;
+          }
           Object.keys(craneSpecs.value).forEach(key => {
             if (detailData[key] !== undefined) {
               craneSpecs.value[key] = detailData[key];
@@ -566,6 +597,7 @@ onMounted(async () => {
     const manufacturer = route.query.manufacturer;
     const model = route.query.model;
     const craneType = route.query.craneType;
+    const push = route.query.push;
 
     if (craneName) {
       craneInfo.value.craneName = craneName;
@@ -578,6 +610,9 @@ onMounted(async () => {
     }
     if (craneType) {
       craneInfo.value.craneType = craneType;
+    }
+    if (push !== undefined && push !== null) {
+      craneInfo.value.push = parseInt(push) || 0;
     }
   }
 });
@@ -675,9 +710,27 @@ const handleConfirm = async () => {
     }));
 
     // 构造新的请求参数格式
+    const sysProjectTemplateCraneDetailData = {
+      ...craneSpecs.value
+    };
+    // 如果有从接口获取的 id，则添加到 sysProjectTemplateCraneDetail 对象中
+    if (sysProjectTemplateCraneDetailId.value !== null && sysProjectTemplateCraneDetailId.value !== undefined) {
+      sysProjectTemplateCraneDetailData.id = sysProjectTemplateCraneDetailId.value;
+    }
+    
+    // 构造 sysProjectTemplateCraneDTO 参数（起重机设置最上面的5个参数）
+    const sysProjectTemplateCraneDTO = {
+      machineName: craneInfo.value.craneName || "",
+      type: craneInfo.value.craneType ? parseInt(craneInfo.value.craneType) : null,
+      model: craneInfo.value.model || "",
+      prodBusiness: craneInfo.value.manufacturer || "",
+      push: craneInfo.value.push !== undefined && craneInfo.value.push !== null ? parseInt(craneInfo.value.push) : 0
+    };
+    
     const requestParams = {
       craneInfoId: id,
-      sysProjectTemplateCraneDetail: craneSpecs.value,
+      sysProjectTemplateCraneDTO: sysProjectTemplateCraneDTO,
+      sysProjectTemplateCraneDetail: sysProjectTemplateCraneDetailData,
       performanceInfoAddUpdateList: [
         {
           craneType: craneType, // 起重机类型，引用common.js里的craneType

@@ -12,13 +12,19 @@
           <el-tab-pane label="起重机数据库" name="crane">
             <div class="tab-content">
               <div class="toolbar">
-                <el-input
-                  v-model="craneSearch"
-                  placeholder="搜索"
-                  prefix-icon="Search"
-                  style="width: 240px"
-                  clearable
-                />
+                <div class="search-group">
+                  <el-input
+                    v-model="craneSearch"
+                    placeholder="请输入起重机名称"
+                    prefix-icon="Search"
+                    style="width: 240px"
+                    clearable
+                    @keyup.enter="handleCraneSearch"
+                  />
+                  <el-button type="primary" @click="handleCraneSearch" style="margin-left: 8px">
+                    搜索
+                  </el-button>
+                </div>
                 <el-button type="primary" @click="handleAddCrane">
                   <el-icon><Plus /></el-icon>
                   新建
@@ -56,6 +62,20 @@
                   min-width="150"
                 />
                 <el-table-column
+                  v-if="canShowPush"
+                  label="是否推送"
+                  width="120"
+                >
+                  <template #default="scope">
+                    <el-switch
+                      v-model="scope.row.push"
+                      :active-value="1"
+                      :inactive-value="0"
+                      @change="handlePushChange(scope.row)"
+                    />
+                  </template>
+                </el-table-column>
+                <el-table-column
                   prop="prodBusiness"
                   label="生产厂家"
                   min-width="150"
@@ -71,7 +91,8 @@
                     <el-button
                       link
                       type="primary"
-                      size="small"
+                      style="color: white;"
+                      size="large"
                       @click="handleEdit(scope.row, 'crane')"
                     >
                       编辑
@@ -79,7 +100,7 @@
                     <el-button
                       link
                       type="danger"
-                      size="small"
+                      size="large"
                       @click="handleDelete(scope.row, 'crane')"
                     >
                       删除
@@ -102,14 +123,19 @@
           <el-tab-pane label="吊索具数据库" name="rigging">
             <div class="tab-content">
               <div class="toolbar">
-                <el-input
-                  v-model="riggingSearch"
-                  placeholder="搜索"
-                  prefix-icon="Search"
-                  style="width: 240px"
-                  clearable
-                  @input="handleRiggingSearch"
-                />
+                <div class="search-group">
+                  <el-input
+                    v-model="riggingSearch"
+                    placeholder="请输入吊索具名称"
+                    prefix-icon="Search"
+                    style="width: 240px"
+                    clearable
+                    @keyup.enter="handleRiggingSearch"
+                  />
+                  <el-button type="primary" @click="handleRiggingSearch" style="margin-left: 8px">
+                    搜索
+                  </el-button>
+                </div>
                 <el-button type="primary" @click="handleAddRigging">
                   <el-icon><Plus /></el-icon>
                   新建
@@ -144,6 +170,20 @@
                 </el-table-column>
                 <el-table-column prop="twoLiftingName" label="子类型" width="120" />
                 <el-table-column
+                  v-if="canShowPush"
+                  label="是否推送"
+                  width="120"
+                >
+                  <template #default="scope">
+                    <el-switch
+                      v-model="scope.row.push"
+                      :active-value="1"
+                      :inactive-value="0"
+                      @change="handleRiggingPushChange(scope.row)"
+                    />
+                  </template>
+                </el-table-column>
+                <el-table-column
                   prop="prodBusiness"
                   label="生产厂家"
                   min-width="150"
@@ -159,7 +199,8 @@
                     <el-button
                       link
                       type="primary"
-                      size="small"
+                        style="color: white;"
+                      size="large"
                       @click="handleEdit(scope.row, 'rigging')"
                     >
                       编辑
@@ -167,7 +208,7 @@
                     <el-button
                       link
                       type="danger"
-                      size="small"
+                      size="large"
                       @click="handleDelete(scope.row, 'rigging')"
                     >
                       删除
@@ -191,13 +232,19 @@
           <el-tab-pane label="设备数据库" name="equipment">
             <div class="tab-content">
               <div class="toolbar">
-                <el-input
-                  v-model="equipmentSearch"
-                  placeholder="搜索"
-                  prefix-icon="Search"
-                  style="width: 240px"
-                  clearable
-                />
+                <div class="search-group">
+                  <el-input
+                    v-model="equipmentSearch"
+                    placeholder="请输入设备名称"
+                    prefix-icon="Search"
+                    style="width: 240px"
+                    clearable
+                    @keyup.enter="handleEquipmentSearch"
+                  />
+                  <el-button type="primary" @click="handleEquipmentSearch" style="margin-left: 8px">
+                    搜索
+                  </el-button>
+                </div>
                 <el-button type="primary" @click="handleAddEquipment">
                   <el-icon><Plus /></el-icon>
                   新建
@@ -221,7 +268,20 @@
                   min-width="150"
                 />
                 <el-table-column prop="deviceType" label="型号" min-width="120" />
-              
+                <el-table-column
+                  v-if="canShowPush"
+                  label="是否推送"
+                  width="120"
+                >
+                  <template #default="scope">
+                    <el-switch
+                      v-model="scope.row.push"
+                      :active-value="1"
+                      :inactive-value="0"
+                      @change="handleDevicePushChange(scope.row)"
+                    />
+                  </template>
+                </el-table-column>
                 <el-table-column
                   prop="prodBusiness"
                   label="生产厂家"
@@ -238,7 +298,8 @@
                     <el-button
                       link
                       type="primary"
-                      size="small"
+                        style="color: white;"
+                      size="large"
                       @click="handleEdit(scope.row, 'equipment')"
                     >
                       编辑
@@ -246,7 +307,7 @@
                     <el-button
                       link
                       type="danger"
-                      size="small"
+                      size="large"
                       @click="handleDelete(scope.row, 'equipment')"
                     >
                       删除
@@ -295,6 +356,13 @@
         <el-form-item label="生产厂家">
           <el-input v-model="craneForm.prodBusiness" placeholder="请输入生产厂家（例如：三一重工）" />
         </el-form-item>
+        <el-form-item v-if="canShowPush" label="是否推送">
+          <el-switch
+            v-model="craneForm.push"
+            :active-value="1"
+            :inactive-value="0"
+          />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -339,6 +407,13 @@
             placeholder="请输入生产厂家"
           />
         </el-form-item>
+        <el-form-item v-if="canShowPush" label="是否推送">
+          <el-switch
+            v-model="riggingForm.push"
+            :active-value="1"
+            :inactive-value="0"
+          />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -368,16 +443,51 @@
           <el-input v-model="equipmentForm.prodBusiness" placeholder="请输入生产厂家" />
         </el-form-item>
         <el-form-item label="重量(kg)">
-          <el-input v-model="equipmentForm.weight" placeholder="请输入重量" />
+          <el-input-number
+            v-model="equipmentForm.weight"
+            :precision="2"
+            :min="0"
+            :step="0.01"
+            placeholder="请输入重量"
+            style="width: 50%"
+          />
         </el-form-item>
         <el-form-item label="长度(m)">
-          <el-input v-model="equipmentForm.length" placeholder="请输入长度" />
+          <el-input-number
+            v-model="equipmentForm.length"
+            :precision="2"
+            :min="0"
+            :step="0.01"
+            placeholder="请输入长度"
+            style="width: 50%"
+          />
         </el-form-item>
         <el-form-item label="宽度(m)">
-          <el-input v-model="equipmentForm.width" placeholder="请输入宽度" />
+          <el-input-number
+            v-model="equipmentForm.width"
+            :precision="2"
+            :min="0"
+            :step="0.01"
+            placeholder="请输入宽度"
+            style="width: 50%"
+          />
         </el-form-item>
         <el-form-item label="高度(m)">
-          <el-input v-model="equipmentForm.height" placeholder="请输入高度" />
+          <el-input-number
+            v-model="equipmentForm.height"
+            :precision="2"
+            :min="0"
+            :step="0.01"
+            placeholder="请输入高度"
+            style="width: 50%"
+          />
+        </el-form-item>
+        <el-form-item v-if="canShowPush" label="是否推送">
+          <el-switch
+            v-model="equipmentForm.push"
+            :active-value="1"
+            :inactive-value="0"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -391,15 +501,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import { Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem } from "@/api/index.js";
+import { getLiftingInfoPage, addUpdateLiftingInfo, getSubType, deleteTemplateItem, getCraneInfoPage, deleteCraneItem,editCraneInfo,getDeviceInfoPage,editDeviceInfo, deleteDeviceItem, cranePush, liftingPush, devicePush } from "@/api/index.js";
+import userStore from "@/store/user.js";
 
 const router = useRouter();
 
 import { translateLiftingType, translateCraneType, getCraneTypeOptions } from "@/utils/common.js";
+
+// 判断用户是否有权限显示推送功能（level为1时显示）
+const canShowPush = computed(() => {
+  return userStore.userState.userInfo?.level === 1;
+});
 
 // 当前激活的标签页
 const activeTab = ref("crane");
@@ -439,7 +555,8 @@ const equipmentForm = ref({
   weight: "",
   length: "",
   width: "",
-  height: ""
+  height: "",
+  push: 0, // 是否推送，0否1是
 });
 
 // 新建吊索具弹窗
@@ -449,6 +566,7 @@ const riggingForm = ref({
   subType: "",
   liftingName: "",
   prodBusiness: "",
+  push: 0, // 是否推送，0否1是
 });
 
 // 新建起重机弹窗
@@ -458,6 +576,7 @@ const craneForm = ref({
   type: "",
   model: "",
   prodBusiness: "",
+  push: 0, // 是否推送，0否1是
 });
 
 // 子类型选项
@@ -499,6 +618,7 @@ const handleAddCrane = () => {
     type: "",
     model: "",
     prodBusiness: "",
+    push: 0, // 是否推送，0否1是
   };
 };
 
@@ -510,6 +630,7 @@ const handleAddRigging = () => {
     subType: "",
     liftingName: "",
     prodBusiness: "",
+    push: 0, // 是否推送，0否1是
   };
   subTypeOptions.value = [];
 };
@@ -526,7 +647,8 @@ const handleAddEquipment = () => {
     weight: "",
     length: "",
     width: "",
-    height: ""
+    height: "",
+    push: 0, // 是否推送，0否1是
   };
 };
 
@@ -545,14 +667,17 @@ const handleEdit = (row, type) => {
     });
   } else if (type === "crane") {
     // 起重机编辑，跳转到起重机详情页面
+    // 使用原始类型值（数字）
+    const typeValue = row.originalType !== undefined && row.originalType !== null ? row.originalType : row.type;
     router.push({
       path: "/crane-detail",
       query: {
         id: row.id,
         craneName: row.machineName,
-        craneType: row.type,
+        craneType: typeValue,
         model: row.model,
-        manufacturer: row.prodBusiness
+        manufacturer: row.prodBusiness,
+        push: row.push !== undefined && row.push !== null ? row.push : 0
       }
     });
   } else if (type === "equipment") {
@@ -567,7 +692,8 @@ const handleEdit = (row, type) => {
       weight: row.weight || "",
       length: row.length || "",
       width: row.width || "",
-      height: row.height || ""
+      height: row.height || "",
+      push: row.push !== undefined && row.push !== null ? row.push : 0
     };
   }
 };
@@ -638,6 +764,7 @@ const handleCraneNext = async () => {
       type: craneForm.value.type,
       model: craneForm.value.model,
       prodBusiness: craneForm.value.prodBusiness,
+      push: craneForm.value.push || 0, // 是否推送，0否1是
     };
 
     const response = await editCraneInfo(requestParams);
@@ -689,7 +816,8 @@ const handleRiggingNext = async () => {
   try {
     // 准备请求参数
     const requestParams = {
-      ...riggingForm.value
+      ...riggingForm.value,
+      push: riggingForm.value.push || 0, // 是否推送，0否1是
     };
     
     // 如果选择了子类型，从subTypeOptions中获取对应的liftingTypeName和liftingType
@@ -731,26 +859,51 @@ const handleRiggingNext = async () => {
 };
 
 const fetchCraneData = async () => {
+  // 检查登录状态，如果未登录或登录失败，不加载数据
+  if (!userStore.userState.isLoggedIn) {
+    console.log('用户未登录，不加载起重机数据');
+    craneData.value = [];
+    craneTotal.value = 0;
+    craneLoading.value = false;
+    return;
+  }
+  
   craneLoading.value = true;
   try {
-    const response = await getCraneInfoPage({
+    const params = {
       pageNum: cranePage.value,
       pageSize: cranePageSize.value,
-    });
+    };
+    
+    // 如果有搜索关键词，添加搜索参数
+    if (craneSearch.value && craneSearch.value.trim()) {
+      params.machineName = craneSearch.value.trim();
+    }
+    
+    const response = await getCraneInfoPage(params);
 
     if (response && response.code === "0") {
       // 对返回的数据进行类型翻译处理
       const records = response.data.records || [];
       craneData.value = records.map((item) => ({
         ...item,
-        type: translateCraneType(item.type),
+        typeDisplay: translateCraneType(item.type), // 用于显示的翻译后的类型
+        originalType: item.type, // 保存原始类型值（数字）
+        type: translateCraneType(item.type), // 保持兼容性
+        push: item.push !== undefined && item.push !== null ? item.push : 0, // 确保 push 字段存在
       }));
       craneTotal.value = response.data.total || 0;
     } else {
+      // 如果登录失败，清空数据
+      craneData.value = [];
+      craneTotal.value = 0;
       ElMessage.error(response?.message || "获取起重机数据失败");
     }
   } catch (error) {
     console.error("获取起重机数据失败:", error);
+    // 清空数据
+    craneData.value = [];
+    craneTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     craneLoading.value = false;
@@ -762,13 +915,110 @@ const handleCranePageChange = (page) => {
   fetchCraneData();
 };
 
+// 起重机搜索
+const handleCraneSearch = () => {
+  cranePage.value = 1; // 重置到第一页
+  fetchCraneData();
+};
+
+// 处理推送状态变化（起重机）
+const handlePushChange = async (row) => {
+  try {
+    const requestParams = {
+      id: row.id,
+      push: row.push || 0,
+    };
+    
+    const response = await cranePush(requestParams);
+    
+    if (response && response.code === '0') {
+      ElMessage.success("更新成功");
+    } else {
+      // 如果更新失败，恢复原值
+      row.push = row.push === 1 ? 0 : 1;
+      ElMessage.error(response?.message || "更新失败");
+    }
+  } catch (error) {
+    console.error("更新推送状态失败:", error);
+    // 如果更新失败，恢复原值
+    row.push = row.push === 1 ? 0 : 1;
+    ElMessage.error("更新失败，请检查网络连接");
+  }
+};
+
+// 处理推送状态变化（吊索具）
+const handleRiggingPushChange = async (row) => {
+  try {
+    const requestParams = {
+      id: row.id,
+      push: row.push || 0,
+    };
+    
+    const response = await liftingPush(requestParams);
+    
+    if (response && response.code === '0') {
+      ElMessage.success("更新成功");
+    } else {
+      // 如果更新失败，恢复原值
+      row.push = row.push === 1 ? 0 : 1;
+      ElMessage.error(response?.message || "更新失败");
+    }
+  } catch (error) {
+    console.error("更新推送状态失败:", error);
+    // 如果更新失败，恢复原值
+    row.push = row.push === 1 ? 0 : 1;
+    ElMessage.error("更新失败，请检查网络连接");
+  }
+};
+
+// 处理推送状态变化（设备）
+const handleDevicePushChange = async (row) => {
+  try {
+    const requestParams = {
+      id: row.id,
+      push: row.push || 0,
+    };
+    
+    const response = await devicePush(requestParams);
+    
+    if (response && response.code === '0') {
+      ElMessage.success("更新成功");
+    } else {
+      // 如果更新失败，恢复原值
+      row.push = row.push === 1 ? 0 : 1;
+      ElMessage.error(response?.message || "更新失败");
+    }
+  } catch (error) {
+    console.error("更新推送状态失败:", error);
+    // 如果更新失败，恢复原值
+    row.push = row.push === 1 ? 0 : 1;
+    ElMessage.error("更新失败，请检查网络连接");
+  }
+};
+
 const fetchRiggingData = async () => {
+  // 检查登录状态，如果未登录或登录失败，不加载数据
+  if (!userStore.userState.isLoggedIn) {
+    console.log('用户未登录，不加载吊索具数据');
+    riggingData.value = [];
+    riggingTotal.value = 0;
+    riggingLoading.value = false;
+    return;
+  }
+  
   riggingLoading.value = true;
   try {
-    const response = await getLiftingInfoPage({
+    const params = {
       pageNum: riggingPage.value,
       pageSize: riggingPageSize.value,
-    });
+    };
+    
+    // 如果有搜索关键词，添加搜索参数
+    if (riggingSearch.value && riggingSearch.value.trim()) {
+      params.liftingName = riggingSearch.value.trim();
+    }
+    
+    const response = await getLiftingInfoPage(params);
 
     if (response && response.code === "0") {
       // 对返回的数据进行类型翻译处理
@@ -776,13 +1026,20 @@ const fetchRiggingData = async () => {
       riggingData.value = records.map((item) => ({
         ...item,
         liftingType: translateLiftingType(item.liftingType),
+        push: item.push !== undefined && item.push !== null ? item.push : 0, // 确保 push 字段存在
       }));
       riggingTotal.value = response.data.total || 0;
     } else {
+      // 如果登录失败，清空数据
+      riggingData.value = [];
+      riggingTotal.value = 0;
       ElMessage.error(response?.message || "获取数据失败");
     }
   } catch (error) {
     console.error("获取吊索具数据失败:", error);
+    // 清空数据
+    riggingData.value = [];
+    riggingTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     riggingLoading.value = false;
@@ -794,15 +1051,10 @@ const handleRiggingPageChange = (page) => {
   fetchRiggingData();
 };
 
-let searchTimer = null;
+// 吊索具搜索
 const handleRiggingSearch = () => {
-  if (searchTimer) {
-    clearTimeout(searchTimer);
-  }
-  searchTimer = setTimeout(() => {
-    riggingPage.value = 1; // Reset to first page on search
-    fetchRiggingData();
-  }, 500);
+  riggingPage.value = 1; // 重置到第一页
+  fetchRiggingData();
 };
 
 watch(activeTab, (newTab) => {
@@ -832,7 +1084,8 @@ const handleEquipmentSubmit = async () => {
   try {
     // 准备请求参数
     const requestParams = {
-      ...equipmentForm.value
+      ...equipmentForm.value,
+      push: equipmentForm.value.push || 0, // 是否推送，0否1是
     };
 
     const response = await editDeviceInfo(requestParams);
@@ -853,21 +1106,47 @@ const handleEquipmentSubmit = async () => {
 
 // 获取设备数据
 const fetchEquipmentData = async () => {
+  // 检查登录状态，如果未登录或登录失败，不加载数据
+  if (!userStore.userState.isLoggedIn) {
+    console.log('用户未登录，不加载设备数据');
+    equipmentData.value = [];
+    equipmentTotal.value = 0;
+    equipmentLoading.value = false;
+    return;
+  }
+  
   equipmentLoading.value = true;
   try {
-    const response = await getDeviceInfoPage({
+    const params = {
       pageNum: equipmentPage.value,
       pageSize: equipmentPageSize.value,
-    });
+    };
+    
+    // 如果有搜索关键词，添加搜索参数
+    if (equipmentSearch.value && equipmentSearch.value.trim()) {
+      params.deviceName = equipmentSearch.value.trim();
+    }
+    
+    const response = await getDeviceInfoPage(params);
 
     if (response && response.code === "0") {
-      equipmentData.value = response.data.records || [];
+      const records = response.data.records || [];
+      equipmentData.value = records.map((item) => ({
+        ...item,
+        push: item.push !== undefined && item.push !== null ? item.push : 0, // 确保 push 字段存在
+      }));
       equipmentTotal.value = response.data.total || 0;
     } else {
+      // 如果登录失败，清空数据
+      equipmentData.value = [];
+      equipmentTotal.value = 0;
       ElMessage.error(response?.message || "获取设备数据失败");
     }
   } catch (error) {
     console.error("获取设备数据失败:", error);
+    // 清空数据
+    equipmentData.value = [];
+    equipmentTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     equipmentLoading.value = false;
@@ -880,6 +1159,12 @@ const handleEquipmentPageChange = (page) => {
   fetchEquipmentData();
 };
 
+// 设备搜索
+const handleEquipmentSearch = () => {
+  equipmentPage.value = 1; // 重置到第一页
+  fetchEquipmentData();
+};
+
 watch(activeTab, (newTab) => {
   if (newTab === "rigging" && riggingData.value.length === 0) {
     fetchRiggingData();
@@ -887,6 +1172,19 @@ watch(activeTab, (newTab) => {
     fetchCraneData();
   } else if (newTab === "equipment" && equipmentData.value.length === 0) {
     fetchEquipmentData();
+  }
+});
+
+// 监听登录状态变化，如果未登录则清空数据
+watch(() => userStore.userState.isLoggedIn, (isLoggedIn) => {
+  if (!isLoggedIn) {
+    console.log('登录状态变化：用户已退出，清空数据管理数据');
+    craneData.value = [];
+    craneTotal.value = 0;
+    riggingData.value = [];
+    riggingTotal.value = 0;
+    equipmentData.value = [];
+    equipmentTotal.value = 0;
   }
 });
 
@@ -935,6 +1233,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.search-group {
+  display: flex;
+  align-items: center;
 }
 
 .pagination {

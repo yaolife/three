@@ -1,4 +1,63 @@
+import { ElMessage } from "element-plus";
+
 const API_BASE_URL = "/server-api"
+
+/**
+ * 检查响应结果，如果 code 为 401，提示重新登录
+ * @param {Object} result - API 响应结果
+ */
+function checkResponseCode(result) {
+  if (result && (result.code === 401 || result.code === "401")) {
+    // 检查是否是离线登录（没有token）
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // 离线登录时，不处理401错误，直接返回结果
+      // 让调用方自己处理错误
+      return;
+    }
+    
+    ElMessage.warning("请重新登录");
+    // 清除登录状态
+    localStorage.removeItem("token");
+    localStorage.removeItem("userInfo");
+    // 触发自定义事件，通知 App.vue 更新登录状态
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("tokenCleared"));
+      // 延迟跳转，确保当前请求的错误处理完成
+      setTimeout(() => {
+        // 如果当前不在全部项目页面，使用 Vue Router 跳转
+        if (window.location.pathname !== "/all-projects") {
+          // 检查是否有 Vue Router 实例可用（由 App.vue 暴露）
+          if (window.__VUE_ROUTER__) {
+            window.__VUE_ROUTER__.push("/all-projects");
+          } else {
+            // 如果没有 Vue Router，使用 window.location.href
+            window.location.href = "/all-projects";
+          }
+        }
+      }, 100);
+    }
+    throw new Error("请重新登录");
+  }
+}
+
+/**
+ * 获取请求头，包含 token
+ * @returns {Object} - 请求头对象
+ */
+function getHeaders() {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  
+  // 从 localStorage 获取 token
+  const token = localStorage.getItem("token");
+  if (token) {
+    headers["token"] = `${token}`;
+  }
+  
+  return headers;
+}
 
 /**
  * 通用GET请求方法
@@ -9,9 +68,7 @@ async function get(url) {
   try {
     const response = await fetch(`${API_BASE_URL}${url}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getHeaders(),
     })
 
     if (!response.ok) {
@@ -19,8 +76,14 @@ async function get(url) {
     }
 
     const result = await response.json()
+    // 检查 code 是否为 401
+    checkResponseCode(result)
     return result
   } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
     console.error("API请求失败:", error)
     throw error
   }
@@ -36,9 +99,7 @@ async function post(url, data = {}) {
   try {
     const response = await fetch(`${API_BASE_URL}${url}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data),
     })
 
@@ -47,9 +108,61 @@ async function post(url, data = {}) {
     }
 
     const result = await response.json()
+    // 检查 code 是否为 401
+    checkResponseCode(result)
     return result
   } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
     console.error("API请求失败:", error)
+    throw error
+  }
+}
+
+/**
+ * 文件下载POST请求方法
+ * @param {string} url - 接口路径
+ * @param {object} data - 请求数据
+ * @returns {Promise} - 返回Promise对象，包含arraybuffer数据
+ */
+async function postFile(url, data = {}) {
+  try {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    // 检查响应头中的Content-Type
+    const contentType = response.headers.get("content-type")
+    
+    // 如果是JSON响应（可能是错误信息），先解析JSON
+    if (contentType && contentType.includes("application/json")) {
+      const result = await response.json()
+      checkResponseCode(result)
+      return result
+    }
+
+    // 否则返回arraybuffer
+    const arrayBuffer = await response.arrayBuffer()
+    return {
+      code: "0",
+      data: {
+        body: new Uint8Array(arrayBuffer)
+      }
+    }
+  } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
+    console.error("文件下载请求失败:", error)
     throw error
   }
 }
@@ -310,7 +423,7 @@ export async function getCraneDataDetail(id) {
 }
 /**
  * 全部项目分页接口
- * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @param {object} params - 分页参数 { pageNum, pageSize,title }
  * @returns {Promise} - 返回分页数据
  */
 export function getAllProject(params) {
@@ -369,7 +482,412 @@ export function intelligentCraneSelection(params) {
 export function getCalculateInfo(params) {
   return post("/crane/detail/calculate", params)
 }
+/**
+ * 计算吊索具高度、角度、sinQ相关数据
+ * @param {object} params - 参数 { }
+ * @returns {Promise} - 返回智能选型结果
+ */
+export function getCalculateHeightOrAngle(params) {
+  return post("/lifting/detail/calculate", params)
+}
 
+/**
+ * 起重机校核/吊索具校核/地基承载力校核 保存的接口
+ * @param {object} params - }
+ * @returns {Promise} - 
+ */
+export function saveProjectDetail(params) {
+  return post("/projectInfo/addUpdateDetail", params)
+}
+
+
+/**
+ * 拿到项目的所有信息
+ * @param {string|number} id - 项目ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getProjectAllDetail(id) {
+  try {
+    const url = `/projectInfo/getProjectDetailById/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取项目所有数据API请求失败:", error)
+    throw error
+  }
+}
+
+/**
+ * 文件上传接口（form-data，文件流形式）
+ * @param {File|Blob} file - 上传的文件（File 或 Blob 对象）
+ * @param {string} fileName - 文件名（可选，如果是 Blob 需要提供）
+ * @returns {Promise} - 返回上传结果
+ */
+export async function uploadImage(file, fileName = "image.png") {
+  try {
+    // 确保是 File 对象，如果是 Blob 则转换为 File
+    let fileToUpload = file;
+    if (file instanceof Blob && !(file instanceof File)) {
+      fileToUpload = new File([file], fileName, { type: file.type || "image/png" });
+    }
+    
+    const formData = new FormData();
+    formData.append("file", fileToUpload);
+    
+    // 获取请求头（不包含 Content-Type，让浏览器自动设置）
+    const headers = {};
+    const token = localStorage.getItem("token");
+    if (token) {
+      // 使用与其他接口一致的 token 字段格式
+      headers["token"] = token;
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/file/upload/upload`, {
+      method: "POST",
+      headers: headers,
+      body: formData,
+      // 不要手动设置 Content-Type，让浏览器自动设置（包括 boundary）
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    // 检查 code 是否为 401
+    checkResponseCode(result);
+    return result;
+  } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error;
+    }
+    console.error("文件上传API请求失败:", error);
+    throw error;
+  }
+}
+/**
+ * 总平规划/保存的接口
+ * @param {object} params - 参数{ pageNum, pageSize,liftingInfoId }
+ * @returns {Promise} - 
+ */
+export function saveGeneralPing(params) {
+  return post("/projectFlat/addUpdate", params)
+}
+/**
+ * 获取总平详情
+ * @param {string|number} id - 项目ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getGeneralDetails(projectId) {
+  try {
+    const url = `/projectFlat/getDetailByProjectId/${projectId}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取总平详情API请求失败:", error)
+    throw error
+  }
+}
+/**
+ * 复制选中项目
+ * @param {string|number} projectId - 项目ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function copyProjectItem(params){
+  return post("/projectInfo/copyProject", params)
+}
+/**
+ * 修改项目标题
+ * @param {string|number} projectId，title- 项目ID， 新标题
+ * @returns {Promise} - 返回操作结果
+ */
+export async function updateProjectTitle(params){
+  return post("/projectInfo/updateProjectTitle", params)
+}
+/**
+ * 总平导出报告
+ * @param {string|number} projectId，- 项目ID，
+ * @returns {Promise} - 返回操作结果
+ */
+export async function exportProject(params){
+  try {
+    const response = await fetch(`${API_BASE_URL}/projectFlat/exportReport`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(params),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    // 检查响应类型，如果是文件类型（Word/PDF），返回 blob
+    const contentType = response.headers.get("content-type") || ""
+    if (contentType.includes("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
+        contentType.includes("application/msword") ||
+        contentType.includes("application/pdf") ||
+        contentType.includes("application/octet-stream")) {
+      const blob = await response.blob()
+      // 根据 content-type 判断文件类型
+      let fileType = 'docx'
+      if (contentType.includes("application/pdf")) {
+        fileType = 'pdf'
+      } else if (contentType.includes("application/msword")) {
+        fileType = 'doc'
+      }
+      return { blob, type: fileType }
+    }
+
+    // 否则返回 JSON
+    const result = await response.json()
+    // 检查 code 是否为 401
+    checkResponseCode(result)
+    return result
+  } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
+    console.error("导出报告失败:", error)
+    throw error
+  }
+}
+/**
+ * 用户登录接口
+ * 
+ * @param {Object} params - 登录参数对象
+ * @param {string} params.userName - 用户名
+ * @param {string} params.password - 密码
+ * @returns {Promise} - 返回登录操作结果Promise对象，包含token等信息
+ */
+export async function login(params){
+  return post("/account/user/login", params)
+}
+/**
+ * 用户登出接口
+ * *
+ * @returns {Promise} - 返回登录操作结果Promise对象，包含token等信息
+ */
+export async function loginOut(){
+  return post("/account/user/loginOut")
+}
+/**
+ * 账号管理菜单分页接口
+ * @param {object} params - 分页参数 { pageNum, pageSize,  "userNickName": "用户昵称",
+  "userName": "用户名", }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getUserInfoPage(params) {
+  return post("/account/user/page", params)
+}
+/**
+ * 账号管理菜单新增用户接口
+ * @param {object} params -  { "userNickName": "用户昵称62",
+  "userName": "用户名24",
+  "password": "密码84",
+  "ip": "ip地址64",
+  "level": 0 } 1管理员 0普通用户
+ 
+ */
+export function addUserInfo(params) {
+  return post("/account/user/save", params)
+}
+/**
+ * 账号管理菜单修改用户信息接口
+ * @param {object} params -  {  "id": "id102","userNickName": "用户昵称62",
+  "userName": "用户名24",
+  "password": "密码84",
+  "ip": "ip地址64",
+  state: 0正常1禁用；
+  "level": 0 } 1管理员 0普通用户
+ 
+ */
+export function updateUserInfo(params) {
+  return post("/account/user/update", params)
+}
+/**
+ * 账号列表/删除账号
+ * @param {string|number} id - 账号ID
+ * @returns {Promise} - 返回操作结果
+ */
+export async function deleteUser(id) {
+  try {
+    const url = `/account/user/delete/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("删除账号API请求失败:", error)
+    throw error
+  }
+}
+/**
+ * 修改账号状态的接口
+ * @param {object} params - 参数{ "id": "用户id82",
+  "state": 0 }
+ * @returns {Promise} - 
+ */
+export function updateUserState(params) {
+  return post("/account/user/setUserState", params)
+}
+/**
+ * 账号管理导出
+ * @param {object} params - 参数{ "userNickName": "用户昵称", "userName": "用户名"}
+ * @returns {Promise} - 返回blob文件或JSON结果
+ */
+export async function exportUser(params) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/account/user/export`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(params),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    // 检查响应类型，如果是文件类型（Excel），返回 blob
+    const contentType = response.headers.get("content-type") || ""
+    if (contentType.includes("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
+        contentType.includes("application/vnd.ms-excel") ||
+        contentType.includes("application/octet-stream")) {
+      const blob = await response.blob()
+      // 根据 content-type 判断文件类型
+      let fileType = 'xlsx'
+      if (contentType.includes("application/vnd.ms-excel")) {
+        fileType = 'xls'
+      }
+      return { blob, type: fileType }
+    }
+
+    // 否则返回 JSON
+    const result = await response.json()
+    // 检查 code 是否为 401
+    checkResponseCode(result)
+    return result
+  } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error
+    }
+    console.error("导出用户数据失败:", error)
+    throw error
+  }
+}
+/**
+ * 导出起重机计算结果报告
+ * @param {object} params - 参数{ "projectId": "result1",
+  "result2": 0 }
+ * @returns {Promise} - 
+ */
+export function exportCraneReport(params) {
+  return postFile("/crane/detail/exportReport", params)
+}
+/**
+ * 导出吊索具计算结果报告
+ * @param {object} params - 参数{
+  "projectId": "项目id45",
+  "liftingResults": [
+    {
+      "itemIndex": 902,
+      "result": 932.7201017714301
+    },
+    {
+      "itemIndex": 902,
+      "result": 932.7201017714301
+    }
+  ]
+}
+ * @returns {Promise} - 
+ */
+export function exportLiftingReport(params) {
+  return postFile("/lifting/detail/exportReport", params)
+}
+/**
+ * 导出地基承载力计算结果报告
+ * @param {object} params - 参数{
+  "projectId": "项目id116",
+  "result": "计算结果18"
+}
+ * @returns {Promise} - 
+ */
+export function exportBearingReport(params) {
+  return postFile("/bearing/detail/exportReport", params)
+}
+
+/**
+ *页面右上角的导出（导出项目结果）
+ * @param {object} params - 参数{
+  "projectId": "项目id20",
+  "crane": {
+    "result1": 563.1891485218611,
+    "result2": 205.6890937120473
+  },
+  "lifting": {
+    "liftingResults": [
+      {
+        "itemIndex": 58,
+        "result": 754.4566021117876
+      },
+      {
+        "itemIndex": 58,
+        "result": 754.4566021117876
+      }
+    ]
+  },
+  "bearing": {
+    "area": "接地面积108",
+    "result": "计算结果60"
+  }
+}
+ * @returns {Promise} - 
+ */
+export function exportProjectReport(params) {
+  return postFile("/projectInfo/exportReport", params)
+}
+
+/**
+ * 起重机数据库table列是否推送开关接口
+ * @param {object} params - 参数{ "id": "用户id82",
+  "push": 0 }
+ * @returns {Promise} - 
+ */
+export function cranePush(params) {
+  return post("/template/crane/updatePush", params)
+}
+
+/**
+ * 吊索具数据库table列是否推送开关接口
+ * @param {object} params - 参数{ "id": "用户id82",
+  "push": 0 }
+ * @returns {Promise} - 
+ */
+export function liftingPush(params) {
+  return post("/template/liftingInfo/updatePush", params)
+}
+/**
+ * 设备数据库table列是否推送开关接口
+ * @param {object} params - 参数{ "id": "用户id82",
+  "push": 0 }
+ * @returns {Promise} - 
+ */
+export function devicePush(params) {
+  return post("/template/device/updatePush", params)
+}
+/**
+ * 云端数据同步接口
+ * @param {object} params - 参数{type : 0,"0：起重机，1：吊索具，2：设备,dataId;["id"] id集合}
+ * @returns {Promise} - 
+ */
+export function dataSynchronization(params) {
+  return post("/template/dataSynchronization", params)
+}
+/**
+ *推送项目数据到远程的接口
+ * @param {object} params - 参数{ids;["id"] id集合}
+ * @returns {Promise} - 
+ */
+export function pushProject(params) {
+  return post("/projectInfo/dataUpload", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -400,4 +918,30 @@ export default {
   deleteProjectItem,
   intelligentCraneSelection,
   getCalculateInfo,
+  getCalculateHeightOrAngle,
+  saveProjectDetail,
+  getProjectAllDetail,
+  uploadImage,
+  saveGeneralPing,
+  getGeneralDetails,
+  copyProjectItem,
+  updateProjectTitle,
+  exportProject,
+  login,
+  loginOut,
+  getUserInfoPage,
+  addUserInfo,
+  updateUserInfo,
+  deleteUser,
+  updateUserState,
+  exportUser,
+  exportCraneReport,
+  exportLiftingReport,
+  exportBearingReport,
+  exportProjectReport,
+  cranePush,
+  liftingPush,
+  devicePush,
+  dataSynchronization,
+  pushProject
 }

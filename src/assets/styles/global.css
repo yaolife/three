@@ -2,7 +2,7 @@
 
 /* 修改Element Plus主按钮的背景颜色 */
 .el-button--primary {
-  background-color: #0775DB; !important;
+  background-color: #0775DB !important;
   border-color: #0775DB !important;
 }
 
@@ -14,4 +14,7 @@
 .el-button--primary:active {
   background-color: #3a8ee6 !important;
   border-color: #3a8ee6 !important;
+}
+.el-button+.el-button{
+  margin-left: 0;
 }

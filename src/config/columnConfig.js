@@ -123,7 +123,7 @@ export const SHACKLE_COLUMNS = {
     { prop: "deviceModel", label: "产品型号", minWidth: 120 },
     { prop: "pq", label: "额定载荷(t)", minWidth: 120 },
     { prop: "w", label: "W(mm)", minWidth: 100 },
-    { prop: "d", label: "D(mm)", minWidth: 100 },
+    { prop: "D", label: "D(mm)", minWidth: 100 },
     { prop: "p", label: "P(mm)", minWidth: 100 },
     { prop: "a", label: "A(mm)", minWidth: 100 },
     { prop: "o", label: "O(mm)", minWidth: 100 },

@@ -1,13 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router"
 
 // 懒加载组件
-const Login = () => import("../views/Login.vue")
 const AllProjects = () => import("../views/AllProjects.vue")
-const VirtualSimulation = () => import("../views/VirtualSimulation.vue")
-const ConstructionPlans = () => import("../views/ConstructionPlans.vue")
-const RecycleBin = () => import("../views/RecycleBin.vue")
 const CalculationDetail = () => import("../views/CalculationDetail.vue")
 const DataManagement = () => import("../views/DataManagement.vue")
+const UserManagement = () => import("../views/UserManagement.vue")
 const RiggingDetail = () => import("../views/RiggingDetail.vue")
 const CraneDetail = () => import("../views/CraneDetail.vue")
 const SitePlan = () => import("../views/SitePlan.vue")
@@ -15,15 +12,7 @@ const SitePlan = () => import("../views/SitePlan.vue")
 const routes = [
   {
     path: "/",
-    redirect: "/login",
-  },
-  {
-    path: "/login",
-    name: "Login",
-    component: Login,
-    meta: {
-      title: "用户登录",
-    },
+    redirect: "/all-projects",
   },
   {
     path: "/all-projects",
@@ -34,11 +23,21 @@ const routes = [
     },
   },
   {
+    path: "/verification-projects",
+    name: "VerificationProjects",
+    component: AllProjects,
+    meta: {
+      title: "校核计算项目",
+      projectType: 0,
+    },
+  },
+  {
     path: "/virtual-simulation",
     name: "VirtualSimulation",
-    component: VirtualSimulation,
+    component: AllProjects,
     meta: {
       title: "虚拟仿真项目",
+      projectType: 1,
     },
   },
   {
@@ -54,9 +53,10 @@ const routes = [
   {
     path: "/construction-plans",
     name: "ConstructionPlans",
-    component: ConstructionPlans,
+    component: AllProjects,
     meta: {
-      title: "施工平立面图",
+      title: "总平规划项目",
+      projectType: 2,
     },
   },
   {
@@ -65,6 +65,14 @@ const routes = [
     component: DataManagement,
     meta: {
       title: "数据管理",
+    },
+  },
+  {
+    path: "/user-management",
+    name: "UserManagement",
+    component: UserManagement,
+    meta: {
+      title: "账号管理",
     },
   },
   {
@@ -81,14 +89,6 @@ const routes = [
     component: CraneDetail,
     meta: {
       title: "起重机详情",
-    },
-  },
-  {
-    path: "/recycle-bin",
-    name: "RecycleBin",
-    component: RecycleBin,
-    meta: {
-      title: "回收站",
     },
   },
   {
