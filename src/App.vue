@@ -180,19 +180,7 @@
                     </template>
                   </el-table-column>
                   <el-table-column prop="model" label="型号" min-width="150" />
-                  <el-table-column label="是否推送" width="120">
-                    <template #default="scope">
-                      <el-switch
-                        v-model="scope.row.push"
-                        :active-value="1"
-                        :inactive-value="0"
-                        disabled
-                      />
-                    </template>
-                  </el-table-column>
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
-                  <el-table-column prop="createName" label="创建人" width="120" />
-                  <el-table-column prop="createTime" label="录入时间" width="180" />
                 </el-table>
                 <el-pagination
                   v-model:current-page="syncCranePage"
@@ -243,19 +231,7 @@
                     </template>
                   </el-table-column>
                   <el-table-column prop="twoLiftingName" label="子类型" width="120" />
-                  <el-table-column label="是否推送" width="120">
-                    <template #default="scope">
-                      <el-switch
-                        v-model="scope.row.push"
-                        :active-value="1"
-                        :inactive-value="0"
-                        disabled
-                      />
-                    </template>
-                  </el-table-column>
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
-                  <el-table-column prop="createName" label="创建人" width="80" />
-                  <el-table-column prop="createTime" label="录入时间" width="180" />
                 </el-table>
                 <el-pagination
                   v-model:current-page="syncRiggingPage"
@@ -301,19 +277,7 @@
                   </el-table-column>
                   <el-table-column prop="deviceName" label="设备名称" min-width="150" />
                   <el-table-column prop="deviceType" label="型号" min-width="120" />
-                  <el-table-column label="是否推送" width="120">
-                    <template #default="scope">
-                      <el-switch
-                        v-model="scope.row.push"
-                        :active-value="1"
-                        :inactive-value="0"
-                        disabled
-                      />
-                    </template>
-                  </el-table-column>
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
-                  <el-table-column prop="createName" label="创建人" width="120" />
-                  <el-table-column prop="createTime" label="录入时间" width="180" />
                 </el-table>
                 <el-pagination
                   v-model:current-page="syncEquipmentPage"
