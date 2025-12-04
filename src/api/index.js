@@ -888,6 +888,22 @@ export function dataSynchronization(params) {
 export function pushProject(params) {
   return post("/projectInfo/dataUpload", params)
 }
+/**
+ * 起重机模型库分页接口
+ * @param {object} params - 分页参数 { pageNum, pageSize }
+ * @returns {Promise} - 返回分页数据
+ */
+export function getCraneModelPage(params) {
+  return post("/template/model/page", params)
+}
+/**
+ * 起重机模型库新增修改接口
+ * @param {object} params - 分页参数 { id, modeName }
+ * @returns {Promise} - 返回操作结果
+ */
+export function editModelInfo(params) {
+  return post("/template/model/addUpdate", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -943,5 +959,7 @@ export default {
   liftingPush,
   devicePush,
   dataSynchronization,
-  pushProject
+  pushProject,
+  getCraneModelPage,
+  editModelInfo
 }
