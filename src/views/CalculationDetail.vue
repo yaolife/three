@@ -3349,7 +3349,7 @@
       </div>
       
       <div v-else-if="!intelligentSelectionLoading" class="no-results">
-        暂无选型结果，请点击"智能选型"按钮获取结果
+        暂无选型数据
       </div>
     </div>
     
@@ -3564,7 +3564,8 @@ const executeIntelligentSelection = async () => {
     const weight = equipmentWeight; // 使用设备重量，如果没有则使用默认值10
     const response = await intelligentCraneSelection({ mainHookMaxCapacity: weight });
     if (response.code === '0' && response.data) {
-      selectionResults.value = response.data;
+      // 过滤掉 mainHookMaxCapacity 为 null 的对象
+      selectionResults.value = response.data.filter(item => item.mainHookMaxCapacity !== null);
     } else {
       ElMessage.error('获取智能选型结果失败');
       selectionResults.value = [];
