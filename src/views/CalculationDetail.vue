@@ -6255,6 +6255,12 @@ const buildLiftingDetails = () => {
   // 使用共用的设备设置信息
   const deviceSettings = commonDeviceSettings.value;
   
+  // 从设备列表中获取选中的设备名称
+  const selectedDevice = deviceList.value.find(
+    (device) => device.id === selectedSlingDeviceId.value
+  );
+  const deviceName = selectedDevice?.deviceName || deviceSettings.deviceName;
+  
   // 为每个吊索具构建数据，使用共用的设备设置信息
   return liftingFormDatas.value.map((sling, index) => ({
     projectId: toNullableString(projectId.value),
@@ -6265,7 +6271,7 @@ const buildLiftingDetails = () => {
     liftingPosition: sling.isBottomSling ? 1 : 0,
     type: deviceSettings.liftingType === "withBeam" ? 1 : 0,
     itemIndex: index + 1,
-    deviceName: toNullableString(deviceSettings.deviceName),
+    deviceName: toNullableString(deviceName),
     deviceCode: toNullableString(sling.equipmentNumber),
     deviceModel: toNullableString(deviceSettings.equipmentModel),
     deviceWeight: toNumberOrNull(deviceSettings.equipmentWeight),
