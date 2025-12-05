@@ -188,14 +188,18 @@
                   <el-table-column prop="model" label="型号" min-width="150" />
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
                 </el-table>
-                <el-pagination
-                  v-model:current-page="syncCranePage"
-                  :page-size="syncCranePageSize"
-                  :total="syncCraneTotal"
-                  layout="total, prev, pager, next"
-                  class="pagination"
-                  @current-change="handleSyncCranePageChange"
-                />
+                <div class="pagination-container">
+                  <div class="pagination-info">共 {{ syncCraneTotal }} 条</div>
+                  <el-pagination
+                    v-model:current-page="syncCranePage"
+                    v-model:page-size="syncCranePageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="syncCraneTotal"
+                    layout="prev, pager, next, jumper, sizes"
+                    @current-change="handleSyncCranePageChange"
+                    @size-change="handleSyncCranePageSizeChange"
+                  />
+                </div>
               </div>
             </el-tab-pane>
 
@@ -239,14 +243,18 @@
                   <el-table-column prop="twoLiftingName" label="子类型" width="120" />
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
                 </el-table>
-                <el-pagination
-                  v-model:current-page="syncRiggingPage"
-                  :page-size="syncRiggingPageSize"
-                  :total="syncRiggingTotal"
-                  layout="total, prev, pager, next"
-                  class="pagination"
-                  @current-change="handleSyncRiggingPageChange"
-                />
+                <div class="pagination-container">
+                  <div class="pagination-info">共 {{ syncRiggingTotal }} 条</div>
+                  <el-pagination
+                    v-model:current-page="syncRiggingPage"
+                    v-model:page-size="syncRiggingPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="syncRiggingTotal"
+                    layout="prev, pager, next, jumper, sizes"
+                    @current-change="handleSyncRiggingPageChange"
+                    @size-change="handleSyncRiggingPageSizeChange"
+                  />
+                </div>
               </div>
             </el-tab-pane>
 
@@ -285,14 +293,18 @@
                   <el-table-column prop="deviceType" label="型号" min-width="120" />
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
                 </el-table>
-                <el-pagination
-                  v-model:current-page="syncEquipmentPage"
-                  :page-size="syncEquipmentPageSize"
-                  :total="syncEquipmentTotal"
-                  layout="total, prev, pager, next"
-                  class="pagination"
-                  @current-change="handleSyncEquipmentPageChange"
-                />
+                <div class="pagination-container">
+                  <div class="pagination-info">共 {{ syncEquipmentTotal }} 条</div>
+                  <el-pagination
+                    v-model:current-page="syncEquipmentPage"
+                    v-model:page-size="syncEquipmentPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="syncEquipmentTotal"
+                    layout="prev, pager, next, jumper, sizes"
+                    @current-change="handleSyncEquipmentPageChange"
+                    @size-change="handleSyncEquipmentPageSizeChange"
+                  />
+                </div>
               </div>
             </el-tab-pane>
 
@@ -331,14 +343,18 @@
                   <el-table-column prop="createName" label="创建人" width="120" />
                   <el-table-column prop="createTime" label="录入时间" width="180" />
                 </el-table>
-                <el-pagination
-                  v-model:current-page="syncCraneModelPage"
-                  :page-size="syncCraneModelPageSize"
-                  :total="syncCraneModelTotal"
-                  layout="total, prev, pager, next"
-                  class="pagination"
-                  @current-change="handleSyncCraneModelPageChange"
-                />
+                <div class="pagination-container">
+                  <div class="pagination-info">共 {{ syncCraneModelTotal }} 条</div>
+                  <el-pagination
+                    v-model:current-page="syncCraneModelPage"
+                    v-model:page-size="syncCraneModelPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="syncCraneModelTotal"
+                    layout="prev, pager, next, jumper, sizes"
+                    @current-change="handleSyncCraneModelPageChange"
+                    @size-change="handleSyncCraneModelPageSizeChange"
+                  />
+                </div>
               </div>
             </el-tab-pane>
           </el-tabs>
@@ -917,6 +933,12 @@ const handleSyncCranePageChange = (page) => {
   fetchSyncCraneData();
 };
 
+const handleSyncCranePageSizeChange = (size) => {
+  syncCranePageSize.value = size;
+  syncCranePage.value = 1;
+  fetchSyncCraneData();
+};
+
 // 起重机搜索
 const handleSyncCraneSearch = () => {
   syncCranePage.value = 1;
@@ -926,6 +948,12 @@ const handleSyncCraneSearch = () => {
 // 吊索具分页变化
 const handleSyncRiggingPageChange = (page) => {
   syncRiggingPage.value = page;
+  fetchSyncRiggingData();
+};
+
+const handleSyncRiggingPageSizeChange = (size) => {
+  syncRiggingPageSize.value = size;
+  syncRiggingPage.value = 1;
   fetchSyncRiggingData();
 };
 
@@ -941,6 +969,12 @@ const handleSyncEquipmentPageChange = (page) => {
   fetchSyncEquipmentData();
 };
 
+const handleSyncEquipmentPageSizeChange = (size) => {
+  syncEquipmentPageSize.value = size;
+  syncEquipmentPage.value = 1;
+  fetchSyncEquipmentData();
+};
+
 // 设备搜索
 const handleSyncEquipmentSearch = () => {
   syncEquipmentPage.value = 1;
@@ -950,6 +984,12 @@ const handleSyncEquipmentSearch = () => {
 // 起重机模型库分页变化
 const handleSyncCraneModelPageChange = (page) => {
   syncCraneModelPage.value = page;
+  fetchSyncCraneModelData();
+};
+
+const handleSyncCraneModelPageSizeChange = (size) => {
+  syncCraneModelPageSize.value = size;
+  syncCraneModelPage.value = 1;
   fetchSyncCraneModelData();
 };
 
@@ -1458,9 +1498,16 @@ font-weight: 400;
   gap: 10px;
 }
 
-.sync-dialog .pagination {
-  margin-top: 20px;
+.pagination-container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 0 20px;
+}
+
+.pagination-info {
+  color: #606266;
+  font-size: 14px;
 }
 </style>
