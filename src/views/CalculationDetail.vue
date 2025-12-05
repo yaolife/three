@@ -6857,7 +6857,6 @@ const handleExportAll = async () => {
 
 .calculation-result h3 {
   text-align: center;
-  margin-bottom: 20px;
   color: #333;
 }
 
