@@ -1954,7 +1954,7 @@
                 {{
                   sling.loadType === 1 ? "出厂安全系数" : "额定载荷"
                 }}：{{ sling.loadType === 1 ? sling.safetyFactor : sling.ratedLoad }}
-                {{ sling.loadType === 0 ? "MPa" : "" }}
+                {{ sling.loadType === 0 ? "t" : "" }}
               </div>
             </div>
           </div>
@@ -2277,7 +2277,7 @@
                 {{
                   sling.loadType === 1 ? "出厂安全系数" : "额定载荷"
                 }}：{{ sling.loadType === 1 ? sling.safetyFactor : sling.ratedLoad }}
-                {{ sling.loadType === 0 ? "MPa" : "" }}
+                {{ sling.loadType === 0 ? "t" : "" }}
               </div>
             </div>
           </div>
