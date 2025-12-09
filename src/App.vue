@@ -1,79 +1,6 @@
 <template>
   <el-container class="app-container">
-    <!-- 侧边栏 - 不在SitePlan页面显示 -->
-    <el-aside v-if="!shouldHideSidebar" width="200px" class="sidebar-container">
-      <div class="logo-container">
-        <div v-if="userStore.userState.isLoggedIn" class="user-info">
-          <el-image
-            src="/src/images/user.png"
-            alt="user"
-            class="logo"
-            :fit="'cover'"
-          />
-          <span class="logo-text">{{ userStore.userState.userInfo.id }}[{{ userStore.userState.userInfo.name }}]</span>
-          <el-dropdown @command="handleCommand">
-            <el-image
-              src="/src/images/back.png"
-              alt="user"
-              class="back"
-              :fit="'cover'"
-            />
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-        <div v-else class="login-prompt" @click="handleLoginClick">
-            <img
-            src="@/images/user.png"
-            alt="user"
-            class="logo"
-          />
-          <span class="login-text">未登录，<span>点击登录</span></span>
-        </div>
-      </div>
-      <el-menu
-        :default-active="activeMenu"
-        class="el-menu-vertical-demo"
-        background-color="#191919"
-        text-color="#bfcbd9"
-        active-text-color="#FFFFFF"
-        router
-      >
-        <el-menu-item index="/all-projects">
-          <el-icon><FolderOpened /></el-icon>
-          <span>全部项目</span>
-        </el-menu-item>
-        <el-menu-item index="/verification-projects">
-          <el-icon><Document /></el-icon>
-          <span>校核计算项目</span>
-        </el-menu-item>
-        <el-menu-item index="/virtual-simulation">
-          <el-icon><VideoPlay /></el-icon>
-          <span>虚拟仿真项目</span>
-        </el-menu-item>
-        <el-menu-item index="/construction-plans">
-          <el-icon><Document /></el-icon>
-          <span>总平规划项目</span>
-        </el-menu-item>
-        <!-- Added Data Management menu item -->
-        <el-menu-item index="/data-management">
-          <el-icon><DataAnalysis /></el-icon>
-          <span>数据管理</span>
-        </el-menu-item>
-        <el-menu-item 
-          v-if="userStore.userState.userInfo.level === 1" 
-          index="/user-management"
-        >
-          <el-icon><User /></el-icon>
-          <span>账号管理</span>
-        </el-menu-item>
-      </el-menu>
-    </el-aside>
-    
-    <!-- 主内容区 -->
+    <!-- 主内容区（移除侧边栏，宽屏显示） -->
     <el-container>
       <!-- 顶部导航栏 -->
       <el-header v-if="!shouldHideHeader" class="header-container">
@@ -101,6 +28,21 @@
           </template>
         </div>
         <div class="header-right">
+          <div class="user-status" @click="handleStatusClick">
+            <img class="user-icon" src="@/images/user.png" alt="user" />
+            <span class="user-name">{{ displayUserName }}</span>
+          </div>
+          <el-dropdown v-if="userStore.userState.isLoggedIn" @command="handleCommand">
+            <img class="logout-icon" src="@/images/back.png" alt="logout" />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-button type="primary" size="large" class="menu-button" @click="openMenuDialog">
+            功能菜单
+          </el-button>
           <el-button 
             v-if="userStore.userState.userInfo?.loginType === 0"
             type="default" 
@@ -133,6 +75,29 @@
         <router-view />
       </el-main>
     </el-container>
+
+    <!-- 功能菜单弹窗 -->
+    <Teleport to="body">
+      <el-dialog
+        v-model="showMenuDialog"
+        title="功能菜单"
+        width="420px"
+        :close-on-click-modal="false"
+        append-to-body
+      >
+        <div class="menu-dialog-content">
+          <el-button
+            v-for="item in menuOptions"
+            :key="item.path"
+            type="default"
+            class="menu-dialog-item"
+            @click="handleMenuSelect(item.path)"
+          >
+            {{ item.label }}
+          </el-button>
+        </div>
+      </el-dialog>
+    </Teleport>
 
     <!-- 云端数据同步弹窗 -->
     <Teleport to="body">
@@ -430,7 +395,6 @@
 import { ref, computed, reactive, onMounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
-  FolderOpened,
   VideoPlay,
   Document,
   Plus,
@@ -492,6 +456,7 @@ const syncCraneModelSelected = ref([]);
 
 // 登录相关
 const showLoginDialog = ref(false);
+const showMenuDialog = ref(false);
 // 分开两个 loading 状态，避免两个按钮同时 loading
 const isConfirmLogging = ref(false);
 const isAdminLogging = ref(false);
@@ -500,10 +465,8 @@ const loginForm = reactive({
   password: "",
 });
 
-// 判断是否应该隐藏侧边栏
-const shouldHideSidebar = computed(() => {
-  return route.meta.hideSidebar || false;
-});
+// 判断是否应该隐藏侧边栏（侧边栏已移除，始终使用全宽）
+const shouldHideSidebar = computed(() => true);
 
 // 判断是否应该隐藏顶部导航栏
 const shouldHideHeader = computed(() => {
@@ -517,6 +480,28 @@ const isProjectListPage = computed(() => {
 });
 
 const activeMenu = computed(() => route.path || "/all-projects");
+
+const menuOptions = computed(() => {
+  const baseMenus = [
+    { label: "校核计算项目", path: "/verification-projects" },
+    { label: "虚拟仿真项目", path: "/virtual-simulation" },
+    { label: "总平规划项目", path: "/construction-plans" },
+    { label: "数据管理", path: "/data-management" },
+  ];
+  if (userStore.userState.userInfo.level === 1) {
+    baseMenus.push({ label: "账号管理", path: "/user-management" });
+  }
+  return baseMenus;
+});
+
+const displayUserName = computed(() => {
+  if (!userStore.userState.isLoggedIn) return "未登录，点击登录";
+  const info = userStore.userState.userInfo || {};
+  const id = info.id || info.userName || "";
+  const name = info.name || info.userNickName || info.userName || "";
+  if (id && name) return `${id}[${name}]`;
+  return id || name || "已登录";
+});
 
 // 创建项目全局状态，用于在组件间传递
 // 初始化为 false，确保只在明确点击按钮时才设置为 true
@@ -557,6 +542,28 @@ const handleLoginClick = () => {
   showLoginDialog.value = true;
 };
 
+const handleStatusClick = () => {
+  if (!userStore.userState.isLoggedIn) {
+    showLoginDialog.value = true;
+    return;
+  }
+  openMenuDialog();
+};
+
+const openMenuDialog = () => {
+  if (!userStore.userState.isLoggedIn) {
+    ElMessage.warning("请先登录");
+    showLoginDialog.value = true;
+    return;
+  }
+  showMenuDialog.value = true;
+};
+
+const handleMenuSelect = (path) => {
+  showMenuDialog.value = false;
+  router.push(path);
+};
+
 const handleLogout = async () => {
   try {
     // 调用退出登录接口
@@ -564,8 +571,8 @@ const handleLogout = async () => {
     // 清除本地状态
     userStore.logout();
     ElMessage.success("已退出登录");
-    // 跳转到全部项目页面并清空数据
-    router.push('/all-projects').then(() => {
+    // 跳转到默认页面并清空数据
+    router.push('/verification-projects').then(() => {
       // 使用 nextTick 确保组件已挂载
       nextTick(() => {
         if (window.clearProjectListDirect) {
@@ -573,13 +580,14 @@ const handleLogout = async () => {
         }
       });
     });
+    showLoginDialog.value = true;
   } catch (error) {
     console.error("退出登录失败:", error);
     // 即使接口调用失败，也清除本地状态
     userStore.logout();
     ElMessage.warning("退出登录失败，已清除本地登录状态");
-    // 跳转到全部项目页面并清空数据
-    router.push('/all-projects').then(() => {
+    // 跳转到默认页面并清空数据
+    router.push('/verification-projects').then(() => {
       // 使用 nextTick 确保组件已挂载
       nextTick(() => {
         if (window.clearProjectListDirect) {
@@ -587,6 +595,7 @@ const handleLogout = async () => {
         }
       });
     });
+    showLoginDialog.value = true;
   }
 };
 
@@ -624,8 +633,8 @@ const handleLogin = async () => {
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
-      // 跳转到全部项目页面并刷新
-      router.push('/all-projects').then(() => {
+      // 跳转到默认页面并刷新
+      router.push('/verification-projects').then(() => {
         triggerRefresh(null);
       });
     } else {
@@ -673,8 +682,8 @@ const handleOfflineLogin = async () => {
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
-      // 跳转到全部项目页面并刷新
-      router.push('/all-projects').then(() => {
+      // 跳转到默认页面并刷新
+      router.push('/verification-projects').then(() => {
         triggerRefresh(null);
       });
     } else {
@@ -1104,6 +1113,9 @@ watch(syncActiveTab, (newTab) => {
 // 页面加载时恢复用户状态
 onMounted(() => {
   userStore.restoreUserState();
+  if (!userStore.userState.isLoggedIn) {
+    showLoginDialog.value = true;
+  }
   // 暴露 router 实例到 window，供 api/index.js 中的 checkResponseCode 使用
   window.__VUE_ROUTER__ = router;
   
@@ -1232,6 +1244,42 @@ onMounted(() => {
 .header-right {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.user-status {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.user-status:hover {
+  background: #f5f7fa;
+}
+
+.user-icon {
+  width: 26px;
+  height: 26px;
+  margin-right: 8px;
+}
+
+.user-name {
+  font-size: 14px;
+  color: #304156;
+  white-space: nowrap;
+}
+
+.logout-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.menu-button {
+  padding: 10px 16px;
 }
 
 .search-box {
@@ -1249,6 +1297,17 @@ onMounted(() => {
 .main-container.full-width {
   padding: 0;
   background-color: #ffffff;
+}
+
+.menu-dialog-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.menu-dialog-item {
+  width: 100%;
+  justify-content: center;
 }
 
 /* 全局登录弹窗样式 */
