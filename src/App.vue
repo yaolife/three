@@ -97,13 +97,18 @@
     <Teleport to="body">
       <el-dialog
         v-model="showMenuDialog"
-        title="功能菜单"
         width="420px"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
         :show-close="false"
         append-to-body
       >
+        <template #header>
+          <div class="menu-dialog-header">
+            <span>功能菜单</span>
+            <el-icon class="menu-close" @click="closeMenuDialog"><Close /></el-icon>
+          </div>
+        </template>
         <div class="menu-dialog-content">
           <el-button
             v-for="item in menuOptions"
@@ -422,6 +427,7 @@ import {
   User,
   Lock,
   ArrowLeft,
+  Close,
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
@@ -585,6 +591,10 @@ const openMenuDialog = () => {
     return;
   }
   showMenuDialog.value = true;
+};
+
+const closeMenuDialog = () => {
+  showMenuDialog.value = false;
 };
 
 const handleMenuSelect = (path) => {
@@ -1345,7 +1355,21 @@ onMounted(() => {
 
 .menu-dialog-item {
   width: 100%;
+  color: #2B507D;
   justify-content: center;
+}
+
+.menu-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 4px 4px 0 4px;
+}
+
+.menu-close {
+  cursor: pointer;
 }
 
 /* 全局登录弹窗样式 */
