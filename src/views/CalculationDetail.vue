@@ -1267,10 +1267,10 @@
               <div class="form-content">
                 <div class="form-grid">
                   <div class="form-row">
-                    <label class="form-label">履带名称</label>
+                    <label class="form-label">名称</label>
                     <el-input
                       v-model="foundationData.trackName"
-                      placeholder="请输入履带名称"
+                      placeholder="请输入名称"
                     />
                   </div>
                   <div class="form-row">
@@ -3045,11 +3045,11 @@
             color: #666;
           "
         >
-          履带信息
+          起重机信息
         </div>
         <div class="section-content" style="padding: 12px">
           <div class="info-row">
-            <span class="info-label">履带名称：</span>
+            <span class="info-label">名称：</span>
             <span class="info-value">{{
               foundationCalculationResult.trackInfo.name
             }}</span>
@@ -5033,8 +5033,8 @@ const copyFoundationResult = () => {
   const resultText = `
 ${projectTitle.value}地基承载力校核计算
 
-履带信息
-履带名称：${foundationCalculationResult.value.trackInfo.name}  型号：${
+起重机信息
+名称：${foundationCalculationResult.value.trackInfo.name}  型号：${
     foundationCalculationResult.value.trackInfo.model
   }
 规格型号：${foundationCalculationResult.value.trackInfo.specifications}
