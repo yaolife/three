@@ -1,6 +1,10 @@
 <template>
   <div class="calculation-detail-container">
     <div class="header">
+      <el-button type="default" class="back-btn" @click.stop="handleBackToVerification">
+        <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+        返回
+      </el-button>
       <div class="header-left" @click="openEditTitleDialog">
         <span class="project-title">{{ projectTitle }}</span>
         <img src="@/images/hoisting.png" alt="edit" class="edit" />
@@ -3434,6 +3438,10 @@ import {
 import {  getBoomType, craneType} from "@/utils/common.js";
 
 const router = useRouter();
+
+const handleBackToVerification = () => {
+  router.push('/verification-projects');
+};
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
 
@@ -6762,6 +6770,13 @@ const handleExportAll = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.back-btn {
+  color: #000000;
+  margin-right: 16px;
+  font-size: 14px;
+  padding: 6px 12px;
 }
 
 .header-left {
