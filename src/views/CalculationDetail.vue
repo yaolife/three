@@ -3367,19 +3367,19 @@
   >
     <div class="export-select-content">
       <el-radio-group v-model="selectedExportType" class="export-radio-group">
-        <el-radio label="all" class="export-radio-item">
+        <el-radio :label="'all'" class="export-radio-item">
           <span class="radio-label">导出方案文件</span>
         </el-radio>
-        <el-radio label="crane" class="export-radio-item">
+        <el-radio :label="'crane'" class="export-radio-item">
           <span class="radio-label">起重机校核计算</span>
         </el-radio>
-        <el-radio label="lifting" class="export-radio-item">
+        <el-radio :label="'lifting'" class="export-radio-item">
           <span class="radio-label">吊索具校核计算</span>
         </el-radio>
-        <el-radio label="foundation" class="export-radio-item">
+        <el-radio :label="'foundation'" class="export-radio-item">
           <span class="radio-label">地基承载力校核计算</span>
         </el-radio>
-        <el-radio label="template" class="export-radio-item">
+        <el-radio :label="'template'" class="export-radio-item">
           <span class="radio-label">按模版导出</span>
         </el-radio>
       </el-radio-group>
@@ -7651,6 +7651,12 @@ color: #0775DB;
 .export-select-content {
   padding: 20px;
   min-height: 200px;
+  text-align: left;
+  direction: ltr;
+}
+
+.export-select-content * {
+  text-align: left;
 }
 
 .export-radio-group {
@@ -7658,18 +7664,40 @@ color: #0775DB;
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.export-radio-group :deep(.el-radio-group) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.export-radio-group :deep(.el-radio-group__label) {
+  display: none;
 }
 
 .export-radio-item {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 6px 16px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding: 6px 16px !important;
   border: 2px solid #e4e7ed;
   border-radius: 8px;
   transition: all 0.3s ease;
   cursor: pointer;
   background: #fafafa;
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  text-align: left !important;
+  text-indent: 0 !important;
 }
 
 .export-radio-item:hover {
@@ -7685,19 +7713,42 @@ color: #0775DB;
 }
 
 .export-radio-item :deep(.el-radio) {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  margin-right: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 .export-radio-item :deep(.el-radio__input) {
-  margin-right: 10px;
+  margin-right: 10px !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
   flex-shrink: 0;
+  order: -1;
 }
 
 .export-radio-item :deep(.el-radio__label) {
-  padding-left: 0;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  text-align: left !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: auto !important;
 }
 
 .export-radio-item :deep(.el-radio__input.is-checked .el-radio__inner) {
@@ -7713,7 +7764,10 @@ color: #0775DB;
   font-size: 15px;
   color: #333;
   font-weight: 500;
-  flex: 1;
+  text-align: left !important;
+  display: inline-block;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .export-radio-item.is-checked .radio-label {
