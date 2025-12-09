@@ -94,7 +94,7 @@ const routes = [
     meta: {
       title: "起重机详情",
       isEditPage: true,
-      backTo: "/verification-projects",
+      backTo: "/data-management",
     },
   },
   {

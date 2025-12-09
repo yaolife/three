@@ -12,6 +12,7 @@
             class="back-btn"
             @click="openMenuDialog"
           >
+            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
             返回
           </el-button>
           <el-button
@@ -21,6 +22,7 @@
             class="back-btn"
             @click="handleBackToList"
           >
+            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
             返回
           </el-button>
           <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
@@ -419,6 +421,7 @@ import {
   DataAnalysis,
   User,
   Lock,
+  ArrowLeft,
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
@@ -1265,7 +1268,10 @@ onMounted(() => {
 }
 
 .back-btn {
-  padding: 10px 16px;
+  color: #000000;
+  margin-right: 16px;
+  font-size: 14px;
+  padding: 6px 12px;
 }
 
 .user-name {
