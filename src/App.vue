@@ -40,9 +40,6 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-button type="primary" size="large" class="menu-button" @click="openMenuDialog">
-            功能菜单
-          </el-button>
           <el-button 
             v-if="userStore.userState.userInfo?.loginType === 0"
             type="default" 
@@ -83,6 +80,8 @@
         title="功能菜单"
         width="420px"
         :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :show-close="false"
         append-to-body
       >
         <div class="menu-dialog-content">
@@ -581,6 +580,7 @@ const handleLogout = async () => {
       });
     });
     showLoginDialog.value = true;
+    showMenuDialog.value = false;
   } catch (error) {
     console.error("退出登录失败:", error);
     // 即使接口调用失败，也清除本地状态
@@ -596,6 +596,7 @@ const handleLogout = async () => {
       });
     });
     showLoginDialog.value = true;
+    showMenuDialog.value = false;
   }
 };
 

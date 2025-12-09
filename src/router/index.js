@@ -12,15 +12,12 @@ const SitePlan = () => import("../views/SitePlan.vue")
 const routes = [
   {
     path: "/",
-    redirect: "/all-projects",
+    redirect: "/verification-projects",
   },
+  // 兼容旧链接，统一跳转到校核计算项目
   {
     path: "/all-projects",
-    name: "AllProjects",
-    component: AllProjects,
-    meta: {
-      title: "全部项目",
-    },
+    redirect: "/verification-projects",
   },
   {
     path: "/verification-projects",
