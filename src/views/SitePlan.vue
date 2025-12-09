@@ -152,7 +152,7 @@
             <div class="property-item">
               <label>占点类型</label>
               <div class="radio-group">
-                <el-radio v-model="newPoint.type" label="lifting" @change="onPointTypeChange">吊装点位</el-radio>
+                <el-radio v-model="newPoint.type" label="lifting" @change="onPointTypeChange">占位点位</el-radio>
                 <el-radio
                   v-model="newPoint.type"
                   label="moving"
@@ -162,7 +162,7 @@
               </div>
             </div>
             
-            <!-- 吊装点位特有字段 -->
+            <!-- 占位点位特有字段 -->
             <template v-if="newPoint.type === 'lifting'">
                 <div class="point_title">占点设置</div>
               <div class="property-item">
@@ -266,7 +266,7 @@
               />
             </div>
             
-            <!-- 吊装点位特有字段 -->
+            <!-- 占位点位特有字段 -->
             <template v-if="editingPoint.type === 'lifting'">
               <div class="point_title">占点设置</div>
               <div class="property-item">
@@ -338,7 +338,7 @@
             <div class="toolbar-headline">
               <div class="toolbar-title">绘制点位占位</div>
               <div class="toolbar-subtitle">
-                {{ activePoint ? `当前点位：${activePoint.name}` : '请选择吊装点位' }}
+                {{ activePoint ? `当前点位：${activePoint.name}` : '请选择占位点位' }}
               </div>
             </div>
             <div class="toolbar-divider"></div>
@@ -626,7 +626,7 @@
                 <img 
                   v-else-if="point.type === 'lifting'" 
                   :src="selectedCrane?.craneCategory === '1' ? carModelSrc : craneModelSrc" 
-                  alt="吊装点位" 
+                  alt="占位点位" 
                   style="width: 16px; height: 16px; margin-right: 8px"
                 />
                 <img 
@@ -959,7 +959,7 @@ const getStartIconWithColor = (color) => {
 
 const pointIconSizes = {
   start: 22,
-  lifting: 22, // 吊装点图标略小
+  lifting: 22, // 占位点图标略小
   moving: 18,  // 移动点位图标更小一点
 };
 
@@ -1027,7 +1027,7 @@ const createBasePoint = (overrides = {}) => ({
   name: "点位1",
   x: 112.0,
   y: 38.0,
-  type: "lifting", // lifting: 吊装点位, moving: 移动点位
+  type: "lifting", // lifting: 占位点位, moving: 移动点位
   groundLoad: 10,
   area: "",
   startTime: null,
@@ -1075,7 +1075,7 @@ const getNextPointName = (type, currentPoints = [], isStart = false) => {
     return `移动点位${movingCount + 1}`;
   }
   const liftingCount = countPointsByType(currentPoints, "lifting");
-  return `吊装点位${liftingCount + 1}`;
+  return `占位点位${liftingCount + 1}`;
 };
 
 const msPerDay = 24 * 60 * 60 * 1000;
@@ -1295,7 +1295,7 @@ const syncActivePointSelection = () => {
     (point) => point.id === activePointId.value
   );
   if (!validPoint) {
-    // 如果当前选中的点位不存在，则回退到第一个吊装点位
+    // 如果当前选中的点位不存在，则回退到第一个占位点位
     const fallback = selectedCrane.value.points.find((point) => point.type === "lifting");
     activePointId.value = fallback ? fallback.id : null;
   }
@@ -1419,14 +1419,14 @@ const handleDrawingToolClick = async (toolType) => {
   
   // 检查是否选中了点位
   if (!activePointId.value) {
-    ElMessage.warning("请先选择吊装点位");
+    ElMessage.warning("请先选择占位点位");
     return;
   }
   
-  // 检查选中的点位是否为吊装点位
+  // 检查选中的点位是否为占位点位
   const currentPoint = selectedCrane.value.points.find(p => p.id === activePointId.value);
   if (!currentPoint || currentPoint.type !== "lifting") {
-    ElMessage.warning("当前仅支持在吊装点位上绘制");
+    ElMessage.warning("当前仅支持在占位点位上绘制");
     return;
   }
 
@@ -2912,7 +2912,7 @@ const drawAllTrajectories = () => {
     if (iconKey === 'start') {
       iconImage = getStartIconWithColor(color);
     } else if (iconKey === 'lifting') {
-      // 吊装点位使用起重机模型图片：汽车式用 car_model，履带式用 crane_model
+      // 占位点位使用起重机模型图片：汽车式用 car_model，履带式用 crane_model
       const category = crane && crane.craneCategory;
       iconImage = category === '1' ? carModelImage : craneModelImage;
     } else {
@@ -3405,7 +3405,7 @@ const selectCrane = (crane) => {
   newPoint.value = createBasePoint({
     isStart,
     type: "lifting",
-    name: isStart ? "起点1" : `吊装点位${normalizedPoints.length}`,
+    name: isStart ? "起点1" : `占位点位${normalizedPoints.length}`,
   });
 
   // 重绘所有轨迹
@@ -3454,7 +3454,7 @@ const setCranePosition = () => {
     // 重置新点位数据
     const isStart = false; // 添加路径点位不是起点
     newPoint.value = createBasePoint({
-      name: `吊装点位${pointCount}`,
+      name: `占位点位${pointCount}`,
       isStart,
       type: "lifting",
     });
@@ -3494,30 +3494,30 @@ const setCranePosition = () => {
     if (pointType === "lifting") {
       // 开始日期必填
       if (!isValidDateDay(newPoint.value.startTime)) {
-        ElMessage.warning("请填写吊装点位的开始日期");
+        ElMessage.warning("请填写占位点位的开始日期");
         return;
       }
       // 结束日期必填
       if (!newPoint.value.endTime || !isValidDateDay(newPoint.value.endTime)) {
-        ElMessage.warning("请填写吊装点位的结束日期");
+        ElMessage.warning("请填写占位点位的结束日期");
         return;
       }
       // 结束日期不能早于开始日期
       if (new Date(newPoint.value.endTime) < new Date(newPoint.value.startTime)) {
-        ElMessage.warning("吊装点位的结束日期不能早于开始日期");
+        ElMessage.warning("占位点位的结束日期不能早于开始日期");
         return;
       }
       
       // 校验：后面一个点的开始时间要大于等于前面一个点的结束时间
       if (!isFirstPoint && currentPoints.length > 0) {
-        // 找到前一个吊装点位
+        // 找到前一个占位点位
         for (let i = currentPoints.length - 1; i >= 0; i--) {
           const prevPoint = currentPoints[i];
           if (prevPoint.type === "lifting" && prevPoint.endTime) {
             const prevEndTime = new Date(prevPoint.endTime);
             const currentStartTime = new Date(newPoint.value.startTime);
             if (currentStartTime < prevEndTime) {
-              ElMessage.warning(`当前点位的开始时间必须大于等于前一个吊装点位的结束时间（${prevPoint.endTime}）`);
+              ElMessage.warning(`当前点位的开始时间必须大于等于前一个占位点位的结束时间（${prevPoint.endTime}）`);
               return;
             }
             break;
@@ -3550,7 +3550,7 @@ const setCranePosition = () => {
     addPointDialogVisible.value = false;
     ElMessage.success("点位已添加，可在图上拖动调整位置");
     
-    // 如果添加的是吊装点位，自动选中该点位
+    // 如果添加的是占位点位，自动选中该点位
     if (pointType === "lifting") {
       activePointId.value = pointToAdd.id;
     }
@@ -3627,22 +3627,22 @@ const setCranePosition = () => {
     if (updatedPoint.type === "lifting") {
       // 开始日期必填
       if (!isValidDateDay(updatedPoint.startTime)) {
-        ElMessage.warning("请填写吊装点位的开始日期");
+        ElMessage.warning("请填写占位点位的开始日期");
         return;
       }
       // 结束日期必填
       if (!updatedPoint.endTime || !isValidDateDay(updatedPoint.endTime)) {
-        ElMessage.warning("请填写吊装点位的结束日期");
+        ElMessage.warning("请填写占位点位的结束日期");
         return;
       }
       // 结束日期不能早于开始日期
       if (new Date(updatedPoint.endTime) < new Date(updatedPoint.startTime)) {
-        ElMessage.warning("吊装点位的结束日期不能早于开始日期");
+        ElMessage.warning("占位点位的结束日期不能早于开始日期");
         return;
       }
       
       // 校验：后面一个点的开始时间要大于等于前面一个点的结束时间
-      // 检查前一个吊装点位
+      // 检查前一个占位点位
       if (editingPointIndex.value > 0) {
         for (let i = editingPointIndex.value - 1; i >= 0; i--) {
           const prevPoint = currentPoints[i];
@@ -3650,7 +3650,7 @@ const setCranePosition = () => {
             const prevEndTime = new Date(prevPoint.endTime);
             const currentStartTime = new Date(updatedPoint.startTime);
             if (currentStartTime < prevEndTime) {
-              ElMessage.warning(`当前点位的开始时间必须大于等于前一个吊装点位的结束时间（${prevPoint.endTime}）`);
+              ElMessage.warning(`当前点位的开始时间必须大于等于前一个占位点位的结束时间（${prevPoint.endTime}）`);
               return;
             }
             break;
@@ -3658,7 +3658,7 @@ const setCranePosition = () => {
         }
       }
       
-      // 检查后一个吊装点位
+      // 检查后一个占位点位
       if (updatedPoint.endTime && editingPointIndex.value < currentPoints.length - 1) {
         for (let i = editingPointIndex.value + 1; i < currentPoints.length; i++) {
           const nextPoint = currentPoints[i];
@@ -3666,7 +3666,7 @@ const setCranePosition = () => {
             const currentEndTime = new Date(updatedPoint.endTime);
             const nextStartTime = new Date(nextPoint.startTime);
             if (nextStartTime < currentEndTime) {
-              ElMessage.warning(`后一个吊装点位的开始时间（${nextPoint.startTime}）必须大于等于当前点位的结束时间`);
+              ElMessage.warning(`后一个占位点位的开始时间（${nextPoint.startTime}）必须大于等于当前点位的结束时间`);
               return;
             }
             break;
@@ -4304,7 +4304,7 @@ const handleSave = async () => {
     // 遍历所有起重机及其点位
     for (const crane of cranes.value) {
       for (const point of crane.points || []) {
-        // 只处理吊装点位（occupyType=0）且有形状的点位
+        // 只处理占位点位（occupyType=0）且有形状的点位
         if (point.type === "lifting") {
           const shapes = getShapesForPoint(point.id);
           if (shapes.length > 0) {
@@ -4361,7 +4361,7 @@ const handleSave = async () => {
       itemIndex: craneIndex + 1,
     };
 
-      // 构建点位数组，确保第一条是吊装点位
+      // 构建点位数组，确保第一条是占位点位
       const points = (crane.points || []).map((point, pointIndex) => {
         // 确定点位类型
         let pointType = 1; // 默认普通点位
@@ -4371,7 +4371,7 @@ const handleSave = async () => {
           pointType = 2; // 终点
         }
 
-        // 确定占点类型：吊装点位=0，移动点位=1
+        // 确定占点类型：占位点位=0，移动点位=1
         const occupyType = point.type === "lifting" ? 0 : 1;
 
         // 格式化日期（精确到天）
@@ -4525,7 +4525,7 @@ const handleSave = async () => {
       });
 
       // 按照起重机任务属性编辑栏里的点位设置顺序（即 crane.points 的原始顺序）传给接口
-      // 不再重新排序，保持吊装点位和移动点位的原始间隔顺序
+      // 不再重新排序，保持占位点位和移动点位的原始间隔顺序
 
       return {
         sysProjectFlatDetail,
@@ -4691,7 +4691,7 @@ const handleBack = () => {
 
     const plan = computeAnimationPlan(selectedCrane.value.points, selectedCrane.value.color);
     if (!plan) {
-      ElMessage.warning("无法播放，请检查吊装点位的时间设置");
+      ElMessage.warning("无法播放，请检查占位点位的时间设置");
       return;
     }
 
