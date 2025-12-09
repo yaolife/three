@@ -3,8 +3,9 @@
     <!-- 页面顶部标题 -->
     <div class="page-header">
       <div class="header-content">
-        <el-button type="text" class="back-btn" @click="handleBack">
-          <el-icon><ArrowLeft /></el-icon>
+        <el-button type="default" class="back-btn" @click="handleBack">
+          <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+          返回
         </el-button>
         <div class="project_title">{{ projectTitle || '总平规划xxx项目' }}</div>
       </div>
@@ -4613,8 +4614,8 @@ const handleSave = async () => {
 };
 
 const handleBack = () => {
-    router.push({ name: "AllProjects" });
-  };
+  router.push({ path: "/construction-plans" });
+};
 
   // 处理关闭弹窗
   const handleCloseModal = () => {
@@ -5251,7 +5252,8 @@ const handleBack = () => {
 .back-btn {
   color: #000000;
   margin-right: 16px;
-  font-size: 20px;
+  font-size: 14px;
+  padding: 6px 12px;
 }
 
 .back-btn:hover {

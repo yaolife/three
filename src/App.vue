@@ -5,6 +5,24 @@
       <!-- 顶部导航栏 -->
       <el-header v-if="!shouldHideHeader" class="header-container">
         <div class="header-left">
+          <el-button
+            v-if="isMenuPage"
+            type="default"
+            size="large"
+            class="back-btn"
+            @click="openMenuDialog"
+          >
+            返回
+          </el-button>
+          <el-button
+            v-else-if="isEditPage"
+            type="default"
+            size="large"
+            class="back-btn"
+            @click="handleBackToList"
+          >
+            返回
+          </el-button>
           <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
           <!-- 只在项目列表页面显示创建项目按钮和搜索框 -->
           <template v-if="isProjectListPage">
@@ -474,11 +492,15 @@ const shouldHideHeader = computed(() => {
 
 // 判断是否是项目列表页面
 const isProjectListPage = computed(() => {
-  const projectListPaths = ['/all-projects', '/verification-projects', '/virtual-simulation', '/construction-plans'];
+  const projectListPaths = ['/verification-projects', '/virtual-simulation', '/construction-plans'];
   return projectListPaths.includes(route.path);
 });
 
-const activeMenu = computed(() => route.path || "/all-projects");
+const isMenuPage = computed(() => route.meta.isMenuPage);
+const isEditPage = computed(() => route.meta.isEditPage);
+const backToPath = computed(() => route.meta.backTo || '/verification-projects');
+
+const activeMenu = computed(() => route.path || "/verification-projects");
 
 const menuOptions = computed(() => {
   const baseMenus = [
@@ -547,6 +569,10 @@ const handleStatusClick = () => {
     return;
   }
   openMenuDialog();
+};
+
+const handleBackToList = () => {
+  router.push(backToPath.value);
 };
 
 const openMenuDialog = () => {
@@ -1235,6 +1261,11 @@ onMounted(() => {
 .header-left {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.back-btn {
+  padding: 10px 16px;
 }
 
 .user-name {
