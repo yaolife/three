@@ -72,7 +72,6 @@
               />
             </template>
           </el-table-column>
-          <el-table-column prop="ip" label="IP地址" min-width="120" />
           <el-table-column prop="createName" label="创建人名称" width="120" />
           <el-table-column prop="createTime" label="创建时间" width="180" />
           <el-table-column label="操作" width="200" fixed="right" align="center">
@@ -161,13 +160,6 @@
             密码要求：8-16位，必须包含大小写字母和至少一个特殊字符
           </div>
         </el-form-item>
-        <el-form-item label="IP地址" prop="ip">
-          <el-input
-            v-model="formData.ip"
-            placeholder="请输入IP地址"
-            clearable
-          />
-        </el-form-item>
         <el-form-item label="账号级别" prop="level">
           <el-select
             v-model="formData.level"
@@ -234,7 +226,6 @@ const formData = reactive({
   userName: "",
   userUnit: "",
   password: "",
-  ip: "",
   level: 0,
   state: 0,
 });
@@ -289,16 +280,6 @@ const validateUserName = (rule, value, callback) => {
   callback();
 };
 
-// IP地址验证规则
-const validateIp = (rule, value, callback) => {
-  // 新增和编辑时IP地址都必填
-  if (!value) {
-    callback(new Error("请输入IP地址"));
-    return;
-  }
-  callback();
-};
-
 // 表单验证规则
 const formRules = computed(() => ({
   userNickName: [
@@ -312,11 +293,6 @@ const formRules = computed(() => ({
     // 新增时密码必填，编辑时密码可选
     ...(isEdit.value ? [] : [{ required: true, message: "请输入密码", trigger: "blur" }]),
     { validator: validatePassword, trigger: "blur" },
-  ],
-  ip: [
-    // 新增和编辑时IP地址都必填
-    { required: true, message: "请输入IP地址", trigger: "blur" },
-    { validator: validateIp, trigger: "blur" },
   ],
   level: [
     { required: true, message: "请选择账号级别", trigger: "change" },
@@ -414,7 +390,6 @@ const handleEdit = (row) => {
     formData.userName = row.userName || "";
     formData.userUnit = row.userUnit || "";
     formData.password = ""; // 编辑时不显示密码，留空则不修改
-    formData.ip = row.ip || "";
     formData.level = row.level !== undefined && row.level !== null ? Number(row.level) : 0;
     formData.state = row.state !== undefined && row.state !== null ? Number(row.state) : 0;
     // 再次清除验证状态，确保不会显示验证错误
@@ -431,7 +406,6 @@ const resetForm = () => {
   formData.userName = "";
   formData.userUnit = "";
   formData.password = "";
-  formData.ip = "";
   formData.level = 0;
   formData.state = 0;
 };
@@ -467,7 +441,6 @@ const handleSubmit = async () => {
         userNickName: formData.userNickName,
         userName: formData.userName,
         userUnit: formData.userUnit || null,
-        ip: formData.ip,
         level: formData.level,
       };
 
