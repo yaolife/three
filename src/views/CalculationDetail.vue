@@ -97,7 +97,7 @@
           </template>
         </el-tab-pane>
       </el-tabs>
-      <el-button type="primary" @click="handleExportAllConfirm">导出</el-button>
+      <el-button type="primary" @click="openExportSelectDialog">导出</el-button>
     </div>
 
     <div class="content-wrapper">
@@ -3356,6 +3356,47 @@
       <el-button @click="intelligentSelectionDialogVisible = false">关闭</el-button>
     </template>
   </el-dialog>
+
+  <!-- 导出选择弹窗 -->
+  <el-dialog
+    v-model="exportSelectDialogVisible"
+    title="选择导出类型"
+    width="420px"
+    :close-on-click-modal="false"
+    class="export-select-dialog"
+  >
+    <div class="export-select-content">
+      <el-radio-group v-model="selectedExportType" class="export-radio-group">
+        <el-radio label="all" class="export-radio-item">
+          <span class="radio-label">导出方案文件</span>
+        </el-radio>
+        <el-radio label="crane" class="export-radio-item">
+          <span class="radio-label">起重机校核计算</span>
+        </el-radio>
+        <el-radio label="lifting" class="export-radio-item">
+          <span class="radio-label">吊索具校核计算</span>
+        </el-radio>
+        <el-radio label="foundation" class="export-radio-item">
+          <span class="radio-label">地基承载力校核计算</span>
+        </el-radio>
+        <el-radio label="template" class="export-radio-item">
+          <span class="radio-label">按模版导出</span>
+        </el-radio>
+      </el-radio-group>
+    </div>
+    <template #footer>
+      <div class="export-dialog-footer">
+        <el-button @click="exportSelectDialogVisible = false">取消</el-button>
+        <el-button 
+          type="primary" 
+          @click="handleExportSelectConfirm"
+          :disabled="selectedExportType === 'template'"
+        >
+          确定
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -4147,6 +4188,10 @@ const selectedSlingType = ref(""); // 'upper' or 'lower'
 
 const showLiftingEquipmentDialog = ref(false);
 const equipmentCategories = ref([]);
+
+// 导出选择弹窗相关
+const exportSelectDialogVisible = ref(false);
+const selectedExportType = ref('all'); // 'all', 'crane', 'lifting', 'foundation', 'template'
 const equipmentProducts = ref([]);
 const equipmentModels = ref([]);
 const selectedCategory = ref(null);
@@ -6545,6 +6590,59 @@ const handleExport = async (type) => {
   }
 };
 
+// 打开导出选择弹窗
+const openExportSelectDialog = () => {
+  selectedExportType.value = 'all'; // 默认选中第一个
+  exportSelectDialogVisible.value = true;
+};
+
+// 处理导出确认（从弹窗中）
+const handleExportSelectConfirm = async () => {
+  const type = selectedExportType.value;
+  
+  // 如果是按模版导出，暂时不处理
+  if (type === 'template') {
+    ElMessage.info('按模版导出功能暂未实现');
+    return;
+  }
+  
+  // 关闭弹窗
+  exportSelectDialogVisible.value = false;
+  
+  try {
+    if (type === 'all') {
+      // 导出方案文件 - 复用原有的 handleExportAllConfirm 逻辑
+      await ElMessageBox.confirm(
+        '导出会保存每个tab下的页面信息',
+        '导出确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+      await handleExportAll();
+    } else {
+      // 其他类型的导出 - 复用各个tab下的导出逻辑
+      await ElMessageBox.confirm(
+        '导出会自动保存当前页面的信息',
+        '导出确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+      await handleExport(type);
+    }
+  } catch (error) {
+    // 用户点击取消，不执行任何操作
+    if (error !== 'cancel') {
+      console.error('导出确认失败:', error);
+    }
+  }
+};
+
 // 统一导出所有tab的数据
 // 打开统一导出确认MessageBox
 const handleExportAllConfirm = async () => {
@@ -7531,5 +7629,108 @@ color: #0775DB;
 .no-results{
   display: flex;
   justify-content: center;
+}
+
+/* 导出选择弹窗样式 */
+.export-select-dialog :deep(.el-dialog) {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.export-select-dialog :deep(.el-dialog__header) {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.export-select-dialog :deep(.el-dialog__title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.export-select-content {
+  padding: 20px;
+  min-height: 200px;
+}
+
+.export-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.export-radio-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 6px 16px;
+  border: 2px solid #e4e7ed;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: #fafafa;
+}
+
+.export-radio-item:hover {
+  border-color: #409eff;
+  background: #f0f7ff;
+  transform: translateX(4px);
+}
+
+.export-radio-item.is-checked {
+  border-color: #409eff;
+  background: #ecf5ff;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+}
+
+.export-radio-item :deep(.el-radio) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-right: 0;
+}
+
+.export-radio-item :deep(.el-radio__input) {
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.export-radio-item :deep(.el-radio__label) {
+  padding-left: 0;
+}
+
+.export-radio-item :deep(.el-radio__input.is-checked .el-radio__inner) {
+  background-color: #409eff;
+  border-color: #409eff;
+}
+
+.export-radio-item :deep(.el-radio__input.is-checked .el-radio__inner::after) {
+  background-color: #fff;
+}
+
+.radio-label {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+
+.export-radio-item.is-checked .radio-label {
+  color: #409eff;
+}
+
+.export-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.export-dialog-footer .el-button {
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 14px;
 }
 </style>
