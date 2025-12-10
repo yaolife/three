@@ -620,7 +620,7 @@
             <el-button type="primary">选择.FBX文件</el-button>
             <template #tip>
               <div style="margin-top: 8px; color: #909399; font-size: 12px;">
-                仅支持上传单个.FBX格式模型文件
+                仅支持上传单个.FBX格式或.json格式文件
               </div>
             </template>
           </el-upload>
