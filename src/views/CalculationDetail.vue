@@ -6784,6 +6784,8 @@ const handleExportAll = async () => {
   width: 30%;
   align-items: center;
   gap: 12px;
+  position: relative;
+  right: 10%;
 }
 .header-left:hover {
   cursor: pointer;
