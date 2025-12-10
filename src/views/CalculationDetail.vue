@@ -1446,19 +1446,29 @@
         <el-tabs v-model="constructionSubTab" type="card">
           <el-tab-pane label="平面图" name="plan">
             <iframe
+              v-if="constructionSubTab === 'plan'"
+              key="plan-iframe"
               src="/plane/index.html"
               class="method-draw-iframe"
               frameborder="0"
               title="平面图编辑器"
+              @load="handleIframeLoad('plan')"
+              @error="handleIframeError('plan')"
             ></iframe>
+            <div v-else class="iframe-placeholder">平面图编辑器</div>
           </el-tab-pane>
           <el-tab-pane label="立面图" name="elevation">
             <iframe
+              v-if="constructionSubTab === 'elevation'"
+              key="elevation-iframe"
               src="/facade/index.html"
               class="method-draw-iframe"
               frameborder="0"
               title="立面图编辑器"
+              @load="handleIframeLoad('elevation')"
+              @error="handleIframeError('elevation')"
             ></iframe>
+            <div v-else class="iframe-placeholder">立面图编辑器</div>
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -3457,6 +3467,16 @@ const handleBackToVerification = () => {
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
 const constructionSubTab = ref("plan"); // 施工平立面图子tab，默认选中平面图
+
+// 处理iframe加载完成
+const handleIframeLoad = (type) => {
+  console.log(`${type} iframe loaded successfully`);
+};
+
+// 处理iframe加载错误
+const handleIframeError = (type) => {
+  console.error(`${type} iframe failed to load`);
+};
 
 const saveLoading = reactive({
   crane: false,
@@ -7504,6 +7524,18 @@ const handleExportAll = async () => {
   width: 100%;
   height: 100%;
   border: none;
+  display: block;
+}
+
+.iframe-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+  background-color: #f5f5f5;
 }
 
 /* Added styles for three-level lifting equipment selection dialog */
