@@ -1443,12 +1443,24 @@
         v-if="activeTab === 'construction'"
         class="content-wrapper construction-plan-wrapper"
       >
-        <iframe
-          src="/method-draw/index.html"
-          class="method-draw-iframe"
-          frameborder="0"
-          title="施工平立面图编辑器"
-        ></iframe>
+        <el-tabs v-model="constructionSubTab" type="card">
+          <el-tab-pane label="平面图" name="plan">
+            <iframe
+              src="/plane/index.html"
+              class="method-draw-iframe"
+              frameborder="0"
+              title="平面图编辑器"
+            ></iframe>
+          </el-tab-pane>
+          <el-tab-pane label="立面图" name="elevation">
+            <iframe
+              src="/facade/index.html"
+              class="method-draw-iframe"
+              frameborder="0"
+              title="立面图编辑器"
+            ></iframe>
+          </el-tab-pane>
+        </el-tabs>
       </div>
     </div>
   </div>
@@ -3444,6 +3456,7 @@ const handleBackToVerification = () => {
 };
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
+const constructionSubTab = ref("plan"); // 施工平立面图子tab，默认选中平面图
 
 const saveLoading = reactive({
   crane: false,
@@ -7467,6 +7480,24 @@ const handleExportAll = async () => {
   height: calc(100vh - 120px);
   padding: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.construction-plan-wrapper :deep(.el-tabs) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.construction-plan-wrapper :deep(.el-tabs__content) {
+  flex: 1;
+  overflow: hidden;
+}
+
+.construction-plan-wrapper :deep(.el-tab-pane) {
+  height: 100%;
 }
 
 .method-draw-iframe {
