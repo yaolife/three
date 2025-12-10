@@ -1422,18 +1422,11 @@
       <div v-if="activeTab === 'lifting'" class="right-panel">
         <div class="diagram-container">
           <img
-            v-if="activeSlingData.liftingType === 'withBeam'"
-            src="@/images/beam.png"
+            :src="slingDiagramImage"
             alt="吊索具示意图"
             class="crane-diagram"
             :fit="'cover'"
-          />
-          <img
-            v-else
-            src="@/images/lifting.png"
-            alt="吊索具示意图"
-            class="crane-diagram"
-            :fit="'cover'"
+            @error="handleSlingImageError"
           />
         </div>
       </div>
@@ -3459,6 +3452,40 @@ import {
 } from "@/api/index.js";
 import {  getBoomType, craneType} from "@/utils/common.js";
 
+// 导入默认图片
+import defaultLiftingImage from "@/images/lifting.png";
+
+// 预先导入所有可能的图片
+// 吊带 - 无吊梁
+import strapHookOne from "@/images/straps/no_lifting_beam/hook_one.png";
+import strapHookTwo from "@/images/straps/no_lifting_beam/hook_two.png";
+import strapHookThree from "@/images/straps/no_lifting_beam/hook_three.png";
+import strapHookFour from "@/images/straps/no_lifting_beam/hook_four.png";
+import strapHookSix from "@/images/straps/no_lifting_beam/hook_six.png";
+import strapHookEight from "@/images/straps/no_lifting_beam/hook_eight.png";
+
+// 吊带 - 有吊梁
+import strapBeamTwo from "@/images/straps/with_lifting_beam/beam_two.png";
+import strapBeamThree from "@/images/straps/with_lifting_beam/beam_three.png";
+import strapBeamFour from "@/images/straps/with_lifting_beam/beam_four.png";
+import strapBeamSix from "@/images/straps/with_lifting_beam/beam_six.png";
+import strapBeamEight from "@/images/straps/with_lifting_beam/beam_eight.png";
+
+// 其他类型 - 无吊梁
+import wireHookOne from "@/images/wire_rope/no_lifting_beam/hook_one.png";
+import wireHookTwo from "@/images/wire_rope/no_lifting_beam/hook_two.png";
+import wireHookThree from "@/images/wire_rope/no_lifting_beam/hook_three.png";
+import wireHookFour from "@/images/wire_rope/no_lifting_beam/hook_four.png";
+import wireHookSix from "@/images/wire_rope/no_lifting_beam/hook_six.png";
+import wireHookEight from "@/images/wire_rope/no_lifting_beam/hook_eight.png";
+
+// 其他类型 - 有吊梁
+import wireBeamTwo from "@/images/wire_rope/with_lifting_beam/beam_two.png";
+import wireBeamThree from "@/images/wire_rope/with_lifting_beam/beam_three.png";
+import wireBeamFour from "@/images/wire_rope/with_lifting_beam/beam_four.png";
+import wireBeamSix from "@/images/wire_rope/with_lifting_beam/beam_six.png";
+import wireBeamEight from "@/images/wire_rope/with_lifting_beam/beam_eight.png";
+
 const router = useRouter();
 
 const handleBackToVerification = () => {
@@ -3476,6 +3503,21 @@ const handleIframeLoad = (type) => {
 // 处理iframe加载错误
 const handleIframeError = (type) => {
   console.error(`${type} iframe failed to load`);
+};
+
+// 处理吊索具示意图图片加载错误
+const handleSlingImageError = (event) => {
+  // 如果图片加载失败，设置为默认图片
+  // 添加标记避免无限循环
+  if (event.target.dataset.fallbackApplied) {
+    return; // 已经应用过fallback，避免无限循环
+  }
+  
+  // 标记已应用fallback
+  event.target.dataset.fallbackApplied = "true";
+  
+  // 设置默认图片
+  event.target.src = defaultLiftingImage;
 };
 
 const saveLoading = reactive({
@@ -4091,6 +4133,88 @@ const activeSlingIndex = ref(0);
 // 获取当前激活的吊索具配置
 const activeSlingData = computed(() => {
   return liftingFormDatas.value[activeSlingIndex.value];
+});
+
+// 图片映射表
+const imageMap = {
+  // 吊带 - 无吊梁
+  strap: {
+    noBeam: {
+      1: strapHookOne,
+      2: strapHookTwo,
+      3: strapHookThree,
+      4: strapHookFour,
+      6: strapHookSix,
+      8: strapHookEight,
+    },
+    // 吊带 - 有吊梁
+    withBeam: {
+      2: strapBeamTwo,
+      3: strapBeamThree,
+      4: strapBeamFour,
+      6: strapBeamSix,
+      8: strapBeamEight,
+    },
+  },
+  // 其他类型 - 无吊梁
+  wire: {
+    noBeam: {
+      1: wireHookOne,
+      2: wireHookTwo,
+      3: wireHookThree,
+      4: wireHookFour,
+      6: wireHookSix,
+      8: wireHookEight,
+    },
+    // 其他类型 - 有吊梁
+    withBeam: {
+      2: wireBeamTwo,
+      3: wireBeamThree,
+      4: wireBeamFour,
+      6: wireBeamSix,
+      8: wireBeamEight,
+    },
+  },
+};
+
+// 计算吊索具示意图图片路径
+const slingDiagramImage = computed(() => {
+  try {
+    // 获取当前配置
+    const slingType = activeSlingData.value?.slingType;
+    const liftingType = commonDeviceSettings.value?.liftingType;
+    const bottomPointCount = activeSlingData.value?.bottomPointCount;
+
+    // 如果缺少必要的数据，返回默认图片
+    if (!slingType || !liftingType || bottomPointCount === undefined || bottomPointCount === null) {
+      return defaultLiftingImage;
+    }
+
+    // 判断是吊带还是其他类型
+    // 0: 钢丝绳, 1: 吊带, 2: 卸扣, 3: 缆绳
+    const isStrap = slingType === "1"; // 1表示吊带
+    
+    // 判断是有吊梁还是无吊梁
+    const hasBeam = liftingType === "withBeam";
+    
+    // 确定类型键
+    const typeKey = isStrap ? "strap" : "wire";
+    
+    // 确定吊梁键
+    const beamKey = hasBeam ? "withBeam" : "noBeam";
+    
+    // 获取吊点数量
+    const pointCount = Number(bottomPointCount);
+    
+    // 从映射表中获取图片
+    const image = imageMap[typeKey]?.[beamKey]?.[pointCount];
+    
+    // 如果找不到对应的图片，返回默认图片
+    return image || defaultLiftingImage;
+  } catch (error) {
+    console.error("计算吊索具示意图路径时出错:", error);
+    return defaultLiftingImage;
+  }
 });
 
 // 共用的设备设置数据（所有吊索具共享）
