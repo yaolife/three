@@ -3567,7 +3567,6 @@ const loadDeviceList = async () => {
     }
   } catch (error) {
     ElMessage.error('获取设备列表失败');
-    console.error('获取设备列表失败:', error);
   } finally {
     deviceLoading.value = false;
   }
@@ -3631,7 +3630,6 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
     }
   } catch (error) {
     ElMessage.error('获取设备详情失败');
-    console.error('获取设备详情失败:', error);
   }
 };
 
@@ -3715,7 +3713,6 @@ const executeIntelligentSelection = async () => {
     }
   } catch (error) {
     ElMessage.error('智能选型失败');
-    console.error('智能选型失败:', error);
     selectionResults.value = [];
   } finally {
     intelligentSelectionLoading.value = false;
