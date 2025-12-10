@@ -76,7 +76,11 @@ function State() {
     // basic checks
     if (val === undefined || val === null)
       throw "wont save nuthin, " + key + " " + val;
-    const isObject = dao.find((thing) => thing.name === key).type === "object";
+    // 处理带前缀的key，提取原始name
+    const originalName = key.replace(/^(plane-|facade-)/, "");
+    const archetype = dao.find((thing) => thing.name === originalName);
+    if (!archetype) throw "Unknown archetype for key: " + key;
+    const isObject = archetype.type === "object";
     localStorage.setItem(
       "md" + "-" + key,
       isObject ? JSON.stringify(val) : val.toString()
@@ -84,9 +88,16 @@ function State() {
   }
 
   function _getKey(name) {
-    //const key = name.indexOf("canvas") !== -1
-    //      ? name + "-" + ID
-    //      : name + "-0"; // system
+    // 根据路径判断是平面图还是立面图，canvas相关数据使用不同的key前缀
+    const isCanvasData = name.indexOf("canvas") !== -1;
+    if (isCanvasData) {
+      // 平面图使用 "plane-" 前缀，如果已经有前缀就不重复添加
+      if (name.indexOf("plane-") === 0 || name.indexOf("facade-") === 0) {
+        return name;
+      }
+      return "plane-" + name;
+    }
+    // 非canvas数据使用原始key（如darkmode等共享配置）
     return name;
   }
 
@@ -104,7 +115,9 @@ function State() {
 
   function _getValue(key, def) {
     const item = localStorage.getItem("md-" + key) || def;
-    const archetype = dao.find((thing) => thing.name === key.split("-")[0]);
+    // 处理带前缀的key，提取原始name
+    const originalName = key.replace(/^(plane-|facade-)/, "");
+    const archetype = dao.find((thing) => thing.name === originalName);
     if (archetype) return archetype.clean(item);
     else throw "Unkown archetype";
   }
