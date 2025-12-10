@@ -3612,11 +3612,21 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
         formData.value.equipmentName2 = deviceData.deviceName ?? null;
         formData.value.equipmentType2 = deviceData.deviceType ?? null;
         setEquipmentWeightForCrane(deviceData.weight, "crane2");
+        
+        // 同步到起重机参数1：设备名称和设备型号
+        selectedDeviceId.value = deviceId;
+        formData.value.equipmentName = deviceData.deviceName ?? null;
+        formData.value.equipmentType = deviceData.deviceType ?? null;
       } else {
         // 起重机1参数tab回显
         formData.value.equipmentName = deviceData.deviceName ?? null;
         formData.value.equipmentType = deviceData.deviceType ?? null;
         setEquipmentWeightForCrane(deviceData.weight, "crane1");
+        
+        // 同步到起重机参数2：设备名称和设备型号
+        selectedDeviceId2.value = deviceId;
+        formData.value.equipmentName2 = deviceData.deviceName ?? null;
+        formData.value.equipmentType2 = deviceData.deviceType ?? null;
       }
     }
   } catch (error) {
@@ -3644,12 +3654,22 @@ const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
       formData.value.equipmentType2 = null;
       formData.value.manufacturer2 = null;
       setEquipmentWeightForCrane(0, "crane2");
+      
+      // 同步清除起重机参数1的设备名称和设备型号
+      selectedDeviceId.value = null;
+      formData.value.equipmentName = null;
+      formData.value.equipmentType = null;
     } else {
       // 清除起重机1参数tab回显信息
       formData.value.equipmentName = null;
       formData.value.equipmentType = null;
       formData.value.manufacturer = null;
       setEquipmentWeightForCrane(0, "crane1");
+      
+      // 同步清除起重机参数2的设备名称和设备型号
+      selectedDeviceId2.value = null;
+      formData.value.equipmentName2 = null;
+      formData.value.equipmentType2 = null;
     }
   }
 };
