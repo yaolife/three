@@ -54,6 +54,7 @@ function getHeaders() {
   const token = localStorage.getItem("token");
   if (token) {
     headers["token"] = `${token}`;
+    headers['ngrok-skip-browser-warning']=true;
   }
   
   return headers;
