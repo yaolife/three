@@ -5696,11 +5696,20 @@ const handleCalculateHeightAngle = async () => {
       }
       ElMessage.success("计算成功");
     } else {
-      ElMessage.error(response?.message || "计算失败，请稍后重试");
+      ElMessage.error(response?.msg || "计算失败，请稍后重试");
     }
   } catch (error) {
     console.error('调用getCalculateHeightOrAngle失败:', error);
-    ElMessage.error("计算失败，请稍后重试");
+    // 提取错误信息
+    let errorMessage = "计算失败，请稍后重试";
+    if (error?.response?.msg) {
+      errorMessage = error.response?.msg;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    ElMessage.error(errorMessage);
   } finally {
     isCalculatingHeightAngle.value = false;
   }
@@ -5758,7 +5767,16 @@ const handleCalculateHeightAngleByLa = async () => {
     }
   } catch (error) {
     console.error("调用getCalculateHeightOrAngle失败:", error);
-    ElMessage.error("计算失败，请稍后重试");
+    // 提取错误信息
+    let errorMessage = "计算失败，请稍后重试";
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    ElMessage.error(errorMessage);
   } finally {
     isCalculatingHeightAngle.value = false;
   }
