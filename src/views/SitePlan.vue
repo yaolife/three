@@ -11,11 +11,6 @@
       </div>
       <div class="header-content_right">
         <div>
-          <img
-            src="@/images/add_text.png"
-            alt="添加文字"
-            style="width: 20px; height: 20px"
-          />
         </div>
         <div class="handle_btn">
           <div class="handle_btn_item" @click="handleSave">
