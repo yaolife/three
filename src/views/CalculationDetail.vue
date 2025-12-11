@@ -5762,14 +5762,14 @@ const handleCalculateHeightAngleByLa = async () => {
       }
       ElMessage.success("计算成功");
     } else {
-      ElMessage.error(response?.message || "计算失败，请稍后重试");
+      ElMessage.error(response?.msg || "计算失败，请稍后重试");
     }
   } catch (error) {
     console.error("调用getCalculateHeightOrAngle失败:", error);
     // 提取错误信息
     let errorMessage = "计算失败，请稍后重试";
-    if (error?.response?.data?.message) {
-      errorMessage = error.response.data.message;
+    if (error?.response?.msg) {
+      errorMessage = error?.response?.msg;
     } else if (error?.message) {
       errorMessage = error.message;
     } else if (typeof error === 'string') {
