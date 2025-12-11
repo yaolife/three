@@ -3409,7 +3409,6 @@
         <el-button 
           type="primary" 
           @click="handleExportSelectConfirm"
-          :disabled="selectedExportType === 'template'"
         >
           确定
         </el-button>
@@ -6800,18 +6799,12 @@ const openExportSelectDialog = () => {
 const handleExportSelectConfirm = async () => {
   const type = selectedExportType.value;
   
-  // 如果是按模版导出，暂时不处理
-  if (type === 'template') {
-    ElMessage.info('按模版导出功能暂未实现');
-    return;
-  }
-  
   // 关闭弹窗
   exportSelectDialogVisible.value = false;
   
   try {
     if (type === 'all') {
-      // 导出方案文件 - 复用原有的 handleExportAllConfirm 逻辑
+      // 导出方案文件 - exportType: 0
       await ElMessageBox.confirm(
         '导出会保存每个tab下的页面信息',
         '导出确认',
@@ -6821,7 +6814,19 @@ const handleExportSelectConfirm = async () => {
           type: 'warning',
         }
       );
-      await handleExportAll();
+      await handleExportAll(0);
+    } else if (type === 'template') {
+      // 按模版导出 - exportType: 1，逻辑与导出方案文件一致
+      await ElMessageBox.confirm(
+        '导出会保存每个tab下的页面信息',
+        '导出确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+      await handleExportAll(1);
     } else {
       // 其他类型的导出 - 复用各个tab下的导出逻辑
       await ElMessageBox.confirm(
@@ -6868,7 +6873,7 @@ const handleExportAllConfirm = async () => {
 };
 
 // 执行统一导出所有tab的数据
-const handleExportAll = async () => {
+const handleExportAll = async (exportType = 0) => {
   try {
     const projectIdValue = projectId.value;
     if (!projectIdValue) {
@@ -6899,6 +6904,7 @@ const handleExportAll = async () => {
     // 构建导出参数
     const params = {
       projectId: projectIdValue,
+      exportType: exportType, // 添加exportType参数：0-导出方案文件，1-按模版导出
       crane: craneResult ? {
         result1: craneResult.result1 !== undefined && craneResult.result1 !== null ? craneResult.result1 : null,
         result2: craneResult.result2 !== undefined && craneResult.result2 !== null ? craneResult.result2 : null
