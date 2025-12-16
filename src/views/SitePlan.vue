@@ -11,6 +11,39 @@
       </div>
       <div class="header-content_right">
         <div class="header-content_right_item">
+          <!-- 顶部自由标注工具栏 -->
+          <div class="global-annotation-toolbar">
+            <button
+              v-for="tool in freeAnnotationToolOptions"
+              :key="tool.type"
+              class="global-annotation-tool-btn"
+              :class="{ active: activeFreeAnnotationTool === tool.type }"
+              :title="tool.label"
+              @click.stop="handleFreeAnnotationToolClick(tool.type)"
+            >
+              <!-- 简单图标：T 使用文字，其他用样式区分 -->
+              <span v-if="tool.type === 'free-text'" class="icon-text">T</span>
+              <span v-else class="icon-shape" :class="`icon-${tool.type}`"></span>
+            </button>
+          </div>
+          <el-button
+            size="small"
+            type="default"
+            class="clear-free-annotations-btn"
+            @click="handleClearFreeAnnotations"
+            style="margin-left: 8px"
+          >
+            清除标注
+          </el-button>
+          <el-button
+            size="small"
+            type="danger"
+            class="delete-one-annotation-btn"
+            @click="handleDeleteSelectedAnnotation"
+            style="margin-left: 4px"
+          >
+            删除当前
+          </el-button>
         </div>
         <div class="handle_btn">
           <div class="handle_btn_item" @click="handleSave">
@@ -400,6 +433,64 @@
             @mouseleave="handleCanvasMouseUp"
             @wheel="handleCanvasWheel"
           ></canvas>
+          <!-- 顶部自由标注图形覆盖层 -->
+          <svg
+            v-if="canvasSize.width && canvasSize.height && renderedFreeAnnotations.length"
+            class="free-annotation-overlay"
+            :width="canvasSize.width"
+            :height="canvasSize.height"
+            :viewBox="`0 0 ${canvasSize.width} ${canvasSize.height}`"
+            :style="{
+              transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+              transformOrigin: '0 0'
+            }"
+          >
+            <!-- 此 SVG 仅用于绘制箭头，矩形/圆/三角等复用已有 shapeOverlay 渲染 -->
+            <g v-for="item in renderedFreeAnnotations" :key="item.id">
+              <!-- 单向箭头 -->
+              <g v-if="item.tool === 'free-arrow'">
+                <line
+                  :x1="item.canvasX - (item.config.length || 60) / 2"
+                  :y1="item.canvasY"
+                  :x2="item.canvasX + (item.config.length || 60) / 2"
+                  :y2="item.canvasY"
+                  :stroke="item.config.stroke || '#E74C3C'"
+                  :stroke-width="item.config.strokeWidth || 2"
+                  stroke-linecap="round"
+                />
+                <polygon
+                  :points="`${item.canvasX + (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY - 4}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                />
+              </g>
+              <!-- 双向箭头 -->
+              <g v-else-if="item.tool === 'free-double-arrow'">
+                <line
+                  :x1="item.canvasX - (item.config.length || 60) / 2"
+                  :y1="item.canvasY"
+                  :x2="item.canvasX + (item.config.length || 60) / 2"
+                  :y2="item.canvasY"
+                  :stroke="item.config.stroke || '#E74C3C'"
+                  :stroke-width="item.config.strokeWidth || 2"
+                  stroke-linecap="round"
+                />
+                <polygon
+                  :points="`${item.canvasX + (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY - 4}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                />
+                <polygon
+                  :points="`${item.canvasX - (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX - (item.config.length || 60) / 2 + 8},${item.canvasY - 4}
+                           ${item.canvasX - (item.config.length || 60) / 2 + 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                />
+              </g>
+            </g>
+          </svg>
           <svg
             v-if="canvasSize.width && canvasSize.height"
             class="shape-overlay"
@@ -444,6 +535,13 @@
                 :points="createTrianglePoints(item.canvasX, item.canvasY, item.config.size || MIN_TRIANGLE_SIZE, item.config.rotate || 0)"
                 :fill="item.config.fill || 'rgba(245,108,108,0.25)'"
                 :stroke="item.config.stroke || '#F56C6C'"
+              />
+              <polygon
+                v-else-if="item.tool === 'pentagon'"
+                class="shape-body"
+                :points="createPentagonPoints(item.canvasX, item.canvasY, item.config.size || 48, item.config.rotate || 0)"
+                :fill="item.config.fill || 'rgba(52,152,219,0.25)'"
+                :stroke="item.config.stroke || '#3498DB'"
               />
               <path
                 v-else-if="item.tool === 'sector'"
@@ -858,6 +956,20 @@ const canvasSize = reactive({
   width: 0,
   height: 0,
 });
+
+// 顶部自由标注工具相关状态（与点位绘制完全独立）
+const freeAnnotationToolOptions = [
+  { type: "free-rect-1", label: "矩形" },
+  { type: "free-triangle", label: "三角形" },
+  { type: "free-circle", label: "圆形" },
+  { type: "free-rect-2", label: "矩形2" },
+  { type: "free-text", label: "文字标注" },
+  { type: "free-arrow", label: "单向箭头" },
+  { type: "free-double-arrow", label: "双向箭头" },
+];
+const activeFreeAnnotationTool = ref(null);
+// 自由标注列表，不绑定 crane/point，只记录地理坐标
+const freeAnnotations = ref([]); // { id, tool, position: {x,y}, config }
 
 // 点位拖动相关
 const isDraggingPoint = ref(false);
@@ -1281,6 +1393,29 @@ const renderedShapeItems = computed(() => {
   return result;
 });
 
+// 自由标注渲染数据（只依赖 freeAnnotations）
+const renderedFreeAnnotations = computed(() => {
+  if (!canvas.value || !canvasSize.width || !canvasSize.height) {
+    return [];
+  }
+  // 目前只在单独 SVG 中渲染箭头，其它图形复用 shapeOverlays
+  const arrowItems = freeAnnotations.value.filter((item) =>
+    item.tool === "free-arrow" || item.tool === "free-double-arrow"
+  );
+
+  const items = arrowItems.map((item) => {
+    const baseCoords = convertToCanvasCoords(item.position.x, item.position.y);
+    return {
+      ...item,
+      canvasX: baseCoords.x,
+      canvasY: baseCoords.y,
+      baseCoords,
+    };
+  });
+  console.log("renderedFreeAnnotations 计算结果数量:", items.length, items);
+  return items;
+});
+
 const syncActivePointSelection = () => {
   if (!selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length === 0) {
     activePointId.value = null;
@@ -1452,6 +1587,54 @@ const handleDrawingToolClick = async (toolType) => {
 
   addShapeOverlayForPoint(toolType);
   // addShapeOverlayForPoint 内部会在 nextTick 中重置标志
+};
+
+// 顶部自由标注工具点击
+const handleFreeAnnotationToolClick = (toolType) => {
+  activeFreeAnnotationTool.value =
+    activeFreeAnnotationTool.value === toolType ? null : toolType;
+  console.log(
+    "自由标注工具切换为:",
+    activeFreeAnnotationTool.value || "未选中"
+  );
+};
+
+// 清除所有自由标注（顶部按钮）
+const handleClearFreeAnnotations = () => {
+  if (!freeAnnotations.value.length) {
+    ElMessage.info("当前没有自由标注");
+    return;
+  }
+  freeAnnotations.value = [];
+  // 移除 shapeOverlays 中的自由标注形状（id 以 free_ 开头）
+  shapeOverlays.value = shapeOverlays.value.filter(
+    (shape) => typeof shape.id !== "string" || !shape.id.startsWith("free_")
+  );
+  ElMessage.success("已清除所有自由标注");
+};
+
+// 删除当前选中的一个自由标注
+const handleDeleteSelectedAnnotation = () => {
+  if (!activeShapeId.value) {
+    ElMessage.warning("请先选中一个标注");
+    return;
+  }
+
+  const targetId = activeShapeId.value;
+
+  // 从 shapeOverlays 中删除对应形状
+  shapeOverlays.value = shapeOverlays.value.filter(
+    (shape) => shape.id !== targetId
+  );
+
+  // 从 freeAnnotations 中删除对应记录（id 或 free_ 前缀匹配）
+  freeAnnotations.value = freeAnnotations.value.filter((item) => {
+    const freeId = typeof item.id === "string" ? `free_${item.id}` : `free_${String(item.id)}`;
+    return item.id !== targetId && freeId !== targetId;
+  });
+
+  activeShapeId.value = null;
+  ElMessage.success("已删除当前标注");
 };
 
 const addShapeOverlayForPoint = (toolType, extraConfig = {}) => {
@@ -1966,6 +2149,20 @@ const createTrianglePoints = (cx, cy, size = 60, rotateDeg = 0) => {
   return points.map((p) => `${cx + p.x},${cy + p.y}`).join(" ");
 };
 
+// 五边形的菱形（近似）：基于正五边形，稍微拉伸高度
+const createPentagonPoints = (cx, cy, size = 60, rotateDeg = 0) => {
+  const radius = size / 2;
+  // 5 个顶点角度（顶部为 270°，顺时针）
+  const baseAngles = [270, 342, 54, 126, 198];
+  const points = baseAngles.map((angle) => {
+    const rad = degToRad(angle + rotateDeg);
+    const x = radius * Math.cos(rad);
+    const y = radius * Math.sin(rad) * 1.1; // 稍微拉高一点形成菱形感
+    return { x, y };
+  });
+  return points.map((p) => `${cx + p.x},${cy + p.y}`).join(" ");
+};
+
 const polarToCartesian = (cx, cy, radius, angleDeg) => {
   const rad = degToRad(angleDeg);
   return {
@@ -1987,7 +2184,7 @@ const createSectorPath = (cx, cy, radius, startAngleDeg, endAngleDeg) => {
 };
 
 const isShapeResizable = (tool) =>
-  ["rectangle", "circle", "triangle", "sector", "text"].includes(tool);
+  ["rectangle", "circle", "triangle", "sector", "text", "pentagon"].includes(tool);
 
 // 获取图形的边界框（用于显示控制点）
 const getShapeBounds = (item) => {
@@ -3060,9 +3257,105 @@ const isClickOnShape = (x, y) => {
 };
 
 // 鼠标按下事件处理
-const handleCanvasMouseDown = (event) => {
-  // 如果点击在图形上，不处理 canvas 事件（让 SVG 层处理）
+const handleCanvasMouseDown = async (event) => {
   const mousePos = getMouseCanvasPos(event);
+
+  // 如果选中了顶部自由标注工具，则在任意位置添加自由标注
+  if (activeFreeAnnotationTool.value) {
+    console.log(
+      "检测到自由标注点击, 工具:",
+      activeFreeAnnotationTool.value,
+      "点击坐标(画布):",
+      mousePos
+    );
+    const geoPos = convertToGeoCoords(mousePos.x, mousePos.y);
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+    // 与点位绘制颜色区分开的默认样式
+    const baseConfigMap = {
+      "free-rect-1": { width: 80, height: 40, stroke: "#1ABC9C", fill: "rgba(26,188,156,0.15)" },
+      "free-triangle": { size: 40, stroke: "#9B59B6", fill: "rgba(155,89,182,0.15)" },
+      "free-circle": { radius: 22, stroke: "#E67E22", fill: "rgba(230,126,34,0.15)" },
+      "free-rect-2": { width: 60, height: 60, stroke: "#3498DB", fill: "rgba(52,152,219,0.15)" },
+      "free-text": { text: "文字标注", fontSize: 14, color: "#2C3E50" },
+      "free-arrow": { length: 60, stroke: "#E74C3C", strokeWidth: 2 },
+      "free-double-arrow": { length: 60, stroke: "#E74C3C", strokeWidth: 2 },
+    };
+
+    let config = baseConfigMap[activeFreeAnnotationTool.value] || {};
+
+    // 文本批注：弹出输入框让用户自定义文字
+    if (activeFreeAnnotationTool.value === "free-text") {
+      try {
+        const { value } = await ElMessageBox.prompt(
+          "请输入标注文字",
+          "添加文字标注",
+          {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            inputValue: config.text || "文字标注",
+          }
+        );
+        config = {
+          ...config,
+          text: value || config.text || "文字标注",
+        };
+      } catch (e) {
+        // 用户取消输入，不创建标注
+        console.log("取消文字标注创建");
+        return;
+      }
+    }
+
+    const next = [
+      ...freeAnnotations.value,
+      {
+        id,
+        tool: activeFreeAnnotationTool.value,
+        position: geoPos,
+        config,
+      },
+    ];
+    freeAnnotations.value = next;
+    console.log("当前自由标注数量:", next.length, next);
+
+    // 非箭头图形，额外在 shapeOverlays 中创建对应形状，复用已有渲染管道
+    if (
+      activeFreeAnnotationTool.value !== "free-arrow" &&
+      activeFreeAnnotationTool.value !== "free-double-arrow"
+    ) {
+      const toolMap = {
+        "free-rect-1": "rectangle",
+        "free-rect-2": "pentagon",
+        "free-circle": "circle",
+        "free-triangle": "triangle",
+        "free-text": "text",
+      };
+      const mappedTool = toolMap[activeFreeAnnotationTool.value];
+      if (mappedTool) {
+        const overlayShape = {
+          id: `free_${id}`,
+          tool: mappedTool,
+          pointId: null,
+          craneId: null,
+          position: geoPos,
+          config,
+        };
+        shapeOverlays.value = [...shapeOverlays.value, overlayShape];
+        console.log(
+          "已向 shapeOverlays 添加自由标注形状:",
+          overlayShape,
+          "当前总数:",
+          shapeOverlays.value.length
+        );
+      }
+    }
+
+    // 自由标注只生成形状，不参与点位拖动 / 画布拖动
+    return;
+  }
+
+  // 如果点击在图形上，不处理 canvas 事件（让 SVG 层处理）
   if (isClickOnShape(mousePos.x, mousePos.y)) {
     return;
   }
@@ -3805,6 +4098,23 @@ const setCranePosition = () => {
           console.error("❌ 无法获取项目标题，所有尝试都失败了");
         }
         
+        // 加载顶部自由标注（如果后端有保存）
+        if (response.data.freeAnnotations || response.data.freeAnnotation) {
+          try {
+            const raw =
+              response.data.freeAnnotations ||
+              response.data.freeAnnotation ||
+              [];
+            const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+            if (Array.isArray(parsed)) {
+              freeAnnotations.value = parsed;
+              console.log("已加载自由标注数量:", parsed.length);
+            }
+          } catch (e) {
+            console.error("解析自由标注数据失败:", e);
+          }
+        }
+
         if (response.data.flatInfo) {
           const flatInfoList = response.data.flatInfo;
           
@@ -4532,6 +4842,10 @@ const handleSave = async () => {
     const payload = {
       projectId: projectId.value,
       sysProjectFlatAddUpdateDetail,
+      // 顶部自由标注一并保存
+      freeAnnotations: freeAnnotations.value && freeAnnotations.value.length
+        ? JSON.stringify(freeAnnotations.value)
+        : null,
     };
 
     // 调试：检查保存的数据中是否包含 shapes
@@ -5748,6 +6062,111 @@ const handleBack = () => {
 
 .shape-bounding-box {
   pointer-events: none;
+}
+
+.free-annotation-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.header-content_right_item .global-annotation-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.global-annotation-tool-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.global-annotation-tool-btn:hover {
+  border-color: #409eff;
+}
+
+.global-annotation-tool-btn.active {
+  border-color: #409eff;
+  background-color: #ecf5ff;
+}
+
+.global-annotation-tool-btn .icon-text {
+  font-weight: 600;
+  font-size: 14px;
+  color: #303133;
+}
+
+.global-annotation-tool-btn .icon-shape {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #606266;
+  box-sizing: border-box;
+}
+
+.global-annotation-tool-btn .icon-free-circle {
+  border-radius: 50%;
+}
+
+.global-annotation-tool-btn .icon-free-triangle {
+  width: 0;
+  height: 0;
+  border: none;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid #606266;
+}
+
+.global-annotation-tool-btn .icon-free-rect-1,
+.global-annotation-tool-btn .icon-free-rect-2 {
+  border-radius: 2px;
+}
+
+.global-annotation-tool-btn .icon-free-arrow,
+.global-annotation-tool-btn .icon-free-double-arrow {
+  position: relative;
+  border: none;
+}
+
+.global-annotation-tool-btn .icon-free-arrow::before,
+.global-annotation-tool-btn .icon-free-double-arrow::before,
+.global-annotation-tool-btn .icon-free-double-arrow::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+  background-color: #606266;
+}
+
+.global-annotation-tool-btn .icon-free-arrow::after {
+  content: "";
+  position: absolute;
+  right: 1px;
+  top: 3px;
+  border-left: 4px solid #606266;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.global-annotation-tool-btn .icon-free-double-arrow::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 3px;
+  border-right: 4px solid #606266;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
 }
 
 .shape-resize-handle {
