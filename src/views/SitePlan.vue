@@ -7,7 +7,7 @@
           <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
           返回
         </el-button>
-        <div class="project_title">{{ projectTitle || '总平规划xxx项目' }}</div>
+        <div class="project_title">{{ projectTitle || '总平规划项目' }}</div>
       </div>
       <div class="header-content_right">
         <div class="header-content_right_item">
