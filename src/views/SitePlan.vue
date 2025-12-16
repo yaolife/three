@@ -6126,9 +6126,22 @@ const handleBack = () => {
   border-bottom: 14px solid #606266;
 }
 
-.global-annotation-tool-btn .icon-free-rect-1,
-.global-annotation-tool-btn .icon-free-rect-2 {
+.global-annotation-tool-btn .icon-free-rect-1 {
   border-radius: 2px;
+}
+
+.global-annotation-tool-btn .icon-free-rect-2 {
+  border-radius: 0;
+  border: none;
+  background-color: #606266;
+  /* 五边形菱形效果 */
+  clip-path: polygon(
+    50% 0%,   /* 上顶点 */
+    100% 35%, /* 右上 */
+    75% 100%, /* 右下 */
+    25% 100%, /* 左下 */
+    0% 35%    /* 左上 */
+  );
 }
 
 .global-annotation-tool-btn .icon-free-arrow,
