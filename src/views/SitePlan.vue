@@ -10,7 +10,7 @@
         <div class="project_title">{{ projectTitle || '总平规划xxx项目' }}</div>
       </div>
       <div class="header-content_right">
-        <div>
+        <div class="header-content_right_item">
         </div>
         <div class="handle_btn">
           <div class="handle_btn_item" @click="handleSave">
