@@ -2773,7 +2773,6 @@ window.testShapeRender = () => {
 };
 
 onMounted(async () => {
-  console.log("========== 页面挂载 (onMounted) ==========");
   // 从路由参数获取项目ID
   projectId.value = route.params.id || "";
   
