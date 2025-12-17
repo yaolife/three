@@ -6127,10 +6127,11 @@ const handleBack = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
+  gap: 14px;
   border-top: 1px solid #c8c8c8;
   background-color: #fafafa;
+  position: fixed;
+  bottom: 0;
 }
 
 .trajectory-icon-controls .icon-btn {
