@@ -2776,9 +2776,6 @@ onMounted(async () => {
   console.log("========== 页面挂载 (onMounted) ==========");
   // 从路由参数获取项目ID
   projectId.value = route.params.id || "";
-  console.log("总平规划项目ID:", projectId.value);
-  console.log("初始 freeAnnotations:", freeAnnotations.value);
-  console.log("初始 shapeOverlays:", shapeOverlays.value);
   
   // 加载项目数据
   if (projectId.value) {

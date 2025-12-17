@@ -557,12 +557,31 @@ const submitForm = async () => {
     const response = await handleEditProject(submitData)
     
     if (response.code === '0') {
+      const isCreate = !formData.value.id // 是否为新建
+      const isGeneralPlan = formData.value.projectType === 2 // 是否为总平规划项目
+      
       ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
       showCreateDialog.value = false
-      // 重置表单
-      resetForm()
-      // 重新加载数据
-      loadProjectData()
+      
+      // 如果是新建的总平规划项目，直接跳转到site-plan页面
+      if (isCreate && isGeneralPlan) {
+        const projectId = response.data // 创建成功返回的项目ID
+        const projectTitle = formData.value.title // 从表单获取标题
+        
+        // 重置表单
+        resetForm()
+        
+        // 跳转到总平规划页面
+        router.push({
+          name: 'SitePlan',
+          params: { id: projectId },
+          query: { title: projectTitle || '' }
+        })
+      } else {
+        // 其他情况：重置表单并重新加载数据
+        resetForm()
+        loadProjectData()
+      }
     } else {
       ElMessage.error(response.msg || '操作失败')
     }
