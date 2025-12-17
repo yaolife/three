@@ -6334,20 +6334,24 @@ const handleBack = () => {
 }
 
 .global-annotation-tool-btn .icon-free-double-arrow {
+  position: relative;
   border: none;
   background: transparent;
+  width: 14px;
+  height: 14px;
   font-size: 16px;
   font-weight: bold;
   color: #606266;
   line-height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .global-annotation-tool-btn .icon-free-double-arrow::before {
   content: "↔";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  display: block;
+  font-size: 14px;
 }
 
 .shape-resize-handle {
