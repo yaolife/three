@@ -6311,6 +6311,7 @@ const handleBack = () => {
 .global-annotation-tool-btn .icon-free-arrow {
   position: relative;
   border: none;
+  transform: rotate(-45deg);
 }
 
 .global-annotation-tool-btn .icon-free-arrow::before {
@@ -6346,6 +6347,7 @@ const handleBack = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  transform: rotate(-45deg);
 }
 
 .global-annotation-tool-btn .icon-free-double-arrow::before {
