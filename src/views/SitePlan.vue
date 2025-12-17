@@ -6144,15 +6144,12 @@ const handleBack = () => {
   );
 }
 
-.global-annotation-tool-btn .icon-free-arrow,
-.global-annotation-tool-btn .icon-free-double-arrow {
+.global-annotation-tool-btn .icon-free-arrow {
   position: relative;
   border: none;
 }
 
-.global-annotation-tool-btn .icon-free-arrow::before,
-.global-annotation-tool-btn .icon-free-double-arrow::before,
-.global-annotation-tool-btn .icon-free-double-arrow::after {
+.global-annotation-tool-btn .icon-free-arrow::before {
   content: "";
   position: absolute;
   top: 6px;
@@ -6172,14 +6169,21 @@ const handleBack = () => {
   border-bottom: 4px solid transparent;
 }
 
-.global-annotation-tool-btn .icon-free-double-arrow::after {
-  content: "";
+.global-annotation-tool-btn .icon-free-double-arrow {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: bold;
+  color: #606266;
+  line-height: 14px;
+}
+
+.global-annotation-tool-btn .icon-free-double-arrow::before {
+  content: "↔";
   position: absolute;
-  left: 1px;
-  top: 3px;
-  border-right: 4px solid #606266;
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .shape-resize-handle {
