@@ -11,6 +11,15 @@
       </div>
       <div class="header-content_right">
         <div class="header-content_right_item">
+          <!-- 导入平面图按钮 -->
+          <el-button
+            size="small"
+            type="primary"
+            @click="showImportDialog"
+            style="margin-right: 12px"
+          >
+            导入平面图
+          </el-button>
           <!-- 顶部自由标注工具栏 -->
           <div class="global-annotation-toolbar">
             <button
@@ -923,8 +932,8 @@ const router = useRouter();
 const projectId = ref("");
 // 项目标题
 const projectTitle = ref("");
-// 控制Dialog显示
-const dialogVisible = ref(true);
+// 控制Dialog显示（初始为false，不自动弹出）
+const dialogVisible = ref(false);
 // 存储导入的图片URL
 const importedImage = ref(null);
 // 用于文件上传的input元素引用
@@ -2782,8 +2791,6 @@ onMounted(async () => {
       console.log("========== 状态检查完成 ==========");
     }, 2000);
   }
-  // 自动显示Dialog
-  dialogVisible.value = false;
   
   // 初始化Canvas
   nextTick(() => {
@@ -5230,6 +5237,11 @@ const handleSave = async () => {
 const handleBack = () => {
   router.push({ path: "/construction-plans" });
 };
+
+  // 显示导入平面图弹窗
+  const showImportDialog = () => {
+    dialogVisible.value = true;
+  };
 
   // 处理关闭弹窗
   const handleCloseModal = () => {
