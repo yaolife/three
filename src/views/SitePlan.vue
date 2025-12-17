@@ -563,6 +563,55 @@
               >
                 {{ item.config.text || '文字' }}
               </text>
+              
+              <!-- 单向箭头 -->
+              <g v-else-if="item.tool === 'arrow'" class="shape-body">
+                <line
+                  :x1="item.canvasX - (item.config.length || 60) / 2"
+                  :y1="item.canvasY"
+                  :x2="item.canvasX + (item.config.length || 60) / 2"
+                  :y2="item.canvasY"
+                  :stroke="item.config.stroke || '#E74C3C'"
+                  :stroke-width="item.config.strokeWidth || 2"
+                  stroke-linecap="round"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+                <polygon
+                  :points="`${item.canvasX + (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY - 4}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+              </g>
+              
+              <!-- 双向箭头 -->
+              <g v-else-if="item.tool === 'double-arrow'" class="shape-body">
+                <line
+                  :x1="item.canvasX - (item.config.length || 60) / 2"
+                  :y1="item.canvasY"
+                  :x2="item.canvasX + (item.config.length || 60) / 2"
+                  :y2="item.canvasY"
+                  :stroke="item.config.stroke || '#E74C3C'"
+                  :stroke-width="item.config.strokeWidth || 2"
+                  stroke-linecap="round"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+                <polygon
+                  :points="`${item.canvasX + (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY - 4}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+                <polygon
+                  :points="`${item.canvasX - (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX - (item.config.length || 60) / 2 + 8},${item.canvasY - 4}
+                           ${item.canvasX - (item.config.length || 60) / 2 + 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+              </g>
 
               <!-- 边界框 -->
               <rect
@@ -1393,27 +1442,11 @@ const renderedShapeItems = computed(() => {
   return result;
 });
 
-// 自由标注渲染数据（只依赖 freeAnnotations）
+// 自由标注渲染数据（已废弃，所有自由标注现在通过 shapeOverlays 渲染）
 const renderedFreeAnnotations = computed(() => {
-  if (!canvas.value || !canvasSize.width || !canvasSize.height) {
-    return [];
-  }
-  // 目前只在单独 SVG 中渲染箭头，其它图形复用 shapeOverlays
-  const arrowItems = freeAnnotations.value.filter((item) =>
-    item.tool === "free-arrow" || item.tool === "free-double-arrow"
-  );
-
-  const items = arrowItems.map((item) => {
-    const baseCoords = convertToCanvasCoords(item.position.x, item.position.y);
-    return {
-      ...item,
-      canvasX: baseCoords.x,
-      canvasY: baseCoords.y,
-      baseCoords,
-    };
-  });
-  console.log("renderedFreeAnnotations 计算结果数量:", items.length, items);
-  return items;
+  // 所有自由标注（包括箭头）现在都通过 shapeOverlays 统一渲染
+  // 保留这个计算属性是为了兼容性，但返回空数组
+  return [];
 });
 
 const syncActivePointSelection = () => {
@@ -2105,6 +2138,87 @@ const resizeShapeWithDelta = (deltaX, deltaY) => {
         // 保持旋转角度不变
         next.rotate = initial.rotate || 0;
       }
+    } else if (tool === "pentagon") {
+      // 五边形调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：旋转
+      // - 边缘控制点（n, s, w, e）：调整大小
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转五边形
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        const initialRotate = initial.rotate || 0;
+        const size = initial.size || 48;
+        const handleOffsetX = handlePos.includes("e") ? size / 2 : -size / 2;
+        const handleOffsetY = handlePos.includes("s") ? size / 2 : -size / 2;
+        const rad = degToRad(initialRotate);
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+        // 保持大小不变
+        next.size = size;
+      } else {
+        // 边缘控制点：调整大小
+        const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
+        next.size = Math.max(20, (initial.size || 48) + delta * sign);
+        next.rotate = initial.rotate || 0; // 保持旋转角度不变
+      }
+    } else if (tool === "arrow" || tool === "double-arrow") {
+      // 箭头调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：旋转
+      // - 左右控制点（w, e）：调整箭头长度
+      // - 上下控制点（n, s）：不做处理（箭头是水平的）
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转箭头
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        const initialRotate = initial.rotate || 0;
+        const length = initial.length || 60;
+        const handleOffsetX = handlePos.includes("e") ? length / 2 : -length / 2;
+        const handleOffsetY = handlePos.includes("s") ? 8 : -8;
+        const rad = degToRad(initialRotate);
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+        // 保持长度不变
+        next.length = length;
+        next.strokeWidth = initial.strokeWidth || 2;
+      } else if (handlePos === "e" || handlePos === "w") {
+        // 左右控制点：调整箭头长度
+        const sign = handlePos === "e" ? 1 : -1;
+        next.length = Math.max(30, (initial.length || 60) + deltaX * sign * 2);
+        next.rotate = initial.rotate || 0;
+        next.strokeWidth = initial.strokeWidth || 2;
+      }
+      // 上下控制点不做处理
     }
     return next;
   });
@@ -2184,7 +2298,7 @@ const createSectorPath = (cx, cy, radius, startAngleDeg, endAngleDeg) => {
 };
 
 const isShapeResizable = (tool) =>
-  ["rectangle", "circle", "triangle", "sector", "text", "pentagon"].includes(tool);
+  ["rectangle", "circle", "triangle", "sector", "text", "pentagon", "arrow", "double-arrow"].includes(tool);
 
 // 获取图形的边界框（用于显示控制点）
 const getShapeBounds = (item) => {
@@ -2249,6 +2363,32 @@ const getShapeBounds = (item) => {
       bottom: item.canvasY + textHeight / 2 + padding,
       width: textWidth + padding * 2,
       height: textHeight + padding * 2,
+    };
+  }
+  if (item.tool === "pentagon") {
+    const size = config.size || 48;
+    const radius = size / 2;
+    return {
+      left: item.canvasX - radius,
+      right: item.canvasX + radius,
+      top: item.canvasY - radius * 1.1,
+      bottom: item.canvasY + radius * 1.1,
+      width: radius * 2,
+      height: radius * 2 * 1.1,
+    };
+  }
+  if (item.tool === "arrow" || item.tool === "double-arrow") {
+    const length = config.length || 60;
+    const strokeWidth = config.strokeWidth || 2;
+    // 箭头的边界框：水平长度 + 箭头头部，垂直方向给一些空间
+    const padding = 8;
+    return {
+      left: item.canvasX - length / 2 - padding,
+      right: item.canvasX + length / 2 + padding,
+      top: item.canvasY - padding,
+      bottom: item.canvasY + padding,
+      width: length + padding * 2,
+      height: padding * 2,
     };
   }
   return null;
@@ -3319,36 +3459,33 @@ const handleCanvasMouseDown = async (event) => {
     freeAnnotations.value = next;
     console.log("当前自由标注数量:", next.length, next);
 
-    // 非箭头图形，额外在 shapeOverlays 中创建对应形状，复用已有渲染管道
-    if (
-      activeFreeAnnotationTool.value !== "free-arrow" &&
-      activeFreeAnnotationTool.value !== "free-double-arrow"
-    ) {
-      const toolMap = {
-        "free-rect-1": "rectangle",
-        "free-rect-2": "pentagon",
-        "free-circle": "circle",
-        "free-triangle": "triangle",
-        "free-text": "text",
+    // 所有自由标注图形都在 shapeOverlays 中创建，复用已有渲染管道
+    const toolMap = {
+      "free-rect-1": "rectangle",
+      "free-rect-2": "pentagon",
+      "free-circle": "circle",
+      "free-triangle": "triangle",
+      "free-text": "text",
+      "free-arrow": "arrow",
+      "free-double-arrow": "double-arrow",
+    };
+    const mappedTool = toolMap[activeFreeAnnotationTool.value];
+    if (mappedTool) {
+      const overlayShape = {
+        id: `free_${id}`,
+        tool: mappedTool,
+        pointId: null,
+        craneId: null,
+        position: geoPos,
+        config,
       };
-      const mappedTool = toolMap[activeFreeAnnotationTool.value];
-      if (mappedTool) {
-        const overlayShape = {
-          id: `free_${id}`,
-          tool: mappedTool,
-          pointId: null,
-          craneId: null,
-          position: geoPos,
-          config,
-        };
-        shapeOverlays.value = [...shapeOverlays.value, overlayShape];
-        console.log(
-          "已向 shapeOverlays 添加自由标注形状:",
-          overlayShape,
-          "当前总数:",
-          shapeOverlays.value.length
-        );
-      }
+      shapeOverlays.value = [...shapeOverlays.value, overlayShape];
+      console.log(
+        "已向 shapeOverlays 添加自由标注形状:",
+        overlayShape,
+        "当前总数:",
+        shapeOverlays.value.length
+      );
     }
 
     // 自由标注只生成形状，不参与点位拖动 / 画布拖动
@@ -4109,6 +4246,33 @@ const setCranePosition = () => {
             if (Array.isArray(parsed)) {
               freeAnnotations.value = parsed;
               console.log("已加载自由标注数量:", parsed.length);
+              
+              // 将自由标注也添加到 shapeOverlays 中以支持交互
+              const toolMap = {
+                "free-rect-1": "rectangle",
+                "free-rect-2": "pentagon",
+                "free-circle": "circle",
+                "free-triangle": "triangle",
+                "free-text": "text",
+                "free-arrow": "arrow",
+                "free-double-arrow": "double-arrow",
+              };
+              
+              parsed.forEach((annotation) => {
+                const mappedTool = toolMap[annotation.tool];
+                if (mappedTool) {
+                  const overlayShape = {
+                    id: `free_${annotation.id}`,
+                    tool: mappedTool,
+                    pointId: null,
+                    craneId: null,
+                    position: annotation.position,
+                    config: annotation.config,
+                  };
+                  shapeOverlays.value.push(overlayShape);
+                }
+              });
+              console.log("已将自由标注添加到 shapeOverlays，总数:", shapeOverlays.value.length);
             }
           } catch (e) {
             console.error("解析自由标注数据失败:", e);
