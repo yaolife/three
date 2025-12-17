@@ -1548,6 +1548,36 @@ watch(
   { deep: true }
 );
 
+// 标记是否正在加载数据，避免加载时触发自动保存
+let isLoadingData = false;
+
+// 监听自由标注变化，自动保存（使用防抖，避免频繁保存）
+let freeAnnotationsSaveTimer = null;
+watch(
+  () => freeAnnotations.value,
+  (newVal) => {
+    // 如果正在加载数据，不触发自动保存
+    if (isLoadingData) {
+      console.log("⏸️ 正在加载数据，跳过自动保存");
+      return;
+    }
+    
+    // 清除之前的定时器
+    if (freeAnnotationsSaveTimer) {
+      clearTimeout(freeAnnotationsSaveTimer);
+    }
+    
+    // 延迟2秒后自动保存（防抖）
+    freeAnnotationsSaveTimer = setTimeout(() => {
+      if (projectId.value && cranes.value && cranes.value.length > 0) {
+        console.log("✓ 自由标注变化，触发自动保存...");
+        handleSave();
+      }
+    }, 2000);
+  },
+  { deep: true }
+);
+
 const handlePointItemClick = (point) => {
   // 允许选中移动点位，只是不能绘制点位占位
   activePointId.value = point.id;
@@ -1760,7 +1790,35 @@ let pointerListenersAttached = false;
 const updateShape = (shapeId, updater) => {
   shapeOverlays.value = shapeOverlays.value.map((shape) => {
     if (shape.id !== shapeId) return shape;
-    return updater(shape);
+    const updated = updater(shape);
+    
+    // 如果这是自由标注（id 以 free_ 开头），同步更新 freeAnnotations
+    if (typeof updated.id === 'string' && updated.id.startsWith('free_')) {
+      const originalId = updated.id.replace('free_', '');
+      const freeIndex = freeAnnotations.value.findIndex(item => item.id === originalId);
+      if (freeIndex !== -1) {
+        // 反向映射工具类型
+        const reverseToolMap = {
+          "rectangle": "free-rect-1",
+          "pentagon": "free-rect-2",
+          "circle": "free-circle",
+          "triangle": "free-triangle",
+          "text": "free-text",
+          "arrow": "free-arrow",
+          "double-arrow": "free-double-arrow",
+        };
+        
+        freeAnnotations.value[freeIndex] = {
+          ...freeAnnotations.value[freeIndex],
+          tool: reverseToolMap[updated.tool] || freeAnnotations.value[freeIndex].tool,
+          position: updated.position || freeAnnotations.value[freeIndex].position,
+          config: updated.config || freeAnnotations.value[freeIndex].config,
+        };
+        console.log("✓ 同步更新 freeAnnotations:", originalId, freeAnnotations.value[freeIndex]);
+      }
+    }
+    
+    return updated;
   });
 };
 
@@ -2702,12 +2760,27 @@ window.testShapeRender = () => {
 };
 
 onMounted(async () => {
+  console.log("========== 页面挂载 (onMounted) ==========");
   // 从路由参数获取项目ID
   projectId.value = route.params.id || "";
   console.log("总平规划项目ID:", projectId.value);
+  console.log("初始 freeAnnotations:", freeAnnotations.value);
+  console.log("初始 shapeOverlays:", shapeOverlays.value);
+  
   // 加载项目数据
   if (projectId.value) {
-    loadProjectData();
+    console.log("开始加载项目数据...");
+    await loadProjectData();
+    
+    // 加载完成后，等待一会儿再检查状态
+    setTimeout(() => {
+      console.log("========== 加载后状态检查 ==========");
+      console.log("freeAnnotations 数量:", freeAnnotations.value?.length || 0);
+      console.log("shapeOverlays 总数:", shapeOverlays.value?.length || 0);
+      console.log("shapeOverlays 中自由标注数量:", shapeOverlays.value.filter(s => typeof s.id === 'string' && s.id.startsWith('free_')).length);
+      console.log("renderedShapeItems 数量:", renderedShapeItems.value?.length || 0);
+      console.log("========== 状态检查完成 ==========");
+    }, 2000);
   }
   // 自动显示Dialog
   dialogVisible.value = false;
@@ -4172,9 +4245,13 @@ const setCranePosition = () => {
       console.log("========== 开始加载项目数据 ==========");
       console.log("项目ID:", projectId.value);
       
-      // 清空之前的形状数据
+      // 设置加载标志，防止触发自动保存
+      isLoadingData = true;
+      
+      // 清空之前的形状数据和自由标注
       shapeOverlays.value = [];
-      console.log("已清空之前的形状数据");
+      freeAnnotations.value = [];
+      console.log("已清空之前的形状数据和自由标注");
       
       const response = await getGeneralDetails(projectId.value);
       
@@ -4235,17 +4312,23 @@ const setCranePosition = () => {
           console.error("❌ 无法获取项目标题，所有尝试都失败了");
         }
         
-        // 加载顶部自由标注（如果后端有保存）
-        if (response.data.freeAnnotations || response.data.freeAnnotation) {
+        // 加载顶部自由标注（从 sysProjectInfo.freeAnnotations 获取）
+        console.log("========== 开始加载自由标注 ==========");
+        console.log("response.data.sysProjectInfo:", response.data.sysProjectInfo);
+        
+        if (response.data.sysProjectInfo && response.data.sysProjectInfo.freeAnnotations) {
           try {
-            const raw =
-              response.data.freeAnnotations ||
-              response.data.freeAnnotation ||
-              [];
+            const raw = response.data.sysProjectInfo.freeAnnotations;
+            console.log("自由标注原始数据类型:", typeof raw);
+            console.log("自由标注原始数据:", raw);
+            
             const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-            if (Array.isArray(parsed)) {
+            console.log("解析后的自由标注数据:", parsed);
+            
+            if (Array.isArray(parsed) && parsed.length > 0) {
               freeAnnotations.value = parsed;
-              console.log("已加载自由标注数量:", parsed.length);
+              console.log("✓ 已加载自由标注数量:", parsed.length);
+              console.log("自由标注详情:", JSON.stringify(parsed, null, 2));
               
               // 将自由标注也添加到 shapeOverlays 中以支持交互
               const toolMap = {
@@ -4258,7 +4341,8 @@ const setCranePosition = () => {
                 "free-double-arrow": "double-arrow",
               };
               
-              parsed.forEach((annotation) => {
+              parsed.forEach((annotation, index) => {
+                console.log(`处理第 ${index + 1} 个自由标注:`, annotation);
                 const mappedTool = toolMap[annotation.tool];
                 if (mappedTool) {
                   const overlayShape = {
@@ -4270,14 +4354,23 @@ const setCranePosition = () => {
                     config: annotation.config,
                   };
                   shapeOverlays.value.push(overlayShape);
+                  console.log(`✓ 已添加自由标注到 shapeOverlays:`, overlayShape);
+                } else {
+                  console.warn(`⚠️ 未知的自由标注工具类型: ${annotation.tool}`);
                 }
               });
-              console.log("已将自由标注添加到 shapeOverlays，总数:", shapeOverlays.value.length);
+              console.log("✓ 已将自由标注添加到 shapeOverlays，当前总数:", shapeOverlays.value.length);
+            } else {
+              console.log("自由标注数据为空或格式不正确");
             }
           } catch (e) {
-            console.error("解析自由标注数据失败:", e);
+            console.error("❌ 解析自由标注数据失败:", e);
+            console.error("错误堆栈:", e.stack);
           }
+        } else {
+          console.log("后端没有返回自由标注数据 (sysProjectInfo.freeAnnotations)");
         }
+        console.log("========== 自由标注加载完成 ==========");
 
         if (response.data.flatInfo) {
           const flatInfoList = response.data.flatInfo;
@@ -4508,9 +4601,12 @@ const setCranePosition = () => {
               }
             });
             
-            // 添加形状数据
-            shapeOverlays.value = [...shapesToAdd];
-            console.log(`已添加，当前 shapeOverlays 数量:`, shapeOverlays.value.length);
+            // 添加形状数据（追加而不是覆盖，保留之前加载的自由标注）
+            console.log(`添加前 shapeOverlays 数量（包含自由标注）:`, shapeOverlays.value.length);
+            shapeOverlays.value = [...shapeOverlays.value, ...shapesToAdd];
+            console.log(`已添加点位形状，当前 shapeOverlays 总数:`, shapeOverlays.value.length);
+            console.log(`其中自由标注数量:`, shapeOverlays.value.filter(s => typeof s.id === 'string' && s.id.startsWith('free_')).length);
+            console.log(`其中点位形状数量:`, shapeOverlays.value.filter(s => s.pointId).length);
             
             // 强制触发响应式更新
             await nextTick();
@@ -4645,6 +4741,11 @@ const setCranePosition = () => {
       ElMessage.error("加载数据失败，请检查网络连接");
       // 失败时使用默认空数据
       cranes.value = [];
+    } finally {
+      // 清除加载标志，允许后续的自动保存
+      isLoadingData = false;
+      console.log("最终 shapeOverlays 数量:", shapeOverlays.value?.length || 0);
+      console.log("最终 shapeOverlays 中自由标注数量:", shapeOverlays.value.filter(s => typeof s.id === 'string' && s.id.startsWith('free_')).length);
     }
   };
 
@@ -5003,14 +5104,26 @@ const handleSave = async () => {
       };
     });
 
+    
+    const freeAnnotationsToSave = freeAnnotations.value && freeAnnotations.value.length
+      ? JSON.stringify(freeAnnotations.value)
+      : null;
+    
+    if (freeAnnotationsToSave) {
+      console.log("✓ 将保存自由标注数据:", freeAnnotationsToSave.substring(0, 200));
+    } else {
+      console.log("没有自由标注需要保存");
+    }
+    
     const payload = {
       projectId: projectId.value,
       sysProjectFlatAddUpdateDetail,
       // 顶部自由标注一并保存
-      freeAnnotations: freeAnnotations.value && freeAnnotations.value.length
-        ? JSON.stringify(freeAnnotations.value)
-        : null,
+      freeAnnotations: freeAnnotationsToSave,
     };
+    
+    console.log("========== 保存 payload 中的 freeAnnotations ==========");
+    console.log("payload.freeAnnotations:", payload.freeAnnotations);
 
     // 调试：检查保存的数据中是否包含 shapes
     console.log("========== 保存数据检查 ==========");
@@ -5070,11 +5183,39 @@ const handleSave = async () => {
     console.log("========== 保存数据检查完成 ==========");
 
     // 调用保存接口
+    console.log("========== 调用保存接口 ==========");
     const response = await saveGeneralPing(payload);
+    console.log("保存接口响应:", response);
 
     if (response && response.code === "0") {
+      console.log("✅ 保存成功！");
+      console.log("保存的自由标注数量:", freeAnnotations.value?.length || 0);
       ElMessage.success("保存成功");
+      
+      // 保存成功后，验证数据是否正确
+      setTimeout(async () => {
+        console.log("========== 验证保存结果 ==========");
+        try {
+          const verifyResponse = await getGeneralDetails(projectId.value);
+          if (verifyResponse && verifyResponse.code === "0" && verifyResponse.data) {
+            console.log("后端返回的 sysProjectInfo:", verifyResponse.data.sysProjectInfo);
+            
+            if (verifyResponse.data.sysProjectInfo && verifyResponse.data.sysProjectInfo.freeAnnotations) {
+              const savedData = verifyResponse.data.sysProjectInfo.freeAnnotations;
+              const parsed = typeof savedData === "string" ? JSON.parse(savedData) : savedData;
+              console.log("✅ 后端已保存的自由标注数量:", parsed?.length || 0);
+              console.log("后端已保存的自由标注详情:", parsed);
+            } else {
+              console.warn("⚠️ 后端没有返回自由标注数据 (sysProjectInfo.freeAnnotations)");
+            }
+          }
+        } catch (e) {
+          console.error("验证保存结果失败:", e);
+        }
+        console.log("========== 验证完成 ==========");
+      }, 1000);
     } else {
+      console.error("❌ 保存失败:", response?.msg);
       ElMessage.error(response?.msg || "保存失败");
     }
   } catch (error) {
