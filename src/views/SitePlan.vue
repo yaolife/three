@@ -747,7 +747,19 @@
             </div>
           </div>
           <div class="point_setting">
-            <div>点位设置</div>
+            <div class="point_setting_header">
+              <span>点位设置</span>
+              <span 
+                class="reset-trajectory-link" 
+                @click="resetTrajectory"
+                :style="{ 
+                  opacity: (!selectedCrane || !selectedCrane.points || selectedCrane.points.length === 0) ? 0.5 : 1,
+                  cursor: (!selectedCrane || !selectedCrane.points || selectedCrane.points.length === 0) ? 'not-allowed' : 'pointer'
+                }"
+              >
+                重置路径
+              </span>
+            </div>
             <!-- 如果没有起点，显示设置起点按钮 -->
             <div v-if="!hasStartPoint" class="setting_start">
               <!-- <img
@@ -819,14 +831,6 @@
               style="width: 100%; margin-bottom: 10px;"
             >
               {{ (isPlaying && playingCraneId === selectedCrane?.id) ? '停止播放' : '播放路径动画' }}
-            </el-button>
-            <el-button 
-              type="warning" 
-              :disabled="!selectedCrane || !selectedCrane.points || selectedCrane.points.length === 0"
-              @click="resetTrajectory"
-              style="width: 100%; margin-bottom: 10px;"
-            >
-              重置路径
             </el-button>
             <!-- 单个起重机录制按钮 -->
             <el-button 
@@ -5565,6 +5569,12 @@ const handleBack = () => {
       return;
     }
     
+    // 检查是否有点位
+    if (!selectedCrane.value.points || selectedCrane.value.points.length === 0) {
+      ElMessage.warning("当前路径为空，无需重置");
+      return;
+    }
+    
     // 如果正在播放，先停止
     if (isPlaying.value && playingCraneId.value === selectedCrane.value.id) {
       stopPlayback();
@@ -6057,6 +6067,31 @@ const handleBack = () => {
   max-height: 300px;
   overflow-y: auto;
 }
+
+.point_setting_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reset-trajectory-link {
+  color: #0077FF;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s;
+  user-select: none;
+}
+
+.reset-trajectory-link:hover {
+  color: #0055CC;
+  text-decoration: underline;
+}
+
+.reset-trajectory-link:active {
+  color: #003399;
+}
+
 .setting_start{
   margin-top: 15px;
   display: flex;
