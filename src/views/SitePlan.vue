@@ -822,41 +822,50 @@
               >添加路径点位</span>
             >
           </div>
-          <!-- 播放和重置按钮 -->
-          <div class="trajectory-controls">
-            <el-button 
-              type="primary" 
-              :disabled="!selectedCrane || !selectedCrane.points || selectedCrane.points.length < 2"
-              @click="togglePlayback"
-              style="width: 100%; margin-bottom: 10px;"
+          <!-- 播放和录制图标按钮 -->
+          <div class="trajectory-icon-controls">
+            <el-tooltip 
+              :content="(isPlaying && playingCraneId === selectedCrane?.id) ? '停止播放' : '播放路径动画'"
+              placement="top"
             >
-              {{ (isPlaying && playingCraneId === selectedCrane?.id) ? '停止播放' : '播放路径动画' }}
-            </el-button>
-            <!-- 单个起重机录制按钮 -->
-            <el-button 
-              type="success" 
-              :disabled="!selectedCrane || craneRecordingStates[selectedCrane?.id]?.isRecording"
-              @click="startCraneRecording"
-              style="width: 100%; margin-bottom: 10px;"
-            >
-              开始录制
-            </el-button>
-            <el-button 
-              type="danger" 
-              :disabled="!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.isRecording"
-              @click="stopCraneRecording"
-              style="width: 100%; margin-bottom: 10px;"
-            >
-              结束录制
-            </el-button>
-            <el-button 
-              type="info" 
-              :disabled="!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.blob"
-              @click="downloadCraneRecording"
-              style="width: 100%;"
-            >
-              下载录制
-            </el-button>
+              <div 
+                class="icon-btn"
+                :class="{ disabled: !selectedCrane || !selectedCrane.points || selectedCrane.points.length < 2 }"
+                @click="(!selectedCrane || !selectedCrane.points || selectedCrane.points.length < 2) ? null : togglePlayback()"
+              >
+                <img src="@/images/play_animation.png" alt="播放动画" />
+              </div>
+            </el-tooltip>
+            
+            <el-tooltip content="开始录制" placement="top">
+              <div 
+                class="icon-btn"
+                :class="{ disabled: !selectedCrane || craneRecordingStates[selectedCrane?.id]?.isRecording }"
+                @click="(!selectedCrane || craneRecordingStates[selectedCrane?.id]?.isRecording) ? null : startCraneRecording()"
+              >
+                <img src="@/images/start_recording.png" alt="开始录制" />
+              </div>
+            </el-tooltip>
+            
+            <el-tooltip content="结束录制" placement="top">
+              <div 
+                class="icon-btn"
+                :class="{ disabled: !selectedCrane || !craneRecordingStates[selectedCrane?.id]?.isRecording }"
+                @click="(!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.isRecording) ? null : stopCraneRecording()"
+              >
+                <img src="@/images/stop_recording.png" alt="结束录制" />
+              </div>
+            </el-tooltip>
+            
+            <el-tooltip content="下载录制" placement="top">
+              <div 
+                class="icon-btn"
+                :class="{ disabled: !selectedCrane || !craneRecordingStates[selectedCrane?.id]?.blob }"
+                @click="(!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.blob) ? null : downloadCraneRecording()"
+              >
+                <img src="@/images/download_recording.png" alt="下载录制" />
+              </div>
+            </el-tooltip>
           </div>
         </div>
       </div>
@@ -6114,10 +6123,47 @@ const handleBack = () => {
 .add_path_point:hover {
   color: #005ce6;
 }
-.trajectory-controls {
+.trajectory-icon-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
   padding: 16px;
   border-top: 1px solid #c8c8c8;
   background-color: #fafafa;
+}
+
+.trajectory-icon-controls .icon-btn {
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 6px;
+}
+
+.trajectory-icon-controls .icon-btn:hover:not(.disabled) {
+  transform: scale(1.15);
+  background-color: rgba(0, 119, 255, 0.1);
+}
+
+.trajectory-icon-controls .icon-btn:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+.trajectory-icon-controls .icon-btn.disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  filter: grayscale(70%);
+}
+
+.trajectory-icon-controls .icon-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .property-item {
   margin-bottom: 5px;
