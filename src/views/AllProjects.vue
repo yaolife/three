@@ -521,27 +521,33 @@ const submitForm = async () => {
     
     if (response.code === '0') {
       const isCreate = !formData.value.id // 是否为新建
-      const isGeneralPlan = formData.value.projectType === 2 // 是否为总平规划项目
+      const projectType = formData.value.projectType
+      const isCalculation = projectType === 0       // 校核计算项目
+      const isGeneralPlan = projectType === 2       // 总平规划项目
       
       ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
       showCreateDialog.value = false
       
-      // 如果是新建的总平规划项目，直接跳转到site-plan页面
-      if (isCreate && isGeneralPlan) {
+      if (isCreate && isCalculation) {
+        // 新建校核计算项目：直接跳转到 CalculationDetail 编辑页
+        const projectId = response.data // 创建成功返回的项目ID
+        resetForm()
+        router.push({
+          name: 'CalculationDetail',
+          params: { id: projectId }
+        })
+      } else if (isCreate && isGeneralPlan) {
+        // 新建总平规划项目：直接跳转到 SitePlan 页面
         const projectId = response.data // 创建成功返回的项目ID
         const projectTitle = formData.value.title // 从表单获取标题
-        
-        // 重置表单
         resetForm()
-        
-        // 跳转到总平规划页面
         router.push({
           name: 'SitePlan',
           params: { id: projectId },
           query: { title: projectTitle || '' }
         })
       } else {
-        // 其他情况：重置表单并重新加载数据
+        // 其他情况：仅刷新列表
         resetForm()
         loadProjectData()
       }
