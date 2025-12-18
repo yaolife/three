@@ -928,6 +928,21 @@ export async function deleteModelItem(id) {
 export function modelPush(params) {
   return post("/template/model/updatePush", params)
 }
+
+/**
+ * 施工场景平面图的渲染
+ * @param {string|number} id - flatImageFileId
+ * @returns {Promise} - 返回操作结果（返回的是文件流的形式）
+ */
+export async function getStreamImage(id) {
+  try {
+    const url = `/file/upload/getStream/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("渲染回显施工场景平面图失败:", error)
+    throw error
+  }
+  }
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -987,5 +1002,6 @@ export default {
   getCraneModelPage,
   addModelInfo,
   deleteModelItem,
-  modelPush
+  modelPush,
+  getStreamImage
 }
