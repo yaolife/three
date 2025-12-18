@@ -933,7 +933,19 @@ export function modelPush(params) {
  * 施工场景平面图的渲染
  * @param {string|number} id - flatImageFileId
  * @returns {Promise} - 返回操作结果（返回的是文件流的形式）
- */
+ 
+## 出参
+### 出参示例
+```json
+{
+  "headers": {},
+  "body": [
+    -34,
+    45
+  ],
+  "status": {}
+}
+  */
 export async function getStreamImage(id) {
   try {
     const url = `/file/upload/getStream/${id}`
