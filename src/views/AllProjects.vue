@@ -23,16 +23,6 @@
           </template>
         </el-table-column>
         <el-table-column prop="title" align="center" label="项目标题" max-width="130" />
-        <el-table-column prop="fileType" align="center" label="文件类型" width="120">
-          <template #default="scope">
-            {{ getFileTypeText(scope.row.fileType) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="projectType" align="center" label="项目类型" width="100">
-          <template #default="scope">
-            {{ getProjectTypeText(scope.row.projectType) }}
-          </template>
-        </el-table-column>
         <el-table-column prop="belongingProject" align="center" label="所属项目" width="170" />
         <el-table-column prop="belongingDept" align="center" label="创建部门" width="170" />
         <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
