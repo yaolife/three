@@ -363,6 +363,14 @@
 
         <!-- 右侧内容区域 - 施工场景平面图及绘制区域 -->
         <div class="image-container">
+          <!-- 平面图加载中的遮罩 -->
+          <div v-if="isPlanImageLoading" class="plan-loading-mask">
+            <el-icon class="is-loading">
+              <Loading />
+            </el-icon>
+            <span>施工场景平面图加载中...</span>
+          </div>
+
           <!-- 有平面图时：显示绘制工具 + 平面图 + 画布 -->
           <template v-if="planImageUrl || importedImage">
           <div v-if="selectedCrane" class="drawing-toolbar">
@@ -932,7 +940,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { ArrowLeft, Search, Close, User, Lock } from "@element-plus/icons-vue";
+import { ArrowLeft, Search, Close, User, Lock, Loading } from "@element-plus/icons-vue";
 import startIconSrc from "@/images/point.png";
 import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
@@ -961,6 +969,8 @@ const flatImageFileId = ref(null);
 const flatImageFile = ref(null);
 // 当前显示的施工场景平面图 URL（后端流或本地预览）
 const planImageUrl = ref(null);
+// 施工场景平面图是否正在加载中（用于显示 loading）
+const isPlanImageLoading = ref(false);
 
 // 起重机相关数据
 const cranes = ref([]);
@@ -4333,6 +4343,7 @@ const setCranePosition = () => {
 
             try {
               // 使用封装的 getStreamImage 接口获取图片流
+              isPlanImageLoading.value = true;
               const blob = await getStreamImage(flatId);
               planImageUrl.value = URL.createObjectURL(blob);
               console.log("✓ 已通过 getStreamImage 加载施工场景平面图");
@@ -4340,6 +4351,8 @@ const setCranePosition = () => {
               console.error("加载施工场景平面图失败:", e);
               planImageUrl.value = null;
               ElMessage.warning("加载施工场景平面图失败");
+            } finally {
+              isPlanImageLoading.value = false;
             }
           } else {
             // 没有保存过施工场景平面图
@@ -6393,6 +6406,25 @@ const handleBack = () => {
   align-items: center;
   box-sizing: border-box;
   margin-right: 280px;
+}
+
+.plan-loading-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 10;
+  color: #606266;
+  font-size: 13px;
+}
+
+.plan-loading-mask .el-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: #409eff;
 }
 
 /* 没有施工场景平面图时的空状态样式 */
