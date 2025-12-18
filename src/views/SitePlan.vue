@@ -3343,7 +3343,7 @@ const drawAllTrajectories = () => {
     return a.pointIndex - b.pointIndex;
   });
   
-  // 绘制所有点位
+  // 绘制所有点位（图标 + 点位名称标签）
   allPoints.forEach(({ point, crane, index, isSelected, isStart }) => {
     const coords = convertToCanvasCoords(point.x, point.y);
     const color = crane.color || '#26256B';
@@ -3363,17 +3363,38 @@ const drawAllTrajectories = () => {
     
     const iconSize = (pointIconSizes[iconKey] || 24) * (isSelected ? 1.1 : 1);
     
+    // 绘制点位图标
     if (iconImage && iconImage.complete) {
-      ctx.value.drawImage(iconImage, coords.x - iconSize / 2, coords.y - iconSize / 2, iconSize, iconSize);
+      ctx.value.drawImage(
+        iconImage,
+        coords.x - iconSize / 2,
+        coords.y - iconSize / 2,
+        iconSize,
+        iconSize
+      );
     } else {
       // 备用：使用彩色圆形
-    ctx.value.beginPath();
-    ctx.value.fillStyle = color;
+      ctx.value.beginPath();
+      ctx.value.fillStyle = color;
       ctx.value.arc(coords.x, coords.y, iconSize / 2, 0, Math.PI * 2);
-    ctx.value.fill();
-    ctx.value.strokeStyle = '#ffffff';
+      ctx.value.fill();
+      ctx.value.strokeStyle = '#ffffff';
       ctx.value.lineWidth = 1;
-    ctx.value.stroke();
+      ctx.value.stroke();
+    }
+
+    // 绘制点位名称（在图标下面，14px）
+    const label = point.name || '';
+    if (label) {
+      const fontSize = 14;
+      const margin = 4; // 图标底部与文字之间的间距
+      ctx.value.save();
+      ctx.value.font = `${fontSize}px sans-serif`;
+      ctx.value.fillStyle = "#333333";
+      ctx.value.textAlign = "center";
+      ctx.value.textBaseline = "top";
+      ctx.value.fillText(label, coords.x, coords.y + iconSize / 2 + margin);
+      ctx.value.restore();
     }
   });
   
