@@ -948,13 +948,23 @@ export function modelPush(params) {
   */
 export async function getStreamImage(id) {
   try {
-    const url = `/file/upload/getStream/${id}`
-    return await get(url)
+    const response = await fetch(`${API_BASE_URL}/file/upload/getStream/${id}`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // 返回 Blob，供前端生成 URL 使用
+    const blob = await response.blob();
+    return blob;
   } catch (error) {
-    console.error("渲染回显施工场景平面图失败:", error)
-    throw error
+    console.error("渲染回显施工场景平面图失败:", error);
+    throw error;
   }
-  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,

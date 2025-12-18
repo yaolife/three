@@ -939,7 +939,7 @@ import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import carModelSrc from "@/images/car_model.png";
 import RecordRTC from "recordrtc";
-import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login, intelligentCraneSelection } from "@/api/index";
+import { uploadImage, saveGeneralPing, getGeneralDetails, getStreamImage, exportProject, login, intelligentCraneSelection } from "@/api/index";
 import userStore from "@/store/user.js";
 
 const route = useRoute();
@@ -4332,23 +4332,10 @@ const setCranePosition = () => {
             importedImage.value = null; // 使用后端图片，不再用本地预览
 
             try {
-              // 直接通过 fetch 获取图片流并生成本地 URL
-              const token = localStorage.getItem("token");
-              const headers = {};
-              if (token) {
-                headers["token"] = token;
-                headers["ngrok-skip-browser-warning"] = true;
-              }
-              const resp = await fetch(`/server-api/file/upload/getStream/${flatId}`, {
-                method: "GET",
-                headers,
-              });
-              if (!resp.ok) {
-                throw new Error(`HTTP error! status: ${resp.status}`);
-              }
-              const blob = await resp.blob();
+              // 使用封装的 getStreamImage 接口获取图片流
+              const blob = await getStreamImage(flatId);
               planImageUrl.value = URL.createObjectURL(blob);
-              console.log("✓ 已加载施工场景平面图");
+              console.log("✓ 已通过 getStreamImage 加载施工场景平面图");
             } catch (e) {
               console.error("加载施工场景平面图失败:", e);
               planImageUrl.value = null;
