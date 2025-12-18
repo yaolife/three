@@ -4733,7 +4733,6 @@ const setCranePosition = () => {
               setTimeout(() => {
                 shapeOverlays.value = [...shapeOverlays.value];
                 const renderedItems = renderedShapeItems.value;
-                console.log(`========== 延迟刷新验证 ==========`);
                 console.log(`延迟刷新后 renderedShapeItems 数量:`, renderedItems.length);
                 console.log(`延迟刷新后 shapeOverlays 数量:`, shapeOverlays.value.length);
                 
