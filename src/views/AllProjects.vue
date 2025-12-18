@@ -68,33 +68,6 @@
     <!-- 创建/编辑项目弹窗 -->
     <el-dialog v-model="showCreateDialog" title="创建项目" width="500px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-         <el-form-item label="选择类型">   </el-form-item>
-        <el-form-item label="">
-          <div class="project-type-container" style="margin-left: -80px;">
-            <div class="project-type-item" :class="{ 'active': formData.projectType === 0 }" @click="formData.projectType = 0; formData.fileType = 0">
-              <div class="project-type-icon" :class="{ 'active': formData.projectType === 0 }">
-                <span>校核计算</span>
-                <img src="@/images/verification.png" alt="校核计算" style="width: 30px;height: 30px;">
-              </div>
-              <div class="project-type-label">新建校核计算</div>
-            </div>
-            <div class="project-type-item" :class="{ 'active': formData.projectType === 1 }" @click="formData.projectType = 1; formData.fileType = 1">
-              <div class="project-type-icon" :class="{ 'active': formData.projectType === 1 }">
-                <span>三维仿真</span>
-                 <img src="@/images/three_dimensional.png" alt="三维仿真" style="width: 30px;height: 30px;">
-              </div>
-              <div class="project-type-label">新建三维仿真</div>
-            </div>
-            <div class="project-type-item" :class="{ 'active': formData.projectType === 2 }" @click="formData.projectType = 2; formData.fileType = 1">
-              <div class="project-type-icon" :class="{ 'active': formData.projectType === 2 }">
-                <span>总平规划</span>
-                 <img src="@/images/site_plan.png" alt="总平规划" style="width: 30px;height: 30px;">
-              </div>
-              <div class="project-type-label">新建总平规划</div>
-            </div>
-          </div>
-        </el-form-item>
-        
         <el-form-item label="项目标题" prop="title" :rules="[{ required: true, message: '请输入项目标题', trigger: 'blur' }]">
           <el-input v-model="formData.title" placeholder="请输入项目标题" />
         </el-form-item>

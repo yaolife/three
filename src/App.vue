@@ -545,27 +545,26 @@ const createProject = () => {
     ElMessage.warning('请先登录');
     return;
   }
-  
-  // 检查当前是否已经在全部项目页面
-  if (route.path === '/all-projects') {
-    // 直接使用全局方法打开弹窗，更可靠
+
+  // 如果当前就在任意一个项目列表页面（校核 / 三维仿真 / 总平规划），
+  // 直接在当前页面打开创建项目弹窗，不再跳转到其它路由
+  if (isProjectListPage.value) {
     if (window.openProjectDialogDirect) {
-      console.log('Using direct method to open project dialog');
+      console.log('Using direct method to open project dialog on current list page');
       window.openProjectDialogDirect();
     } else {
-      // 备用方案：使用setTimeout确保事件正确派发
-      console.log('Falling back to event dispatch method');
+      console.log('Falling back to event dispatch method on current list page');
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('openProjectDialog'));
       }, 100);
     }
-  } else {
-    // 导航到全部项目页面时，设置标志
-    // 注意：只在导航时才设置标志，避免在已存在的页面中误触发
-    console.log('Navigating to all-projects page');
-    window.createProjectFlag = true;
-    router.push('/all-projects');
+    return;
   }
+
+  // 兼容旧逻辑：如果将来在非列表页面也需要“创建项目”，再通过标志跳转
+  console.log('Navigating to verification-projects page for project creation');
+  window.createProjectFlag = true;
+  router.push('/verification-projects');
 };
 
 const handleLoginClick = () => {
