@@ -11,15 +11,6 @@
       </div>
       <div class="header-content_right">
         <div class="header-content_right_item">
-          <!-- 导入平面图按钮 -->
-          <el-button
-            size="small"
-            type="primary"
-            @click="showImportDialog"
-            style="margin-right: 12px"
-          >
-            导入平面图
-          </el-button>
           <!-- 顶部自由标注工具栏 -->
           <div class="global-annotation-toolbar">
             <button
@@ -370,8 +361,10 @@
           </template>
         </el-dialog>
 
-        <!-- 右侧内容区域 - 显示导入的图片 -->
+        <!-- 右侧内容区域 - 施工场景平面图及绘制区域 -->
         <div class="image-container">
+          <!-- 有平面图时：显示绘制工具 + 平面图 + 画布 -->
+          <template v-if="planImageUrl || importedImage">
           <div v-if="selectedCrane" class="drawing-toolbar">
             <div class="toolbar-headline">
               <div class="toolbar-title">绘制点位占位</div>
@@ -419,10 +412,10 @@
               </el-button>
             </div>
           </div>
-          <!-- 施工场景平面图 -->
+          <!-- 施工场景平面图（优先显示后端流，其次本地导入预览） -->
           <img
             ref="imageRef"
-            src="@/images/planning.png"
+            :src="planImageUrl || importedImage"
             alt="总平规划图"
             class="plan-image"
             :style="{
@@ -500,6 +493,17 @@
               </g>
             </g>
           </svg>
+          </template>
+
+          <!-- 没有平面图时：居中显示添加按钮 -->
+          <template v-else>
+            <div class="image-empty">
+              <div class="image-empty-text">当前暂无施工场景平面图</div>
+              <el-button type="primary" @click="showImportDialog">
+                添加施工场景平面图
+              </el-button>
+            </div>
+          </template>
           <svg
             v-if="canvasSize.width && canvasSize.height"
             class="shape-overlay"
@@ -951,6 +955,12 @@ const dialogVisible = ref(false);
 const importedImage = ref(null);
 // 用于文件上传的input元素引用
 const fileInput = ref(null);
+// 施工场景平面图 fileId（从后端获取或上传后返回）
+const flatImageFileId = ref(null);
+// 用户当前选择但尚未上传的施工场景平面图文件
+const flatImageFile = ref(null);
+// 当前显示的施工场景平面图 URL（后端流或本地预览）
+const planImageUrl = ref(null);
 
 // 起重机相关数据
 const cranes = ref([]);
@@ -4291,11 +4301,13 @@ const setCranePosition = () => {
           });
         }
         
-        // 设置项目标题（优先从 sysProjectInfo 获取）
+        // 设置项目标题（优先从 sysProjectInfo 获取），并加载施工场景平面图
         let titleFound = false;
-        
+
         if (response.data.sysProjectInfo) {
-          const title = response.data.sysProjectInfo.title;
+          const sysInfo = response.data.sysProjectInfo;
+
+          const title = sysInfo.title;
           console.log("从 sysProjectInfo 获取的 title:", title);
           if (title) {
             projectTitle.value = String(title).trim();
@@ -4304,8 +4316,56 @@ const setCranePosition = () => {
           } else {
             console.warn("sysProjectInfo.title 为空或未定义");
           }
+
+          // 处理施工场景平面图 flatImageFileId
+          const flatId = sysInfo.flatImageFileId;
+          console.log("从 sysProjectInfo 获取的 flatImageFileId:", flatId);
+
+          // 如有旧的 blob: URL，先释放
+          if (planImageUrl.value && planImageUrl.value.startsWith("blob:")) {
+            URL.revokeObjectURL(planImageUrl.value);
+          }
+
+          if (flatId) {
+            flatImageFileId.value = flatId;
+            flatImageFile.value = null; // 清空待上传文件
+            importedImage.value = null; // 使用后端图片，不再用本地预览
+
+            try {
+              // 直接通过 fetch 获取图片流并生成本地 URL
+              const token = localStorage.getItem("token");
+              const headers = {};
+              if (token) {
+                headers["token"] = token;
+                headers["ngrok-skip-browser-warning"] = true;
+              }
+              const resp = await fetch(`/server-api/file/upload/getStream/${flatId}`, {
+                method: "GET",
+                headers,
+              });
+              if (!resp.ok) {
+                throw new Error(`HTTP error! status: ${resp.status}`);
+              }
+              const blob = await resp.blob();
+              planImageUrl.value = URL.createObjectURL(blob);
+              console.log("✓ 已加载施工场景平面图");
+            } catch (e) {
+              console.error("加载施工场景平面图失败:", e);
+              planImageUrl.value = null;
+              ElMessage.warning("加载施工场景平面图失败");
+            }
+          } else {
+            // 没有保存过施工场景平面图
+            flatImageFileId.value = null;
+            planImageUrl.value = null;
+            flatImageFile.value = null;
+            // importedImage 由用户导入时再设置
+          }
         } else {
           console.warn("response.data.sysProjectInfo 不存在");
+          flatImageFileId.value = null;
+          planImageUrl.value = null;
+          flatImageFile.value = null;
         }
         
         // 如果还没有找到标题，尝试其他可能的路径
@@ -5198,9 +5258,48 @@ const handleSave = async () => {
     });
     console.log("========== 保存数据检查完成 ==========");
 
-    // 调用保存接口
+    // 在调用保存接口前，处理施工场景平面图 flatImageFileId
+    let finalFlatImageFileId = flatImageFileId.value || null;
+
+    // 如果本次有新选择的平面图文件，先上传获取 fileId
+    if (flatImageFile.value) {
+      try {
+        console.log("========== 上传施工场景平面图 ==========");
+        const uploadResponse = await uploadImage(
+          flatImageFile.value,
+          flatImageFile.value.name || "plan_image.png"
+        );
+
+        if (
+          uploadResponse &&
+          uploadResponse.code === "0" &&
+          uploadResponse.data &&
+          uploadResponse.data.fileId
+        ) {
+          finalFlatImageFileId = uploadResponse.data.fileId;
+          flatImageFileId.value = finalFlatImageFileId;
+          console.log("✓ 施工场景平面图上传成功，fileId:", finalFlatImageFileId);
+          // 清空临时文件引用，避免下次重复上传
+          flatImageFile.value = null;
+        } else {
+          console.error("施工场景平面图上传失败:", uploadResponse?.msg);
+          ElMessage.warning("施工场景平面图上传失败");
+        }
+      } catch (error) {
+        console.error("施工场景平面图上传失败:", error);
+        ElMessage.warning("施工场景平面图上传失败");
+      }
+    }
+
+    // 调用保存接口，flatImageFileId 与 projectId 同级传入
     console.log("========== 调用保存接口 ==========");
-    const response = await saveGeneralPing(payload);
+    const finalPayload = {
+      ...payload,
+      flatImageFileId: finalFlatImageFileId,
+    };
+    console.log("保存参数 flatImageFileId:", finalPayload.flatImageFileId);
+
+    const response = await saveGeneralPing(finalPayload);
     console.log("保存接口响应:", response);
 
     if (response && response.code === "0") {
@@ -5259,7 +5358,7 @@ const handleBack = () => {
     console.log("关闭弹窗");
   };
 
-  // 处理导入平面图
+  // 处理导入平面图（顶部/弹窗入口）
   const handleImportPlan = () => {
     // 创建隐藏的文件输入元素
     if (!fileInput.value) {
@@ -5269,11 +5368,18 @@ const handleBack = () => {
       fileInput.value.onchange = (event) => {
         const file = event.target.files[0];
         if (file) {
+          // 记录用户选择的平面图文件，保存时上传以获取 flatImageFileId
+          flatImageFile.value = file;
+          // 每次重新选择图片时，认为是新的平面图，清空旧的 fileId
+          flatImageFileId.value = null;
+
           // 创建图片预览URL
           const reader = new FileReader();
           reader.onload = (e) => {
             importedImage.value = e.target.result;
             console.log("已导入图片:", importedImage.value);
+            // 使用新导入的图片进行显示，不再使用后端图片
+            planImageUrl.value = null;
             // 关闭弹窗
             dialogVisible.value = false;
           };
@@ -6300,6 +6406,22 @@ const handleBack = () => {
   align-items: center;
   box-sizing: border-box;
   margin-right: 280px;
+}
+
+/* 没有施工场景平面图时的空状态样式 */
+.image-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #606266;
+  gap: 12px;
+}
+
+.image-empty-text {
+  font-size: 14px;
 }
 
 .drawing-toolbar {
