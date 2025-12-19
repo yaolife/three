@@ -179,6 +179,22 @@
             inactive-text="禁用"
           />
         </el-form-item>
+        <el-form-item label="菜单权限" prop="menus">
+          <el-select
+            v-model="formData.menus"
+            multiple
+            placeholder="请选择菜单权限"
+            style="width: 100%"
+            collapse-tags
+            collapse-tags-tooltip
+          >
+            <el-option label="校核计算" value="0" />
+            <el-option label="虚拟仿真" value="1" />
+            <el-option label="总平规划" value="2" />
+            <el-option label="数据管理" value="3" />
+            <el-option label="账号管理" value="4" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -228,6 +244,7 @@ const formData = reactive({
   password: "",
   level: 0,
   state: 0,
+  menus: [], // 菜单权限，数组类型，值为字符串 "0" 到 "4"
 });
 
 // 密码验证规则
@@ -392,6 +409,24 @@ const handleEdit = (row) => {
     formData.password = ""; // 编辑时不显示密码，留空则不修改
     formData.level = row.level !== undefined && row.level !== null ? Number(row.level) : 0;
     formData.state = row.state !== undefined && row.state !== null ? Number(row.state) : 0;
+    // 加载菜单权限（如果有的话，需要转换为字符串数组）
+    if (row.menus) {
+      // 如果 menus 是字符串，尝试解析；如果是数组，直接使用
+      if (typeof row.menus === 'string') {
+        try {
+          formData.menus = JSON.parse(row.menus);
+        } catch (e) {
+          formData.menus = Array.isArray(row.menus) ? row.menus : [];
+        }
+      } else if (Array.isArray(row.menus)) {
+        // 确保数组中的值都是字符串
+        formData.menus = row.menus.map(item => String(item));
+      } else {
+        formData.menus = [];
+      }
+    } else {
+      formData.menus = [];
+    }
     // 再次清除验证状态，确保不会显示验证错误
     if (formRef.value) {
       formRef.value.clearValidate();
@@ -408,6 +443,7 @@ const resetForm = () => {
   formData.password = "";
   formData.level = 0;
   formData.state = 0;
+  formData.menus = [];
 };
 
 // 弹窗打开后清除验证状态
@@ -442,6 +478,7 @@ const handleSubmit = async () => {
         userName: formData.userName,
         userUnit: formData.userUnit || null,
         level: formData.level,
+        menus: formData.menus || [], // 菜单权限，数组类型
       };
 
       // 编辑时需要添加id和state
