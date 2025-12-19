@@ -4884,7 +4884,6 @@ const handleLogin = async () => {
         userStore.login(
           response.data.userName || loginForm.username,
           response.data.userNickName || null,
-          response.data.level !== undefined ? response.data.level : null,
           null, // loginType
           response.data.menus || null // 菜单权限
         );

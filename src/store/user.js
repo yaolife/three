@@ -6,19 +6,17 @@ const userState = reactive({
   userInfo: {
     name: '',
     id: '',
-    level: null, // 账号级别：1为管理员，0为普通用户
     loginType: null, // 登录类型：0为确认登录，1为管理员登录
     menus: [] // 菜单权限数组，值为字符串 "0" 到 "4"
   }
 })
 
 // 登录方法
-const login = (username, userNickName = null, level = null, loginType = null, menus = null) => {
+const login = (username, userNickName = null, loginType = null, menus = null) => {
   userState.isLoggedIn = true
   userState.userInfo.name = username
   // 如果提供了 userNickName，使用它；否则使用模拟工号
   userState.userInfo.id = userNickName || 'P100000'
-  userState.userInfo.level = level !== null ? level : null
   userState.userInfo.loginType = loginType !== null && loginType !== undefined ? loginType : null
   // 处理 menus：如果是字符串，尝试解析；如果是数组，直接使用；否则为空数组
   if (menus !== null && menus !== undefined) {
@@ -42,7 +40,6 @@ const login = (username, userNickName = null, level = null, loginType = null, me
   localStorage.setItem('userInfo', JSON.stringify({
     name: username,
     id: userNickName || 'P100000',
-    level: level !== null ? level : null,
     loginType: loginType !== null && loginType !== undefined ? loginType : null,
     menus: userState.userInfo.menus
   }))
@@ -53,7 +50,6 @@ const logout = () => {
   userState.isLoggedIn = false
   userState.userInfo.name = ''
   userState.userInfo.id = ''
-  userState.userInfo.level = null
   userState.userInfo.loginType = null
   userState.userInfo.menus = []
   
@@ -73,7 +69,6 @@ const restoreUserState = () => {
       userState.isLoggedIn = true
       userState.userInfo.name = userInfo.name || ''
       userState.userInfo.id = userInfo.id || 'P100000'
-      userState.userInfo.level = userInfo.level !== undefined ? userInfo.level : null
       userState.userInfo.loginType = userInfo.loginType !== undefined ? userInfo.loginType : null
       // 恢复 menus
       if (userInfo.menus && Array.isArray(userInfo.menus)) {
@@ -89,7 +84,6 @@ const restoreUserState = () => {
       userState.isLoggedIn = false
       userState.userInfo.name = ''
       userState.userInfo.id = ''
-      userState.userInfo.level = null
       userState.userInfo.loginType = null
       userState.userInfo.menus = []
     }
@@ -98,7 +92,6 @@ const restoreUserState = () => {
     userState.isLoggedIn = false
     userState.userInfo.name = ''
     userState.userInfo.id = ''
-    userState.userInfo.level = null
     userState.userInfo.loginType = null
     userState.userInfo.menus = []
   }
@@ -109,7 +102,6 @@ const skipLogin = () => {
   userState.isLoggedIn = true
   userState.userInfo.name = '访客'
   userState.userInfo.id = 'GUEST001'
-  userState.userInfo.level = null
   userState.userInfo.loginType = null
   userState.userInfo.menus = []
 }

@@ -508,9 +508,11 @@ const handleDeleteAuxBoomRow2 = (index) => {
 // 起重机类型选项
 const craneTypeOptions = getCraneTypeOptions();
 
-// 判断用户是否有权限显示推送功能（level为1时显示）
+// 判断用户是否有权限显示推送功能（根据菜单权限判断，如果包含数据管理菜单则显示）
 const canShowPush = computed(() => {
-  return userStore.userState.userInfo?.level === 1;
+  const userMenus = userStore.userState.userInfo?.menus || [];
+  // 数据管理对应的 menus 值为 "3"
+  return userMenus.includes("3");
 });
 
 // 初始化数据
