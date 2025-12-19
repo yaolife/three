@@ -512,16 +512,23 @@ const backToPath = computed(() => route.meta.backTo || '/verification-projects')
 const activeMenu = computed(() => route.path || "/verification-projects");
 
 const menuOptions = computed(() => {
-  const baseMenus = [
-    { label: "校核计算项目", path: "/verification-projects" },
-    { label: "虚拟仿真项目", path: "/virtual-simulation" },
-    { label: "总平规划项目", path: "/construction-plans" },
-    { label: "数据管理", path: "/data-management" },
+  // 所有菜单项及其对应的 menus 值
+  const allMenus = [
+    { label: "校核计算项目", path: "/verification-projects", menuValue: "0" },
+    { label: "虚拟仿真项目", path: "/virtual-simulation", menuValue: "1" },
+    { label: "总平规划项目", path: "/construction-plans", menuValue: "2" },
+    { label: "数据管理", path: "/data-management", menuValue: "3" },
+    { label: "账号管理", path: "/user-management", menuValue: "4" },
   ];
-  if (userStore.userState.userInfo.level === 1) {
-    baseMenus.push({ label: "账号管理", path: "/user-management" });
-  }
-  return baseMenus;
+  
+  // 获取用户菜单权限
+  const userMenus = userStore.userState.userInfo.menus || [];
+  
+  // 根据用户的 menus 数组过滤菜单
+  return allMenus.filter(menu => {
+    // 将 menuValue 转换为字符串进行比较
+    return userMenus.includes(String(menu.menuValue));
+  });
 });
 
 const displayUserName = computed(() => {
@@ -666,7 +673,8 @@ const handleLogin = async () => {
           response.data.userName || loginForm.username,
           response.data.userNickName || null,
           response.data.level !== undefined ? response.data.level : null,
-          0 // loginType: 0是确认登录
+          0, // loginType: 0是确认登录
+          response.data.menus || null // 菜单权限
         );
       }
       // 清空表单
@@ -715,7 +723,8 @@ const handleOfflineLogin = async () => {
           response.data.userName || loginForm.username,
           response.data.userNickName || null,
           response.data.level !== undefined ? response.data.level : null,
-          1 // loginType: 1是管理员登录
+          1, // loginType: 1是管理员登录
+          response.data.menus || null // 菜单权限
         );
       }
       // 清空表单

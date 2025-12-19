@@ -4883,7 +4883,10 @@ const handleLogin = async () => {
       if (response.data) {
         userStore.login(
           response.data.userName || loginForm.username,
-          response.data.userNickName || null
+          response.data.userNickName || null,
+          response.data.level !== undefined ? response.data.level : null,
+          null, // loginType
+          response.data.menus || null // 菜单权限
         );
       }
       // 清空表单
