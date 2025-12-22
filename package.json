@@ -70,6 +70,7 @@
     "mac": {
       "category": "public.app-category.utilities",
       "executableName": "Electron",
+      "icon": "build/icon_1024.png",
       "target": [
         {
           "target": "dir"
@@ -90,7 +91,7 @@
           ]
         }
       ],
-      "icon": "build/icon.ico",
+      "icon": "build/icon_256.png",
       "requestedExecutionLevel": "asInvoker"
     },
     "linux": {
@@ -99,7 +100,7 @@
         "deb"
       ],
       "category": "Utility",
-      "icon": "build/icon.png"
+      "icon": "build/icon_1024.png"
     },
     "nsis": {
       "oneClick": false,
