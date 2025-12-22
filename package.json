@@ -13,8 +13,7 @@
     "electron:dev": "concurrently \"cross-env NODE_ENV=development vite\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
     "electron:build": "vite build && electron-builder",
     "electron:build:win": "vite build && electron-builder --win",
-    "electron:build:mac": "vite build && electron-builder --mac",
-    "electron:build:linux": "vite build && electron-builder --linux"
+    "electron:build:kylin": "vite build && electron-builder --linux"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
@@ -67,18 +66,6 @@
       "node_modules/**/*",
       "package.json"
     ],
-    "mac": {
-      "category": "public.app-category.utilities",
-      "executableName": "Electron",
-      "icon": "build/icon_1024.png",
-      "target": [
-        {
-          "target": "dir"
-        }
-      ],
-      "hardenedRuntime": false,
-      "gatekeeperAssess": false
-    },
     "win": {
       "target": [
         {
@@ -96,11 +83,37 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "category": "Utility",
-      "icon": "build/icon_1024.png"
+      "icon": "build/icon_1024.png",
+      "vendor": "ThreeConstruction Team",
+      "maintainer": "ThreeConstruction Team",
+      "desktop": {
+        "Name": "ThreeConstruction",
+        "Comment": "ThreeConstruction Desktop Application",
+        "Categories": "Utility;"
+      }
+    },
+    "deb": {
+      "depends": [
+        "libnss3",
+        "libatk-bridge2.0-0",
+        "libdrm2",
+        "libxkbcommon0",
+        "libxcomposite1",
+        "libxdamage1",
+        "libxfixes3",
+        "libxrandr2",
+        "libgbm1",
+        "libasound2"
+      ],
+      "priority": "optional"
     },
     "nsis": {
       "oneClick": false,
