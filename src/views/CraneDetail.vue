@@ -195,8 +195,8 @@
         </div>
       </div>
 
-      <!-- 主臂长度基础编辑 -->
-      <div class="edit-section">
+      <!-- 主臂长度基础编辑（计算方式1：半径+角度） -->
+      <div v-if="isCalculationTypeRadiusAngle" class="edit-section">
         <div class="section-header">
           <span>主臂长度基础编辑</span>
           <el-button type="primary" size="small" @click="handleAddMainBoomRow">
@@ -266,8 +266,8 @@
         </div>
       </div>
 
-      <!-- 主臂+副臂基础编辑 -->
-      <div class="edit-section">
+      <!-- 主臂+副臂基础编辑（计算方式1：半径+角度） -->
+      <div v-if="isCalculationTypeRadiusAngle" class="edit-section">
         <div class="section-header">
           <span>主臂+副臂(46+9.2)基础编辑</span>
           <el-button type="primary" size="small" @click="handleAddAuxBoomRow">
@@ -337,8 +337,8 @@
         </div>
       </div>
       
-      <!-- 主臂+副臂(46+16)基础编辑 -->
-      <div class="edit-section">
+      <!-- 主臂+副臂(46+16)基础编辑（计算方式1：半径+角度） -->
+      <div v-if="isCalculationTypeRadiusAngle" class="edit-section">
         <div class="section-header">
           <span>主臂+副臂(46+16)基础编辑</span>
           <el-button type="primary" size="small" @click="handleAddAuxBoomRow2">
@@ -408,6 +408,108 @@
         </div>
       </div>
 
+      <!-- 动态额载表格编辑（计算方式2：半径+长度） -->
+      <div v-if="isCalculationTypeRadiusLength" class="edit-section">
+        <div class="section-header">
+          <span>额载表格编辑</span>
+          <el-button type="primary" size="small" @click="handleAddDynamicTable(0)">
+            <el-icon><Plus /></el-icon>
+            添加表格
+          </el-button>
+        </div>
+
+        <div
+          v-for="(table, tIndex) in dynamicTables"
+          :key="tIndex"
+          class="table-wrapper"
+        >
+          <div class="section-header">
+            <el-input
+              v-model="table.title"
+              placeholder="请输入表格标题，例如：主臂长度基础编辑"
+              style="max-width: 320px"
+            />
+            <div>
+              <el-button
+                type="primary"
+                size="small"
+                @click="handleAddDynamicRow(tIndex)"
+              >
+                <el-icon><Plus /></el-icon>
+                添加行
+              </el-button>
+              <el-button
+                v-if="dynamicTables.length > 1"
+                type="danger"
+                size="small"
+                style="margin-left: 8px"
+                @click="handleDeleteDynamicTable(tIndex)"
+              >
+                删除表格
+              </el-button>
+            </div>
+          </div>
+
+          <el-table
+            :data="table.rows"
+            border
+            style="width: 100%"
+            :header-cell-style="{ background: '#f5f7fa' }"
+          >
+            <el-table-column type="index" label="序号" width="60" />
+
+            <el-table-column prop="workingRadius" label="工作半径" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.workingRadius"
+                  placeholder="请输入半径"
+                  size="small"
+                >
+                  <template #append>m</template>
+                </el-input>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="boomAngle" label="主臂长度" min-width="180">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.boomAngle"
+                  placeholder="请输入角度或长度"
+                  size="small"
+                >
+                  <template #append>值</template>
+                </el-input>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="liftingCapacity" label="额定载荷" min-width="150">
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.liftingCapacity"
+                  placeholder="请输入额定载荷"
+                  size="small"
+                >
+                  <template #append>t</template>
+                </el-input>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="操作" width="80" fixed="right">
+              <template #default="scope">
+                <el-button
+                  link
+                  type="danger"
+                  size="small"
+                  @click="handleDeleteDynamicRow(tIndex, scope.$index)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+
       <!-- 底部按钮 -->
       <div class="footer-actions">
         <el-button type="primary" size="large" @click="handleConfirm">
@@ -436,6 +538,7 @@ const craneInfo = ref({
   manufacturer: "",
   model: "",
   craneType: "",
+  calculationType: 1, // 额载计算方式：1 半径+角度，2 半径+长度
   push: 0, // 是否推送，0否1是
 });
 
@@ -461,10 +564,29 @@ const craneSpecs = ref({
 // 保存从接口返回的 sysProjectTemplateCraneDetail.id
 const sysProjectTemplateCraneDetailId = ref(null);
 
-// 表格数据
+// 表格数据（计算方式1：半径+角度，使用固定的3个表格）
 const mainBoomTableData = ref([]);
 const auxBoomTableData = ref([]);
 const auxBoomTableData2 = ref([]);
+
+// 动态表格数据（计算方式2：半径+长度，支持动态添加表格）
+const dynamicTables = ref([
+  {
+    title: "主臂长度基础编辑",
+    rows: [],
+  },
+]);
+
+// 计算当前是哪个额载计算方式
+const isCalculationTypeRadiusAngle = computed(() => {
+  const ct = Number(craneInfo.value.calculationType || 1);
+  return ct === 1;
+});
+
+const isCalculationTypeRadiusLength = computed(() => {
+  const ct = Number(craneInfo.value.calculationType || 1);
+  return ct === 2;
+});
 
 // 主臂表格操作函数
 const handleAddMainBoomRow = () => {
@@ -505,6 +627,45 @@ const handleDeleteAuxBoomRow2 = (index) => {
   auxBoomTableData2.value.splice(index, 1);
 };
 
+// 动态表格操作函数（计算方式2）
+const handleAddDynamicTable = (baseIndex = 0) => {
+  const baseTable = dynamicTables.value[baseIndex] || { title: "", rows: [] };
+  // 深拷贝表格和行数据
+  const newTable = {
+    title: baseTable.title,
+    rows: baseTable.rows.map((row) => ({
+      workingRadius: row.workingRadius ?? "",
+      boomAngle: row.boomAngle ?? "",
+      liftingCapacity: row.liftingCapacity ?? "",
+    })),
+  };
+  dynamicTables.value.push(newTable);
+};
+
+const handleDeleteDynamicTable = (tableIndex) => {
+  if (dynamicTables.value.length <= 1) {
+    ElMessage.warning("至少保留一个表格");
+    return;
+  }
+  dynamicTables.value.splice(tableIndex, 1);
+};
+
+const handleAddDynamicRow = (tableIndex) => {
+  const table = dynamicTables.value[tableIndex];
+  if (!table) return;
+  table.rows.push({
+    workingRadius: "",
+    boomAngle: "",
+    liftingCapacity: "",
+  });
+};
+
+const handleDeleteDynamicRow = (tableIndex, rowIndex) => {
+  const table = dynamicTables.value[tableIndex];
+  if (!table) return;
+  table.rows.splice(rowIndex, 1);
+};
+
 // 起重机类型选项
 const craneTypeOptions = getCraneTypeOptions();
 
@@ -531,6 +692,14 @@ onMounted(async () => {
         craneInfo.value.manufacturer = data.prodBusiness || route.query.manufacturer;
         craneInfo.value.model = data.model || route.query.model;
         craneInfo.value.craneType = data.type || route.query.craneType;
+        // 额载计算方式（优先接口，其次路由参数，默认1）
+        if (data.sysProjectTemplateCrane && data.sysProjectTemplateCrane.calculationType !== undefined && data.sysProjectTemplateCrane.calculationType !== null) {
+          craneInfo.value.calculationType = Number(data.sysProjectTemplateCrane.calculationType) || 1;
+        } else if (data.calculationType !== undefined && data.calculationType !== null) {
+          craneInfo.value.calculationType = Number(data.calculationType) || 1;
+        } else if (route.query.calculationType !== undefined && route.query.calculationType !== null) {
+          craneInfo.value.calculationType = Number(route.query.calculationType) || 1;
+        }
         // 从 sysProjectTemplateCrane 对象中获取 push 值，如果没有则从 data.push 或路由参数获取
         if (data.sysProjectTemplateCrane && data.sysProjectTemplateCrane.push !== undefined && data.sysProjectTemplateCrane.push !== null) {
           craneInfo.value.push = parseInt(data.sysProjectTemplateCrane.push) || 0;
@@ -554,37 +723,58 @@ onMounted(async () => {
 
         // 填充boom表格数据（从performanceDataVOS中获取）
         if (data.performanceDataVOS && Array.isArray(data.performanceDataVOS)) {
-          // 清空现有数据
-          mainBoomTableData.value = [];
-          auxBoomTableData.value = [];
-          
-          // 遍历性能数据数组
-          data.performanceDataVOS.forEach(item => {
-            if (item.sysProjectLiftingPerformanceDataList && Array.isArray(item.sysProjectLiftingPerformanceDataList)) {
-              if (item.armType === 0) {
-                // 主臂长度基础编辑表格数据
-                mainBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
-                  workingRadius: performanceData.workingRadius !== undefined && performanceData.workingRadius !== null ? performanceData.workingRadius : "",
-                  boomAngle: performanceData.boomAngle !== undefined && performanceData.boomAngle !== null ? performanceData.boomAngle : "",
-                  liftingCapacity: performanceData.liftingCapacity !== undefined && performanceData.liftingCapacity !== null ? performanceData.liftingCapacity : ""
-                }));
-              } else if (item.armType === 1) {
-                // 主臂+副臂基础编辑表格数据
-                auxBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
-                  workingRadius: performanceData.workingRadius !== undefined && performanceData.workingRadius !== null ? performanceData.workingRadius : "",
-                  boomAngle: performanceData.boomAngle !== undefined && performanceData.boomAngle !== null ? performanceData.boomAngle : "",
-                  liftingCapacity: performanceData.liftingCapacity !== undefined && performanceData.liftingCapacity !== null ? performanceData.liftingCapacity : ""
-                }));
-              } else if (item.armType === 2) {
-                // 主臂+副臂(46+16)基础编辑表格数据
-                auxBoomTableData2.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
-                  workingRadius: performanceData.workingRadius !== undefined && performanceData.workingRadius !== null ? performanceData.workingRadius : "",
-                  boomAngle: performanceData.boomAngle !== undefined && performanceData.boomAngle !== null ? performanceData.boomAngle : "",
-                  liftingCapacity: performanceData.liftingCapacity !== undefined && performanceData.liftingCapacity !== null ? performanceData.liftingCapacity : ""
-                }));
+          const ct = Number(craneInfo.value.calculationType || 1);
+          if (ct === 1) {
+            // 计算方式1：保持现有三块表格结构
+            mainBoomTableData.value = [];
+            auxBoomTableData.value = [];
+            auxBoomTableData2.value = [];
+            data.performanceDataVOS.forEach(item => {
+              if (item.sysProjectLiftingPerformanceDataList && Array.isArray(item.sysProjectLiftingPerformanceDataList)) {
+                if (item.armType === 0) {
+                  // 主臂长度基础编辑表格数据
+                  mainBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
+                    workingRadius: performanceData.workingRadius ?? "",
+                    boomAngle: performanceData.boomAngle ?? "",
+                    liftingCapacity: performanceData.liftingCapacity ?? ""
+                  }));
+                } else if (item.armType === 1) {
+                  // 主臂+副臂基础编辑表格数据
+                  auxBoomTableData.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
+                    workingRadius: performanceData.workingRadius ?? "",
+                    boomAngle: performanceData.boomAngle ?? "",
+                    liftingCapacity: performanceData.liftingCapacity ?? ""
+                  }));
+                } else if (item.armType === 2) {
+                  // 主臂+副臂(46+16)基础编辑表格数据
+                  auxBoomTableData2.value = item.sysProjectLiftingPerformanceDataList.map(performanceData => ({
+                    workingRadius: performanceData.workingRadius ?? "",
+                    boomAngle: performanceData.boomAngle ?? "",
+                    liftingCapacity: performanceData.liftingCapacity ?? ""
+                  }));
+                }
               }
+            });
+          } else if (ct === 2) {
+            // 计算方式2：使用动态表格结构
+            dynamicTables.value = data.performanceDataVOS.map((item) => ({
+              title: item.title || "",
+              rows: (item.sysProjectLiftingPerformanceDataList || []).map((performanceData) => ({
+                workingRadius: performanceData.workingRadius ?? "",
+                boomAngle: performanceData.boomAngle ?? "",
+                liftingCapacity: performanceData.liftingCapacity ?? "",
+              })),
+            }));
+            // 如果接口没有返回数据，保持一个空表格
+            if (!dynamicTables.value.length) {
+              dynamicTables.value = [
+                {
+                  title: "主臂长度基础编辑",
+                  rows: [],
+                },
+              ];
             }
-          });
+          }
         }
       } else {
         ElMessage.error(response?.message || "获取起重机详情失败");
@@ -657,34 +847,64 @@ const handleConfirm = async () => {
     return;
   }
 
-  // 验证boom表格数据
-  for (let i = 0; i < mainBoomTableData.value.length; i++) {
-    const row = mainBoomTableData.value[i];
-    if ((row.workingRadius === "" || row.workingRadius === undefined) || 
-        (row.boomAngle === "" || row.boomAngle === undefined) || 
-        (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
-      ElMessage.warning(`主臂长度基础编辑第${i + 1}行数据不完整，请填写完整`);
-      return;
-    }
-  }
+  const calcType = Number(craneInfo.value.calculationType || 1);
 
-  for (let i = 0; i < auxBoomTableData.value.length; i++) {
-    const row = auxBoomTableData.value[i];
-    if ((row.workingRadius === "" || row.workingRadius === undefined) || 
-        (row.boomAngle === "" || row.boomAngle === undefined) || 
-        (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
-      ElMessage.warning(`主臂+副臂(46+9.2)基础编辑第${i + 1}行数据不完整，请填写完整`);
+  if (calcType === 1) {
+    // 验证固定三块表格数据
+    for (let i = 0; i < mainBoomTableData.value.length; i++) {
+      const row = mainBoomTableData.value[i];
+      if ((row.workingRadius === "" || row.workingRadius === undefined) || 
+          (row.boomAngle === "" || row.boomAngle === undefined) || 
+          (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
+        ElMessage.warning(`主臂长度基础编辑第${i + 1}行数据不完整，请填写完整`);
+        return;
+      }
+    }
+
+    for (let i = 0; i < auxBoomTableData.value.length; i++) {
+      const row = auxBoomTableData.value[i];
+      if ((row.workingRadius === "" || row.workingRadius === undefined) || 
+          (row.boomAngle === "" || row.boomAngle === undefined) || 
+          (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
+        ElMessage.warning(`主臂+副臂(46+9.2)基础编辑第${i + 1}行数据不完整，请填写完整`);
+        return;
+      }
+    }
+    
+    for (let i = 0; i < auxBoomTableData2.value.length; i++) {
+      const row = auxBoomTableData2.value[i];
+      if ((row.workingRadius === "" || row.workingRadius === undefined) || 
+          (row.boomAngle === "" || row.boomAngle === undefined) || 
+          (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
+        ElMessage.warning(`主臂+副臂(46+16)基础编辑第${i + 1}行数据不完整，请填写完整`);
+        return;
+      }
+    }
+  } else if (calcType === 2) {
+    // 验证动态表格数据
+    if (!dynamicTables.value.length) {
+      ElMessage.warning("请至少添加一个额载表格");
       return;
     }
-  }
-  
-  for (let i = 0; i < auxBoomTableData2.value.length; i++) {
-    const row = auxBoomTableData2.value[i];
-    if ((row.workingRadius === "" || row.workingRadius === undefined) || 
-        (row.boomAngle === "" || row.boomAngle === undefined) || 
-        (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
-      ElMessage.warning(`主臂+副臂(46+16)基础编辑第${i + 1}行数据不完整，请填写完整`);
-      return;
+    for (let t = 0; t < dynamicTables.value.length; t++) {
+      const table = dynamicTables.value[t];
+      if (!table.title || table.title.trim() === "") {
+        ElMessage.warning(`第 ${t + 1} 个表格的标题未填写，请填写表格标题`);
+        return;
+      }
+      if (!table.rows.length) {
+        ElMessage.warning(`表格「${table.title}」至少需要一行数据`);
+        return;
+      }
+      for (let r = 0; r < table.rows.length; r++) {
+        const row = table.rows[r];
+        if ((row.workingRadius === "" || row.workingRadius === undefined) ||
+            (row.boomAngle === "" || row.boomAngle === undefined) ||
+            (row.liftingCapacity === "" || row.liftingCapacity === undefined)) {
+          ElMessage.warning(`表格「${table.title}」第 ${r + 1} 行数据不完整，请填写完整`);
+          return;
+        }
+      }
     }
   }
 
@@ -726,20 +946,20 @@ const handleConfirm = async () => {
       sysProjectTemplateCraneDetailData.id = sysProjectTemplateCraneDetailId.value;
     }
     
-    // 构造 sysProjectTemplateCraneDTO 参数（起重机设置最上面的5个参数）
+    // 构造 sysProjectTemplateCraneDTO 参数（起重机设置最上面的参数）
     const sysProjectTemplateCraneDTO = {
       machineName: craneInfo.value.craneName || "",
       type: craneInfo.value.craneType ? parseInt(craneInfo.value.craneType) : null,
       model: craneInfo.value.model || "",
       prodBusiness: craneInfo.value.manufacturer || "",
+      calculationType: calcType || 1,
       push: craneInfo.value.push !== undefined && craneInfo.value.push !== null ? parseInt(craneInfo.value.push) : 0
     };
     
-    const requestParams = {
-      craneInfoId: id,
-      sysProjectTemplateCraneDTO: sysProjectTemplateCraneDTO,
-      sysProjectTemplateCraneDetail: sysProjectTemplateCraneDetailData,
-      performanceInfoAddUpdateList: [
+    let performanceInfoAddUpdateList = [];
+
+    if (calcType === 1) {
+      performanceInfoAddUpdateList = [
         {
           craneType: craneType, // 起重机类型，引用common.js里的craneType
           armType: 0, // 主臂长度基础编辑
@@ -755,7 +975,25 @@ const handleConfirm = async () => {
           armType: 2, // 主臂+副臂(46+16)基础编辑
           sysProjectLiftingPerformanceDataList: auxBoomPerformanceData2
         }
-      ]
+      ];
+    } else if (calcType === 2) {
+      performanceInfoAddUpdateList = dynamicTables.value.map((table, index) => ({
+        craneType: craneType,
+        armType: index, // 使用索引区分不同表格
+        title: table.title || "",
+        sysProjectLiftingPerformanceDataList: table.rows.map((item) => ({
+          workingRadius: item.workingRadius ?? "",
+          boomAngle: item.boomAngle ?? "",
+          liftingCapacity: item.liftingCapacity ?? "",
+        })),
+      }));
+    }
+
+    const requestParams = {
+      craneInfoId: id,
+      sysProjectTemplateCraneDTO: sysProjectTemplateCraneDTO,
+      sysProjectTemplateCraneDetail: sysProjectTemplateCraneDetailData,
+      performanceInfoAddUpdateList,
     };
 
     const response = await confirmUpdateCraneDetail(requestParams);

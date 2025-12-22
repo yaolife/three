@@ -858,7 +858,8 @@ const handleEdit = (row, type) => {
         craneType: typeValue,
         model: row.model,
         manufacturer: row.prodBusiness,
-        push: row.push !== undefined && row.push !== null ? row.push : 0
+        push: row.push !== undefined && row.push !== null ? row.push : 0,
+        calculationType: row.calculationType !== undefined && row.calculationType !== null ? row.calculationType : 1
       }
     });
   } else if (type === "equipment") {
@@ -994,6 +995,7 @@ const handleCraneNext = async () => {
           craneType: craneForm.value.type,
           model: craneForm.value.model,
           manufacturer: craneForm.value.prodBusiness,
+          calculationType: craneForm.value.calculationType,
         },
       });
     } else {
@@ -1102,6 +1104,7 @@ const fetchCraneData = async () => {
         typeDisplay: translateCraneType(item.type), // 用于显示的翻译后的类型
         originalType: item.type, // 保存原始类型值（数字）
         type: translateCraneType(item.type), // 保持兼容性
+        calculationType: item.calculationType !== undefined && item.calculationType !== null ? item.calculationType : 1,
         push: item.push !== undefined && item.push !== null ? item.push : 0, // 确保 push 字段存在
       }));
       craneTotal.value = response.data.total || 0;
