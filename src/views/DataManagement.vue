@@ -434,7 +434,7 @@
       width="500px"
       :close-on-click-modal="false"
     >
-      <el-form :model="craneForm" label-width="100px">
+      <el-form :model="craneForm" label-width="120px">
         <el-form-item label="起重机名称">
           <el-input v-model="craneForm.machineName" placeholder="请输入（例如：WDT型）" />
         </el-form-item>
@@ -450,6 +450,12 @@
         </el-form-item>
         <el-form-item label="型号">
           <el-input v-model="craneForm.model" placeholder="请输入型号" />
+        </el-form-item>
+        <el-form-item label="额载计算方式">
+          <el-select v-model="craneForm.calculationType" placeholder="请选择额载计算方式">
+            <el-option label="半径+角度" :value="1" />
+            <el-option label="半径+长度" :value="2" />
+          </el-select>
         </el-form-item>
         <el-form-item label="生产厂家">
           <el-input v-model="craneForm.prodBusiness" placeholder="请输入生产厂家（例如：三一重工）" />
@@ -728,6 +734,7 @@ const craneForm = ref({
   machineName: "",
   type: "",
   model: "",
+  calculationType: 1, // 额载计算方式：1 半径+角度，2 半径+长度
   prodBusiness: "",
   push: 0, // 是否推送，0否1是
 });
@@ -780,6 +787,7 @@ const handleAddCrane = () => {
     machineName: "",
     type: "",
     model: "",
+    calculationType: 1,
     prodBusiness: "",
     push: 0, // 是否推送，0否1是
   };
@@ -951,6 +959,10 @@ const handleCraneNext = async () => {
     ElMessage.warning("请输入型号");
     return;
   }
+  if (!craneForm.value.calculationType) {
+    ElMessage.warning("请选择额载计算方式");
+    return;
+  }
   if (!craneForm.value.prodBusiness) {
     ElMessage.warning("请输入生产厂家");
     return;
@@ -962,6 +974,7 @@ const handleCraneNext = async () => {
       machineName: craneForm.value.machineName,
       type: craneForm.value.type,
       model: craneForm.value.model,
+      calculationType: craneForm.value.calculationType,
       prodBusiness: craneForm.value.prodBusiness,
       push: craneForm.value.push || 0, // 是否推送，0否1是
     };
