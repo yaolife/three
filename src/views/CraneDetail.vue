@@ -474,7 +474,7 @@
               <template #default="scope">
                 <el-input
                   v-model="scope.row.boomAngle"
-                  placeholder="请输入角度或长度"
+                  placeholder="请输入主臂长度"
                   size="small"
                 >
                   <template #append>值</template>
@@ -572,7 +572,7 @@ const auxBoomTableData2 = ref([]);
 // 动态表格数据（计算方式2：半径+长度，支持动态添加表格）
 const dynamicTables = ref([
   {
-    title: "主臂长度基础编辑",
+    title: "", // 标题默认空，由用户输入
     rows: [],
   },
 ]);
@@ -630,14 +630,16 @@ const handleDeleteAuxBoomRow2 = (index) => {
 // 动态表格操作函数（计算方式2）
 const handleAddDynamicTable = (baseIndex = 0) => {
   const baseTable = dynamicTables.value[baseIndex] || { title: "", rows: [] };
-  // 深拷贝表格和行数据
+  // 只复制表格结构和标题，不复制行数据
   const newTable = {
     title: baseTable.title,
-    rows: baseTable.rows.map((row) => ({
-      workingRadius: row.workingRadius ?? "",
-      boomAngle: row.boomAngle ?? "",
-      liftingCapacity: row.liftingCapacity ?? "",
-    })),
+    rows: [
+      {
+        workingRadius: "",
+        boomAngle: "",
+        liftingCapacity: "",
+      },
+    ],
   };
   dynamicTables.value.push(newTable);
 };
