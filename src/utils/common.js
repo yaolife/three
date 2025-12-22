@@ -52,7 +52,7 @@ export const getCraneTypeOptions = () => {
   ];
 };
 export const craneType=0;//三一重工550型起重机
-// 起重机吊臂类型
+// 起重机吊臂组合类型
 export const getBoomType= () => {
   return [
     { label: '主臂', value: 0 },

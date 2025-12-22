@@ -195,8 +195,8 @@
                       />
                       <span class="unit">pq</span>
                     </div>
-                    <label class="form-label">吊臂类型</label>
-                    <el-select v-model="formData.armType" placeholder="请选择吊臂类型" style="width: 150px; ">
+                    <label class="form-label">组合类型</label>
+                    <el-select v-model="formData.armType" placeholder="请选择组合类型" style="width: 150px; ">
                       <el-option
                         v-for="item in getBoomType()"
                         :key="item.value"
@@ -396,8 +396,8 @@
                       />
                       <span class="unit">pq</span>
                     </div>
-                    <label class="form-label">吊臂类型</label>
-                    <el-select v-model="formData.armType2" placeholder="请选择吊臂类型" style="width: 150px;">
+                    <label class="form-label">组合类型</label>
+                    <el-select v-model="formData.armType2" placeholder="请选择组合类型" style="width: 150px;">
                       <el-option
                         v-for="item in getBoomType()"
                         :key="item.value"
@@ -3879,7 +3879,7 @@ const formData = ref({
   model: "",
   equipmentType: "",
   ratedLoad: 12,
-  armType: 0, // 添加吊臂类型字段，默认值为主臂
+  armType: 0, // 添加吊臂组合类型字段，默认值为主臂
   mainBoomMaxLength: 0,
   auxBoomLength: 0,
   workRadius: 0,
@@ -3898,7 +3898,7 @@ const formData = ref({
   model2: "",
   equipmentType2: "",
   ratedLoad2: 0,
-  armType2: 0, // 添加吊臂类型字段，默认值为主臂
+  armType2: 0, // 添加吊臂组合类型字段，默认值为主臂
    mainBoomMaxLength2: 0,
   auxBoomLength2: 0,
   workRadius2: 0,
@@ -3992,7 +3992,7 @@ watch(
           l2: formData.value.auxBoomLength,
           theta2: formData.value.auxBoomAngle,
           craneType: craneType,// 起重机类型
-          armType: formData.value.armType,//吊臂类型
+          armType: formData.value.armType,//吊臂组合类型
           templateCraneId: selectedCraneId.value // 当前选中的起重机ID
         });
         
@@ -4043,7 +4043,7 @@ watch(
           l2: formData.value.auxBoomLength2,
           theta2: formData.value.auxBoomAngle2,
            craneType: craneType,// 起重机类型
-          armType: formData.value.armType2,//吊臂类型
+          armType: formData.value.armType2,//吊臂组合类型
           templateCraneId: selectedCraneId2.value // 当前选中的起重机2的ID
         });
         
