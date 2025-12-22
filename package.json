@@ -93,12 +93,7 @@
       "category": "Utility",
       "icon": "build/icon_1024.png",
       "vendor": "ThreeConstruction Team",
-      "maintainer": "ThreeConstruction Team",
-      "desktop": {
-        "Name": "ThreeConstruction",
-        "Comment": "ThreeConstruction Desktop Application",
-        "Categories": "Utility;"
-      }
+      "maintainer": "ThreeConstruction Team"
     },
     "deb": {
       "depends": [

@@ -2,8 +2,8 @@
   <el-container class="app-container">
     <!-- 主内容区（移除侧边栏，宽屏显示） -->
     <el-container>
-      <!-- 顶部导航栏 -->
-      <el-header v-if="!shouldHideHeader" class="header-container">
+      <!-- 顶部导航栏：未登录时不显示 -->
+      <el-header v-if="isLoggedIn && !shouldHideHeader" class="header-container">
         <div class="header-left">
           <el-button
             v-if="isMenuPage"
@@ -87,8 +87,11 @@
         </div>
       </el-header>
       
-      <!-- 路由视图 -->
-      <el-main :class="['main-container', shouldHideSidebar ? 'full-width' : '']">
+      <!-- 路由视图：未登录时不渲染主内容，只显示登录弹窗 -->
+      <el-main
+        v-if="isLoggedIn"
+        :class="['main-container', shouldHideSidebar ? 'full-width' : '']"
+      >
         <router-view />
       </el-main>
     </el-container>
@@ -436,6 +439,9 @@ import { translateLiftingType, translateCraneType } from './utils/common.js';
 
 const route = useRoute();
 const router = useRouter();
+
+// 是否已登录
+const isLoggedIn = computed(() => userStore.userState.isLoggedIn);
 
 // 搜索关键词
 const searchTitle = ref("");
