@@ -1,6 +1,30 @@
 import { ElMessage } from "element-plus";
 
-const API_BASE_URL = "/server-api"
+// 检测是否在 Electron 环境中
+// 优先检查 window.electronAPI（通过 preload.js 暴露）
+const isElectron = typeof window !== 'undefined' && window.electronAPI && window.electronAPI.isElectron === true;
+
+// API 基础 URL 配置
+// Electron 环境：使用完整 URL（需要根据实际情况修改）
+// Web 环境：使用相对路径，依赖 Vite 代理
+// 可以通过环境变量覆盖：VITE_API_BASE_URL
+const getApiBaseUrl = () => {
+  // 优先使用环境变量
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Electron 环境使用完整 URL
+  if (isElectron) {
+    // 默认 API 地址，请根据实际情况修改
+    return "http://192.168.1.106:18080";
+  }
+  
+  // Web 环境使用相对路径（通过 Vite 代理）
+  return "/server-api";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 /**
  * 检查响应结果，如果 code 为 401，提示重新登录

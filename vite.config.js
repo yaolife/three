@@ -4,6 +4,7 @@ import path from "path"
 
 export default defineConfig({
   plugins: [vue()],
+  base: process.env.NODE_ENV === 'production' ? './' : '/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src")
@@ -20,4 +21,13 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
+  }
 })
