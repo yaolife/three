@@ -3450,7 +3450,7 @@ import {
   exportProjectReport,
   getCranePerformanceInfo,
 } from "@/api/index.js";
-import {  getBoomType, craneType} from "@/utils/common.js";
+import {craneType} from "@/utils/common.js";
 
 // 导入默认图片
 import defaultLiftingImage from "@/images/lifting.png";
