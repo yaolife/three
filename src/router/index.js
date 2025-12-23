@@ -8,11 +8,20 @@ const UserManagement = () => import("../views/UserManagement.vue")
 const RiggingDetail = () => import("../views/RiggingDetail.vue")
 const CraneDetail = () => import("../views/CraneDetail.vue")
 const SitePlan = () => import("../views/SitePlan.vue")
+const Welcome = () => import("../views/Welcome.vue")
 
 const routes = [
   {
     path: "/",
     redirect: "/verification-projects",
+  },
+  {
+    path: "/welcome",
+    name: "Welcome",
+    component: Welcome,
+    meta: {
+      title: "首页",
+    },
   },
   // 兼容旧链接，统一跳转到校核计算项目
   {

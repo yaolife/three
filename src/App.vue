@@ -685,9 +685,11 @@ const handleLogin = async () => {
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
-      // 跳转到默认页面并刷新
-      router.push('/verification-projects').then(() => {
-        triggerRefresh(null);
+      // 跳转到登录后的空白中转页，并弹出功能菜单供选择
+      router.push('/welcome').then(() => {
+        nextTick(() => {
+          openMenuDialog();
+        });
       });
     } else {
       ElMessage.error(response?.msg || "登录失败，请检查用户名和密码");
@@ -734,9 +736,11 @@ const handleOfflineLogin = async () => {
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
-      // 跳转到默认页面并刷新
-      router.push('/verification-projects').then(() => {
-        triggerRefresh(null);
+      // 跳转到登录后的空白中转页，并弹出功能菜单供选择
+      router.push('/welcome').then(() => {
+        nextTick(() => {
+          openMenuDialog();
+        });
       });
     } else {
       ElMessage.error(response?.msg || "管理员登录失败，请检查用户名和密码");
