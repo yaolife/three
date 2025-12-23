@@ -421,6 +421,8 @@
             </div>
           </div>
           <!-- 施工场景平面图（优先显示后端流，其次本地导入预览） -->
+          <!-- 背景平面图仅作为 Canvas 绘制和尺寸计算的参考，实际显示由 Canvas 完成 -->
+          <!-- 为避免与 Canvas 视觉错位，这里的 img 设置为透明，只保留在文档流中用于尺寸和加载事件 -->
           <img
             ref="imageRef"
             :src="planImageUrl || importedImage"
@@ -428,7 +430,9 @@
             class="plan-image"
             :style="{
               transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
-              transformOrigin: '0 0'
+              transformOrigin: '0 0',
+              opacity: 0,
+              pointerEvents: 'none'
             }"
             @load="handleImageLoad"
             @error="handleImageError"
