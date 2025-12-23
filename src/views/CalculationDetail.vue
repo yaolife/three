@@ -1,6 +1,10 @@
 <template>
   <div class="calculation-detail-container">
     <div class="header">
+      <el-button type="default" class="back-btn" @click.stop="handleBackToVerification">
+        <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+        返回
+      </el-button>
       <div class="header-left" @click="openEditTitleDialog">
         <span class="project-title">{{ projectTitle }}</span>
         <img src="@/images/hoisting.png" alt="edit" class="edit" />
@@ -97,7 +101,7 @@
           </template>
         </el-tab-pane>
       </el-tabs>
-      <el-button type="primary" @click="handleExportAllConfirm">导出</el-button>
+      <el-button type="primary" @click="openExportSelectDialog">导出</el-button>
     </div>
 
     <div class="content-wrapper">
@@ -191,13 +195,13 @@
                       />
                       <span class="unit">pq</span>
                     </div>
-                    <label class="form-label">吊臂类型</label>
-                    <el-select v-model="formData.armType" placeholder="请选择吊臂类型" style="width: 150px; ">
+                    <label class="form-label">组合类型</label>
+                    <el-select v-model="formData.armType" placeholder="请选择组合类型" style="width: 150px; ">
                       <el-option
-                        v-for="item in getBoomType()"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
+                        v-for="item in armTypeOptions1"
+                        :key="item.id"
+                        :label="item.title"
+                        :value="item.id"
                       />
                     </el-select>
                   </div>
@@ -392,13 +396,13 @@
                       />
                       <span class="unit">pq</span>
                     </div>
-                    <label class="form-label">吊臂类型</label>
-                    <el-select v-model="formData.armType2" placeholder="请选择吊臂类型" style="width: 150px;">
+                    <label class="form-label">组合类型</label>
+                    <el-select v-model="formData.armType2" placeholder="请选择组合类型" style="width: 150px;">
                       <el-option
-                        v-for="item in getBoomType()"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
+                        v-for="item in armTypeOptions2"
+                        :key="item.id"
+                        :label="item.title"
+                        :value="item.id"
                       />
                     </el-select>
                   </div>
@@ -1266,10 +1270,10 @@
               <div class="form-content">
                 <div class="form-grid">
                   <div class="form-row">
-                    <label class="form-label">履带名称</label>
+                    <label class="form-label">名称</label>
                     <el-input
                       v-model="foundationData.trackName"
-                      placeholder="请输入履带名称"
+                      placeholder="请输入名称"
                     />
                   </div>
                   <div class="form-row">
@@ -1416,21 +1420,13 @@
       <!-- 吊索具示意图 -->
       <div v-if="activeTab === 'lifting'" class="right-panel">
         <div class="diagram-container">
-
-              <img
-                v-if="activeSlingData.liftingType === 'withBeam'"
-                src="@/images/beam.png"
-                alt="吊索具示意图"
-                  class="crane-diagram"
-                :fit="'cover'"
-              />
-              <img
-                v-else
-                src="@/images/lifting.png"
-                alt="吊索具示意图"
-                  class="crane-diagram"
-                :fit="'cover'"
-              />
+          <img
+            :src="slingDiagramImage"
+            alt="吊索具示意图"
+            class="crane-diagram"
+            :fit="'cover'"
+            @error="handleSlingImageError"
+          />
         </div>
       </div>
 
@@ -1439,12 +1435,34 @@
         v-if="activeTab === 'construction'"
         class="content-wrapper construction-plan-wrapper"
       >
-        <iframe
-          src="/method-draw/index.html"
-          class="method-draw-iframe"
-          frameborder="0"
-          title="施工平立面图编辑器"
-        ></iframe>
+        <el-tabs v-model="constructionSubTab" type="card">
+          <el-tab-pane label="平面图" name="plan">
+            <iframe
+              v-if="constructionSubTab === 'plan'"
+              key="plan-iframe"
+              src="/plane/index.html"
+              class="method-draw-iframe"
+              frameborder="0"
+              title="平面图编辑器"
+              @load="handleIframeLoad('plan')"
+              @error="handleIframeError('plan')"
+            ></iframe>
+            <div v-else class="iframe-placeholder">平面图编辑器</div>
+          </el-tab-pane>
+          <el-tab-pane label="立面图" name="elevation">
+            <iframe
+              v-if="constructionSubTab === 'elevation'"
+              key="elevation-iframe"
+              src="/facade/index.html"
+              class="method-draw-iframe"
+              frameborder="0"
+              title="立面图编辑器"
+              @load="handleIframeLoad('elevation')"
+              @error="handleIframeError('elevation')"
+            ></iframe>
+            <div v-else class="iframe-placeholder">立面图编辑器</div>
+          </el-tab-pane>
+        </el-tabs>
       </div>
     </div>
   </div>
@@ -1475,7 +1493,7 @@
                 formData.auxBoomLength
               }}m、主臂角度{{ formData.mainBoomAngle }}°、副臂角度{{
                 formData.auxBoomAngle
-              }}°、吊钩最大起升高度xxx
+              }}°、吊钩最大起升高度{{ formData.hookHeight }}m
             </div>
           </div>
         </div>
@@ -1497,7 +1515,7 @@
       <div class="result-section">
         <div class="section-title">计算过程</div>
         <div class="section-content calculation-process">
-          <div class="process-text">已知单台计算机吊装公式为：</div>
+          <div class="process-text">已知单台起重机吊装公式为：</div>
           <div class="process-text">
             （设备重量G+吊钩重量G1+计算钢丝绳重量G2+吊索具重量G3+其他计算重量G4）
             <template
@@ -1529,16 +1547,16 @@
             <div class="weight-item">
               G：设备重量={{ singleResult.equipmentWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="singleResult.hookWeightChecked">
               G1：吊钩重量={{ singleResult.hookWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="singleResult.wireRopeWeightChecked">
               G2：计算钢丝绳重量={{ singleResult.wireRopeWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="singleResult.slingsWeightChecked">
               G3：吊索具重量={{ singleResult.slingsWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="singleResult.otherWeightChecked">
               G4：其他计算重量={{ singleResult.otherWeight }}t
             </div>
             <!-- 动态显示选中的系数，按照X1, X2, X3...的顺序 -->
@@ -1658,8 +1676,12 @@
         <div class="result-section">
           <div class="section-title">设备信息</div>
           <div class="section-content">
-            <div class="info-item">设备名称：{{ sling.equipmentName }}</div>
-            <div class="info-item">设备型号：{{ sling.equipmentModel }}</div>
+            <div class="info-item">
+              设备名称：{{ commonDeviceSettings.deviceName || sling.equipmentName }}
+            </div>
+            <div class="info-item">
+              设备型号：{{ commonDeviceSettings.equipmentModel || sling.equipmentModel }}
+            </div>
             <div class="info-item">设备重量：{{ sling.equipmentWeight }} t</div>
           </div>
         </div>
@@ -1949,8 +1971,7 @@
               <div class="info-item">
                 {{
                   sling.loadType === 1 ? "出厂安全系数" : "额定载荷"
-                }}：{{ sling.loadType === 1 ? sling.safetyFactor : sling.ratedLoad }}
-                {{ sling.loadType === 0 ? "MPa" : "" }}
+                }}：{{ sling.loadType === 1 ? sling.safetyFactor : sling.ratedLoad }}{{ sling.loadType === 0 ? "t" : "" }}
               </div>
             </div>
           </div>
@@ -1959,8 +1980,12 @@
         <div class="result-section">
           <div class="section-title">设备信息</div>
           <div class="section-content">
-            <div class="info-item">设备名称：{{ sling.equipmentName }}</div>
-            <div class="info-item">设备型号：{{ sling.equipmentModel }}</div>
+            <div class="info-item">
+              设备名称：{{ commonDeviceSettings.deviceName || sling.equipmentName }}
+            </div>
+            <div class="info-item">
+              设备型号：{{ commonDeviceSettings.equipmentModel || sling.equipmentModel }}
+            </div>
             <div class="info-item">设备重量：{{ sling.equipmentWeight }} t</div>
           </div>
         </div>
@@ -2269,7 +2294,7 @@
                 {{
                   sling.loadType === 1 ? "出厂安全系数" : "额定载荷"
                 }}：{{ sling.loadType === 1 ? sling.safetyFactor : sling.ratedLoad }}
-                {{ sling.loadType === 0 ? "MPa" : "" }}
+                {{ sling.loadType === 0 ? "t" : "" }}
               </div>
             </div>
           </div>
@@ -2278,8 +2303,12 @@
         <div class="result-section">
           <div class="section-title">设备信息</div>
           <div class="section-content">
-            <div class="info-item">设备名称：{{ sling.equipmentName }}</div>
-            <div class="info-item">设备型号：{{ sling.equipmentModel }}</div>
+            <div class="info-item">
+              设备名称：{{ commonDeviceSettings.deviceName || sling.equipmentName }}
+            </div>
+            <div class="info-item">
+              设备型号：{{ commonDeviceSettings.equipmentModel || sling.equipmentModel }}
+            </div>
             <div class="info-item">设备重量：{{ sling.equipmentWeight }} t</div>
           </div>
         </div>
@@ -2736,16 +2765,16 @@
             <div class="weight-item">
               G0：单台起重机所承担最大设备重量={{ doubleResult.G0 }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="doubleResult.hookWeightChecked">
               G1：吊钩重量={{ doubleResult.hookWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="doubleResult.wireRopeWeightChecked">
               G2：计算钢丝绳重量={{ doubleResult.wireRopeWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="doubleResult.slingsWeightChecked">
               G3：吊索具重量={{ doubleResult.slingsWeight }}t
             </div>
-            <div class="weight-item">
+            <div class="weight-item" v-if="doubleResult.otherWeightChecked">
               G4：其他计算重量={{ doubleResult.otherWeight }}t
             </div>
             <!-- 动态显示选中的系数，按照X1, X2, X3...的顺序 -->
@@ -3032,11 +3061,11 @@
             color: #666;
           "
         >
-          履带信息
+          起重机信息
         </div>
         <div class="section-content" style="padding: 12px">
           <div class="info-row">
-            <span class="info-label">履带名称：</span>
+            <span class="info-label">名称：</span>
             <span class="info-value">{{
               foundationCalculationResult.trackInfo.name
             }}</span>
@@ -3335,12 +3364,52 @@
       </div>
       
       <div v-else-if="!intelligentSelectionLoading" class="no-results">
-        暂无选型结果，请点击"智能选型"按钮获取结果
+        暂无选型数据
       </div>
     </div>
     
     <template #footer>
       <el-button @click="intelligentSelectionDialogVisible = false">关闭</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- 导出选择弹窗 -->
+  <el-dialog
+    v-model="exportSelectDialogVisible"
+    title="选择导出类型"
+    width="420px"
+    :close-on-click-modal="false"
+    class="export-select-dialog"
+  >
+    <div class="export-select-content">
+      <el-radio-group v-model="selectedExportType" class="export-radio-group">
+        <el-radio :label="'all'" class="export-radio-item">
+          <span class="radio-label">导出方案文件</span>
+        </el-radio>
+        <el-radio :label="'crane'" class="export-radio-item">
+          <span class="radio-label">起重机校核计算</span>
+        </el-radio>
+        <el-radio :label="'lifting'" class="export-radio-item">
+          <span class="radio-label">吊索具校核计算</span>
+        </el-radio>
+        <el-radio :label="'foundation'" class="export-radio-item">
+          <span class="radio-label">地基承载力校核计算</span>
+        </el-radio>
+        <el-radio :label="'template'" class="export-radio-item">
+          <span class="radio-label">按模版导出</span>
+        </el-radio>
+      </el-radio-group>
+    </div>
+    <template #footer>
+      <div class="export-dialog-footer">
+        <el-button @click="exportSelectDialogVisible = false">取消</el-button>
+        <el-button 
+          type="primary" 
+          @click="handleExportSelectConfirm"
+        >
+          确定
+        </el-button>
+      </div>
     </template>
   </el-dialog>
 </template>
@@ -3376,12 +3445,77 @@ import {
   exportLiftingReport,
   exportBearingReport,
   exportProjectReport,
+  getCranePerformanceInfo,
 } from "@/api/index.js";
-import {  getBoomType, craneType} from "@/utils/common.js";
+import {craneType} from "@/utils/common.js";
+
+// 导入默认图片
+import defaultLiftingImage from "@/images/lifting.png";
+
+// 预先导入所有可能的图片
+// 吊带 - 无吊梁
+import strapHookOne from "@/images/straps/no_lifting_beam/hook_one.png";
+import strapHookTwo from "@/images/straps/no_lifting_beam/hook_two.png";
+import strapHookThree from "@/images/straps/no_lifting_beam/hook_three.png";
+import strapHookFour from "@/images/straps/no_lifting_beam/hook_four.png";
+import strapHookSix from "@/images/straps/no_lifting_beam/hook_six.png";
+import strapHookEight from "@/images/straps/no_lifting_beam/hook_eight.png";
+
+// 吊带 - 有吊梁
+import strapBeamTwo from "@/images/straps/with_lifting_beam/beam_two.png";
+import strapBeamThree from "@/images/straps/with_lifting_beam/beam_three.png";
+import strapBeamFour from "@/images/straps/with_lifting_beam/beam_four.png";
+import strapBeamSix from "@/images/straps/with_lifting_beam/beam_six.png";
+import strapBeamEight from "@/images/straps/with_lifting_beam/beam_eight.png";
+
+// 其他类型 - 无吊梁
+import wireHookOne from "@/images/wire_rope/no_lifting_beam/hook_one.png";
+import wireHookTwo from "@/images/wire_rope/no_lifting_beam/hook_two.png";
+import wireHookThree from "@/images/wire_rope/no_lifting_beam/hook_three.png";
+import wireHookFour from "@/images/wire_rope/no_lifting_beam/hook_four.png";
+import wireHookSix from "@/images/wire_rope/no_lifting_beam/hook_six.png";
+import wireHookEight from "@/images/wire_rope/no_lifting_beam/hook_eight.png";
+
+// 其他类型 - 有吊梁
+import wireBeamTwo from "@/images/wire_rope/with_lifting_beam/beam_two.png";
+import wireBeamThree from "@/images/wire_rope/with_lifting_beam/beam_three.png";
+import wireBeamFour from "@/images/wire_rope/with_lifting_beam/beam_four.png";
+import wireBeamSix from "@/images/wire_rope/with_lifting_beam/beam_six.png";
+import wireBeamEight from "@/images/wire_rope/with_lifting_beam/beam_eight.png";
 
 const router = useRouter();
+
+const handleBackToVerification = () => {
+  router.push('/verification-projects');
+};
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
+const constructionSubTab = ref("plan"); // 施工平立面图子tab，默认选中平面图
+
+// 处理iframe加载完成
+const handleIframeLoad = (type) => {
+  console.log(`${type} iframe loaded successfully`);
+};
+
+// 处理iframe加载错误
+const handleIframeError = (type) => {
+  console.error(`${type} iframe failed to load`);
+};
+
+// 处理吊索具示意图图片加载错误
+const handleSlingImageError = (event) => {
+  // 如果图片加载失败，设置为默认图片
+  // 添加标记避免无限循环
+  if (event.target.dataset.fallbackApplied) {
+    return; // 已经应用过fallback，避免无限循环
+  }
+  
+  // 标记已应用fallback
+  event.target.dataset.fallbackApplied = "true";
+  
+  // 设置默认图片
+  event.target.src = defaultLiftingImage;
+};
 
 const saveLoading = reactive({
   crane: false,
@@ -3419,6 +3553,9 @@ const craneList = ref([]);
 const craneLoading = ref(false);
 const selectedCraneId = ref(null);
 const selectedCraneId2 = ref(null);
+// 组合类型下拉数据（起重机1和起重机2分别存储）
+const armTypeOptions1 = ref([]);
+const armTypeOptions2 = ref([]);
 
 // 加载设备列表
 const loadDeviceList = async () => {
@@ -3430,7 +3567,6 @@ const loadDeviceList = async () => {
     }
   } catch (error) {
     ElMessage.error('获取设备列表失败');
-    console.error('获取设备列表失败:', error);
   } finally {
     deviceLoading.value = false;
   }
@@ -3475,16 +3611,25 @@ const getDeviceDetailAndEcho = async (deviceId, isSlingTab = false, isCrane2 = f
         formData.value.equipmentName2 = deviceData.deviceName ?? null;
         formData.value.equipmentType2 = deviceData.deviceType ?? null;
         setEquipmentWeightForCrane(deviceData.weight, "crane2");
+        
+        // 同步到起重机参数1：设备名称和设备型号
+        selectedDeviceId.value = deviceId;
+        formData.value.equipmentName = deviceData.deviceName ?? null;
+        formData.value.equipmentType = deviceData.deviceType ?? null;
       } else {
         // 起重机1参数tab回显
         formData.value.equipmentName = deviceData.deviceName ?? null;
         formData.value.equipmentType = deviceData.deviceType ?? null;
         setEquipmentWeightForCrane(deviceData.weight, "crane1");
+        
+        // 同步到起重机参数2：设备名称和设备型号
+        selectedDeviceId2.value = deviceId;
+        formData.value.equipmentName2 = deviceData.deviceName ?? null;
+        formData.value.equipmentType2 = deviceData.deviceType ?? null;
       }
     }
   } catch (error) {
     ElMessage.error('获取设备详情失败');
-    console.error('获取设备详情失败:', error);
   }
 };
 
@@ -3507,12 +3652,22 @@ const handleDeviceChange = (deviceId, isSlingTab = false, isCrane2 = false) => {
       formData.value.equipmentType2 = null;
       formData.value.manufacturer2 = null;
       setEquipmentWeightForCrane(0, "crane2");
+      
+      // 同步清除起重机参数1的设备名称和设备型号
+      selectedDeviceId.value = null;
+      formData.value.equipmentName = null;
+      formData.value.equipmentType = null;
     } else {
       // 清除起重机1参数tab回显信息
       formData.value.equipmentName = null;
       formData.value.equipmentType = null;
       formData.value.manufacturer = null;
       setEquipmentWeightForCrane(0, "crane1");
+      
+      // 同步清除起重机参数2的设备名称和设备型号
+      selectedDeviceId2.value = null;
+      formData.value.equipmentName2 = null;
+      formData.value.equipmentType2 = null;
     }
   }
 };
@@ -3550,14 +3705,14 @@ const executeIntelligentSelection = async () => {
     const weight = equipmentWeight; // 使用设备重量，如果没有则使用默认值10
     const response = await intelligentCraneSelection({ mainHookMaxCapacity: weight });
     if (response.code === '0' && response.data) {
-      selectionResults.value = response.data;
+      // 过滤掉 mainHookMaxCapacity 为 null 的对象
+      selectionResults.value = response.data.filter(item => item.mainHookMaxCapacity !== null);
     } else {
       ElMessage.error('获取智能选型结果失败');
       selectionResults.value = [];
     }
   } catch (error) {
     ElMessage.error('智能选型失败');
-    console.error('智能选型失败:', error);
     selectionResults.value = [];
   } finally {
     intelligentSelectionLoading.value = false;
@@ -3595,6 +3750,35 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
       formData.value.craneName = crane.machineName || crane.craneName || '';
     }
     try {
+      // 调用组合类型下拉接口获取数据
+      try {
+        const performanceResponse = await getCranePerformanceInfo(craneId);
+        if (performanceResponse && performanceResponse.code === '0' && performanceResponse.data) {
+          const performanceList = Array.isArray(performanceResponse.data) ? performanceResponse.data : [];
+          if (isSecondCrane) {
+            armTypeOptions2.value = performanceList;
+            // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+            if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType2)) {
+              formData.value.armType2 = performanceList[0].id;
+            }
+          } else {
+            armTypeOptions1.value = performanceList;
+            // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+            if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType)) {
+              formData.value.armType = performanceList[0].id;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('获取组合类型数据失败:', error);
+        // 如果接口调用失败，清空选项列表
+        if (isSecondCrane) {
+          armTypeOptions2.value = [];
+        } else {
+          armTypeOptions1.value = [];
+        }
+      }
+      
       // 调用起重机详情接口获取详细数据
       const response = await getCraneDataDetail(craneId);
       const craneData = response.data.sysProjectTemplateCraneDetail || {};
@@ -3725,7 +3909,7 @@ const formData = ref({
   model: "",
   equipmentType: "",
   ratedLoad: 12,
-  armType: 0, // 添加吊臂类型字段，默认值为主臂
+  armType: null, // 组合类型下拉数据的id
   mainBoomMaxLength: 0,
   auxBoomLength: 0,
   workRadius: 0,
@@ -3744,7 +3928,7 @@ const formData = ref({
   model2: "",
   equipmentType2: "",
   ratedLoad2: 0,
-  armType2: 0, // 添加吊臂类型字段，默认值为主臂
+  armType2: null, // 组合类型下拉数据的id
    mainBoomMaxLength2: 0,
   auxBoomLength2: 0,
   workRadius2: 0,
@@ -3825,8 +4009,20 @@ watch(
     if (isInitializingFromApi) {
       return;
     }
-    // 确保所有必要参数都有值
-    if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
+    // 如果未选择起重机，不调用接口也不提示
+    if (!selectedCraneId.value) {
+      return;
+    }
+    // 如果未选择组合类型，不调用接口
+    if (!formData.value.armType || formData.value.armType === "0" || formData.value.armType === 0) {
+      return;
+    }
+    // 确保所有必要参数都有值（排除armType，因为已经单独检查了）
+    const [l1, theta1, l2, theta2] = newValues;
+    if (l1 !== undefined && l1 !== null && l1 !== '' &&
+        theta1 !== undefined && theta1 !== null && theta1 !== '' &&
+        l2 !== undefined && l2 !== null && l2 !== '' &&
+        theta2 !== undefined && theta2 !== null && theta2 !== '') {
       try {
         const response = await getCalculateInfo({
           l1: formData.value.mainBoomMaxLength,
@@ -3834,7 +4030,8 @@ watch(
           l2: formData.value.auxBoomLength,
           theta2: formData.value.auxBoomAngle,
           craneType: craneType,// 起重机类型
-          armType: formData.value.armType//吊臂类型
+          templateCraneId: selectedCraneId.value, // 当前选中的起重机ID
+          performanceInfoId: formData.value.armType // 组合类型下拉数据的id（起重机工况板块里的组合类型下拉数据的id）
         });
         
         if (response.code === '0' && response.data) {
@@ -3844,10 +4041,14 @@ watch(
           if (response.data.cranePerformanceData && response.data.cranePerformanceData.liftingCapacity) {
             formData.value.ratedLoad = response.data.cranePerformanceData.liftingCapacity;
           }
+        } else {
+          // 接口返回的异常信息弹出提示
+          ElMessage.error(response?.msg || '获取起重机计算信息失败');
         }
       } catch (error) {
         console.error('调用getCalculateInfo接口失败:', error);
-        // 错误处理：可以选择显示提示或者忽略，不影响用户操作
+        // 网络或其他异常也提示
+        ElMessage.error('获取起重机计算信息失败，请检查网络连接');
       }
     }
   },
@@ -3867,8 +4068,20 @@ watch(
     if (isInitializingFromApi) {
       return;
     }
-    // 确保所有必要参数都有值
-    if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
+    // 如果未选择起重机2，不调用接口也不提示
+    if (!selectedCraneId2.value) {
+      return;
+    }
+    // 如果未选择组合类型，不调用接口
+    if (!formData.value.armType2 || formData.value.armType2 === "0" || formData.value.armType2 === 0) {
+      return;
+    }
+    // 确保所有必要参数都有值（排除armType2，因为已经单独检查了）
+    const [l1, theta1, l2, theta2] = newValues;
+    if (l1 !== undefined && l1 !== null && l1 !== '' &&
+        theta1 !== undefined && theta1 !== null && theta1 !== '' &&
+        l2 !== undefined && l2 !== null && l2 !== '' &&
+        theta2 !== undefined && theta2 !== null && theta2 !== '') {
       try {
         const response = await getCalculateInfo({
           l1: formData.value.mainBoomMaxLength2,
@@ -3876,7 +4089,8 @@ watch(
           l2: formData.value.auxBoomLength2,
           theta2: formData.value.auxBoomAngle2,
            craneType: craneType,// 起重机类型
-          armType: formData.value.armType2//吊臂类型
+          templateCraneId: selectedCraneId2.value, // 当前选中的起重机2的ID
+          performanceInfoId: formData.value.armType2 // 组合类型下拉数据的id（起重机工况板块里的组合类型下拉数据的id）
         });
         
         if (response.code === '0' && response.data) {
@@ -3886,10 +4100,14 @@ watch(
           if (response.data.cranePerformanceData && response.data.cranePerformanceData.liftingCapacity) {
             formData.value.ratedLoad2 = response.data.cranePerformanceData.liftingCapacity;
           }
+        } else {
+          // 接口返回的异常信息弹出提示（起重机2）
+          ElMessage.error(response?.msg || '获取起重机2计算信息失败');
         }
       } catch (error) {
         console.error('调用getCalculateInfo接口失败(起重机2):', error);
-        // 错误处理：可以选择显示提示或者忽略，不影响用户操作
+        // 网络或其他异常也提示
+        ElMessage.error('获取起重机2计算信息失败，请检查网络连接');
       }
     }
   },
@@ -3979,6 +4197,88 @@ const activeSlingData = computed(() => {
   return liftingFormDatas.value[activeSlingIndex.value];
 });
 
+// 图片映射表
+const imageMap = {
+  // 吊带 - 无吊梁
+  strap: {
+    noBeam: {
+      1: strapHookOne,
+      2: strapHookTwo,
+      3: strapHookThree,
+      4: strapHookFour,
+      6: strapHookSix,
+      8: strapHookEight,
+    },
+    // 吊带 - 有吊梁
+    withBeam: {
+      2: strapBeamTwo,
+      3: strapBeamThree,
+      4: strapBeamFour,
+      6: strapBeamSix,
+      8: strapBeamEight,
+    },
+  },
+  // 其他类型 - 无吊梁
+  wire: {
+    noBeam: {
+      1: wireHookOne,
+      2: wireHookTwo,
+      3: wireHookThree,
+      4: wireHookFour,
+      6: wireHookSix,
+      8: wireHookEight,
+    },
+    // 其他类型 - 有吊梁
+    withBeam: {
+      2: wireBeamTwo,
+      3: wireBeamThree,
+      4: wireBeamFour,
+      6: wireBeamSix,
+      8: wireBeamEight,
+    },
+  },
+};
+
+// 计算吊索具示意图图片路径
+const slingDiagramImage = computed(() => {
+  try {
+    // 获取当前配置
+    const slingType = activeSlingData.value?.slingType;
+    const liftingType = commonDeviceSettings.value?.liftingType;
+    const bottomPointCount = activeSlingData.value?.bottomPointCount;
+
+    // 如果缺少必要的数据，返回默认图片
+    if (!slingType || !liftingType || bottomPointCount === undefined || bottomPointCount === null) {
+      return defaultLiftingImage;
+    }
+
+    // 判断是吊带还是其他类型
+    // 0: 钢丝绳, 1: 吊带, 2: 卸扣, 3: 缆绳
+    const isStrap = slingType === "1"; // 1表示吊带
+    
+    // 判断是有吊梁还是无吊梁
+    const hasBeam = liftingType === "withBeam";
+    
+    // 确定类型键
+    const typeKey = isStrap ? "strap" : "wire";
+    
+    // 确定吊梁键
+    const beamKey = hasBeam ? "withBeam" : "noBeam";
+    
+    // 获取吊点数量
+    const pointCount = Number(bottomPointCount);
+    
+    // 从映射表中获取图片
+    const image = imageMap[typeKey]?.[beamKey]?.[pointCount];
+    
+    // 如果找不到对应的图片，返回默认图片
+    return image || defaultLiftingImage;
+  } catch (error) {
+    console.error("计算吊索具示意图路径时出错:", error);
+    return defaultLiftingImage;
+  }
+});
+
 // 共用的设备设置数据（所有吊索具共享）
 const commonDeviceSettings = ref({
   templateDeviceId: null,
@@ -3991,6 +4291,18 @@ const commonDeviceSettings = ref({
   beamSlingWeight: 0,
   isSinglePointLifting: false,
 });
+
+// 同步共用设备重量到所有吊索具配置，确保计算结果和弹窗中的设备重量使用最新值
+watch(
+  () => commonDeviceSettings.value.equipmentWeight,
+  (newWeight) => {
+    if (isInitializingFromApi) return;
+    const weight = toNumberOrZero(newWeight);
+    liftingFormDatas.value.forEach((sling) => {
+      sling.equipmentWeight = weight;
+    });
+  }
+);
 
 const lowerPointCountOptions = computed(() => {
   // 如果有吊梁，去掉1，最小值为2
@@ -4103,6 +4415,10 @@ const selectedSlingType = ref(""); // 'upper' or 'lower'
 
 const showLiftingEquipmentDialog = ref(false);
 const equipmentCategories = ref([]);
+
+// 导出选择弹窗相关
+const exportSelectDialogVisible = ref(false);
+const selectedExportType = ref('all'); // 'all', 'crane', 'lifting', 'foundation', 'template'
 const equipmentProducts = ref([]);
 const equipmentModels = ref([]);
 const selectedCategory = ref(null);
@@ -4401,12 +4717,18 @@ const activeLiftingSystemItems = computed(() => {
 });
 
 // 计算角度的正弦值（将角度转换为弧度后再计算正弦值）
+// 修正：避免出现 sin(角度) = 0 导致后续计算结果为 Infinity
 const calculateSinValue = (angle) => {
   if (!angle || isNaN(angle)) return 0;
   // 将角度转换为弧度：弧度 = 角度 × π / 180
   const radians = (angle * Math.PI) / 180;
   // 计算正弦值
-  return Math.sin(radians);
+  const sin = Math.sin(radians);
+  // 避免出现 0 或极小值，防止后续除以 sin 时得到 Infinity
+  if (!Number.isFinite(sin) || Math.abs(sin) < 1e-6) {
+    return sin >= 0 ? 1e-6 : -1e-6;
+  }
+  return sin;
 };
 
 // 计算吊索具校核结果
@@ -4495,6 +4817,12 @@ const calculateLiftingResult = (sling) => {
     }
   }
 
+  // 如果结果不是有限数（如 Infinity 或 NaN），按 0 处理，视为不合格
+  if (!Number.isFinite(result)) {
+    result = 0;
+    isQualified = false;
+  }
+
   // 默认返回
   return {
     result: result,
@@ -4525,10 +4853,12 @@ const showLiftingResult = (silent = false) => {
   
   // 计算所有吊索具的结果
   const liftingResults = liftingFormDatas.value.map((sling, index) => {
-    const result = calculateLiftingResult(sling);
+    const { result } = calculateLiftingResult(sling);
+    const numeric = Number(result);
+    const safe = Number.isFinite(numeric) ? numeric : 0;
     return {
       itemIndex: index,
-      result: parseFloat(result.result.toFixed(2))
+      result: parseFloat(safe.toFixed(2)),
     };
   });
   // 场景判断：如果不是静默模式（点击计算结果按钮），显示弹窗
@@ -4571,6 +4901,11 @@ const singleResult = ref({
   factorProduct: 1, // Initialize to 1
   calculationResult: 0,
   isQualified: false,
+  // 对应重量计算设置中各项是否勾选
+  hookWeightChecked: false,
+  wireRopeWeightChecked: false,
+  slingsWeightChecked: false,
+  otherWeightChecked: false,
   selectedFactors: [], // Added to hold the selected factors for display
 });
 
@@ -4594,6 +4929,11 @@ const doubleResult = ref({
   calculationResult2: 0,
   isQualified1: false,
   isQualified2: false,
+  // 对应重量计算设置中各项是否勾选（使用起重机1的设置）
+  hookWeightChecked: false,
+  wireRopeWeightChecked: false,
+  slingsWeightChecked: false,
+  otherWeightChecked: false,
   selectedFactors: [], // Added to hold the selected factors for display
 });
 
@@ -4648,18 +4988,36 @@ const showCalculationResult = (silent = false) => {
         100
       : 0;
 
+    // 根据勾选状态动态拼接“其它参数”文案
+    const settings = activeWeightData.settings || {};
+    const otherParts = [];
+    if (settings.isHookWeightChecked) {
+      otherParts.push(
+        `吊钩重量${activeWeightData.hookWeightG1.toFixed(2)}t`
+      );
+    }
+    if (settings.isWireRopeWeightChecked) {
+      otherParts.push(
+        `计算钢丝绳重量${activeWeightData.wireRopeWeightG2.toFixed(2)}t`
+      );
+    }
+    if (settings.isSlingsWeightChecked) {
+      otherParts.push(
+        `吊索具重量${activeWeightData.slingsWeightG3.toFixed(2)}t`
+      );
+    }
+    if (settings.isOtherWeightChecked) {
+      otherParts.push(
+        `其他计算重量${activeWeightData.otherWeightG4.toFixed(2)}t`
+      );
+    }
+
     singleResult.value = {
       liftingMethod: "单机吊装",
       craneName: craneName,
       equipmentName: equipmentName,
       totalWeight: activeWeightData.totalWeight.toFixed(2),
-      otherParams: `吊钩重量${activeWeightData.hookWeightG1.toFixed(
-        2
-      )}t、计算钢丝绳重量${activeWeightData.wireRopeWeightG2.toFixed(
-        2
-      )}t、吊索具重量${activeWeightData.slingsWeightG3.toFixed(
-        2
-      )}t、其他计算重量${activeWeightData.otherWeightG4.toFixed(2)}t`,
+      otherParams: otherParts.join("、"),
       hookWeight: activeWeightData.hookWeightG1.toFixed(2),
       wireRopeWeight: activeWeightData.wireRopeWeightG2.toFixed(2),
       slingsWeight: activeWeightData.slingsWeightG3.toFixed(2),
@@ -4669,6 +5027,10 @@ const showCalculationResult = (silent = false) => {
       isQualified: calculationResult < 100, // 修改合格判断逻辑，等于100%时不满足要求
       selectedFactors: activeWeightData.selectedFactors,
       factorProduct: activeWeightData.factorProduct,
+      hookWeightChecked: !!settings.isHookWeightChecked,
+      wireRopeWeightChecked: !!settings.isWireRopeWeightChecked,
+      slingsWeightChecked: !!settings.isSlingsWeightChecked,
+      otherWeightChecked: !!settings.isOtherWeightChecked,
     };
 
     // 如果不是静默模式（点击计算结果按钮），显示弹窗
@@ -4709,20 +5071,37 @@ const showCalculationResult = (silent = false) => {
         100
       : 0;
 
-    // 填充双机吊装结果数据
+    // 填充双机吊装结果数据（使用起重机1的重量设置做展示）
+    const crane1Settings = crane1WeightData.settings || {};
+    const otherParts = [];
+    if (crane1Settings.isHookWeightChecked) {
+      otherParts.push(
+        `吊钩重量${crane1WeightData.hookWeightG1.toFixed(2)}t`
+      );
+    }
+    if (crane1Settings.isWireRopeWeightChecked) {
+      otherParts.push(
+        `计算钢丝绳重量${crane1WeightData.wireRopeWeightG2.toFixed(2)}t`
+      );
+    }
+    if (crane1Settings.isSlingsWeightChecked) {
+      otherParts.push(
+        `吊索具重量${crane1WeightData.slingsWeightG3.toFixed(2)}t`
+      );
+    }
+    if (crane1Settings.isOtherWeightChecked) {
+      otherParts.push(
+        `其他计算重量${crane1WeightData.otherWeightG4.toFixed(2)}t`
+      );
+    }
+
     doubleResult.value = {
       liftingMethod: "双机吊装",
       craneName1: formData.value.craneName || "起重机1",
       craneName2: formData.value.craneName2 || "起重机2",
       equipmentName: formData.value.equipmentName,
       totalWeight: crane1WeightData.totalWeight.toFixed(2),
-      otherParams: `吊钩重量${crane1WeightData.hookWeightG1.toFixed(
-        2
-      )}t、计算钢丝绳重量${crane1WeightData.wireRopeWeightG2.toFixed(
-        2
-      )}t、吊索具重量${crane1WeightData.slingsWeightG3.toFixed(
-        2
-      )}t、其他计算重量${crane1WeightData.otherWeightG4.toFixed(2)}t`,
+      otherParams: otherParts.join("、"),
       hookWeight: crane1WeightData.hookWeightG1.toFixed(2),
       wireRopeWeight: crane1WeightData.wireRopeWeightG2.toFixed(2),
       slingsWeight: crane1WeightData.slingsWeightG3.toFixed(2),
@@ -4735,6 +5114,10 @@ const showCalculationResult = (silent = false) => {
       isQualified2: calculationResult2 < 75, // 修改合格判断逻辑，等于75%时不满足要求
       selectedFactors: crane1WeightData.selectedFactors,
       factorProduct: crane1WeightData.factorProduct,
+      hookWeightChecked: !!crane1Settings.isHookWeightChecked,
+      wireRopeWeightChecked: !!crane1Settings.isWireRopeWeightChecked,
+      slingsWeightChecked: !!crane1Settings.isSlingsWeightChecked,
+      otherWeightChecked: !!crane1Settings.isOtherWeightChecked,
     };
 
     // 如果不是静默模式（点击计算结果按钮），显示弹窗
@@ -4922,8 +5305,8 @@ const copyFoundationResult = () => {
   const resultText = `
 ${projectTitle.value}地基承载力校核计算
 
-履带信息
-履带名称：${foundationCalculationResult.value.trackInfo.name}  型号：${
+起重机信息
+名称：${foundationCalculationResult.value.trackInfo.name}  型号：${
     foundationCalculationResult.value.trackInfo.model
   }
 规格型号：${foundationCalculationResult.value.trackInfo.specifications}
@@ -5359,11 +5742,20 @@ const handleCalculateHeightAngle = async () => {
       }
       ElMessage.success("计算成功");
     } else {
-      ElMessage.error(response?.message || "计算失败，请稍后重试");
+      ElMessage.error(response?.msg || "计算失败，请稍后重试");
     }
   } catch (error) {
     console.error('调用getCalculateHeightOrAngle失败:', error);
-    ElMessage.error("计算失败，请稍后重试");
+    // 提取错误信息
+    let errorMessage = "计算失败，请稍后重试";
+    if (error?.response?.msg) {
+      errorMessage = error.response?.msg;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    ElMessage.error(errorMessage);
   } finally {
     isCalculatingHeightAngle.value = false;
   }
@@ -5417,11 +5809,20 @@ const handleCalculateHeightAngleByLa = async () => {
       }
       ElMessage.success("计算成功");
     } else {
-      ElMessage.error(response?.message || "计算失败，请稍后重试");
+      ElMessage.error(response?.msg || "计算失败，请稍后重试");
     }
   } catch (error) {
     console.error("调用getCalculateHeightOrAngle失败:", error);
-    ElMessage.error("计算失败，请稍后重试");
+    // 提取错误信息
+    let errorMessage = "计算失败，请稍后重试";
+    if (error?.response?.msg) {
+      errorMessage = error?.response?.msg;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    ElMessage.error(errorMessage);
   } finally {
     isCalculatingHeightAngle.value = false;
   }
@@ -5574,7 +5975,7 @@ const resetCraneForm = (craneKey) => {
     [`model${suffix}`]: null,
     [`equipmentType${suffix}`]: null,
     [`ratedLoad${suffix}`]: 0,
-    [`armType${suffix}`]: 0,
+    [`armType${suffix}`]: null,
     [`mainBoomMaxLength${suffix}`]: 0,
     [`auxBoomLength${suffix}`]: 0,
     [`workRadius${suffix}`]: 0,
@@ -5638,10 +6039,10 @@ const applyCraneDetailToForm = (detail, craneKey) => {
     [`equipmentType${suffix}`]: detail.deviceModel ?? "",
     [`armType${suffix}`]:
       detail?.armType !== undefined && detail?.armType !== null
-        ? Number(detail.armType)
+        ? (typeof detail.armType === 'string' ? detail.armType : String(detail.armType))
         : detail?.boomType !== undefined && detail?.boomType !== null
-        ? Number(detail.boomType)
-        : formData.value[`armType${suffix}`] ?? 0,
+        ? (typeof detail.boomType === 'string' ? detail.boomType : String(detail.boomType))
+        : formData.value[`armType${suffix}`] ?? null,
     [`ratedLoad${suffix}`]: toNumberOrZero(detail.pq),
     [`mainBoomMaxLength${suffix}`]: toNumberOrZero(detail.mainArmLength),
     [`auxBoomLength${suffix}`]: toNumberOrZero(detail.minorArmLength),
@@ -5692,6 +6093,23 @@ const applyCraneDetailToForm = (detail, craneKey) => {
       detail.templateDeviceId !== null
         ? String(detail.templateDeviceId)
         : null;
+    
+    // 加载组合类型下拉数据
+    if (selectedCraneId.value) {
+      getCranePerformanceInfo(selectedCraneId.value).then((performanceResponse) => {
+        if (performanceResponse && performanceResponse.code === '0' && performanceResponse.data) {
+          const performanceList = Array.isArray(performanceResponse.data) ? performanceResponse.data : [];
+          armTypeOptions1.value = performanceList;
+          // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+          if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType)) {
+            formData.value.armType = performanceList[0].id;
+          }
+        }
+      }).catch((error) => {
+        console.error('获取组合类型数据失败:', error);
+        armTypeOptions1.value = [];
+      });
+    }
   } else {
     selectedCraneId2.value =
       detail.templateCraneDetailId !== undefined &&
@@ -5725,6 +6143,23 @@ const applyCraneDetailToForm = (detail, craneKey) => {
     }
     if (detail.bearingWeight2 !== undefined && detail.bearingWeight2 !== null) {
       formData.value.crane2Weight = Number(detail.bearingWeight2);
+    }
+    
+    // 加载组合类型下拉数据
+    if (selectedCraneId2.value) {
+      getCranePerformanceInfo(selectedCraneId2.value).then((performanceResponse) => {
+        if (performanceResponse && performanceResponse.code === '0' && performanceResponse.data) {
+          const performanceList = Array.isArray(performanceResponse.data) ? performanceResponse.data : [];
+          armTypeOptions2.value = performanceList;
+          // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+          if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType2)) {
+            formData.value.armType2 = performanceList[0].id;
+          }
+        }
+      }).catch((error) => {
+        console.error('获取组合类型数据失败:', error);
+        armTypeOptions2.value = [];
+      });
     }
   }
 };
@@ -6072,9 +6507,12 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
     deviceModel: toNullableString(
       getCraneFieldValue("equipmentType", craneKey, "equipmentType")
     ),
-    armType: toNumberOrNull(
-      getCraneFieldValue("armType", craneKey, "armType")
-    ),
+    armType: (() => {
+      const armTypeValue = getCraneFieldValue("armType", craneKey, "armType");
+      return armTypeValue !== undefined && armTypeValue !== null
+        ? (typeof armTypeValue === 'string' ? armTypeValue : String(armTypeValue))
+        : null;
+    })(),
     pq: toNumberOrNull(getCraneFieldValue("ratedLoad", craneKey, "ratedLoad")),
     mainArmLength: toNumberOrNull(
       getCraneFieldValue("mainBoomMaxLength", craneKey, "mainBoomMaxLength")
@@ -6145,6 +6583,12 @@ const buildLiftingDetails = () => {
   // 使用共用的设备设置信息
   const deviceSettings = commonDeviceSettings.value;
   
+  // 从设备列表中获取选中的设备名称
+  const selectedDevice = deviceList.value.find(
+    (device) => device.id === selectedSlingDeviceId.value
+  );
+  const deviceName = selectedDevice?.deviceName || deviceSettings.deviceName;
+  
   // 为每个吊索具构建数据，使用共用的设备设置信息
   return liftingFormDatas.value.map((sling, index) => ({
     projectId: toNullableString(projectId.value),
@@ -6155,7 +6599,7 @@ const buildLiftingDetails = () => {
     liftingPosition: sling.isBottomSling ? 1 : 0,
     type: deviceSettings.liftingType === "withBeam" ? 1 : 0,
     itemIndex: index + 1,
-    deviceName: toNullableString(deviceSettings.deviceName),
+    deviceName: toNullableString(deviceName),
     deviceCode: toNullableString(sling.equipmentNumber),
     deviceModel: toNullableString(deviceSettings.equipmentModel),
     deviceWeight: toNumberOrNull(deviceSettings.equipmentWeight),
@@ -6429,6 +6873,65 @@ const handleExport = async (type) => {
   }
 };
 
+// 打开导出选择弹窗
+const openExportSelectDialog = () => {
+  selectedExportType.value = 'all'; // 默认选中第一个
+  exportSelectDialogVisible.value = true;
+};
+
+// 处理导出确认（从弹窗中）
+const handleExportSelectConfirm = async () => {
+  const type = selectedExportType.value;
+  
+  // 关闭弹窗
+  exportSelectDialogVisible.value = false;
+  
+  try {
+    if (type === 'all') {
+      // 导出方案文件 - exportType: 0
+      await ElMessageBox.confirm(
+        '导出会保存每个tab下的页面信息',
+        '导出确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+      await handleExportAll(0);
+    } else if (type === 'template') {
+      // 按模版导出 - exportType: 1，逻辑与导出方案文件一致
+      await ElMessageBox.confirm(
+        '导出会保存每个tab下的页面信息',
+        '导出确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+      await handleExportAll(1);
+    } else {
+      // 其他类型的导出 - 复用各个tab下的导出逻辑
+      await ElMessageBox.confirm(
+        '导出会自动保存当前页面的信息',
+        '导出确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+      await handleExport(type);
+    }
+  } catch (error) {
+    // 用户点击取消，不执行任何操作
+    if (error !== 'cancel') {
+      console.error('导出确认失败:', error);
+    }
+  }
+};
+
 // 统一导出所有tab的数据
 // 打开统一导出确认MessageBox
 const handleExportAllConfirm = async () => {
@@ -6454,7 +6957,7 @@ const handleExportAllConfirm = async () => {
 };
 
 // 执行统一导出所有tab的数据
-const handleExportAll = async () => {
+const handleExportAll = async (exportType = 0) => {
   try {
     const projectIdValue = projectId.value;
     if (!projectIdValue) {
@@ -6485,6 +6988,7 @@ const handleExportAll = async () => {
     // 构建导出参数
     const params = {
       projectId: projectIdValue,
+      exportType: exportType, // 添加exportType参数：0-导出方案文件，1-按模版导出
       crane: craneResult ? {
         result1: craneResult.result1 !== undefined && craneResult.result1 !== null ? craneResult.result1 : null,
         result2: craneResult.result2 !== undefined && craneResult.result2 !== null ? craneResult.result2 : null
@@ -6550,11 +7054,20 @@ const handleExportAll = async () => {
   justify-content: space-between;
 }
 
+.back-btn {
+  color: #000000;
+  margin-right: 16px;
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
 .header-left {
   display: flex;
   width: 30%;
   align-items: center;
   gap: 12px;
+  position: relative;
+  right: 10%;
 }
 .header-left:hover {
   cursor: pointer;
@@ -6746,7 +7259,6 @@ const handleExportAll = async () => {
 
 .calculation-result h3 {
   text-align: center;
-  margin-bottom: 20px;
   color: #333;
 }
 
@@ -7237,12 +7749,42 @@ const handleExportAll = async () => {
   height: calc(100vh - 120px);
   padding: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.construction-plan-wrapper :deep(.el-tabs) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.construction-plan-wrapper :deep(.el-tabs__content) {
+  flex: 1;
+  overflow: hidden;
+}
+
+.construction-plan-wrapper :deep(.el-tab-pane) {
+  height: 100%;
 }
 
 .method-draw-iframe {
   width: 100%;
   height: 100%;
   border: none;
+  display: block;
+}
+
+.iframe-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+  background-color: #f5f5f5;
 }
 
 /* Added styles for three-level lifting equipment selection dialog */
@@ -7416,5 +7958,162 @@ color: #0775DB;
 .no-results{
   display: flex;
   justify-content: center;
+}
+
+/* 导出选择弹窗样式 */
+.export-select-dialog :deep(.el-dialog) {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.export-select-dialog :deep(.el-dialog__header) {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.export-select-dialog :deep(.el-dialog__title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.export-select-content {
+  padding: 20px;
+  min-height: 200px;
+  text-align: left;
+  direction: ltr;
+}
+
+.export-select-content * {
+  text-align: left;
+}
+
+.export-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.export-radio-group :deep(.el-radio-group) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.export-radio-group :deep(.el-radio-group__label) {
+  display: none;
+}
+
+.export-radio-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding: 6px 16px !important;
+  border: 2px solid #e4e7ed;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: #fafafa;
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  text-align: left !important;
+  text-indent: 0 !important;
+}
+
+.export-radio-item:hover {
+  border-color: #409eff;
+  background: #f0f7ff;
+  transform: translateX(4px);
+}
+
+.export-radio-item.is-checked {
+  border-color: #409eff;
+  background: #ecf5ff;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+}
+
+.export-radio-item :deep(.el-radio) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.export-radio-item :deep(.el-radio__input) {
+  margin-right: 10px !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0;
+  order: -1;
+}
+
+.export-radio-item :deep(.el-radio__label) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  text-align: left !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: auto !important;
+}
+
+.export-radio-item :deep(.el-radio__input.is-checked .el-radio__inner) {
+  background-color: #409eff;
+  border-color: #409eff;
+}
+
+.export-radio-item :deep(.el-radio__input.is-checked .el-radio__inner::after) {
+  background-color: #fff;
+}
+
+.radio-label {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+  text-align: left !important;
+  display: inline-block;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.export-radio-item.is-checked .radio-label {
+  color: #409eff;
+}
+
+.export-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.export-dialog-footer .el-button {
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 14px;
 }
 </style>

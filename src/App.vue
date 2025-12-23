@@ -1,83 +1,30 @@
 <template>
   <el-container class="app-container">
-    <!-- 侧边栏 - 不在SitePlan页面显示 -->
-    <el-aside v-if="!shouldHideSidebar" width="200px" class="sidebar-container">
-      <div class="logo-container">
-        <div v-if="userStore.userState.isLoggedIn" class="user-info">
-          <el-image
-            src="/src/images/user.png"
-            alt="user"
-            class="logo"
-            :fit="'cover'"
-          />
-          <span class="logo-text">{{ userStore.userState.userInfo.id }}[{{ userStore.userState.userInfo.name }}]</span>
-          <el-dropdown @command="handleCommand">
-            <el-image
-              src="/src/images/back.png"
-              alt="user"
-              class="back"
-              :fit="'cover'"
-            />
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-        <div v-else class="login-prompt" @click="handleLoginClick">
-            <img
-            src="@/images/user.png"
-            alt="user"
-            class="logo"
-          />
-          <span class="login-text">未登录，<span>点击登录</span></span>
-        </div>
-      </div>
-      <el-menu
-        :default-active="activeMenu"
-        class="el-menu-vertical-demo"
-        background-color="#191919"
-        text-color="#bfcbd9"
-        active-text-color="#FFFFFF"
-        router
-      >
-        <el-menu-item index="/all-projects">
-          <el-icon><FolderOpened /></el-icon>
-          <span>全部项目</span>
-        </el-menu-item>
-        <el-menu-item index="/verification-projects">
-          <el-icon><Document /></el-icon>
-          <span>校核计算项目</span>
-        </el-menu-item>
-        <el-menu-item index="/virtual-simulation">
-          <el-icon><VideoPlay /></el-icon>
-          <span>虚拟仿真项目</span>
-        </el-menu-item>
-        <el-menu-item index="/construction-plans">
-          <el-icon><Document /></el-icon>
-          <span>总平规划项目</span>
-        </el-menu-item>
-        <!-- Added Data Management menu item -->
-        <el-menu-item index="/data-management">
-          <el-icon><DataAnalysis /></el-icon>
-          <span>数据管理</span>
-        </el-menu-item>
-        <el-menu-item 
-          v-if="userStore.userState.userInfo.level === 1" 
-          index="/user-management"
-        >
-          <el-icon><User /></el-icon>
-          <span>账号管理</span>
-        </el-menu-item>
-      </el-menu>
-    </el-aside>
-    
-    <!-- 主内容区 -->
+    <!-- 主内容区（移除侧边栏，宽屏显示） -->
     <el-container>
-      <!-- 顶部导航栏 -->
-      <el-header v-if="!shouldHideHeader" class="header-container">
+      <!-- 顶部导航栏：未登录时不显示 -->
+      <el-header v-if="isLoggedIn && !shouldHideHeader" class="header-container">
         <div class="header-left">
+          <el-button
+            v-if="isMenuPage"
+            type="default"
+            size="large"
+            class="back-btn"
+            @click="openMenuDialog"
+          >
+            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+            返回
+          </el-button>
+          <el-button
+            v-else-if="isEditPage"
+            type="default"
+            size="large"
+            class="back-btn"
+            @click="handleBackToList"
+          >
+            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+            返回
+          </el-button>
           <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
           <!-- 只在项目列表页面显示创建项目按钮和搜索框 -->
           <template v-if="isProjectListPage">
@@ -101,6 +48,18 @@
           </template>
         </div>
         <div class="header-right">
+          <div class="user-status" @click="handleStatusClick">
+            <img class="user-icon" src="@/images/user.png" alt="user" />
+            <span class="user-name">{{ displayUserName }}</span>
+          </div>
+          <el-dropdown v-if="userStore.userState.isLoggedIn" @command="handleCommand">
+            <img class="logout-icon" src="@/images/back.png" alt="logout" />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
           <el-button 
             v-if="userStore.userState.userInfo?.loginType === 0"
             type="default" 
@@ -128,11 +87,44 @@
         </div>
       </el-header>
       
-      <!-- 路由视图 -->
-      <el-main :class="['main-container', shouldHideSidebar ? 'full-width' : '']">
+      <!-- 路由视图：未登录时不渲染主内容，只显示登录弹窗 -->
+      <el-main
+        v-if="isLoggedIn"
+        :class="['main-container', shouldHideSidebar ? 'full-width' : '']"
+      >
         <router-view />
       </el-main>
     </el-container>
+
+    <!-- 功能菜单弹窗 -->
+    <Teleport to="body">
+      <el-dialog
+        v-model="showMenuDialog"
+        width="420px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :show-close="false"
+        append-to-body
+      >
+        <template #header>
+          <div class="menu-dialog-header">
+            <span>功能菜单</span>
+            <el-icon class="menu-close" @click="closeMenuDialog"><Close /></el-icon>
+          </div>
+        </template>
+        <div class="menu-dialog-content">
+          <el-button
+            v-for="item in menuOptions"
+            :key="item.path"
+            type="default"
+            class="menu-dialog-item"
+            @click="handleMenuSelect(item.path)"
+          >
+            {{ item.label }}
+          </el-button>
+        </div>
+      </el-dialog>
+    </Teleport>
 
     <!-- 云端数据同步弹窗 -->
     <Teleport to="body">
@@ -188,14 +180,18 @@
                   <el-table-column prop="model" label="型号" min-width="150" />
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
                 </el-table>
-                <el-pagination
-                  v-model:current-page="syncCranePage"
-                  :page-size="syncCranePageSize"
-                  :total="syncCraneTotal"
-                  layout="total, prev, pager, next"
-                  class="pagination"
-                  @current-change="handleSyncCranePageChange"
-                />
+                <div class="pagination-container">
+                  <div class="pagination-info">共 {{ syncCraneTotal }} 条</div>
+                  <el-pagination
+                    v-model:current-page="syncCranePage"
+                    v-model:page-size="syncCranePageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="syncCraneTotal"
+                    layout="prev, pager, next, jumper, sizes"
+                    @current-change="handleSyncCranePageChange"
+                    @size-change="handleSyncCranePageSizeChange"
+                  />
+                </div>
               </div>
             </el-tab-pane>
 
@@ -239,14 +235,18 @@
                   <el-table-column prop="twoLiftingName" label="子类型" width="120" />
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
                 </el-table>
-                <el-pagination
-                  v-model:current-page="syncRiggingPage"
-                  :page-size="syncRiggingPageSize"
-                  :total="syncRiggingTotal"
-                  layout="total, prev, pager, next"
-                  class="pagination"
-                  @current-change="handleSyncRiggingPageChange"
-                />
+                <div class="pagination-container">
+                  <div class="pagination-info">共 {{ syncRiggingTotal }} 条</div>
+                  <el-pagination
+                    v-model:current-page="syncRiggingPage"
+                    v-model:page-size="syncRiggingPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="syncRiggingTotal"
+                    layout="prev, pager, next, jumper, sizes"
+                    @current-change="handleSyncRiggingPageChange"
+                    @size-change="handleSyncRiggingPageSizeChange"
+                  />
+                </div>
               </div>
             </el-tab-pane>
 
@@ -285,14 +285,68 @@
                   <el-table-column prop="deviceType" label="型号" min-width="120" />
                   <el-table-column prop="prodBusiness" label="生产厂家" min-width="150" />
                 </el-table>
-                <el-pagination
-                  v-model:current-page="syncEquipmentPage"
-                  :page-size="syncEquipmentPageSize"
-                  :total="syncEquipmentTotal"
-                  layout="total, prev, pager, next"
-                  class="pagination"
-                  @current-change="handleSyncEquipmentPageChange"
-                />
+                <div class="pagination-container">
+                  <div class="pagination-info">共 {{ syncEquipmentTotal }} 条</div>
+                  <el-pagination
+                    v-model:current-page="syncEquipmentPage"
+                    v-model:page-size="syncEquipmentPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="syncEquipmentTotal"
+                    layout="prev, pager, next, jumper, sizes"
+                    @current-change="handleSyncEquipmentPageChange"
+                    @size-change="handleSyncEquipmentPageSizeChange"
+                  />
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <!-- 起重机模型库 -->
+            <el-tab-pane label="起重机模型库" name="craneModel">
+              <div class="sync-tab-content">
+                <div class="sync-toolbar">
+                  <div class="search-group">
+                    <el-input
+                      v-model="syncCraneModelSearch"
+                      placeholder="请输入模型名称"
+                      prefix-icon="Search"
+                      style="width: 240px"
+                      clearable
+                      @keyup.enter="handleSyncCraneModelSearch"
+                    />
+                    <el-button type="primary" @click="handleSyncCraneModelSearch" style="margin-left: 8px">
+                      搜索
+                    </el-button>
+                  </div>
+                </div>
+                <el-table
+                  :data="syncCraneModelData"
+                  v-loading="syncCraneModelLoading"
+                  style="width: 100%"
+                  :header-cell-style="{ background: '#f5f7fa' }"
+                  @selection-change="handleSyncCraneModelSelectionChange"
+                >
+                  <el-table-column type="selection" width="55" />
+                  <el-table-column label="序号" width="80">
+                    <template #default="scope">
+                      {{ scope.$index + 1 + (syncCraneModelPage - 1) * syncCraneModelPageSize }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="modelName" label="模型名称" min-width="150" />
+                  <el-table-column prop="createName" label="创建人" width="120" />
+                  <el-table-column prop="createTime" label="录入时间" width="180" />
+                </el-table>
+                <div class="pagination-container">
+                  <div class="pagination-info">共 {{ syncCraneModelTotal }} 条</div>
+                  <el-pagination
+                    v-model:current-page="syncCraneModelPage"
+                    v-model:page-size="syncCraneModelPageSize"
+                    :page-sizes="[10, 20, 50, 100]"
+                    :total="syncCraneModelTotal"
+                    layout="prev, pager, next, jumper, sizes"
+                    @current-change="handleSyncCraneModelPageChange"
+                    @size-change="handleSyncCraneModelPageSizeChange"
+                  />
+                </div>
               </div>
             </el-tab-pane>
           </el-tabs>
@@ -368,7 +422,6 @@
 import { ref, computed, reactive, onMounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
-  FolderOpened,
   VideoPlay,
   Document,
   Plus,
@@ -376,14 +429,19 @@ import {
   DataAnalysis,
   User,
   Lock,
+  ArrowLeft,
+  Close,
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
-import { login, loginOut, getCraneInfoPage, getLiftingInfoPage, getDeviceInfoPage, dataSynchronization } from './api/index.js';
+import { login, loginOut, getCraneInfoPage, getLiftingInfoPage, getDeviceInfoPage, getCraneModelPage, dataSynchronization } from './api/index.js';
 import { translateLiftingType, translateCraneType } from './utils/common.js';
 
 const route = useRoute();
 const router = useRouter();
+
+// 是否已登录
+const isLoggedIn = computed(() => userStore.userState.isLoggedIn);
 
 // 搜索关键词
 const searchTitle = ref("");
@@ -419,8 +477,18 @@ const syncEquipmentData = ref([]);
 const syncEquipmentLoading = ref(false);
 const syncEquipmentSelected = ref([]);
 
+// 起重机模型库同步数据
+const syncCraneModelSearch = ref("");
+const syncCraneModelPage = ref(1);
+const syncCraneModelPageSize = ref(10);
+const syncCraneModelTotal = ref(0);
+const syncCraneModelData = ref([]);
+const syncCraneModelLoading = ref(false);
+const syncCraneModelSelected = ref([]);
+
 // 登录相关
 const showLoginDialog = ref(false);
+const showMenuDialog = ref(false);
 // 分开两个 loading 状态，避免两个按钮同时 loading
 const isConfirmLogging = ref(false);
 const isAdminLogging = ref(false);
@@ -429,10 +497,8 @@ const loginForm = reactive({
   password: "",
 });
 
-// 判断是否应该隐藏侧边栏
-const shouldHideSidebar = computed(() => {
-  return route.meta.hideSidebar || false;
-});
+// 判断是否应该隐藏侧边栏（侧边栏已移除，始终使用全宽）
+const shouldHideSidebar = computed(() => true);
 
 // 判断是否应该隐藏顶部导航栏
 const shouldHideHeader = computed(() => {
@@ -441,11 +507,44 @@ const shouldHideHeader = computed(() => {
 
 // 判断是否是项目列表页面
 const isProjectListPage = computed(() => {
-  const projectListPaths = ['/all-projects', '/verification-projects', '/virtual-simulation', '/construction-plans'];
+  const projectListPaths = ['/verification-projects', '/virtual-simulation', '/construction-plans'];
   return projectListPaths.includes(route.path);
 });
 
-const activeMenu = computed(() => route.path || "/all-projects");
+const isMenuPage = computed(() => route.meta.isMenuPage);
+const isEditPage = computed(() => route.meta.isEditPage);
+const backToPath = computed(() => route.meta.backTo || '/verification-projects');
+
+const activeMenu = computed(() => route.path || "/verification-projects");
+
+const menuOptions = computed(() => {
+  // 所有菜单项及其对应的 menus 值
+  const allMenus = [
+    { label: "校核计算项目", path: "/verification-projects", menuValue: "0" },
+    { label: "虚拟仿真项目", path: "/virtual-simulation", menuValue: "1" },
+    { label: "总平规划项目", path: "/construction-plans", menuValue: "2" },
+    { label: "数据管理", path: "/data-management", menuValue: "3" },
+    { label: "账号管理", path: "/user-management", menuValue: "4" },
+  ];
+  
+  // 获取用户菜单权限
+  const userMenus = userStore.userState.userInfo.menus || [];
+  
+  // 根据用户的 menus 数组过滤菜单
+  return allMenus.filter(menu => {
+    // 将 menuValue 转换为字符串进行比较
+    return userMenus.includes(String(menu.menuValue));
+  });
+});
+
+const displayUserName = computed(() => {
+  if (!userStore.userState.isLoggedIn) return "未登录，点击登录";
+  const info = userStore.userState.userInfo || {};
+  const id = info.id || info.userName || "";
+  const name = info.name || info.userNickName || info.userName || "";
+  if (id && name) return `${id}[${name}]`;
+  return id || name || "已登录";
+});
 
 // 创建项目全局状态，用于在组件间传递
 // 初始化为 false，确保只在明确点击按钮时才设置为 true
@@ -459,31 +558,60 @@ const createProject = () => {
     ElMessage.warning('请先登录');
     return;
   }
-  
-  // 检查当前是否已经在全部项目页面
-  if (route.path === '/all-projects') {
-    // 直接使用全局方法打开弹窗，更可靠
+
+  // 如果当前就在任意一个项目列表页面（校核 / 三维仿真 / 总平规划），
+  // 直接在当前页面打开创建项目弹窗，不再跳转到其它路由
+  if (isProjectListPage.value) {
     if (window.openProjectDialogDirect) {
-      console.log('Using direct method to open project dialog');
+      console.log('Using direct method to open project dialog on current list page');
       window.openProjectDialogDirect();
     } else {
-      // 备用方案：使用setTimeout确保事件正确派发
-      console.log('Falling back to event dispatch method');
+      console.log('Falling back to event dispatch method on current list page');
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('openProjectDialog'));
       }, 100);
     }
-  } else {
-    // 导航到全部项目页面时，设置标志
-    // 注意：只在导航时才设置标志，避免在已存在的页面中误触发
-    console.log('Navigating to all-projects page');
-    window.createProjectFlag = true;
-    router.push('/all-projects');
+    return;
   }
+
+  // 兼容旧逻辑：如果将来在非列表页面也需要“创建项目”，再通过标志跳转
+  console.log('Navigating to verification-projects page for project creation');
+  window.createProjectFlag = true;
+  router.push('/verification-projects');
 };
 
 const handleLoginClick = () => {
   showLoginDialog.value = true;
+};
+
+const handleStatusClick = () => {
+  if (!userStore.userState.isLoggedIn) {
+    showLoginDialog.value = true;
+    return;
+  }
+  openMenuDialog();
+};
+
+const handleBackToList = () => {
+  router.push(backToPath.value);
+};
+
+const openMenuDialog = () => {
+  if (!userStore.userState.isLoggedIn) {
+    ElMessage.warning("请先登录");
+    showLoginDialog.value = true;
+    return;
+  }
+  showMenuDialog.value = true;
+};
+
+const closeMenuDialog = () => {
+  showMenuDialog.value = false;
+};
+
+const handleMenuSelect = (path) => {
+  showMenuDialog.value = false;
+  router.push(path);
 };
 
 const handleLogout = async () => {
@@ -493,8 +621,8 @@ const handleLogout = async () => {
     // 清除本地状态
     userStore.logout();
     ElMessage.success("已退出登录");
-    // 跳转到全部项目页面并清空数据
-    router.push('/all-projects').then(() => {
+    // 跳转到默认页面并清空数据
+    router.push('/verification-projects').then(() => {
       // 使用 nextTick 确保组件已挂载
       nextTick(() => {
         if (window.clearProjectListDirect) {
@@ -502,13 +630,15 @@ const handleLogout = async () => {
         }
       });
     });
+    showLoginDialog.value = true;
+    showMenuDialog.value = false;
   } catch (error) {
     console.error("退出登录失败:", error);
     // 即使接口调用失败，也清除本地状态
     userStore.logout();
     ElMessage.warning("退出登录失败，已清除本地登录状态");
-    // 跳转到全部项目页面并清空数据
-    router.push('/all-projects').then(() => {
+    // 跳转到默认页面并清空数据
+    router.push('/verification-projects').then(() => {
       // 使用 nextTick 确保组件已挂载
       nextTick(() => {
         if (window.clearProjectListDirect) {
@@ -516,6 +646,8 @@ const handleLogout = async () => {
         }
       });
     });
+    showLoginDialog.value = true;
+    showMenuDialog.value = false;
   }
 };
 
@@ -546,15 +678,15 @@ const handleLogin = async () => {
         userStore.login(
           response.data.userName || loginForm.username,
           response.data.userNickName || null,
-          response.data.level !== undefined ? response.data.level : null,
-          0 // loginType: 0是确认登录
+          0, // loginType: 0是确认登录
+          response.data.menus || null // 菜单权限
         );
       }
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
-      // 跳转到全部项目页面并刷新
-      router.push('/all-projects').then(() => {
+      // 跳转到默认页面并刷新
+      router.push('/verification-projects').then(() => {
         triggerRefresh(null);
       });
     } else {
@@ -595,15 +727,15 @@ const handleOfflineLogin = async () => {
         userStore.login(
           response.data.userName || loginForm.username,
           response.data.userNickName || null,
-          response.data.level !== undefined ? response.data.level : null,
-          1 // loginType: 1是管理员登录
+          1, // loginType: 1是管理员登录
+          response.data.menus || null // 菜单权限
         );
       }
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
-      // 跳转到全部项目页面并刷新
-      router.push('/all-projects').then(() => {
+      // 跳转到默认页面并刷新
+      router.push('/verification-projects').then(() => {
         triggerRefresh(null);
       });
     } else {
@@ -688,13 +820,16 @@ const handleDataSynchronization = () => {
   syncCranePage.value = 1;
   syncRiggingPage.value = 1;
   syncEquipmentPage.value = 1;
+  syncCraneModelPage.value = 1;
   syncCraneSelected.value = [];
   syncRiggingSelected.value = [];
   syncEquipmentSelected.value = [];
+  syncCraneModelSelected.value = [];
   // 加载数据
   fetchSyncCraneData();
   fetchSyncRiggingData();
   fetchSyncEquipmentData();
+  fetchSyncCraneModelData();
 };
 
 // 获取同步起重机数据
@@ -735,6 +870,44 @@ const fetchSyncCraneData = async () => {
     ElMessage.error("获取数据失败，请检查网络连接");
   } finally {
     syncCraneLoading.value = false;
+  }
+};
+
+// 获取同步起重机模型库数据
+const fetchSyncCraneModelData = async () => {
+  syncCraneModelLoading.value = true;
+  try {
+    const params = {
+      pageNum: syncCraneModelPage.value,
+      pageSize: syncCraneModelPageSize.value,
+      push: 1, // 只获取推送的数据
+    };
+
+    if (syncCraneModelSearch.value && syncCraneModelSearch.value.trim()) {
+      params.modelName = syncCraneModelSearch.value.trim();
+    }
+
+    const response = await getCraneModelPage(params);
+
+    if (response && response.code === "0") {
+      const records = response.data.records || [];
+      syncCraneModelData.value = records.map((item) => ({
+        ...item,
+        push: item.push !== undefined && item.push !== null ? item.push : 0,
+      }));
+      syncCraneModelTotal.value = response.data.total || 0;
+    } else {
+      syncCraneModelData.value = [];
+      syncCraneModelTotal.value = 0;
+      ElMessage.error(response?.message || "获取起重机模型库数据失败");
+    }
+  } catch (error) {
+    console.error("获取起重机模型库数据失败:", error);
+    syncCraneModelData.value = [];
+    syncCraneModelTotal.value = 0;
+    ElMessage.error("获取数据失败，请检查网络连接");
+  } finally {
+    syncCraneModelLoading.value = false;
   }
 };
 
@@ -821,6 +994,12 @@ const handleSyncCranePageChange = (page) => {
   fetchSyncCraneData();
 };
 
+const handleSyncCranePageSizeChange = (size) => {
+  syncCranePageSize.value = size;
+  syncCranePage.value = 1;
+  fetchSyncCraneData();
+};
+
 // 起重机搜索
 const handleSyncCraneSearch = () => {
   syncCranePage.value = 1;
@@ -830,6 +1009,12 @@ const handleSyncCraneSearch = () => {
 // 吊索具分页变化
 const handleSyncRiggingPageChange = (page) => {
   syncRiggingPage.value = page;
+  fetchSyncRiggingData();
+};
+
+const handleSyncRiggingPageSizeChange = (size) => {
+  syncRiggingPageSize.value = size;
+  syncRiggingPage.value = 1;
   fetchSyncRiggingData();
 };
 
@@ -845,10 +1030,34 @@ const handleSyncEquipmentPageChange = (page) => {
   fetchSyncEquipmentData();
 };
 
+const handleSyncEquipmentPageSizeChange = (size) => {
+  syncEquipmentPageSize.value = size;
+  syncEquipmentPage.value = 1;
+  fetchSyncEquipmentData();
+};
+
 // 设备搜索
 const handleSyncEquipmentSearch = () => {
   syncEquipmentPage.value = 1;
   fetchSyncEquipmentData();
+};
+
+// 起重机模型库分页变化
+const handleSyncCraneModelPageChange = (page) => {
+  syncCraneModelPage.value = page;
+  fetchSyncCraneModelData();
+};
+
+const handleSyncCraneModelPageSizeChange = (size) => {
+  syncCraneModelPageSize.value = size;
+  syncCraneModelPage.value = 1;
+  fetchSyncCraneModelData();
+};
+
+// 起重机模型库搜索
+const handleSyncCraneModelSearch = () => {
+  syncCraneModelPage.value = 1;
+  fetchSyncCraneModelData();
 };
 
 // 选择变化处理
@@ -862,6 +1071,10 @@ const handleSyncRiggingSelectionChange = (selection) => {
 
 const handleSyncEquipmentSelectionChange = (selection) => {
   syncEquipmentSelected.value = selection;
+};
+
+const handleSyncCraneModelSelectionChange = (selection) => {
+  syncCraneModelSelected.value = selection;
 };
 
 // 取消同步
@@ -898,6 +1111,14 @@ const handleConfirmSync = async () => {
     });
   }
   
+  // 起重机模型库数据 (type: 3)
+  if (syncCraneModelSelected.value.length > 0) {
+    syncData.push({
+      type: 3,
+      dataId: syncCraneModelSelected.value.map(item => item.id)
+    });
+  }
+  
   if (syncData.length === 0) {
     ElMessage.warning("请至少选择一条数据进行同步");
     return;
@@ -908,9 +1129,9 @@ const handleConfirmSync = async () => {
     for (const item of syncData) {
       const response = await dataSynchronization(item);
       if (response && response.code === '0') {
-        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : '设备'}数据同步成功`);
+        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '起重机模型库'}数据同步成功`);
       } else {
-        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : '设备'}数据同步失败`);
+        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '起重机模型库'}数据同步失败`);
       }
     }
     // 关闭弹窗
@@ -919,6 +1140,7 @@ const handleConfirmSync = async () => {
     syncCraneSelected.value = [];
     syncRiggingSelected.value = [];
     syncEquipmentSelected.value = [];
+    syncCraneModelSelected.value = [];
   } catch (error) {
     console.error("数据同步失败:", error);
     ElMessage.error("数据同步失败，请检查网络连接");
@@ -934,6 +1156,8 @@ watch(syncActiveTab, (newTab) => {
       fetchSyncRiggingData();
     } else if (newTab === "equipment" && syncEquipmentData.value.length === 0) {
       fetchSyncEquipmentData();
+    } else if (newTab === "craneModel" && syncCraneModelData.value.length === 0) {
+      fetchSyncCraneModelData();
     }
   }
 });
@@ -941,6 +1165,9 @@ watch(syncActiveTab, (newTab) => {
 // 页面加载时恢复用户状态
 onMounted(() => {
   userStore.restoreUserState();
+  if (!userStore.userState.isLoggedIn) {
+    showLoginDialog.value = true;
+  }
   // 暴露 router 实例到 window，供 api/index.js 中的 checkResponseCode 使用
   window.__VUE_ROUTER__ = router;
   
@@ -1059,6 +1286,14 @@ onMounted(() => {
 .header-left {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.back-btn {
+  color: #000000;
+  margin-right: 16px;
+  font-size: 14px;
+  padding: 6px 12px;
 }
 
 .user-name {
@@ -1069,6 +1304,42 @@ onMounted(() => {
 .header-right {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.user-status {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.user-status:hover {
+  background: #f5f7fa;
+}
+
+.user-icon {
+  width: 26px;
+  height: 26px;
+  margin-right: 8px;
+}
+
+.user-name {
+  font-size: 14px;
+  color: #304156;
+  white-space: nowrap;
+}
+
+.logout-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.menu-button {
+  padding: 10px 16px;
 }
 
 .search-box {
@@ -1086,6 +1357,31 @@ onMounted(() => {
 .main-container.full-width {
   padding: 0;
   background-color: #ffffff;
+}
+
+.menu-dialog-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.menu-dialog-item {
+  width: 100%;
+  color: #2B507D;
+  justify-content: center;
+}
+
+.menu-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 4px 4px 0 4px;
+}
+
+.menu-close {
+  cursor: pointer;
 }
 
 /* 全局登录弹窗样式 */
@@ -1335,9 +1631,16 @@ font-weight: 400;
   gap: 10px;
 }
 
-.sync-dialog .pagination {
-  margin-top: 20px;
+.pagination-container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 0 20px;
+}
+
+.pagination-info {
+  color: #606266;
+  font-size: 14px;
 }
 </style>

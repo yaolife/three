@@ -12,15 +12,12 @@ const SitePlan = () => import("../views/SitePlan.vue")
 const routes = [
   {
     path: "/",
-    redirect: "/all-projects",
+    redirect: "/verification-projects",
   },
+  // 兼容旧链接，统一跳转到校核计算项目
   {
     path: "/all-projects",
-    name: "AllProjects",
-    component: AllProjects,
-    meta: {
-      title: "全部项目",
-    },
+    redirect: "/verification-projects",
   },
   {
     path: "/verification-projects",
@@ -29,6 +26,7 @@ const routes = [
     meta: {
       title: "校核计算项目",
       projectType: 0,
+      isMenuPage: true,
     },
   },
   {
@@ -38,6 +36,7 @@ const routes = [
     meta: {
       title: "虚拟仿真项目",
       projectType: 1,
+      isMenuPage: true,
     },
   },
   {
@@ -57,6 +56,7 @@ const routes = [
     meta: {
       title: "总平规划项目",
       projectType: 2,
+      isMenuPage: true,
     },
   },
   {
@@ -65,6 +65,7 @@ const routes = [
     component: DataManagement,
     meta: {
       title: "数据管理",
+      isMenuPage: true,
     },
   },
   {
@@ -73,6 +74,7 @@ const routes = [
     component: UserManagement,
     meta: {
       title: "账号管理",
+      isMenuPage: true,
     },
   },
   {
@@ -81,6 +83,8 @@ const routes = [
     component: RiggingDetail,
     meta: {
       title: "吊索具详情",
+      isEditPage: true,
+      backTo: "/virtual-simulation",
     },
   },
   {
@@ -89,6 +93,8 @@ const routes = [
     component: CraneDetail,
     meta: {
       title: "起重机详情",
+      isEditPage: true,
+      backTo: "/data-management",
     },
   },
   {
@@ -99,6 +105,20 @@ const routes = [
       title: "总平规划",
       hideSidebar: true,
       hideHeader: true,
+      isEditPage: true,
+      backTo: "/construction-plans",
+    },
+  },
+  {
+    path: "/calculation-detail/:id",
+    name: "CalculationDetail",
+    component: CalculationDetail,
+    meta: {
+      title: "起重机设计算",
+      hideSidebar: true,
+      hideHeader: true,
+      isEditPage: true,
+      backTo: "/verification-projects",
     },
   },
 ]

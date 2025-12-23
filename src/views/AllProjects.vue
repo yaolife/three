@@ -23,16 +23,6 @@
           </template>
         </el-table-column>
         <el-table-column prop="title" align="center" label="项目标题" max-width="130" />
-        <el-table-column prop="fileType" align="center" label="文件类型" width="120">
-          <template #default="scope">
-            {{ getFileTypeText(scope.row.fileType) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="projectType" align="center" label="项目类型" width="100">
-          <template #default="scope">
-            {{ getProjectTypeText(scope.row.projectType) }}
-          </template>
-        </el-table-column>
         <el-table-column prop="belongingProject" align="center" label="所属项目" width="170" />
         <el-table-column prop="belongingDept" align="center" label="创建部门" width="170" />
         <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
@@ -78,33 +68,6 @@
     <!-- 创建/编辑项目弹窗 -->
     <el-dialog v-model="showCreateDialog" title="创建项目" width="500px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-         <el-form-item label="选择类型">   </el-form-item>
-        <el-form-item label="">
-          <div class="project-type-container" style="margin-left: -80px;">
-            <div class="project-type-item" :class="{ 'active': formData.projectType === 0 }" @click="formData.projectType = 0; formData.fileType = 0">
-              <div class="project-type-icon" :class="{ 'active': formData.projectType === 0 }">
-                <span>校核计算</span>
-                <img src="@/images/verification.png" alt="校核计算" style="width: 30px;height: 30px;">
-              </div>
-              <div class="project-type-label">新建校核计算</div>
-            </div>
-            <div class="project-type-item" :class="{ 'active': formData.projectType === 1 }" @click="formData.projectType = 1; formData.fileType = 1">
-              <div class="project-type-icon" :class="{ 'active': formData.projectType === 1 }">
-                <span>三维仿真</span>
-                 <img src="@/images/three_dimensional.png" alt="三维仿真" style="width: 30px;height: 30px;">
-              </div>
-              <div class="project-type-label">新建三维仿真</div>
-            </div>
-            <div class="project-type-item" :class="{ 'active': formData.projectType === 2 }" @click="formData.projectType = 2; formData.fileType = 1">
-              <div class="project-type-icon" :class="{ 'active': formData.projectType === 2 }">
-                <span>总平规划</span>
-                 <img src="@/images/site_plan.png" alt="总平规划" style="width: 30px;height: 30px;">
-              </div>
-              <div class="project-type-label">新建总平规划</div>
-            </div>
-          </div>
-        </el-form-item>
-        
         <el-form-item label="项目标题" prop="title" :rules="[{ required: true, message: '请输入项目标题', trigger: 'blur' }]">
           <el-input v-model="formData.title" placeholder="请输入项目标题" />
         </el-form-item>
@@ -557,12 +520,37 @@ const submitForm = async () => {
     const response = await handleEditProject(submitData)
     
     if (response.code === '0') {
+      const isCreate = !formData.value.id // 是否为新建
+      const projectType = formData.value.projectType
+      const isCalculation = projectType === 0       // 校核计算项目
+      const isGeneralPlan = projectType === 2       // 总平规划项目
+      
       ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
       showCreateDialog.value = false
-      // 重置表单
-      resetForm()
-      // 重新加载数据
-      loadProjectData()
+      
+      if (isCreate && isCalculation) {
+        // 新建校核计算项目：直接跳转到 CalculationDetail 编辑页
+        const projectId = response.data // 创建成功返回的项目ID
+        resetForm()
+        router.push({
+          name: 'CalculationDetail',
+          params: { id: projectId }
+        })
+      } else if (isCreate && isGeneralPlan) {
+        // 新建总平规划项目：直接跳转到 SitePlan 页面
+        const projectId = response.data // 创建成功返回的项目ID
+        const projectTitle = formData.value.title // 从表单获取标题
+        resetForm()
+        router.push({
+          name: 'SitePlan',
+          params: { id: projectId },
+          query: { title: projectTitle || '' }
+        })
+      } else {
+        // 其他情况：仅刷新列表
+        resetForm()
+        loadProjectData()
+      }
     } else {
       ElMessage.error(response.msg || '操作失败')
     }

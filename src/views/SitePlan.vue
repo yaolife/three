@@ -3,18 +3,47 @@
     <!-- 页面顶部标题 -->
     <div class="page-header">
       <div class="header-content">
-        <el-button type="text" class="back-btn" @click="handleBack">
-          <el-icon><ArrowLeft /></el-icon>
+        <el-button type="default" class="back-btn" @click="handleBack">
+          <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+          返回
         </el-button>
-        <div class="project_title">{{ projectTitle || '总平规划xxx项目' }}</div>
+        <div class="project_title">{{ projectTitle || '总平规划项目' }}</div>
       </div>
       <div class="header-content_right">
-        <div>
-          <img
-            src="@/images/add_text.png"
-            alt="添加文字"
-            style="width: 20px; height: 20px"
-          />
+        <div class="header-content_right_item">
+          <!-- 顶部自由标注工具栏 -->
+          <div class="global-annotation-toolbar">
+            <button
+              v-for="tool in freeAnnotationToolOptions"
+              :key="tool.type"
+              class="global-annotation-tool-btn"
+              :class="{ active: activeFreeAnnotationTool === tool.type }"
+              :title="tool.label"
+              @click.stop="handleFreeAnnotationToolClick(tool.type)"
+            >
+              <!-- 简单图标：T 使用文字，其他用样式区分 -->
+              <span v-if="tool.type === 'free-text'" class="icon-text">T</span>
+              <span v-else class="icon-shape" :class="`icon-${tool.type}`"></span>
+            </button>
+          </div>
+          <el-button
+            size="small"
+            type="default"
+            class="clear-free-annotations-btn"
+            @click="handleClearFreeAnnotations"
+            style="margin-left: 8px"
+          >
+            清除标注
+          </el-button>
+          <el-button
+            size="small"
+            type="danger"
+            class="delete-one-annotation-btn"
+            @click="handleDeleteSelectedAnnotation"
+            style="margin-left: 4px"
+          >
+            删除当前
+          </el-button>
         </div>
         <div class="handle_btn">
           <div class="handle_btn_item" @click="handleSave">
@@ -152,7 +181,7 @@
             <div class="property-item">
               <label>占点类型</label>
               <div class="radio-group">
-                <el-radio v-model="newPoint.type" label="lifting" @change="onPointTypeChange">吊装点位</el-radio>
+                <el-radio v-model="newPoint.type" label="lifting" @change="onPointTypeChange">占位点位</el-radio>
                 <el-radio
                   v-model="newPoint.type"
                   label="moving"
@@ -162,7 +191,7 @@
               </div>
             </div>
             
-            <!-- 吊装点位特有字段 -->
+            <!-- 占位点位特有字段 -->
             <template v-if="newPoint.type === 'lifting'">
                 <div class="point_title">占点设置</div>
               <div class="property-item">
@@ -266,7 +295,7 @@
               />
             </div>
             
-            <!-- 吊装点位特有字段 -->
+            <!-- 占位点位特有字段 -->
             <template v-if="editingPoint.type === 'lifting'">
               <div class="point_title">占点设置</div>
               <div class="property-item">
@@ -332,13 +361,23 @@
           </template>
         </el-dialog>
 
-        <!-- 右侧内容区域 - 显示导入的图片 -->
+        <!-- 右侧内容区域 - 施工场景平面图及绘制区域 -->
         <div class="image-container">
+          <!-- 平面图加载中的遮罩 -->
+          <div v-if="isPlanImageLoading" class="plan-loading-mask">
+            <el-icon class="is-loading">
+              <Loading />
+            </el-icon>
+            <span>施工场景平面图加载中...</span>
+          </div>
+
+          <!-- 有平面图时：显示绘制工具 + 平面图 + 画布 -->
+          <template v-if="planImageUrl || importedImage">
           <div v-if="selectedCrane" class="drawing-toolbar">
             <div class="toolbar-headline">
               <div class="toolbar-title">绘制点位占位</div>
               <div class="toolbar-subtitle">
-                {{ activePoint ? `当前点位：${activePoint.name}` : '请选择吊装点位' }}
+                {{ activePoint ? `当前点位：${activePoint.name}` : '请选择占位点位' }}
               </div>
             </div>
             <div class="toolbar-divider"></div>
@@ -381,10 +420,10 @@
               </el-button>
             </div>
           </div>
-          <!-- 施工场景平面图 -->
+          <!-- 施工场景平面图（优先显示后端流，其次本地导入预览） -->
           <img
             ref="imageRef"
-            src="@/images/planning.png"
+            :src="planImageUrl || importedImage"
             alt="总平规划图"
             class="plan-image"
             :style="{
@@ -404,6 +443,75 @@
             @mouseleave="handleCanvasMouseUp"
             @wheel="handleCanvasWheel"
           ></canvas>
+          <!-- 顶部自由标注图形覆盖层 -->
+          <svg
+            v-if="canvasSize.width && canvasSize.height && renderedFreeAnnotations.length"
+            class="free-annotation-overlay"
+            :width="canvasSize.width"
+            :height="canvasSize.height"
+            :viewBox="`0 0 ${canvasSize.width} ${canvasSize.height}`"
+            :style="{
+              transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+              transformOrigin: '0 0'
+            }"
+          >
+            <!-- 此 SVG 仅用于绘制箭头，矩形/圆/三角等复用已有 shapeOverlay 渲染 -->
+            <g v-for="item in renderedFreeAnnotations" :key="item.id">
+              <!-- 单向箭头 -->
+              <g v-if="item.tool === 'free-arrow'">
+                <line
+                  :x1="item.canvasX - (item.config.length || 60) / 2"
+                  :y1="item.canvasY"
+                  :x2="item.canvasX + (item.config.length || 60) / 2"
+                  :y2="item.canvasY"
+                  :stroke="item.config.stroke || '#E74C3C'"
+                  :stroke-width="item.config.strokeWidth || 2"
+                  stroke-linecap="round"
+                />
+                <polygon
+                  :points="`${item.canvasX + (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY - 4}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                />
+              </g>
+              <!-- 双向箭头 -->
+              <g v-else-if="item.tool === 'free-double-arrow'">
+                <line
+                  :x1="item.canvasX - (item.config.length || 60) / 2"
+                  :y1="item.canvasY"
+                  :x2="item.canvasX + (item.config.length || 60) / 2"
+                  :y2="item.canvasY"
+                  :stroke="item.config.stroke || '#E74C3C'"
+                  :stroke-width="item.config.strokeWidth || 2"
+                  stroke-linecap="round"
+                />
+                <polygon
+                  :points="`${item.canvasX + (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY - 4}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                />
+                <polygon
+                  :points="`${item.canvasX - (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX - (item.config.length || 60) / 2 + 8},${item.canvasY - 4}
+                           ${item.canvasX - (item.config.length || 60) / 2 + 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                />
+              </g>
+            </g>
+          </svg>
+          </template>
+
+          <!-- 没有平面图时：居中显示添加按钮 -->
+          <template v-else>
+            <div class="image-empty">
+              <div class="image-empty-text">当前暂无施工场景平面图</div>
+              <el-button type="primary" @click="showImportDialog">
+                添加施工场景平面图
+              </el-button>
+            </div>
+          </template>
           <svg
             v-if="canvasSize.width && canvasSize.height"
             class="shape-overlay"
@@ -449,6 +557,13 @@
                 :fill="item.config.fill || 'rgba(245,108,108,0.25)'"
                 :stroke="item.config.stroke || '#F56C6C'"
               />
+              <polygon
+                v-else-if="item.tool === 'pentagon'"
+                class="shape-body"
+                :points="createPentagonPoints(item.canvasX, item.canvasY, item.config.size || 48, item.config.rotate || 0)"
+                :fill="item.config.fill || 'rgba(52,152,219,0.25)'"
+                :stroke="item.config.stroke || '#3498DB'"
+              />
               <path
                 v-else-if="item.tool === 'sector'"
                 class="shape-body"
@@ -469,6 +584,55 @@
               >
                 {{ item.config.text || '文字' }}
               </text>
+              
+              <!-- 单向箭头 -->
+              <g v-else-if="item.tool === 'arrow'" class="shape-body">
+                <line
+                  :x1="item.canvasX - (item.config.length || 60) / 2"
+                  :y1="item.canvasY"
+                  :x2="item.canvasX + (item.config.length || 60) / 2"
+                  :y2="item.canvasY"
+                  :stroke="item.config.stroke || '#E74C3C'"
+                  :stroke-width="item.config.strokeWidth || 2"
+                  stroke-linecap="round"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+                <polygon
+                  :points="`${item.canvasX + (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY - 4}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+              </g>
+              
+              <!-- 双向箭头 -->
+              <g v-else-if="item.tool === 'double-arrow'" class="shape-body">
+                <line
+                  :x1="item.canvasX - (item.config.length || 60) / 2"
+                  :y1="item.canvasY"
+                  :x2="item.canvasX + (item.config.length || 60) / 2"
+                  :y2="item.canvasY"
+                  :stroke="item.config.stroke || '#E74C3C'"
+                  :stroke-width="item.config.strokeWidth || 2"
+                  stroke-linecap="round"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+                <polygon
+                  :points="`${item.canvasX + (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY - 4}
+                           ${item.canvasX + (item.config.length || 60) / 2 - 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+                <polygon
+                  :points="`${item.canvasX - (item.config.length || 60) / 2},${item.canvasY}
+                           ${item.canvasX - (item.config.length || 60) / 2 + 8},${item.canvasY - 4}
+                           ${item.canvasX - (item.config.length || 60) / 2 + 8},${item.canvasY + 4}`"
+                  :fill="item.config.stroke || '#E74C3C'"
+                  :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
+                />
+              </g>
 
               <!-- 边界框 -->
               <rect
@@ -493,7 +657,7 @@
                   :class="`handle-${handle.position}`"
                   :cx="handle.x"
                   :cy="handle.y"
-                  r="6"
+                  r="4"
                   @mousedown.stop="handleResizeMouseDown(item, $event, handle.position)"
                 />
               </g>
@@ -517,7 +681,11 @@
           <div class="panel-content">
             <div class="property-item">
               <label>名称</label>
-              <el-input v-model="selectedCrane.name" placeholder="请输入名称" />
+              <el-input 
+                v-model="selectedCrane.name" 
+                placeholder="请输入名称"
+                @blur="handleCraneNameBlur"
+              />
             </div>
             <div class="property-item">
               <label>起重机类型</label>
@@ -591,7 +759,19 @@
             </div>
           </div>
           <div class="point_setting">
-            <div>点位设置</div>
+            <div class="point_setting_header">
+              <span>点位设置</span>
+              <span 
+                class="reset-trajectory-link" 
+                @click="resetTrajectory"
+                :style="{ 
+                  opacity: (!selectedCrane || !selectedCrane.points || selectedCrane.points.length === 0) ? 0.5 : 1,
+                  cursor: (!selectedCrane || !selectedCrane.points || selectedCrane.points.length === 0) ? 'not-allowed' : 'pointer'
+                }"
+              >
+                重置路径
+              </span>
+            </div>
             <!-- 如果没有起点，显示设置起点按钮 -->
             <div v-if="!hasStartPoint" class="setting_start">
               <!-- <img
@@ -622,7 +802,7 @@
                 <img 
                   v-else-if="point.type === 'lifting'" 
                   :src="selectedCrane?.craneCategory === '1' ? carModelSrc : craneModelSrc" 
-                  alt="吊装点位" 
+                  alt="占位点位" 
                   style="width: 16px; height: 16px; margin-right: 8px"
                 />
                 <img 
@@ -654,49 +834,50 @@
               >添加路径点位</span>
             >
           </div>
-          <!-- 播放和重置按钮 -->
-          <div class="trajectory-controls">
-            <el-button 
-              type="primary" 
-              :disabled="!selectedCrane || !selectedCrane.points || selectedCrane.points.length < 2"
-              @click="togglePlayback"
-              style="width: 100%; margin-bottom: 10px;"
+          <!-- 播放和录制图标按钮 -->
+          <div class="trajectory-icon-controls">
+            <el-tooltip 
+              :content="(isPlaying && playingCraneId === selectedCrane?.id) ? '停止播放' : '播放路径动画'"
+              placement="top"
             >
-              {{ (isPlaying && playingCraneId === selectedCrane?.id) ? '停止播放' : '播放路径动画' }}
-            </el-button>
-            <el-button 
-              type="warning" 
-              :disabled="!selectedCrane || !selectedCrane.points || selectedCrane.points.length === 0"
-              @click="resetTrajectory"
-              style="width: 100%; margin-bottom: 10px;"
-            >
-              重置路径
-            </el-button>
-            <!-- 单个起重机录制按钮 -->
-            <el-button 
-              type="success" 
-              :disabled="!selectedCrane || craneRecordingStates[selectedCrane?.id]?.isRecording"
-              @click="startCraneRecording"
-              style="width: 100%; margin-bottom: 10px;"
-            >
-              开始录制
-            </el-button>
-            <el-button 
-              type="danger" 
-              :disabled="!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.isRecording"
-              @click="stopCraneRecording"
-              style="width: 100%; margin-bottom: 10px;"
-            >
-              结束录制
-            </el-button>
-            <el-button 
-              type="info" 
-              :disabled="!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.blob"
-              @click="downloadCraneRecording"
-              style="width: 100%;"
-            >
-              下载录制
-            </el-button>
+              <div 
+                class="icon-btn"
+                :class="{ disabled: !selectedCrane || !selectedCrane.points || selectedCrane.points.length < 2 }"
+                @click="(!selectedCrane || !selectedCrane.points || selectedCrane.points.length < 2) ? null : togglePlayback()"
+              >
+                <img src="@/images/play_animation.png" alt="播放动画" />
+              </div>
+            </el-tooltip>
+            
+            <el-tooltip content="开始录制" placement="top">
+              <div 
+                class="icon-btn"
+                :class="{ disabled: !selectedCrane || craneRecordingStates[selectedCrane?.id]?.isRecording }"
+                @click="(!selectedCrane || craneRecordingStates[selectedCrane?.id]?.isRecording) ? null : startCraneRecording()"
+              >
+                <img src="@/images/start_recording.png" alt="开始录制" />
+              </div>
+            </el-tooltip>
+            
+            <el-tooltip content="结束录制" placement="top">
+              <div 
+                class="icon-btn"
+                :class="{ disabled: !selectedCrane || !craneRecordingStates[selectedCrane?.id]?.isRecording }"
+                @click="(!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.isRecording) ? null : stopCraneRecording()"
+              >
+                <img src="@/images/stop_recording.png" alt="结束录制" />
+              </div>
+            </el-tooltip>
+            
+            <el-tooltip content="下载录制" placement="top">
+              <div 
+                class="icon-btn"
+                :class="{ disabled: !selectedCrane || !craneRecordingStates[selectedCrane?.id]?.blob }"
+                @click="(!selectedCrane || !craneRecordingStates[selectedCrane?.id]?.blob) ? null : downloadCraneRecording()"
+              >
+                <img src="@/images/download_recording.png" alt="下载录制" />
+              </div>
+            </el-tooltip>
           </div>
         </div>
       </div>
@@ -759,14 +940,14 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { ArrowLeft, Search, Close, User, Lock } from "@element-plus/icons-vue";
+import { ArrowLeft, Search, Close, User, Lock, Loading } from "@element-plus/icons-vue";
 import startIconSrc from "@/images/point.png";
 import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
 import craneModelSrc from "@/images/crane_model.png";
 import carModelSrc from "@/images/car_model.png";
 import RecordRTC from "recordrtc";
-import { uploadImage, saveGeneralPing, getGeneralDetails, exportProject, login, intelligentCraneSelection } from "@/api/index";
+import { uploadImage, saveGeneralPing, getGeneralDetails, getStreamImage, exportProject, login, intelligentCraneSelection } from "@/api/index";
 import userStore from "@/store/user.js";
 
 const route = useRoute();
@@ -776,12 +957,20 @@ const router = useRouter();
 const projectId = ref("");
 // 项目标题
 const projectTitle = ref("");
-// 控制Dialog显示
-const dialogVisible = ref(true);
+// 控制Dialog显示（初始为false，不自动弹出）
+const dialogVisible = ref(false);
 // 存储导入的图片URL
 const importedImage = ref(null);
 // 用于文件上传的input元素引用
 const fileInput = ref(null);
+// 施工场景平面图 fileId（从后端获取或上传后返回）
+const flatImageFileId = ref(null);
+// 用户当前选择但尚未上传的施工场景平面图文件
+const flatImageFile = ref(null);
+// 当前显示的施工场景平面图 URL（后端流或本地预览）
+const planImageUrl = ref(null);
+// 施工场景平面图是否正在加载中（用于显示 loading）
+const isPlanImageLoading = ref(false);
 
 // 起重机相关数据
 const cranes = ref([]);
@@ -819,6 +1008,15 @@ const dragContext = reactive({
   initialBounds: null,
 });
 
+// 起重机名称失焦时，同步更新左侧起重机列表中的名称
+const handleCraneNameBlur = () => {
+  if (!selectedCrane.value) return;
+  const craneIndex = cranes.value.findIndex(c => c.id === selectedCrane.value.id);
+  if (craneIndex !== -1) {
+    cranes.value[craneIndex].name = selectedCrane.value.name || '';
+  }
+};
+
 // 点位相关数据
 const addPointDialogVisible = ref(false);
 const editPointDialogVisible = ref(false);
@@ -849,6 +1047,20 @@ const canvasSize = reactive({
   width: 0,
   height: 0,
 });
+
+// 顶部自由标注工具相关状态（与点位绘制完全独立）
+const freeAnnotationToolOptions = [
+  { type: "free-rect-1", label: "矩形" },
+  { type: "free-triangle", label: "三角形" },
+  { type: "free-circle", label: "圆形" },
+  { type: "free-rect-2", label: "矩形2" },
+  { type: "free-text", label: "文字标注" },
+  { type: "free-arrow", label: "单向箭头" },
+  { type: "free-double-arrow", label: "双向箭头" },
+];
+const activeFreeAnnotationTool = ref(null);
+// 自由标注列表，不绑定 crane/point，只记录地理坐标
+const freeAnnotations = ref([]); // { id, tool, position: {x,y}, config }
 
 // 点位拖动相关
 const isDraggingPoint = ref(false);
@@ -946,7 +1158,7 @@ const getStartIconWithColor = (color) => {
 
 const pointIconSizes = {
   start: 22,
-  lifting: 22, // 吊装点图标略小
+  lifting: 22, // 占位点图标略小
   moving: 18,  // 移动点位图标更小一点
 };
 
@@ -1014,7 +1226,7 @@ const createBasePoint = (overrides = {}) => ({
   name: "点位1",
   x: 112.0,
   y: 38.0,
-  type: "lifting", // lifting: 吊装点位, moving: 移动点位
+  type: "lifting", // lifting: 占位点位, moving: 移动点位
   groundLoad: 10,
   area: "",
   startTime: null,
@@ -1062,7 +1274,7 @@ const getNextPointName = (type, currentPoints = [], isStart = false) => {
     return `移动点位${movingCount + 1}`;
   }
   const liftingCount = countPointsByType(currentPoints, "lifting");
-  return `吊装点位${liftingCount + 1}`;
+  return `占位点位${liftingCount + 1}`;
 };
 
 const msPerDay = 24 * 60 * 60 * 1000;
@@ -1272,6 +1484,13 @@ const renderedShapeItems = computed(() => {
   return result;
 });
 
+// 自由标注渲染数据（已废弃，所有自由标注现在通过 shapeOverlays 渲染）
+const renderedFreeAnnotations = computed(() => {
+  // 所有自由标注（包括箭头）现在都通过 shapeOverlays 统一渲染
+  // 保留这个计算属性是为了兼容性，但返回空数组
+  return [];
+});
+
 const syncActivePointSelection = () => {
   if (!selectedCrane.value || !selectedCrane.value.points || selectedCrane.value.points.length === 0) {
     activePointId.value = null;
@@ -1282,7 +1501,7 @@ const syncActivePointSelection = () => {
     (point) => point.id === activePointId.value
   );
   if (!validPoint) {
-    // 如果当前选中的点位不存在，则回退到第一个吊装点位
+    // 如果当前选中的点位不存在，则回退到第一个占位点位
     const fallback = selectedCrane.value.points.find((point) => point.type === "lifting");
     activePointId.value = fallback ? fallback.id : null;
   }
@@ -1371,6 +1590,36 @@ watch(
   { deep: true }
 );
 
+// 标记是否正在加载数据，避免加载时触发自动保存
+let isLoadingData = false;
+
+// 监听自由标注变化，自动保存（使用防抖，避免频繁保存）
+let freeAnnotationsSaveTimer = null;
+watch(
+  () => freeAnnotations.value,
+  (newVal) => {
+    // 如果正在加载数据，不触发自动保存
+    if (isLoadingData) {
+      console.log("⏸️ 正在加载数据，跳过自动保存");
+      return;
+    }
+    
+    // 清除之前的定时器
+    if (freeAnnotationsSaveTimer) {
+      clearTimeout(freeAnnotationsSaveTimer);
+    }
+    
+    // 延迟2秒后自动保存（防抖）
+    freeAnnotationsSaveTimer = setTimeout(() => {
+      if (projectId.value && cranes.value && cranes.value.length > 0) {
+        console.log("✓ 自由标注变化，触发自动保存...");
+        handleSave();
+      }
+    }, 2000);
+  },
+  { deep: true }
+);
+
 const handlePointItemClick = (point) => {
   // 允许选中移动点位，只是不能绘制点位占位
   activePointId.value = point.id;
@@ -1406,14 +1655,14 @@ const handleDrawingToolClick = async (toolType) => {
   
   // 检查是否选中了点位
   if (!activePointId.value) {
-    ElMessage.warning("请先选择吊装点位");
+    ElMessage.warning("请先选择占位点位");
     return;
   }
   
-  // 检查选中的点位是否为吊装点位
+  // 检查选中的点位是否为占位点位
   const currentPoint = selectedCrane.value.points.find(p => p.id === activePointId.value);
   if (!currentPoint || currentPoint.type !== "lifting") {
-    ElMessage.warning("当前仅支持在吊装点位上绘制");
+    ElMessage.warning("当前仅支持在占位点位上绘制");
     return;
   }
 
@@ -1443,6 +1692,54 @@ const handleDrawingToolClick = async (toolType) => {
 
   addShapeOverlayForPoint(toolType);
   // addShapeOverlayForPoint 内部会在 nextTick 中重置标志
+};
+
+// 顶部自由标注工具点击
+const handleFreeAnnotationToolClick = (toolType) => {
+  activeFreeAnnotationTool.value =
+    activeFreeAnnotationTool.value === toolType ? null : toolType;
+  console.log(
+    "自由标注工具切换为:",
+    activeFreeAnnotationTool.value || "未选中"
+  );
+};
+
+// 清除所有自由标注（顶部按钮）
+const handleClearFreeAnnotations = () => {
+  if (!freeAnnotations.value.length) {
+    ElMessage.info("当前没有自由标注");
+    return;
+  }
+  freeAnnotations.value = [];
+  // 移除 shapeOverlays 中的自由标注形状（id 以 free_ 开头）
+  shapeOverlays.value = shapeOverlays.value.filter(
+    (shape) => typeof shape.id !== "string" || !shape.id.startsWith("free_")
+  );
+  ElMessage.success("已清除所有自由标注");
+};
+
+// 删除当前选中的一个自由标注
+const handleDeleteSelectedAnnotation = () => {
+  if (!activeShapeId.value) {
+    ElMessage.warning("请先选中一个标注");
+    return;
+  }
+
+  const targetId = activeShapeId.value;
+
+  // 从 shapeOverlays 中删除对应形状
+  shapeOverlays.value = shapeOverlays.value.filter(
+    (shape) => shape.id !== targetId
+  );
+
+  // 从 freeAnnotations 中删除对应记录（id 或 free_ 前缀匹配）
+  freeAnnotations.value = freeAnnotations.value.filter((item) => {
+    const freeId = typeof item.id === "string" ? `free_${item.id}` : `free_${String(item.id)}`;
+    return item.id !== targetId && freeId !== targetId;
+  });
+
+  activeShapeId.value = null;
+  ElMessage.success("已删除当前标注");
 };
 
 const addShapeOverlayForPoint = (toolType, extraConfig = {}) => {
@@ -1526,16 +1823,44 @@ const handleUndoShape = () => {
   ElMessage.success("已撤销选中的图形");
 };
 
-const MIN_RECT_SIZE = 20;
-const MIN_RADIUS = 10;
-const MIN_TRIANGLE_SIZE = 26;
+const MIN_RECT_SIZE = 10;
+const MIN_RADIUS = 5;
+const MIN_TRIANGLE_SIZE = 16;
 const MIN_FONT_SIZE = 12;
 let pointerListenersAttached = false;
 
 const updateShape = (shapeId, updater) => {
   shapeOverlays.value = shapeOverlays.value.map((shape) => {
     if (shape.id !== shapeId) return shape;
-    return updater(shape);
+    const updated = updater(shape);
+    
+    // 如果这是自由标注（id 以 free_ 开头），同步更新 freeAnnotations
+    if (typeof updated.id === 'string' && updated.id.startsWith('free_')) {
+      const originalId = updated.id.replace('free_', '');
+      const freeIndex = freeAnnotations.value.findIndex(item => item.id === originalId);
+      if (freeIndex !== -1) {
+        // 反向映射工具类型
+        const reverseToolMap = {
+          "rectangle": "free-rect-1",
+          "pentagon": "free-rect-2",
+          "circle": "free-circle",
+          "triangle": "free-triangle",
+          "text": "free-text",
+          "arrow": "free-arrow",
+          "double-arrow": "free-double-arrow",
+        };
+        
+        freeAnnotations.value[freeIndex] = {
+          ...freeAnnotations.value[freeIndex],
+          tool: reverseToolMap[updated.tool] || freeAnnotations.value[freeIndex].tool,
+          position: updated.position || freeAnnotations.value[freeIndex].position,
+          config: updated.config || freeAnnotations.value[freeIndex].config,
+        };
+        console.log("✓ 同步更新 freeAnnotations:", originalId, freeAnnotations.value[freeIndex]);
+      }
+    }
+    
+    return updated;
   });
 };
 
@@ -1913,6 +2238,87 @@ const resizeShapeWithDelta = (deltaX, deltaY) => {
         // 保持旋转角度不变
         next.rotate = initial.rotate || 0;
       }
+    } else if (tool === "pentagon") {
+      // 五边形调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：旋转
+      // - 边缘控制点（n, s, w, e）：调整大小
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转五边形
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        const initialRotate = initial.rotate || 0;
+        const size = initial.size || 48;
+        const handleOffsetX = handlePos.includes("e") ? size / 2 : -size / 2;
+        const handleOffsetY = handlePos.includes("s") ? size / 2 : -size / 2;
+        const rad = degToRad(initialRotate);
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+        // 保持大小不变
+        next.size = size;
+      } else {
+        // 边缘控制点：调整大小
+        const delta = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const sign = handlePos.includes("e") || handlePos.includes("s") ? 1 : -1;
+        next.size = Math.max(20, (initial.size || 48) + delta * sign);
+        next.rotate = initial.rotate || 0; // 保持旋转角度不变
+      }
+    } else if (tool === "arrow" || tool === "double-arrow") {
+      // 箭头调整逻辑：
+      // - 角落控制点（nw, ne, sw, se）：旋转
+      // - 左右控制点（w, e）：调整箭头长度
+      // - 上下控制点（n, s）：不做处理（箭头是水平的）
+      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
+        // 角落控制点：旋转箭头
+        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+        
+        const initialRotate = initial.rotate || 0;
+        const length = initial.length || 60;
+        const handleOffsetX = handlePos.includes("e") ? length / 2 : -length / 2;
+        const handleOffsetY = handlePos.includes("s") ? 8 : -8;
+        const rad = degToRad(initialRotate);
+        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
+        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
+        const initialHandleX = centerX + rotatedOffsetX;
+        const initialHandleY = centerY + rotatedOffsetY;
+        
+        const newHandleX = initialHandleX + deltaX;
+        const newHandleY = initialHandleY + deltaY;
+        
+        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+        const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
+        let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
+        
+        while (angleDiff > 180) angleDiff -= 360;
+        while (angleDiff < -180) angleDiff += 360;
+        
+        next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
+        // 保持长度不变
+        next.length = length;
+        next.strokeWidth = initial.strokeWidth || 2;
+      } else if (handlePos === "e" || handlePos === "w") {
+        // 左右控制点：调整箭头长度
+        const sign = handlePos === "e" ? 1 : -1;
+        next.length = Math.max(30, (initial.length || 60) + deltaX * sign * 2);
+        next.rotate = initial.rotate || 0;
+        next.strokeWidth = initial.strokeWidth || 2;
+      }
+      // 上下控制点不做处理
     }
     return next;
   });
@@ -1957,6 +2363,20 @@ const createTrianglePoints = (cx, cy, size = 60, rotateDeg = 0) => {
   return points.map((p) => `${cx + p.x},${cy + p.y}`).join(" ");
 };
 
+// 五边形的菱形（近似）：基于正五边形，稍微拉伸高度
+const createPentagonPoints = (cx, cy, size = 60, rotateDeg = 0) => {
+  const radius = size / 2;
+  // 5 个顶点角度（顶部为 270°，顺时针）
+  const baseAngles = [270, 342, 54, 126, 198];
+  const points = baseAngles.map((angle) => {
+    const rad = degToRad(angle + rotateDeg);
+    const x = radius * Math.cos(rad);
+    const y = radius * Math.sin(rad) * 1.1; // 稍微拉高一点形成菱形感
+    return { x, y };
+  });
+  return points.map((p) => `${cx + p.x},${cy + p.y}`).join(" ");
+};
+
 const polarToCartesian = (cx, cy, radius, angleDeg) => {
   const rad = degToRad(angleDeg);
   return {
@@ -1978,7 +2398,7 @@ const createSectorPath = (cx, cy, radius, startAngleDeg, endAngleDeg) => {
 };
 
 const isShapeResizable = (tool) =>
-  ["rectangle", "circle", "triangle", "sector", "text"].includes(tool);
+  ["rectangle", "circle", "triangle", "sector", "text", "pentagon", "arrow", "double-arrow"].includes(tool);
 
 // 获取图形的边界框（用于显示控制点）
 const getShapeBounds = (item) => {
@@ -2043,6 +2463,32 @@ const getShapeBounds = (item) => {
       bottom: item.canvasY + textHeight / 2 + padding,
       width: textWidth + padding * 2,
       height: textHeight + padding * 2,
+    };
+  }
+  if (item.tool === "pentagon") {
+    const size = config.size || 48;
+    const radius = size / 2;
+    return {
+      left: item.canvasX - radius,
+      right: item.canvasX + radius,
+      top: item.canvasY - radius * 1.1,
+      bottom: item.canvasY + radius * 1.1,
+      width: radius * 2,
+      height: radius * 2 * 1.1,
+    };
+  }
+  if (item.tool === "arrow" || item.tool === "double-arrow") {
+    const length = config.length || 60;
+    const strokeWidth = config.strokeWidth || 2;
+    // 箭头的边界框：水平长度 + 箭头头部，垂直方向给一些空间
+    const padding = 8;
+    return {
+      left: item.canvasX - length / 2 - padding,
+      right: item.canvasX + length / 2 + padding,
+      top: item.canvasY - padding,
+      bottom: item.canvasY + padding,
+      width: length + padding * 2,
+      height: padding * 2,
     };
   }
   return null;
@@ -2358,13 +2804,22 @@ window.testShapeRender = () => {
 onMounted(async () => {
   // 从路由参数获取项目ID
   projectId.value = route.params.id || "";
-  console.log("总平规划项目ID:", projectId.value);
+  
   // 加载项目数据
   if (projectId.value) {
-    loadProjectData();
+    console.log("开始加载项目数据...");
+    await loadProjectData();
+    
+    // 加载完成后，等待一会儿再检查状态
+    setTimeout(() => {
+      console.log("========== 加载后状态检查 ==========");
+      console.log("freeAnnotations 数量:", freeAnnotations.value?.length || 0);
+      console.log("shapeOverlays 总数:", shapeOverlays.value?.length || 0);
+      console.log("shapeOverlays 中自由标注数量:", shapeOverlays.value.filter(s => typeof s.id === 'string' && s.id.startsWith('free_')).length);
+      console.log("renderedShapeItems 数量:", renderedShapeItems.value?.length || 0);
+      console.log("========== 状态检查完成 ==========");
+    }, 2000);
   }
-  // 自动显示Dialog
-  dialogVisible.value = false;
   
   // 初始化Canvas
   nextTick(() => {
@@ -2888,7 +3343,7 @@ const drawAllTrajectories = () => {
     return a.pointIndex - b.pointIndex;
   });
   
-  // 绘制所有点位
+  // 绘制所有点位（图标 + 点位名称标签）
   allPoints.forEach(({ point, crane, index, isSelected, isStart }) => {
     const coords = convertToCanvasCoords(point.x, point.y);
     const color = crane.color || '#26256B';
@@ -2899,7 +3354,7 @@ const drawAllTrajectories = () => {
     if (iconKey === 'start') {
       iconImage = getStartIconWithColor(color);
     } else if (iconKey === 'lifting') {
-      // 吊装点位使用起重机模型图片：汽车式用 car_model，履带式用 crane_model
+      // 占位点位使用起重机模型图片：汽车式用 car_model，履带式用 crane_model
       const category = crane && crane.craneCategory;
       iconImage = category === '1' ? carModelImage : craneModelImage;
     } else {
@@ -2908,17 +3363,38 @@ const drawAllTrajectories = () => {
     
     const iconSize = (pointIconSizes[iconKey] || 24) * (isSelected ? 1.1 : 1);
     
+    // 绘制点位图标
     if (iconImage && iconImage.complete) {
-      ctx.value.drawImage(iconImage, coords.x - iconSize / 2, coords.y - iconSize / 2, iconSize, iconSize);
+      ctx.value.drawImage(
+        iconImage,
+        coords.x - iconSize / 2,
+        coords.y - iconSize / 2,
+        iconSize,
+        iconSize
+      );
     } else {
       // 备用：使用彩色圆形
-    ctx.value.beginPath();
-    ctx.value.fillStyle = color;
+      ctx.value.beginPath();
+      ctx.value.fillStyle = color;
       ctx.value.arc(coords.x, coords.y, iconSize / 2, 0, Math.PI * 2);
-    ctx.value.fill();
-    ctx.value.strokeStyle = '#ffffff';
+      ctx.value.fill();
+      ctx.value.strokeStyle = '#ffffff';
       ctx.value.lineWidth = 1;
-    ctx.value.stroke();
+      ctx.value.stroke();
+    }
+
+    // 绘制点位名称（在图标下面，14px）
+    const label = point.name || '';
+    if (label) {
+      const fontSize = 14;
+      const margin = 4; // 图标底部与文字之间的间距
+      ctx.value.save();
+      ctx.value.font = `${fontSize}px sans-serif`;
+      ctx.value.fillStyle = "#333333";
+      ctx.value.textAlign = "center";
+      ctx.value.textBaseline = "top";
+      ctx.value.fillText(label, coords.x, coords.y + iconSize / 2 + margin);
+      ctx.value.restore();
     }
   });
   
@@ -3051,9 +3527,102 @@ const isClickOnShape = (x, y) => {
 };
 
 // 鼠标按下事件处理
-const handleCanvasMouseDown = (event) => {
-  // 如果点击在图形上，不处理 canvas 事件（让 SVG 层处理）
+const handleCanvasMouseDown = async (event) => {
   const mousePos = getMouseCanvasPos(event);
+
+  // 如果选中了顶部自由标注工具，则在任意位置添加自由标注
+  if (activeFreeAnnotationTool.value) {
+    console.log(
+      "检测到自由标注点击, 工具:",
+      activeFreeAnnotationTool.value,
+      "点击坐标(画布):",
+      mousePos
+    );
+    const geoPos = convertToGeoCoords(mousePos.x, mousePos.y);
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+    // 与点位绘制颜色区分开的默认样式
+    const baseConfigMap = {
+      "free-rect-1": { width: 80, height: 40, stroke: "#1ABC9C", fill: "rgba(26,188,156,0.15)" },
+      "free-triangle": { size: 40, stroke: "#9B59B6", fill: "rgba(155,89,182,0.15)" },
+      "free-circle": { radius: 22, stroke: "#E67E22", fill: "rgba(230,126,34,0.15)" },
+      "free-rect-2": { width: 60, height: 60, stroke: "#3498DB", fill: "rgba(52,152,219,0.15)" },
+      "free-text": { text: "文字标注", fontSize: 14, color: "#2C3E50" },
+      "free-arrow": { length: 60, stroke: "#E74C3C", strokeWidth: 2 },
+      "free-double-arrow": { length: 60, stroke: "#E74C3C", strokeWidth: 2 },
+    };
+
+    let config = baseConfigMap[activeFreeAnnotationTool.value] || {};
+
+    // 文本批注：弹出输入框让用户自定义文字
+    if (activeFreeAnnotationTool.value === "free-text") {
+      try {
+        const { value } = await ElMessageBox.prompt(
+          "请输入标注文字",
+          "添加文字标注",
+          {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            inputValue: config.text || "文字标注",
+          }
+        );
+        config = {
+          ...config,
+          text: value || config.text || "文字标注",
+        };
+      } catch (e) {
+        // 用户取消输入，不创建标注
+        console.log("取消文字标注创建");
+        return;
+      }
+    }
+
+    const next = [
+      ...freeAnnotations.value,
+      {
+        id,
+        tool: activeFreeAnnotationTool.value,
+        position: geoPos,
+        config,
+      },
+    ];
+    freeAnnotations.value = next;
+    console.log("当前自由标注数量:", next.length, next);
+
+    // 所有自由标注图形都在 shapeOverlays 中创建，复用已有渲染管道
+    const toolMap = {
+      "free-rect-1": "rectangle",
+      "free-rect-2": "pentagon",
+      "free-circle": "circle",
+      "free-triangle": "triangle",
+      "free-text": "text",
+      "free-arrow": "arrow",
+      "free-double-arrow": "double-arrow",
+    };
+    const mappedTool = toolMap[activeFreeAnnotationTool.value];
+    if (mappedTool) {
+      const overlayShape = {
+        id: `free_${id}`,
+        tool: mappedTool,
+        pointId: null,
+        craneId: null,
+        position: geoPos,
+        config,
+      };
+      shapeOverlays.value = [...shapeOverlays.value, overlayShape];
+      console.log(
+        "已向 shapeOverlays 添加自由标注形状:",
+        overlayShape,
+        "当前总数:",
+        shapeOverlays.value.length
+      );
+    }
+
+    // 自由标注只生成形状，不参与点位拖动 / 画布拖动
+    return;
+  }
+
+  // 如果点击在图形上，不处理 canvas 事件（让 SVG 层处理）
   if (isClickOnShape(mousePos.x, mousePos.y)) {
     return;
   }
@@ -3392,7 +3961,7 @@ const selectCrane = (crane) => {
   newPoint.value = createBasePoint({
     isStart,
     type: "lifting",
-    name: isStart ? "起点1" : `吊装点位${normalizedPoints.length}`,
+    name: isStart ? "起点1" : `占位点位${normalizedPoints.length}`,
   });
 
   // 重绘所有轨迹
@@ -3441,7 +4010,7 @@ const setCranePosition = () => {
     // 重置新点位数据
     const isStart = false; // 添加路径点位不是起点
     newPoint.value = createBasePoint({
-      name: `吊装点位${pointCount}`,
+      name: `占位点位${pointCount}`,
       isStart,
       type: "lifting",
     });
@@ -3481,30 +4050,30 @@ const setCranePosition = () => {
     if (pointType === "lifting") {
       // 开始日期必填
       if (!isValidDateDay(newPoint.value.startTime)) {
-        ElMessage.warning("请填写吊装点位的开始日期");
+        ElMessage.warning("请填写占位点位的开始日期");
         return;
       }
       // 结束日期必填
       if (!newPoint.value.endTime || !isValidDateDay(newPoint.value.endTime)) {
-        ElMessage.warning("请填写吊装点位的结束日期");
+        ElMessage.warning("请填写占位点位的结束日期");
         return;
       }
       // 结束日期不能早于开始日期
       if (new Date(newPoint.value.endTime) < new Date(newPoint.value.startTime)) {
-        ElMessage.warning("吊装点位的结束日期不能早于开始日期");
+        ElMessage.warning("占位点位的结束日期不能早于开始日期");
         return;
       }
       
       // 校验：后面一个点的开始时间要大于等于前面一个点的结束时间
       if (!isFirstPoint && currentPoints.length > 0) {
-        // 找到前一个吊装点位
+        // 找到前一个占位点位
         for (let i = currentPoints.length - 1; i >= 0; i--) {
           const prevPoint = currentPoints[i];
           if (prevPoint.type === "lifting" && prevPoint.endTime) {
             const prevEndTime = new Date(prevPoint.endTime);
             const currentStartTime = new Date(newPoint.value.startTime);
             if (currentStartTime < prevEndTime) {
-              ElMessage.warning(`当前点位的开始时间必须大于等于前一个吊装点位的结束时间（${prevPoint.endTime}）`);
+              ElMessage.warning(`当前点位的开始时间必须大于等于前一个占位点位的结束时间（${prevPoint.endTime}）`);
               return;
             }
             break;
@@ -3537,7 +4106,7 @@ const setCranePosition = () => {
     addPointDialogVisible.value = false;
     ElMessage.success("点位已添加，可在图上拖动调整位置");
     
-    // 如果添加的是吊装点位，自动选中该点位
+    // 如果添加的是占位点位，自动选中该点位
     if (pointType === "lifting") {
       activePointId.value = pointToAdd.id;
     }
@@ -3614,22 +4183,22 @@ const setCranePosition = () => {
     if (updatedPoint.type === "lifting") {
       // 开始日期必填
       if (!isValidDateDay(updatedPoint.startTime)) {
-        ElMessage.warning("请填写吊装点位的开始日期");
+        ElMessage.warning("请填写占位点位的开始日期");
         return;
       }
       // 结束日期必填
       if (!updatedPoint.endTime || !isValidDateDay(updatedPoint.endTime)) {
-        ElMessage.warning("请填写吊装点位的结束日期");
+        ElMessage.warning("请填写占位点位的结束日期");
         return;
       }
       // 结束日期不能早于开始日期
       if (new Date(updatedPoint.endTime) < new Date(updatedPoint.startTime)) {
-        ElMessage.warning("吊装点位的结束日期不能早于开始日期");
+        ElMessage.warning("占位点位的结束日期不能早于开始日期");
         return;
       }
       
       // 校验：后面一个点的开始时间要大于等于前面一个点的结束时间
-      // 检查前一个吊装点位
+      // 检查前一个占位点位
       if (editingPointIndex.value > 0) {
         for (let i = editingPointIndex.value - 1; i >= 0; i--) {
           const prevPoint = currentPoints[i];
@@ -3637,7 +4206,7 @@ const setCranePosition = () => {
             const prevEndTime = new Date(prevPoint.endTime);
             const currentStartTime = new Date(updatedPoint.startTime);
             if (currentStartTime < prevEndTime) {
-              ElMessage.warning(`当前点位的开始时间必须大于等于前一个吊装点位的结束时间（${prevPoint.endTime}）`);
+              ElMessage.warning(`当前点位的开始时间必须大于等于前一个占位点位的结束时间（${prevPoint.endTime}）`);
               return;
             }
             break;
@@ -3645,7 +4214,7 @@ const setCranePosition = () => {
         }
       }
       
-      // 检查后一个吊装点位
+      // 检查后一个占位点位
       if (updatedPoint.endTime && editingPointIndex.value < currentPoints.length - 1) {
         for (let i = editingPointIndex.value + 1; i < currentPoints.length; i++) {
           const nextPoint = currentPoints[i];
@@ -3653,7 +4222,7 @@ const setCranePosition = () => {
             const currentEndTime = new Date(updatedPoint.endTime);
             const nextStartTime = new Date(nextPoint.startTime);
             if (nextStartTime < currentEndTime) {
-              ElMessage.warning(`后一个吊装点位的开始时间（${nextPoint.startTime}）必须大于等于当前点位的结束时间`);
+              ElMessage.warning(`后一个占位点位的开始时间（${nextPoint.startTime}）必须大于等于当前点位的结束时间`);
               return;
             }
             break;
@@ -3733,9 +4302,13 @@ const setCranePosition = () => {
       console.log("========== 开始加载项目数据 ==========");
       console.log("项目ID:", projectId.value);
       
-      // 清空之前的形状数据
+      // 设置加载标志，防止触发自动保存
+      isLoadingData = true;
+      
+      // 清空之前的形状数据和自由标注
       shapeOverlays.value = [];
-      console.log("已清空之前的形状数据");
+      freeAnnotations.value = [];
+      console.log("已清空之前的形状数据和自由标注");
       
       const response = await getGeneralDetails(projectId.value);
       
@@ -3759,11 +4332,13 @@ const setCranePosition = () => {
           });
         }
         
-        // 设置项目标题（优先从 sysProjectInfo 获取）
+        // 设置项目标题（优先从 sysProjectInfo 获取），并加载施工场景平面图
         let titleFound = false;
-        
+
         if (response.data.sysProjectInfo) {
-          const title = response.data.sysProjectInfo.title;
+          const sysInfo = response.data.sysProjectInfo;
+
+          const title = sysInfo.title;
           console.log("从 sysProjectInfo 获取的 title:", title);
           if (title) {
             projectTitle.value = String(title).trim();
@@ -3772,8 +4347,46 @@ const setCranePosition = () => {
           } else {
             console.warn("sysProjectInfo.title 为空或未定义");
           }
+
+          // 处理施工场景平面图 flatImageFileId
+          const flatId = sysInfo.flatImageFileId;
+          console.log("从 sysProjectInfo 获取的 flatImageFileId:", flatId);
+
+          // 如有旧的 blob: URL，先释放
+          if (planImageUrl.value && planImageUrl.value.startsWith("blob:")) {
+            URL.revokeObjectURL(planImageUrl.value);
+          }
+
+          if (flatId) {
+            flatImageFileId.value = flatId;
+            flatImageFile.value = null; // 清空待上传文件
+            importedImage.value = null; // 使用后端图片，不再用本地预览
+
+            try {
+              // 使用封装的 getStreamImage 接口获取图片流
+              isPlanImageLoading.value = true;
+              const blob = await getStreamImage(flatId);
+              planImageUrl.value = URL.createObjectURL(blob);
+              console.log("✓ 已通过 getStreamImage 加载施工场景平面图");
+            } catch (e) {
+              console.error("加载施工场景平面图失败:", e);
+              planImageUrl.value = null;
+              ElMessage.warning("加载施工场景平面图失败");
+            } finally {
+              isPlanImageLoading.value = false;
+            }
+          } else {
+            // 没有保存过施工场景平面图
+            flatImageFileId.value = null;
+            planImageUrl.value = null;
+            flatImageFile.value = null;
+            // importedImage 由用户导入时再设置
+          }
         } else {
           console.warn("response.data.sysProjectInfo 不存在");
+          flatImageFileId.value = null;
+          planImageUrl.value = null;
+          flatImageFile.value = null;
         }
         
         // 如果还没有找到标题，尝试其他可能的路径
@@ -3796,6 +4409,66 @@ const setCranePosition = () => {
           console.error("❌ 无法获取项目标题，所有尝试都失败了");
         }
         
+        // 加载顶部自由标注（从 sysProjectInfo.freeAnnotations 获取）
+        console.log("========== 开始加载自由标注 ==========");
+        console.log("response.data.sysProjectInfo:", response.data.sysProjectInfo);
+        
+        if (response.data.sysProjectInfo && response.data.sysProjectInfo.freeAnnotations) {
+          try {
+            const raw = response.data.sysProjectInfo.freeAnnotations;
+            console.log("自由标注原始数据类型:", typeof raw);
+            console.log("自由标注原始数据:", raw);
+            
+            const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+            console.log("解析后的自由标注数据:", parsed);
+            
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              freeAnnotations.value = parsed;
+              console.log("✓ 已加载自由标注数量:", parsed.length);
+              console.log("自由标注详情:", JSON.stringify(parsed, null, 2));
+              
+              // 将自由标注也添加到 shapeOverlays 中以支持交互
+              const toolMap = {
+                "free-rect-1": "rectangle",
+                "free-rect-2": "pentagon",
+                "free-circle": "circle",
+                "free-triangle": "triangle",
+                "free-text": "text",
+                "free-arrow": "arrow",
+                "free-double-arrow": "double-arrow",
+              };
+              
+              parsed.forEach((annotation, index) => {
+                console.log(`处理第 ${index + 1} 个自由标注:`, annotation);
+                const mappedTool = toolMap[annotation.tool];
+                if (mappedTool) {
+                  const overlayShape = {
+                    id: `free_${annotation.id}`,
+                    tool: mappedTool,
+                    pointId: null,
+                    craneId: null,
+                    position: annotation.position,
+                    config: annotation.config,
+                  };
+                  shapeOverlays.value.push(overlayShape);
+                  console.log(`✓ 已添加自由标注到 shapeOverlays:`, overlayShape);
+                } else {
+                  console.warn(`⚠️ 未知的自由标注工具类型: ${annotation.tool}`);
+                }
+              });
+              console.log("✓ 已将自由标注添加到 shapeOverlays，当前总数:", shapeOverlays.value.length);
+            } else {
+              console.log("自由标注数据为空或格式不正确");
+            }
+          } catch (e) {
+            console.error("❌ 解析自由标注数据失败:", e);
+            console.error("错误堆栈:", e.stack);
+          }
+        } else {
+          console.log("后端没有返回自由标注数据 (sysProjectInfo.freeAnnotations)");
+        }
+        console.log("========== 自由标注加载完成 ==========");
+
         if (response.data.flatInfo) {
           const flatInfoList = response.data.flatInfo;
           
@@ -4025,9 +4698,12 @@ const setCranePosition = () => {
               }
             });
             
-            // 添加形状数据
-            shapeOverlays.value = [...shapesToAdd];
-            console.log(`已添加，当前 shapeOverlays 数量:`, shapeOverlays.value.length);
+            // 添加形状数据（追加而不是覆盖，保留之前加载的自由标注）
+            console.log(`添加前 shapeOverlays 数量（包含自由标注）:`, shapeOverlays.value.length);
+            shapeOverlays.value = [...shapeOverlays.value, ...shapesToAdd];
+            console.log(`已添加点位形状，当前 shapeOverlays 总数:`, shapeOverlays.value.length);
+            console.log(`其中自由标注数量:`, shapeOverlays.value.filter(s => typeof s.id === 'string' && s.id.startsWith('free_')).length);
+            console.log(`其中点位形状数量:`, shapeOverlays.value.filter(s => s.pointId).length);
             
             // 强制触发响应式更新
             await nextTick();
@@ -4057,7 +4733,6 @@ const setCranePosition = () => {
               setTimeout(() => {
                 shapeOverlays.value = [...shapeOverlays.value];
                 const renderedItems = renderedShapeItems.value;
-                console.log(`========== 延迟刷新验证 ==========`);
                 console.log(`延迟刷新后 renderedShapeItems 数量:`, renderedItems.length);
                 console.log(`延迟刷新后 shapeOverlays 数量:`, shapeOverlays.value.length);
                 
@@ -4162,6 +4837,11 @@ const setCranePosition = () => {
       ElMessage.error("加载数据失败，请检查网络连接");
       // 失败时使用默认空数据
       cranes.value = [];
+    } finally {
+      // 清除加载标志，允许后续的自动保存
+      isLoadingData = false;
+      console.log("最终 shapeOverlays 数量:", shapeOverlays.value?.length || 0);
+      console.log("最终 shapeOverlays 中自由标注数量:", shapeOverlays.value.filter(s => typeof s.id === 'string' && s.id.startsWith('free_')).length);
     }
   };
 
@@ -4203,7 +4883,9 @@ const handleLogin = async () => {
       if (response.data) {
         userStore.login(
           response.data.userName || loginForm.username,
-          response.data.userNickName || null
+          response.data.userNickName || null,
+          null, // loginType
+          response.data.menus || null // 菜单权限
         );
       }
       // 清空表单
@@ -4291,7 +4973,7 @@ const handleSave = async () => {
     // 遍历所有起重机及其点位
     for (const crane of cranes.value) {
       for (const point of crane.points || []) {
-        // 只处理吊装点位（occupyType=0）且有形状的点位
+        // 只处理占位点位（occupyType=0）且有形状的点位
         if (point.type === "lifting") {
           const shapes = getShapesForPoint(point.id);
           if (shapes.length > 0) {
@@ -4348,7 +5030,7 @@ const handleSave = async () => {
       itemIndex: craneIndex + 1,
     };
 
-      // 构建点位数组，确保第一条是吊装点位
+      // 构建点位数组，确保第一条是占位点位
       const points = (crane.points || []).map((point, pointIndex) => {
         // 确定点位类型
         let pointType = 1; // 默认普通点位
@@ -4358,7 +5040,7 @@ const handleSave = async () => {
           pointType = 2; // 终点
         }
 
-        // 确定占点类型：吊装点位=0，移动点位=1
+        // 确定占点类型：占位点位=0，移动点位=1
         const occupyType = point.type === "lifting" ? 0 : 1;
 
         // 格式化日期（精确到天）
@@ -4512,7 +5194,7 @@ const handleSave = async () => {
       });
 
       // 按照起重机任务属性编辑栏里的点位设置顺序（即 crane.points 的原始顺序）传给接口
-      // 不再重新排序，保持吊装点位和移动点位的原始间隔顺序
+      // 不再重新排序，保持占位点位和移动点位的原始间隔顺序
 
       return {
         sysProjectFlatDetail,
@@ -4520,10 +5202,26 @@ const handleSave = async () => {
       };
     });
 
+    
+    const freeAnnotationsToSave = freeAnnotations.value && freeAnnotations.value.length
+      ? JSON.stringify(freeAnnotations.value)
+      : null;
+    
+    if (freeAnnotationsToSave) {
+      console.log("✓ 将保存自由标注数据:", freeAnnotationsToSave.substring(0, 200));
+    } else {
+      console.log("没有自由标注需要保存");
+    }
+    
     const payload = {
       projectId: projectId.value,
       sysProjectFlatAddUpdateDetail,
+      // 顶部自由标注一并保存
+      freeAnnotations: freeAnnotationsToSave,
     };
+    
+    console.log("========== 保存 payload 中的 freeAnnotations ==========");
+    console.log("payload.freeAnnotations:", payload.freeAnnotations);
 
     // 调试：检查保存的数据中是否包含 shapes
     console.log("========== 保存数据检查 ==========");
@@ -4582,12 +5280,79 @@ const handleSave = async () => {
     });
     console.log("========== 保存数据检查完成 ==========");
 
-    // 调用保存接口
-    const response = await saveGeneralPing(payload);
+    // 在调用保存接口前，处理施工场景平面图 flatImageFileId
+    let finalFlatImageFileId = flatImageFileId.value || null;
+
+    // 如果本次有新选择的平面图文件，先上传获取 fileId
+    if (flatImageFile.value) {
+      try {
+        console.log("========== 上传施工场景平面图 ==========");
+        const uploadResponse = await uploadImage(
+          flatImageFile.value,
+          flatImageFile.value.name || "plan_image.png"
+        );
+
+        if (
+          uploadResponse &&
+          uploadResponse.code === "0" &&
+          uploadResponse.data &&
+          uploadResponse.data.fileId
+        ) {
+          finalFlatImageFileId = uploadResponse.data.fileId;
+          flatImageFileId.value = finalFlatImageFileId;
+          console.log("✓ 施工场景平面图上传成功，fileId:", finalFlatImageFileId);
+          // 清空临时文件引用，避免下次重复上传
+          flatImageFile.value = null;
+        } else {
+          console.error("施工场景平面图上传失败:", uploadResponse?.msg);
+          ElMessage.warning("施工场景平面图上传失败");
+        }
+      } catch (error) {
+        console.error("施工场景平面图上传失败:", error);
+        ElMessage.warning("施工场景平面图上传失败");
+      }
+    }
+
+    // 调用保存接口，flatImageFileId 与 projectId 同级传入
+    console.log("========== 调用保存接口 ==========");
+    const finalPayload = {
+      ...payload,
+      flatImageFileId: finalFlatImageFileId,
+    };
+    console.log("保存参数 flatImageFileId:", finalPayload.flatImageFileId);
+
+    const response = await saveGeneralPing(finalPayload);
+    console.log("保存接口响应:", response);
 
     if (response && response.code === "0") {
+      console.log("✅ 保存成功！");
+      console.log("保存的自由标注数量:", freeAnnotations.value?.length || 0);
       ElMessage.success("保存成功");
+      
+      // 保存成功后，验证数据是否正确
+      setTimeout(async () => {
+        console.log("========== 验证保存结果 ==========");
+        try {
+          const verifyResponse = await getGeneralDetails(projectId.value);
+          if (verifyResponse && verifyResponse.code === "0" && verifyResponse.data) {
+            console.log("后端返回的 sysProjectInfo:", verifyResponse.data.sysProjectInfo);
+            
+            if (verifyResponse.data.sysProjectInfo && verifyResponse.data.sysProjectInfo.freeAnnotations) {
+              const savedData = verifyResponse.data.sysProjectInfo.freeAnnotations;
+              const parsed = typeof savedData === "string" ? JSON.parse(savedData) : savedData;
+              console.log("✅ 后端已保存的自由标注数量:", parsed?.length || 0);
+              console.log("后端已保存的自由标注详情:", parsed);
+            } else {
+              console.warn("⚠️ 后端没有返回自由标注数据 (sysProjectInfo.freeAnnotations)");
+            }
+          }
+        } catch (e) {
+          console.error("验证保存结果失败:", e);
+        }
+        console.log("========== 验证完成 ==========");
+      }, 1000);
     } else {
+      console.error("❌ 保存失败:", response?.msg);
       ElMessage.error(response?.msg || "保存失败");
     }
   } catch (error) {
@@ -4600,7 +5365,12 @@ const handleSave = async () => {
 };
 
 const handleBack = () => {
-    router.push({ name: "AllProjects" });
+  router.push({ path: "/construction-plans" });
+};
+
+  // 显示导入平面图弹窗
+  const showImportDialog = () => {
+    dialogVisible.value = true;
   };
 
   // 处理关闭弹窗
@@ -4610,7 +5380,7 @@ const handleBack = () => {
     console.log("关闭弹窗");
   };
 
-  // 处理导入平面图
+  // 处理导入平面图（顶部/弹窗入口）
   const handleImportPlan = () => {
     // 创建隐藏的文件输入元素
     if (!fileInput.value) {
@@ -4620,11 +5390,18 @@ const handleBack = () => {
       fileInput.value.onchange = (event) => {
         const file = event.target.files[0];
         if (file) {
+          // 记录用户选择的平面图文件，保存时上传以获取 flatImageFileId
+          flatImageFile.value = file;
+          // 每次重新选择图片时，认为是新的平面图，清空旧的 fileId
+          flatImageFileId.value = null;
+
           // 创建图片预览URL
           const reader = new FileReader();
           reader.onload = (e) => {
             importedImage.value = e.target.result;
             console.log("已导入图片:", importedImage.value);
+            // 使用新导入的图片进行显示，不再使用后端图片
+            planImageUrl.value = null;
             // 关闭弹窗
             dialogVisible.value = false;
           };
@@ -4678,7 +5455,7 @@ const handleBack = () => {
 
     const plan = computeAnimationPlan(selectedCrane.value.points, selectedCrane.value.color);
     if (!plan) {
-      ElMessage.warning("无法播放，请检查吊装点位的时间设置");
+      ElMessage.warning("无法播放，请检查占位点位的时间设置");
       return;
     }
 
@@ -4922,6 +5699,12 @@ const handleBack = () => {
   const resetTrajectory = () => {
     if (!selectedCrane.value) {
       ElMessage.warning("请先选择起重机");
+      return;
+    }
+    
+    // 检查是否有点位
+    if (!selectedCrane.value.points || selectedCrane.value.points.length === 0) {
+      ElMessage.warning("当前路径为空，无需重置");
       return;
     }
     
@@ -5238,7 +6021,8 @@ const handleBack = () => {
 .back-btn {
   color: #000000;
   margin-right: 16px;
-  font-size: 20px;
+  font-size: 14px;
+  padding: 6px 12px;
 }
 
 .back-btn:hover {
@@ -5416,6 +6200,31 @@ const handleBack = () => {
   max-height: 300px;
   overflow-y: auto;
 }
+
+.point_setting_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reset-trajectory-link {
+  color: #0077FF;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s;
+  user-select: none;
+}
+
+.reset-trajectory-link:hover {
+  color: #0055CC;
+  text-decoration: underline;
+}
+
+.reset-trajectory-link:active {
+  color: #003399;
+}
+
 .setting_start{
   margin-top: 15px;
   display: flex;
@@ -5442,10 +6251,48 @@ const handleBack = () => {
 .add_path_point:hover {
   color: #005ce6;
 }
-.trajectory-controls {
-  padding: 16px;
+.trajectory-icon-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
   border-top: 1px solid #c8c8c8;
   background-color: #fafafa;
+  position: fixed;
+  bottom: 0;
+}
+
+.trajectory-icon-controls .icon-btn {
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 6px;
+}
+
+.trajectory-icon-controls .icon-btn:hover:not(.disabled) {
+  transform: scale(1.15);
+  background-color: rgba(0, 119, 255, 0.1);
+}
+
+.trajectory-icon-controls .icon-btn:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+.trajectory-icon-controls .icon-btn.disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  filter: grayscale(70%);
+}
+
+.trajectory-icon-controls .icon-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .property-item {
   margin-bottom: 5px;
@@ -5581,6 +6428,41 @@ const handleBack = () => {
   align-items: center;
   box-sizing: border-box;
   margin-right: 280px;
+}
+
+.plan-loading-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 10;
+  color: #606266;
+  font-size: 13px;
+}
+
+.plan-loading-mask .el-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: #409eff;
+}
+
+/* 没有施工场景平面图时的空状态样式 */
+.image-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #606266;
+  gap: 12px;
+}
+
+.image-empty-text {
+  font-size: 14px;
 }
 
 .drawing-toolbar {
@@ -5738,6 +6620,134 @@ const handleBack = () => {
 
 .shape-bounding-box {
   pointer-events: none;
+}
+
+.free-annotation-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.header-content_right_item .global-annotation-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.global-annotation-tool-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.global-annotation-tool-btn:hover {
+  border-color: #409eff;
+}
+
+.global-annotation-tool-btn.active {
+  border-color: #409eff;
+  background-color: #ecf5ff;
+}
+
+.global-annotation-tool-btn .icon-text {
+  font-weight: 600;
+  font-size: 14px;
+  color: #303133;
+}
+
+.global-annotation-tool-btn .icon-shape {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #606266;
+  box-sizing: border-box;
+}
+
+.global-annotation-tool-btn .icon-free-circle {
+  border-radius: 50%;
+}
+
+.global-annotation-tool-btn .icon-free-triangle {
+  width: 0;
+  height: 0;
+  border: none;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid #606266;
+}
+
+.global-annotation-tool-btn .icon-free-rect-1 {
+  border-radius: 2px;
+}
+
+.global-annotation-tool-btn .icon-free-rect-2 {
+  border-radius: 0;
+  border: none;
+  background-color: #606266;
+  /* 五边形菱形效果 */
+  clip-path: polygon(
+    50% 0%,   /* 上顶点 */
+    100% 35%, /* 右上 */
+    75% 100%, /* 右下 */
+    25% 100%, /* 左下 */
+    0% 35%    /* 左上 */
+  );
+}
+
+.global-annotation-tool-btn .icon-free-arrow {
+  position: relative;
+  border: none;
+  transform: rotate(-45deg);
+}
+
+.global-annotation-tool-btn .icon-free-arrow::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+  background-color: #606266;
+}
+
+.global-annotation-tool-btn .icon-free-arrow::after {
+  content: "";
+  position: absolute;
+  right: 1px;
+  top: 3px;
+  border-left: 4px solid #606266;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.global-annotation-tool-btn .icon-free-double-arrow {
+  position: relative;
+  border: none;
+  background: transparent;
+  width: 14px;
+  height: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #606266;
+  line-height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-45deg);
+}
+
+.global-annotation-tool-btn .icon-free-double-arrow::before {
+  content: "↔";
+  display: block;
+  font-size: 14px;
 }
 
 .shape-resize-handle {

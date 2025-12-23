@@ -4,6 +4,7 @@ import path from "path"
 
 export default defineConfig({
   plugins: [vue()],
+  base: process.env.NODE_ENV === 'production' ? './' : '/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src")
@@ -14,10 +15,19 @@ export default defineConfig({
       "/server-api": {
         //target: "http://172.10.30.135", // 不要写 photothermal
         //target: "http://172.10.30.135:18080",
-         target: "http://192.168.21.64:18080",//国虎
+         target: "http://192.168.1.106:18080",//国虎http://192.168.21.64:18080
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/server-api/, ""),
       },
     },
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
+  }
 })
