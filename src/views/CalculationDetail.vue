@@ -4016,8 +4016,16 @@ watch(
     if (!selectedCraneId.value) {
       return;
     }
-    // 确保所有必要参数都有值
-    if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
+    // 如果未选择组合类型，不调用接口
+    if (!formData.value.armType || formData.value.armType === "0" || formData.value.armType === 0) {
+      return;
+    }
+    // 确保所有必要参数都有值（排除armType，因为已经单独检查了）
+    const [l1, theta1, l2, theta2] = newValues;
+    if (l1 !== undefined && l1 !== null && l1 !== '' &&
+        theta1 !== undefined && theta1 !== null && theta1 !== '' &&
+        l2 !== undefined && l2 !== null && l2 !== '' &&
+        theta2 !== undefined && theta2 !== null && theta2 !== '') {
       try {
         const response = await getCalculateInfo({
           l1: formData.value.mainBoomMaxLength,
@@ -4068,8 +4076,16 @@ watch(
     if (!selectedCraneId2.value) {
       return;
     }
-    // 确保所有必要参数都有值
-    if (newValues.every(val => val !== undefined && val !== null && val !== '')) {
+    // 如果未选择组合类型，不调用接口
+    if (!formData.value.armType2 || formData.value.armType2 === "0" || formData.value.armType2 === 0) {
+      return;
+    }
+    // 确保所有必要参数都有值（排除armType2，因为已经单独检查了）
+    const [l1, theta1, l2, theta2] = newValues;
+    if (l1 !== undefined && l1 !== null && l1 !== '' &&
+        theta1 !== undefined && theta1 !== null && theta1 !== '' &&
+        l2 !== undefined && l2 !== null && l2 !== '' &&
+        theta2 !== undefined && theta2 !== null && theta2 !== '') {
       try {
         const response = await getCalculateInfo({
           l1: formData.value.mainBoomMaxLength2,
