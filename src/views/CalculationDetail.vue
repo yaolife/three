@@ -198,10 +198,10 @@
                     <label class="form-label">组合类型</label>
                     <el-select v-model="formData.armType" placeholder="请选择组合类型" style="width: 150px; ">
                       <el-option
-                        v-for="item in getBoomType()"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
+                        v-for="item in armTypeOptions1"
+                        :key="item.id"
+                        :label="item.title"
+                        :value="item.id"
                       />
                     </el-select>
                   </div>
@@ -399,10 +399,10 @@
                     <label class="form-label">组合类型</label>
                     <el-select v-model="formData.armType2" placeholder="请选择组合类型" style="width: 150px;">
                       <el-option
-                        v-for="item in getBoomType()"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
+                        v-for="item in armTypeOptions2"
+                        :key="item.id"
+                        :label="item.title"
+                        :value="item.id"
                       />
                     </el-select>
                   </div>
@@ -3448,6 +3448,7 @@ import {
   exportLiftingReport,
   exportBearingReport,
   exportProjectReport,
+  getCranePerformanceInfo,
 } from "@/api/index.js";
 import {  getBoomType, craneType} from "@/utils/common.js";
 
@@ -3555,6 +3556,9 @@ const craneList = ref([]);
 const craneLoading = ref(false);
 const selectedCraneId = ref(null);
 const selectedCraneId2 = ref(null);
+// 组合类型下拉数据（起重机1和起重机2分别存储）
+const armTypeOptions1 = ref([]);
+const armTypeOptions2 = ref([]);
 
 // 加载设备列表
 const loadDeviceList = async () => {
@@ -3749,6 +3753,35 @@ const handleCraneChange = async (craneId, isSecondCrane = false) => {
       formData.value.craneName = crane.machineName || crane.craneName || '';
     }
     try {
+      // 调用组合类型下拉接口获取数据
+      try {
+        const performanceResponse = await getCranePerformanceInfo(craneId);
+        if (performanceResponse && performanceResponse.code === '0' && performanceResponse.data) {
+          const performanceList = Array.isArray(performanceResponse.data) ? performanceResponse.data : [];
+          if (isSecondCrane) {
+            armTypeOptions2.value = performanceList;
+            // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+            if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType2)) {
+              formData.value.armType2 = performanceList[0].id;
+            }
+          } else {
+            armTypeOptions1.value = performanceList;
+            // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+            if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType)) {
+              formData.value.armType = performanceList[0].id;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('获取组合类型数据失败:', error);
+        // 如果接口调用失败，清空选项列表
+        if (isSecondCrane) {
+          armTypeOptions2.value = [];
+        } else {
+          armTypeOptions1.value = [];
+        }
+      }
+      
       // 调用起重机详情接口获取详细数据
       const response = await getCraneDataDetail(craneId);
       const craneData = response.data.sysProjectTemplateCraneDetail || {};
@@ -3879,7 +3912,7 @@ const formData = ref({
   model: "",
   equipmentType: "",
   ratedLoad: 12,
-  armType: 0, // 添加吊臂组合类型字段，默认值为主臂
+  armType: null, // 组合类型下拉数据的id
   mainBoomMaxLength: 0,
   auxBoomLength: 0,
   workRadius: 0,
@@ -3898,7 +3931,7 @@ const formData = ref({
   model2: "",
   equipmentType2: "",
   ratedLoad2: 0,
-  armType2: 0, // 添加吊臂组合类型字段，默认值为主臂
+  armType2: null, // 组合类型下拉数据的id
    mainBoomMaxLength2: 0,
   auxBoomLength2: 0,
   workRadius2: 0,
@@ -3993,7 +4026,8 @@ watch(
           theta2: formData.value.auxBoomAngle,
           craneType: craneType,// 起重机类型
           armType: formData.value.armType,//吊臂组合类型
-          templateCraneId: selectedCraneId.value // 当前选中的起重机ID
+          templateCraneId: selectedCraneId.value, // 当前选中的起重机ID
+          performanceInfoId: formData.value.armType // 组合类型下拉数据的id
         });
         
         if (response.code === '0' && response.data) {
@@ -4044,7 +4078,8 @@ watch(
           theta2: formData.value.auxBoomAngle2,
            craneType: craneType,// 起重机类型
           armType: formData.value.armType2,//吊臂组合类型
-          templateCraneId: selectedCraneId2.value // 当前选中的起重机2的ID
+          templateCraneId: selectedCraneId2.value, // 当前选中的起重机2的ID
+          performanceInfoId: formData.value.armType2 // 组合类型下拉数据的id
         });
         
         if (response.code === '0' && response.data) {
@@ -5928,7 +5963,7 @@ const resetCraneForm = (craneKey) => {
     [`model${suffix}`]: null,
     [`equipmentType${suffix}`]: null,
     [`ratedLoad${suffix}`]: 0,
-    [`armType${suffix}`]: 0,
+    [`armType${suffix}`]: null,
     [`mainBoomMaxLength${suffix}`]: 0,
     [`auxBoomLength${suffix}`]: 0,
     [`workRadius${suffix}`]: 0,
@@ -5992,10 +6027,10 @@ const applyCraneDetailToForm = (detail, craneKey) => {
     [`equipmentType${suffix}`]: detail.deviceModel ?? "",
     [`armType${suffix}`]:
       detail?.armType !== undefined && detail?.armType !== null
-        ? Number(detail.armType)
+        ? (typeof detail.armType === 'string' ? detail.armType : String(detail.armType))
         : detail?.boomType !== undefined && detail?.boomType !== null
-        ? Number(detail.boomType)
-        : formData.value[`armType${suffix}`] ?? 0,
+        ? (typeof detail.boomType === 'string' ? detail.boomType : String(detail.boomType))
+        : formData.value[`armType${suffix}`] ?? null,
     [`ratedLoad${suffix}`]: toNumberOrZero(detail.pq),
     [`mainBoomMaxLength${suffix}`]: toNumberOrZero(detail.mainArmLength),
     [`auxBoomLength${suffix}`]: toNumberOrZero(detail.minorArmLength),
@@ -6046,6 +6081,23 @@ const applyCraneDetailToForm = (detail, craneKey) => {
       detail.templateDeviceId !== null
         ? String(detail.templateDeviceId)
         : null;
+    
+    // 加载组合类型下拉数据
+    if (selectedCraneId.value) {
+      getCranePerformanceInfo(selectedCraneId.value).then((performanceResponse) => {
+        if (performanceResponse && performanceResponse.code === '0' && performanceResponse.data) {
+          const performanceList = Array.isArray(performanceResponse.data) ? performanceResponse.data : [];
+          armTypeOptions1.value = performanceList;
+          // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+          if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType)) {
+            formData.value.armType = performanceList[0].id;
+          }
+        }
+      }).catch((error) => {
+        console.error('获取组合类型数据失败:', error);
+        armTypeOptions1.value = [];
+      });
+    }
   } else {
     selectedCraneId2.value =
       detail.templateCraneDetailId !== undefined &&
@@ -6079,6 +6131,23 @@ const applyCraneDetailToForm = (detail, craneKey) => {
     }
     if (detail.bearingWeight2 !== undefined && detail.bearingWeight2 !== null) {
       formData.value.crane2Weight = Number(detail.bearingWeight2);
+    }
+    
+    // 加载组合类型下拉数据
+    if (selectedCraneId2.value) {
+      getCranePerformanceInfo(selectedCraneId2.value).then((performanceResponse) => {
+        if (performanceResponse && performanceResponse.code === '0' && performanceResponse.data) {
+          const performanceList = Array.isArray(performanceResponse.data) ? performanceResponse.data : [];
+          armTypeOptions2.value = performanceList;
+          // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+          if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType2)) {
+            formData.value.armType2 = performanceList[0].id;
+          }
+        }
+      }).catch((error) => {
+        console.error('获取组合类型数据失败:', error);
+        armTypeOptions2.value = [];
+      });
     }
   }
 };
@@ -6426,9 +6495,12 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
     deviceModel: toNullableString(
       getCraneFieldValue("equipmentType", craneKey, "equipmentType")
     ),
-    armType: toNumberOrNull(
-      getCraneFieldValue("armType", craneKey, "armType")
-    ),
+    armType: (() => {
+      const armTypeValue = getCraneFieldValue("armType", craneKey, "armType");
+      return armTypeValue !== undefined && armTypeValue !== null
+        ? (typeof armTypeValue === 'string' ? armTypeValue : String(armTypeValue))
+        : null;
+    })(),
     pq: toNumberOrNull(getCraneFieldValue("ratedLoad", craneKey, "ratedLoad")),
     mainArmLength: toNumberOrNull(
       getCraneFieldValue("mainBoomMaxLength", craneKey, "mainBoomMaxLength")

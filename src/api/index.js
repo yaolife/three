@@ -989,6 +989,20 @@ export async function getStreamImage(id) {
     throw error;
   }
 }
+/**
+ * 起重机组合类型下拉接口
+ * @param {string|number} id - 起重机名称下拉id
+ * @returns {Promise} - 返回操作结果
+ */
+export async function getCranePerformanceInfo(id) {
+  try {
+    const url = `/crane/performanceInfo/getList/${id}`
+    return await get(url)
+  } catch (error) {
+    console.error("获取起重机组合类型请求失败:", error)
+    throw error
+  }
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -1049,5 +1063,6 @@ export default {
   addModelInfo,
   deleteModelItem,
   modelPush,
-  getStreamImage
+  getStreamImage,
+  getCranePerformanceInfo
 }
