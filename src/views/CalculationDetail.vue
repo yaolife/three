@@ -4033,9 +4033,8 @@ watch(
           l2: formData.value.auxBoomLength,
           theta2: formData.value.auxBoomAngle,
           craneType: craneType,// 起重机类型
-          armType: formData.value.armType,//吊臂组合类型
           templateCraneId: selectedCraneId.value, // 当前选中的起重机ID
-          performanceInfoId: formData.value.armType // 组合类型下拉数据的id
+          performanceInfoId: formData.value.armType // 组合类型下拉数据的id（起重机工况板块里的组合类型下拉数据的id）
         });
         
         if (response.code === '0' && response.data) {
@@ -4093,9 +4092,8 @@ watch(
           l2: formData.value.auxBoomLength2,
           theta2: formData.value.auxBoomAngle2,
            craneType: craneType,// 起重机类型
-          armType: formData.value.armType2,//吊臂组合类型
           templateCraneId: selectedCraneId2.value, // 当前选中的起重机2的ID
-          performanceInfoId: formData.value.armType2 // 组合类型下拉数据的id
+          performanceInfoId: formData.value.armType2 // 组合类型下拉数据的id（起重机工况板块里的组合类型下拉数据的id）
         });
         
         if (response.code === '0' && response.data) {
