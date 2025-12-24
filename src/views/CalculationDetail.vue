@@ -4310,7 +4310,7 @@ watch(
 const lowerPointCountOptions = computed(() => {
   // 如果有吊梁，去掉1，最小值为2
   if (commonDeviceSettings.value?.liftingType === 'withBeam') {
-    return [2, 3, 4, 6, 8];
+    return [2, 4, 6, 8];
   }
   // 无吊梁时，包含所有选项
   return [1, 2, 3, 4, 6, 8];
