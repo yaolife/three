@@ -1003,6 +1003,15 @@ export async function getCranePerformanceInfo(id) {
     throw error
   }
 }
+
+/**
+ * 虚拟仿真项目table操作栏打开
+ * @param {object} params - 参数{ "id": "项目id" }
+ * @returns {Promise} - 
+ */
+export function openSimulation(params) {
+  return post("/projectInfo/openSimulation", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -1064,5 +1073,6 @@ export default {
   deleteModelItem,
   modelPush,
   getStreamImage,
-  getCranePerformanceInfo
+  getCranePerformanceInfo,
+  openSimulation
 }
