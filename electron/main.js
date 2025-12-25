@@ -9,18 +9,22 @@ let mainWindow;
 ipcMain.handle('open-external-app', async (event, appPath) => {
   try {
     // 构建完整的应用路径
-    // 如果是相对路径，则相对于应用程序的资源目录
     let fullPath;
     if (path.isAbsolute(appPath)) {
+      // 绝对路径直接使用
       fullPath = appPath;
     } else {
-      // 相对路径：相对于应用程序的资源目录（resources 目录）
-      // 在打包后的应用中，资源目录通常是 app.getAppPath() 或 process.resourcesPath
-      const resourcesPath = process.resourcesPath || app.getAppPath();
-      fullPath = path.join(resourcesPath, appPath);
+      // 相对路径：相对于 Electron 应用可执行文件所在的目录
+      // 例如：应用在 D:\yj\lightHeat\simulation\ThreeConstruction.exe
+      // 外部应用在 D:\yj\lightHeat\simulation\Windows\PT3DMPD.exe
+      // 使用 app.getPath('exe') 获取可执行文件路径，然后获取其所在目录
+      const exePath = app.getPath('exe');
+      const appDir = path.dirname(exePath);
+      fullPath = path.join(appDir, appPath);
     }
     
     console.log('尝试打开外部应用:', fullPath);
+    console.log('应用目录:', path.dirname(app.getPath('exe')));
     
     // 使用 spawn 启动外部应用
     const child = spawn(fullPath, [], {

@@ -523,7 +523,7 @@ const handleOpen = async (row) => {
       // 检查是否在 Electron 环境中
       if (window.electronAPI && window.electronAPI.openExternalApp) {
         // 使用 Electron 方法打开外部应用
-        const result = await window.electronAPI.openExternalApp('.\Windows\PT3DMPD.exe')
+        const result = await window.electronAPI.openExternalApp('Windows\\PT3DMPD.exe')
         if (result.success) {
           ElMessage.success('打开成功')
         } else {
