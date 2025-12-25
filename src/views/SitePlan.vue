@@ -1230,7 +1230,7 @@ const createBasePoint = (overrides = {}) => ({
   name: "点位1",
   x: 112.0,
   y: 38.0,
-  type: "lifting", // lifting: 占位点位, moving: 移动点位
+  type: "moving", // lifting: 占位点位, moving: 移动点位
   groundLoad: 10,
   area: "",
   startTime: null,
@@ -4014,9 +4014,9 @@ const setCranePosition = () => {
     // 重置新点位数据
     const isStart = false; // 添加路径点位不是起点
     newPoint.value = createBasePoint({
-      name: `占位点位${pointCount}`,
+      name: `移动点位${pointCount}`,
       isStart,
-      type: "lifting",
+      type: "moving",
     });
     // 打开添加点位弹窗
     addPointDialogVisible.value = true;
