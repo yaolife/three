@@ -2633,7 +2633,7 @@ const drawTextShape = (coords, config = {}) => {
 const capturePointSnapshot = (point) => {
   if (!canvas.value) return null;
   const { x, y } = convertToCanvasCoords(point.x, point.y);
-  const radius = 100; // 以点位为中心，半径为100px进行截图
+  const radius = 400; // 以点位为中心，半径为400px进行截图
   const size = radius * 2;
   const snapshotCanvas = document.createElement("canvas");
   snapshotCanvas.width = size;
