@@ -1,8 +1,42 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
+const { spawn } = require('child_process');
 const isDev = process.env.NODE_ENV === 'development';
 
 let mainWindow;
+
+// 处理打开外部应用的 IPC 消息
+ipcMain.handle('open-external-app', async (event, appPath) => {
+  try {
+    // 构建完整的应用路径
+    // 如果是相对路径，则相对于应用程序的资源目录
+    let fullPath;
+    if (path.isAbsolute(appPath)) {
+      fullPath = appPath;
+    } else {
+      // 相对路径：相对于应用程序的资源目录（resources 目录）
+      // 在打包后的应用中，资源目录通常是 app.getAppPath() 或 process.resourcesPath
+      const resourcesPath = process.resourcesPath || app.getAppPath();
+      fullPath = path.join(resourcesPath, appPath);
+    }
+    
+    console.log('尝试打开外部应用:', fullPath);
+    
+    // 使用 spawn 启动外部应用
+    const child = spawn(fullPath, [], {
+      detached: true,
+      stdio: 'ignore'
+    });
+    
+    // 不等待子进程，立即返回
+    child.unref();
+    
+    return { success: true };
+  } catch (error) {
+    console.error('打开外部应用失败:', error);
+    return { success: false, error: error.message };
+  }
+});
 
 function createWindow() {
   // 创建浏览器窗口

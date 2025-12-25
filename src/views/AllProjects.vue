@@ -26,8 +26,15 @@
         <el-table-column prop="belongingProject" align="center" label="所属项目" width="170" />
         <el-table-column prop="belongingDept" align="center" label="创建部门" width="170" />
         <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
-        <el-table-column align="center" label="操作" width="160" fixed="right">
+        <el-table-column align="center" label="操作" width="220" fixed="right">
           <template #default="scope">
+            <el-button
+              type="primary"
+              size="small"
+              @click="handleOpen(scope.row)"
+            >
+              打开
+            </el-button>
             <el-button
               type="default"
               size="small"
@@ -98,7 +105,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Upload } from '@element-plus/icons-vue'
-import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem, pushProject } from '../api/index.js'
+import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem, pushProject, openSimulation } from '../api/index.js'
 import userStore from '../store/user.js'
 
 // 初始化 router 和 route
@@ -498,6 +505,40 @@ const handleDelete = async (row) => {
     if (error === 'cancel') return
     console.error('删除项目失败:', error)
     ElMessage.error('删除项目失败')
+  }
+}
+
+// 处理打开
+const handleOpen = async (row) => {
+  try {
+    if (!row.id) {
+      ElMessage.error('项目ID不存在')
+      return
+    }
+    
+    // 调用 openSimulation 接口
+    const response = await openSimulation({ id: row.id })
+    
+    if (response.code === '0') {
+      // 检查是否在 Electron 环境中
+      if (window.electronAPI && window.electronAPI.openExternalApp) {
+        // 使用 Electron 方法打开外部应用
+        const result = await window.electronAPI.openExternalApp('.\Windows\PT3DMPD.exe')
+        if (result.success) {
+          ElMessage.success('打开成功')
+        } else {
+          ElMessage.error(result.error || '打开应用失败')
+        }
+      } else {
+        // 非 Electron 环境，只提示接口调用成功
+        ElMessage.success('操作成功')
+      }
+    } else {
+      ElMessage.error(response.msg || '操作失败')
+    }
+  } catch (error) {
+    console.error('打开项目失败:', error)
+    ElMessage.error('打开项目失败')
   }
 }
 
