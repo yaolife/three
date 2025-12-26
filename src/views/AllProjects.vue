@@ -26,9 +26,10 @@
         <el-table-column prop="belongingProject" align="center" label="所属项目" width="170" />
         <el-table-column prop="belongingDept" align="center" label="创建部门" width="170" />
         <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
-        <el-table-column align="center" label="操作" width="220" fixed="right">
+        <el-table-column align="center" label="操作" :width="projectTypeFilter === 1 ? 220 : 160" fixed="right">
           <template #default="scope">
             <el-button
+              v-if="scope.row.projectType === 1"
               type="primary"
               size="small"
               @click="handleOpen(scope.row)"
@@ -39,7 +40,7 @@
               type="default"
               size="small"
               @click="handleEdit(scope.row)"
-              style="margin-left: 8px"
+              :style="scope.row.projectType === 1 ? 'margin-left: 8px' : ''"
             >
               编辑
             </el-button>
