@@ -1171,6 +1171,22 @@ onMounted(() => {
   userStore.restoreUserState();
   if (!userStore.userState.isLoggedIn) {
     showLoginDialog.value = true;
+  } else {
+    // 如果已登录，自动显示功能菜单弹窗
+    // 使用 nextTick 确保组件完全挂载后再显示菜单
+    nextTick(() => {
+      // 如果当前不在欢迎页面，先跳转到欢迎页面
+      if (route.path !== '/welcome') {
+        router.push('/welcome').then(() => {
+          nextTick(() => {
+            openMenuDialog();
+          });
+        });
+      } else {
+        // 如果已经在欢迎页面，直接显示菜单
+        openMenuDialog();
+      }
+    });
   }
   // 暴露 router 实例到 window，供 api/index.js 中的 checkResponseCode 使用
   window.__VUE_ROUTER__ = router;
