@@ -13,12 +13,12 @@ export default defineConfig({
   server: {
     proxy: {
       "/server-api": {
-        //target: "http://172.10.30.135", // 公司服务器 photothermal
+        target: "http://172.10.30.135", // 公司服务器 photothermal
           //target: "http://192.168.0.102:18080",// 生产服务器
         //target: "http://172.10.30.135:18080",
-         target: "http://192.168.1.106:18080",//国虎http://192.168.21.64:18080
+         //target: "http://192.168.1.106:18080",//国虎http://192.168.21.64:18080
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/server-api/, ""),
+        rewrite: (p) => p.replace(/^\/server-api/, "photothermal"),
       },
     },
   },
