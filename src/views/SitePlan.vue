@@ -237,12 +237,12 @@
                 />
               </div>
               <div class="property-item">
-                <label>备注</label>
+                <label>起重机其他描述</label>
                 <el-input
                   v-model="newPoint.remarks"
                   type="textarea"
                   :rows="3"
-                  placeholder="请输入备注"
+                  placeholder="请输入起重机其他描述"
                   maxlength="500"
                   show-word-limit
                 />
