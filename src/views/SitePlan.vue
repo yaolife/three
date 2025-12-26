@@ -4429,7 +4429,6 @@ const setCranePosition = () => {
             if (Array.isArray(parsed) && parsed.length > 0) {
               freeAnnotations.value = parsed;
               console.log("✓ 已加载自由标注数量:", parsed.length);
-              console.log("自由标注详情:", JSON.stringify(parsed, null, 2));
               
               // 将自由标注也添加到 shapeOverlays 中以支持交互
               const toolMap = {
