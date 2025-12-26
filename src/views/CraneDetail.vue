@@ -836,18 +836,22 @@ const handleConfirm = async () => {
     ElMessage.warning("请输入车体配重");
     return;
   }
-  if (craneSpecs.value.maxLiftingHeight === "" || craneSpecs.value.maxLiftingHeight === undefined) {
-    ElMessage.warning("请输入最大起升高度");
-    return;
-  }
   if (craneSpecs.value.maxLiftingMoment === "" || craneSpecs.value.maxLiftingMoment === undefined) {
     ElMessage.warning("请输入最大起重力矩");
     return;
   }
-  if (craneSpecs.value.maxLuffingAngle === "" || craneSpecs.value.maxLuffingAngle === undefined) {
-    ElMessage.warning("请输入最大变幅角度");
-    return;
-  }
+  // 以下字段改为非必填项：
+  // - 最大起升高度 (maxLiftingHeight)
+  // - 主钩重量 (mainHookWeight)
+  // - 副钩吊钩重量 (auxHookWeight)
+  // - 最大变幅角度 (maxLuffingAngle)
+  // - 最小变幅角度 (minLuffingAngle)
+  // - 超起平衡重重量 (superLiftCounterweightWeight)
+  // - 超起平衡重回转半径 (superLiftCounterweightRadius)
+  // - 副臂最大长度 (jibMaxLength)
+  // - 主钩最大钓重 (mainHookMaxCapacity)
+  // - 副钩最大钓重 (auxHookMaxCapacity)
+  // - 主臂+副臂最大长度 (totalBoomMaxLength)
 
   const calcType = Number(craneInfo.value.calculationType || 1);
 
