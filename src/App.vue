@@ -100,11 +100,12 @@
     <Teleport to="body">
       <el-dialog
         v-model="showMenuDialog"
-        width="420px"
+        width="600px"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
         :show-close="false"
         append-to-body
+        class="menu-dialog"
       >
         <template #header>
           <div class="menu-dialog-header">
@@ -113,15 +114,14 @@
           </div>
         </template>
         <div class="menu-dialog-content">
-          <el-button
+          <div
             v-for="item in menuOptions"
             :key="item.path"
-            type="default"
             class="menu-dialog-item"
             @click="handleMenuSelect(item.path)"
           >
             {{ item.label }}
-          </el-button>
+          </div>
         </div>
       </el-dialog>
     </Teleport>
@@ -520,9 +520,9 @@ const activeMenu = computed(() => route.path || "/verification-projects");
 const menuOptions = computed(() => {
   // 所有菜单项及其对应的 menus 值
   const allMenus = [
-    { label: "校核计算项目", path: "/verification-projects", menuValue: "0" },
-    { label: "虚拟仿真项目", path: "/virtual-simulation", menuValue: "1" },
-    { label: "总平规划项目", path: "/construction-plans", menuValue: "2" },
+    { label: "校核计算", path: "/verification-projects", menuValue: "0" },
+      { label: "三维仿真", path: "/virtual-simulation", menuValue: "1" },
+    { label: "总平规划平台", path: "/construction-plans", menuValue: "2" },
     { label: "数据管理", path: "/data-management", menuValue: "3" },
     { label: "账号管理", path: "/user-management", menuValue: "4" },
   ];
@@ -1381,23 +1381,55 @@ onMounted(() => {
 
 .menu-dialog-content {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  padding: 20px;
 }
 
 .menu-dialog-item {
   width: 100%;
-  color: #2B507D;
+  height: 120px;
+  display: flex;
+  align-items: center;
   justify-content: center;
+
+  border-radius: 8px;
+  color: #2B507D;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  user-select: none;
+border: 1px solid #B3B3B3;
+  background-color: #e8e8e8;
+box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.menu-dialog-item:hover {
+  background-color: #d8d8d8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.menu-dialog-item:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .menu-dialog-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  padding: 4px 4px 0 4px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.menu-dialog :deep(.el-dialog__body) {
+  padding: 0 !important;
 }
 
 .menu-close {
