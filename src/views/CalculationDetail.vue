@@ -3418,7 +3418,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, reactive, nextTick, onMounted } from "vue";
+import { ref, computed, watch, watchEffect, reactive, nextTick, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowLeft,
@@ -3617,23 +3617,79 @@ const setIframeSrc = async (iframeRef, folderName) => {
   }
 };
 
-// 监听tab切换，动态设置iframe src
-watch(constructionSubTab, async (newTab) => {
+// 设置iframe src的辅助函数
+const setupIframeSrc = async (tabName, folderName, retryCount = 0) => {
   await nextTick();
-  if (newTab === 'plan' && planIframe.value) {
-    await setIframeSrc(planIframe.value, 'plane');
-  } else if (newTab === 'elevation' && facadeIframe.value) {
-    await setIframeSrc(facadeIframe.value, 'facade');
+  await nextTick(); // 双重nextTick确保DOM完全更新
+  
+  const maxRetries = 10; // 最多重试10次
+  
+  if (tabName === 'plan' && planIframe.value) {
+    console.log(`[Plane] 设置iframe src (尝试 ${retryCount + 1})`);
+    await setIframeSrc(planIframe.value, folderName);
+  } else if (tabName === 'elevation' && facadeIframe.value) {
+    console.log(`[Facade] 设置iframe src (尝试 ${retryCount + 1})`);
+    await setIframeSrc(facadeIframe.value, folderName);
+  } else {
+    // 如果iframe还没创建，延迟重试（最多重试10次）
+    if (retryCount < maxRetries) {
+      console.warn(`[${folderName}] iframe ref不存在，延迟重试... (${retryCount + 1}/${maxRetries})`);
+      setTimeout(async () => {
+        await setupIframeSrc(tabName, folderName, retryCount + 1);
+      }, 100);
+    } else {
+      console.error(`[${folderName}] iframe ref创建失败，已达到最大重试次数`);
+    }
+  }
+};
+
+// 监听constructionSubTab变化，当tab切换时设置iframe src
+watch(constructionSubTab, async (newTab, oldTab) => {
+  // 只有当construction tab激活时才处理
+  if (activeTab.value !== 'construction') {
+    return;
+  }
+  
+  console.log(`[ConstructionTab] 切换到: ${newTab} (从 ${oldTab})`);
+  
+  // 等待DOM更新，确保iframe被创建
+  await nextTick();
+  await nextTick();
+  
+  // 再等待一小段时间，确保iframe元素完全创建
+  await new Promise(resolve => setTimeout(resolve, 50));
+  
+  if (newTab === 'plan') {
+    await setupIframeSrc('plan', 'plane');
+  } else if (newTab === 'elevation') {
+    await setupIframeSrc('elevation', 'facade');
+  }
+}, { immediate: true }); // immediate: true 确保初始化时也执行
+
+// 监听activeTab变化，当切换到construction tab时，设置当前子tab的iframe src
+watch(activeTab, async (newTab) => {
+  if (newTab === 'construction') {
+    console.log('[ActiveTab] 切换到construction tab');
+    await nextTick();
+    // 根据当前constructionSubTab设置对应的iframe
+    if (constructionSubTab.value === 'plan') {
+      await setupIframeSrc('plan', 'plane');
+    } else if (constructionSubTab.value === 'elevation') {
+      await setupIframeSrc('elevation', 'facade');
+    }
   }
 });
 
-// 组件挂载后设置初始iframe src
+// 组件挂载后，如果默认显示construction tab，设置iframe src
 onMounted(async () => {
   await nextTick();
-  if (constructionSubTab.value === 'plan' && planIframe.value) {
-    await setIframeSrc(planIframe.value, 'plane');
-  } else if (constructionSubTab.value === 'elevation' && facadeIframe.value) {
-    await setIframeSrc(facadeIframe.value, 'facade');
+  if (activeTab.value === 'construction') {
+    console.log('[OnMounted] 初始化construction tab');
+    if (constructionSubTab.value === 'plan') {
+      await setupIframeSrc('plan', 'plane');
+    } else if (constructionSubTab.value === 'elevation') {
+      await setupIframeSrc('elevation', 'facade');
+    }
   }
 });
 
