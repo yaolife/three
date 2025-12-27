@@ -54,7 +54,8 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      webSecurity: true
+      webSecurity: false, // 在Electron中禁用webSecurity以允许加载本地文件
+      allowRunningInsecureContent: true
     },
     icon: path.join(__dirname, '../public/favicon.ico'), // 如果有图标的话
     show: false, // 先不显示，等加载完成后再显示

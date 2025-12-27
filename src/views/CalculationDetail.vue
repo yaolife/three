@@ -3497,12 +3497,41 @@ const constructionSubTab = ref("plan"); // 施工平立面图子tab，默认选�
 
 // 动态生成iframe路径，兼容开发和生产环境
 const getIframePath = (folderName) => {
-  // 判断是否为生产环境（Electron打包后）
+  // 检查是否在Electron环境中
+  const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+  
+  // 判断是否为生产环境
   const isProduction = import.meta.env.PROD;
   
-  if (isProduction) {
-    // 生产环境：使用相对路径，基于当前HTML文件位置
-    // 在Electron中，index.html在dist目录，plane/facade也在dist目录
+  if (isElectron && isProduction) {
+    // Electron生产环境：使用window.location构建绝对路径
+    try {
+      const currentUrl = window.location.href;
+      const url = new URL(currentUrl);
+      
+      // 获取当前路径
+      let pathname = url.pathname;
+      
+      // 处理Windows路径（file:///C:/path/to/index.html）
+      // 或Unix路径（file:///path/to/index.html）
+      if (pathname.includes('index.html')) {
+        // 移除index.html，只保留目录路径
+        pathname = pathname.substring(0, pathname.lastIndexOf('/'));
+      }
+      
+      // 构建完整路径
+      // 在Electron中，file://协议的路径需要完整路径
+      const fullPath = `${pathname}/${folderName}/index.html`;
+      console.log(`[Electron] 构建iframe路径: ${fullPath}`);
+      console.log(`[Electron] 当前URL: ${currentUrl}, pathname: ${url.pathname}`);
+      return fullPath;
+    } catch (error) {
+      console.error('[Electron] 构建iframe路径失败，使用相对路径:', error);
+      // 降级方案：使用相对路径
+      return `./${folderName}/index.html`;
+    }
+  } else if (isProduction && !isElectron) {
+    // 非Electron生产环境（如web部署）：使用相对路径
     return `./${folderName}/index.html`;
   } else {
     // 开发环境：使用绝对路径
@@ -3520,12 +3549,26 @@ const facadeIframeSrc = computed(() => {
 
 // 处理iframe加载完成
 const handleIframeLoad = (type) => {
-  console.log(`${type} iframe loaded successfully`);
+  console.log(`[${type}] iframe loaded successfully`);
+  const iframe = document.querySelector(`iframe[title="${type === 'plan' ? '平面图编辑器' : '立面图编辑器'}"]`);
+  if (iframe) {
+    console.log(`[${type}] iframe src:`, iframe.src);
+    console.log(`[${type}] iframe contentWindow:`, iframe.contentWindow);
+  }
 };
 
 // 处理iframe加载错误
 const handleIframeError = (type) => {
-  console.error(`${type} iframe failed to load`);
+  console.error(`[${type}] iframe failed to load`);
+  const iframe = document.querySelector(`iframe[title="${type === 'plan' ? '平面图编辑器' : '立面图编辑器'}"]`);
+  if (iframe) {
+    console.error(`[${type}] iframe src:`, iframe.src);
+    console.error(`[${type}] iframe error details:`, {
+      src: iframe.src,
+      location: window.location.href,
+      isElectron: typeof window !== 'undefined' && window.electronAPI?.isElectron
+    });
+  }
 };
 
 // 处理吊索具示意图图片加载错误
