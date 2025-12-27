@@ -1441,7 +1441,7 @@
             <iframe
               v-if="constructionSubTab === 'plan'"
               key="plan-iframe"
-              src="/plane/index.html"
+              :src="planeIframeSrc"
               class="method-draw-iframe"
               frameborder="0"
               title="平面图编辑器"
@@ -1454,7 +1454,7 @@
             <iframe
               v-if="constructionSubTab === 'elevation'"
               key="elevation-iframe"
-              src="/facade/index.html"
+              :src="facadeIframeSrc"
               class="method-draw-iframe"
               frameborder="0"
               title="立面图编辑器"
@@ -3494,6 +3494,29 @@ const handleBackToVerification = () => {
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
 const constructionSubTab = ref("plan"); // 施工平立面图子tab，默认选中平面图
+
+// 动态生成iframe路径，兼容开发和生产环境
+const getIframePath = (folderName) => {
+  // 判断是否为生产环境（Electron打包后）
+  const isProduction = import.meta.env.PROD;
+  
+  if (isProduction) {
+    // 生产环境：使用相对路径，基于当前HTML文件位置
+    // 在Electron中，index.html在dist目录，plane/facade也在dist目录
+    return `./${folderName}/index.html`;
+  } else {
+    // 开发环境：使用绝对路径
+    return `/${folderName}/index.html`;
+  }
+};
+
+const planeIframeSrc = computed(() => {
+  return getIframePath('plane');
+});
+
+const facadeIframeSrc = computed(() => {
+  return getIframePath('facade');
+});
 
 // 处理iframe加载完成
 const handleIframeLoad = (type) => {
