@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router"
+import userStore from "../store/user.js"
 
 // 懒加载组件
 const AllProjects = () => import("../views/AllProjects.vue")
@@ -142,6 +143,13 @@ router.beforeEach((to, from, next) => {
   if (to.meta.title) {
     document.title = to.meta.title + " - 光热三维施工仿真软件"
   }
+  
+  // 如果未登录且不是访问welcome页面，重定向到welcome页面
+  if (!userStore.userState.isLoggedIn && to.path !== '/welcome') {
+    next('/welcome');
+    return;
+  }
+  
   next()
 })
 

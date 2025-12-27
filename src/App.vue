@@ -1169,9 +1169,14 @@ watch(syncActiveTab, (newTab) => {
 });
 
 // 页面加载时恢复用户状态
-onMounted(() => {
+onMounted(async () => {
   userStore.restoreUserState();
   if (!userStore.userState.isLoggedIn) {
+    // 未登录时，确保在welcome页面
+    if (route.path !== '/welcome') {
+      await router.push('/welcome');
+      await nextTick();
+    }
     showLoginDialog.value = true;
   } else {
     // 如果已登录，自动显示功能菜单弹窗
@@ -1194,15 +1199,29 @@ onMounted(() => {
   window.__VUE_ROUTER__ = router;
   
   // 监听 token 被清除的事件，同步更新登录状态
-  window.addEventListener("tokenCleared", () => {
+  window.addEventListener("tokenCleared", async () => {
     userStore.logout();
+    // 跳转到welcome页面
+    if (route.path !== '/welcome') {
+      await router.push('/welcome');
+      await nextTick();
+    }
+    // 显示登录弹窗
+    showLoginDialog.value = true;
   });
   
   // 监听 storage 变化事件（处理跨标签页的情况）
-  window.addEventListener("storage", (e) => {
+  window.addEventListener("storage", async (e) => {
     if (e.key === "token" && !e.newValue) {
       // token 被清除
       userStore.logout();
+      // 跳转到welcome页面
+      if (route.path !== '/welcome') {
+        await router.push('/welcome');
+        await nextTick();
+      }
+      // 显示登录弹窗
+      showLoginDialog.value = true;
     }
   });
 });

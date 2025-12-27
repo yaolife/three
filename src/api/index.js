@@ -49,14 +49,14 @@ function checkResponseCode(result) {
       window.dispatchEvent(new CustomEvent("tokenCleared"));
       // 延迟跳转，确保当前请求的错误处理完成
       setTimeout(() => {
-        // 如果当前不在全部项目页面，使用 Vue Router 跳转
-        if (window.location.pathname !== "/all-projects") {
+        // 跳转到welcome页面
+        if (window.location.pathname !== "/welcome") {
           // 检查是否有 Vue Router 实例可用（由 App.vue 暴露）
           if (window.__VUE_ROUTER__) {
-            window.__VUE_ROUTER__.push("/all-projects");
+            window.__VUE_ROUTER__.push("/welcome");
           } else {
             // 如果没有 Vue Router，使用 window.location.href
-            window.location.href = "/all-projects";
+            window.location.href = "/welcome";
           }
         }
       }, 100);
