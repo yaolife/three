@@ -193,7 +193,64 @@
             
             <!-- 占位点位特有字段 -->
             <template v-if="newPoint.type === 'lifting'">
-                <div class="point_title">占点设置</div>
+              <div class="property-item">
+                <label>
+                  开始时间
+                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
+                </label>
+                <el-date-picker
+                  v-model="newPoint.startTime"
+                  type="date"
+                  placeholder="请选择开始时间"
+                  value-format="YYYY-MM-DD"
+                  format="YYYY-MM-DD"
+                />
+              </div>
+              <div class="property-item">
+                <label>
+                  结束时间
+                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
+                </label>
+                <el-date-picker
+                  v-model="newPoint.endTime"
+                  type="date"
+                  placeholder="请选择结束时间"
+                  value-format="YYYY-MM-DD"
+                  format="YYYY-MM-DD"
+                />
+              </div>
+              
+              <div class="point_title">工况</div>
+              <div class="property-item">
+                <label>主臂长度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.mainArmLength"
+                  :min="0"
+                  :step="1"
+                  placeholder="主臂长度"
+                />
+              </div>
+              <div class="property-item">
+                <label>作业半径</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.workRadius"
+                  :min="0"
+                  :step="1"
+                  placeholder="作业半径"
+                />
+              </div>
+              <div class="property-item">
+                <label>额定载荷</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="newPoint.loadContent"
+                  :min="0"
+                  :step="1"
+                  placeholder="额定载荷"
+                />
+              </div>
               <div class="property-item">
                 <label>地基承载力</label>
                 <el-input-number
@@ -205,44 +262,62 @@
                 />
                 <span class="unit">t/m²</span>
               </div>
+              
               <div class="property-item">
-                <label>区域场地</label>
-                <el-input v-model="newPoint.area" placeholder="区域场地" />
-                  <span class="unit">m²</span>
-              </div>
-              <div class="property-item">
-                <label>
-                  开始日期
-                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
-                </label>
-                <el-date-picker
-                  v-model="newPoint.startTime"
-                  type="date"
-                  placeholder="请选择开始日期"
-                  value-format="YYYY-MM-DD"
-                  format="YYYY-MM-DD"
-                />
-              </div>
-              <div class="property-item">
-                <label>
-                  结束日期
-                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
-                </label>
-                <el-date-picker
-                  v-model="newPoint.endTime"
-                  type="date"
-                  placeholder="请选择结束日期"
-                  value-format="YYYY-MM-DD"
-                  format="YYYY-MM-DD"
-                />
-              </div>
-              <div class="property-item">
-                <label>起重机其他描述</label>
+                <label>起重机其它描述</label>
                 <el-input
                   v-model="newPoint.remarks"
                   type="textarea"
                   :rows="3"
-                  placeholder="请输入起重机其他描述"
+                  placeholder="请输入起重机其它描述"
+                  maxlength="500"
+                  show-word-limit
+                />
+              </div>
+              
+              <div class="property-item">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <label>作业设备</label>
+                  <el-button type="primary" size="small" @click="addDeviceRow('new')">添加设备</el-button>
+                </div>
+                <el-table :data="newPoint.deviceInfo" border style="width: 100%">
+                  <el-table-column prop="deviceName" label="设备名" width="120">
+                    <template #default="{ row, $index }">
+                      <el-input v-model="row.deviceName" placeholder="设备名" size="small" />
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="deviceWeight" label="重量 (t)" width="100">
+                    <template #default="{ row, $index }">
+                      <el-input-number
+                        v-model="row.deviceWeight"
+                        :min="0"
+                        :step="0.1"
+                        size="small"
+                        style="width: 100%"
+                        placeholder="重量"
+                      />
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="60">
+                    <template #default="{ $index }">
+                      <el-button
+                        type="danger"
+                        size="small"
+                        icon="Delete"
+                        @click="removeDeviceRow('new', $index)"
+                      />
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+              
+              <div class="property-item">
+                <label>其它关注事项</label>
+                <el-input
+                  v-model="newPoint.other"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入其它关注事项"
                   maxlength="500"
                   show-word-limit
                 />
@@ -297,7 +372,64 @@
             
             <!-- 占位点位特有字段 -->
             <template v-if="editingPoint.type === 'lifting'">
-              <div class="point_title">占点设置</div>
+              <div class="property-item">
+                <label>
+                  开始时间
+                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
+                </label>
+                <el-date-picker
+                  v-model="editingPoint.startTime"
+                  type="date"
+                  placeholder="请选择开始时间"
+                  value-format="YYYY-MM-DD"
+                  format="YYYY-MM-DD"
+                />
+              </div>
+              <div class="property-item">
+                <label>
+                  结束时间
+                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
+                </label>
+                <el-date-picker
+                  v-model="editingPoint.endTime"
+                  type="date"
+                  placeholder="请选择结束时间"
+                  value-format="YYYY-MM-DD"
+                  format="YYYY-MM-DD"
+                />
+              </div>
+              
+              <div class="point_title">工况</div>
+              <div class="property-item">
+                <label>主臂长度</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.mainArmLength"
+                  :min="0"
+                  :step="1"
+                  placeholder="主臂长度"
+                />
+              </div>
+              <div class="property-item">
+                <label>作业半径</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.workRadius"
+                  :min="0"
+                  :step="1"
+                  placeholder="作业半径"
+                />
+              </div>
+              <div class="property-item">
+                <label>额定载荷</label>
+                <el-input-number
+                  controls-position="right"
+                  v-model="editingPoint.loadContent"
+                  :min="0"
+                  :step="1"
+                  placeholder="额定载荷"
+                />
+              </div>
               <div class="property-item">
                 <label>地基承载力</label>
                 <el-input-number
@@ -309,43 +441,62 @@
                 />
                 <span class="unit">t/m²</span>
               </div>
+              
               <div class="property-item">
-                <label>区域场地</label>
-                <el-input v-model="editingPoint.area" placeholder="区域场地" />
-              </div>
-              <div class="property-item">
-                <label>
-                  开始日期
-                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
-                </label>
-                <el-date-picker
-                  v-model="editingPoint.startTime"
-                  type="date"
-                  placeholder="请选择开始日期"
-                  value-format="YYYY-MM-DD"
-                  format="YYYY-MM-DD"
-                />
-              </div>
-              <div class="property-item">
-                <label>
-                  结束日期
-                  <span style="color: #f56c6c; margin-left: 4px;">*</span>
-                </label>
-                <el-date-picker
-                  v-model="editingPoint.endTime"
-                  type="date"
-                  placeholder="请选择结束日期"
-                  value-format="YYYY-MM-DD"
-                  format="YYYY-MM-DD"
-                />
-              </div>
-              <div class="property-item">
-                <label>备注</label>
+                <label>起重机其它描述</label>
                 <el-input
                   v-model="editingPoint.remarks"
                   type="textarea"
                   :rows="3"
-                  placeholder="请输入备注"
+                  placeholder="请输入起重机其它描述"
+                  maxlength="500"
+                  show-word-limit
+                />
+              </div>
+              
+              <div class="property-item">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <label>作业设备</label>
+                  <el-button type="primary" size="small" @click="addDeviceRow('edit')">添加设备</el-button>
+                </div>
+                <el-table :data="editingPoint.deviceInfo" border style="width: 100%">
+                  <el-table-column prop="deviceName" label="设备名" width="120">
+                    <template #default="{ row, $index }">
+                      <el-input v-model="row.deviceName" placeholder="设备名" size="small" />
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="deviceWeight" label="重量 (t)" width="100">
+                    <template #default="{ row, $index }">
+                      <el-input-number
+                        v-model="row.deviceWeight"
+                        :min="0"
+                        :step="0.1"
+                        size="small"
+                        style="width: 100%"
+                        placeholder="重量"
+                      />
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="60">
+                    <template #default="{ $index }">
+                      <el-button
+                        type="danger"
+                        size="small"
+                        icon="Delete"
+                        @click="removeDeviceRow('edit', $index)"
+                      />
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+              
+              <div class="property-item">
+                <label>其它关注事项</label>
+                <el-input
+                  v-model="editingPoint.other"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入其它关注事项"
                   maxlength="500"
                   show-word-limit
                 />
@@ -944,7 +1095,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { ArrowLeft, Search, Close, User, Lock, Loading } from "@element-plus/icons-vue";
+import { ArrowLeft, Search, Close, User, Lock, Loading, Delete } from "@element-plus/icons-vue";
 import startIconSrc from "@/images/point.png";
 import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
@@ -1244,6 +1395,12 @@ const createBasePoint = (overrides = {}) => ({
   amplitude: 10,
   angle: 60,
   isStart: false,
+  // 新增字段
+  mainArmLength: null, // 主臂长度
+  workRadius: null, // 作业半径
+  loadContent: null, // 额定载荷
+  deviceInfo: [], // 作业设备数组 [{deviceName: '', deviceWeight: null}]
+  other: "", // 其他关注事项
   ...overrides,
 });
 
@@ -4040,6 +4197,40 @@ const setCranePosition = () => {
     console.log("点位类型变为:", newPoint.value.type);
   };
 
+  // 添加设备行
+  const addDeviceRow = (type) => {
+    if (type === 'new') {
+      if (!newPoint.value.deviceInfo) {
+        newPoint.value.deviceInfo = [];
+      }
+      newPoint.value.deviceInfo.push({
+        deviceName: '',
+        deviceWeight: null
+      });
+    } else if (type === 'edit') {
+      if (!editingPoint.value.deviceInfo) {
+        editingPoint.value.deviceInfo = [];
+      }
+      editingPoint.value.deviceInfo.push({
+        deviceName: '',
+        deviceWeight: null
+      });
+    }
+  };
+
+  // 删除设备行
+  const removeDeviceRow = (type, index) => {
+    if (type === 'new') {
+      if (newPoint.value.deviceInfo && newPoint.value.deviceInfo.length > index) {
+        newPoint.value.deviceInfo.splice(index, 1);
+      }
+    } else if (type === 'edit') {
+      if (editingPoint.value.deviceInfo && editingPoint.value.deviceInfo.length > index) {
+        editingPoint.value.deviceInfo.splice(index, 1);
+      }
+    }
+  };
+
   // 确认添加点位
   const confirmAddPoint = () => {
     if (!selectedCrane.value) {
@@ -4165,6 +4356,11 @@ const setCranePosition = () => {
       startTime: point.startTime ? String(point.startTime) : null,
       endTime: point.endTime ? String(point.endTime) : null,
       remarks: point.remarks || "",
+      mainArmLength: point.mainArmLength || null,
+      workRadius: point.workRadius || null,
+      loadContent: point.loadContent || null,
+      deviceInfo: point.deviceInfo && Array.isArray(point.deviceInfo) ? [...point.deviceInfo] : [],
+      other: point.other || "",
     };
     // 打开编辑弹窗
     editPointDialogVisible.value = true;
@@ -4527,6 +4723,11 @@ const setCranePosition = () => {
                 pointWidth: item.pointWidth || null,
                 workRadius: item.workRadius || null,
                 turnAround: item.turnAround || null,
+                // 新增字段回显
+                mainArmLength: item.mainArmLength || null,
+                loadContent: item.loadContent || null,
+                deviceInfo: item.deviceInfo && Array.isArray(item.deviceInfo) ? item.deviceInfo : [],
+                other: item.other || "",
               };
               
               // 收集形状数据（如果存在），稍后添加到 shapeOverlays
@@ -5177,7 +5378,7 @@ const handleSave = async () => {
           pointLength: point.occupyLength || point.pointLength || null,
           pointWidth: point.occupyWidth || point.pointWidth || null,
           rotateAngle: point.rotateAngle || null,
-          workRadius: point.radius || point.workRadius || null,
+          workRadius: occupyType === 0 ? (point.workRadius || null) : (point.radius || point.workRadius || null),
           amplitude: point.amplitude || null,
           turnAround: point.turnAround || null,
           occupyType: occupyType,
@@ -5185,6 +5386,11 @@ const handleSave = async () => {
           fileId: point.fileId || null,
           itemIndex: pointIndex + 1,
           shapes: shapes.length > 0 ? JSON.stringify(shapes) : null, // 将形状数组转为字符串
+          // 新增字段（仅占位点位）
+          mainArmLength: occupyType === 0 ? (point.mainArmLength || null) : null,
+          loadContent: occupyType === 0 ? (point.loadContent || null) : null,
+          deviceInfo: occupyType === 0 ? (point.deviceInfo && point.deviceInfo.length > 0 ? point.deviceInfo : null) : null,
+          other: occupyType === 0 ? (point.other || null) : null,
         };
         
         // 调试：输出保存的形状数据
