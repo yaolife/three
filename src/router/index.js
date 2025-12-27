@@ -13,7 +13,7 @@ const Welcome = () => import("../views/Welcome.vue")
 const routes = [
   {
     path: "/",
-    redirect: "/verification-projects",
+    redirect: "/Welcome",
   },
   {
     path: "/welcome",
