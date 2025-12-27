@@ -271,7 +271,7 @@
                 <el-input
                   v-model="newPoint.remarks"
                   type="textarea"
-                  :rows="3"
+                  :rows="2"
                   placeholder="请输入起重机其它描述"
                   maxlength="500"
                   show-word-limit
@@ -469,7 +469,7 @@
                 <el-input
                   v-model="editingPoint.remarks"
                   type="textarea"
-                  :rows="3"
+                  :rows="2"
                   placeholder="请输入起重机其它描述"
                   maxlength="500"
                   show-word-limit
