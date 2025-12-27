@@ -1440,8 +1440,8 @@
           <el-tab-pane label="平面图" name="plan">
             <iframe
               v-if="constructionSubTab === 'plan'"
+              ref="planIframe"
               key="plan-iframe"
-              :src="planeIframeSrc"
               class="method-draw-iframe"
               frameborder="0"
               title="平面图编辑器"
@@ -1453,8 +1453,8 @@
           <el-tab-pane label="立面图" name="elevation">
             <iframe
               v-if="constructionSubTab === 'elevation'"
+              ref="facadeIframe"
               key="elevation-iframe"
-              :src="facadeIframeSrc"
               class="method-draw-iframe"
               frameborder="0"
               title="立面图编辑器"
@@ -3418,7 +3418,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, reactive } from "vue";
+import { ref, computed, watch, reactive, nextTick, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowLeft,
@@ -3500,74 +3500,255 @@ const getIframePath = (folderName) => {
   // 检查是否在Electron环境中
   const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
   
-  // 判断是否为生产环境
-  const isProduction = import.meta.env.PROD;
-  
-  if (isElectron && isProduction) {
-    // Electron生产环境：使用window.location构建绝对路径
-    try {
-      const currentUrl = window.location.href;
-      const url = new URL(currentUrl);
-      
-      // 获取当前路径
-      let pathname = url.pathname;
-      
-      // 处理Windows路径（file:///C:/path/to/index.html）
-      // 或Unix路径（file:///path/to/index.html）
-      if (pathname.includes('index.html')) {
-        // 移除index.html，只保留目录路径
-        pathname = pathname.substring(0, pathname.lastIndexOf('/'));
-      }
-      
-      // 构建完整路径
-      // 在Electron中，file://协议的路径需要完整路径
-      const fullPath = `${pathname}/${folderName}/index.html`;
-      console.log(`[Electron] 构建iframe路径: ${fullPath}`);
-      console.log(`[Electron] 当前URL: ${currentUrl}, pathname: ${url.pathname}`);
-      return fullPath;
-    } catch (error) {
-      console.error('[Electron] 构建iframe路径失败，使用相对路径:', error);
-      // 降级方案：使用相对路径
-      return `./${folderName}/index.html`;
-    }
-  } else if (isProduction && !isElectron) {
-    // 非Electron生产环境（如web部署）：使用相对路径
+  if (isElectron) {
+    // Electron环境：直接使用相对路径（最简单可靠）
+    // 因为index.html和plane/facade都在同一个dist目录下
     return `./${folderName}/index.html`;
   } else {
-    // 开发环境：使用绝对路径
+    // 非Electron环境（开发环境）：使用绝对路径
     return `/${folderName}/index.html`;
   }
 };
 
-const planeIframeSrc = computed(() => {
-  return getIframePath('plane');
+// iframe引用
+const planIframe = ref(null);
+const facadeIframe = ref(null);
+
+// 规范化路径，确保Windows路径格式正确
+const normalizePath = (pathname) => {
+  // 移除index.html，只保留目录路径
+  if (pathname.includes('index.html')) {
+    pathname = pathname.substring(0, pathname.lastIndexOf('/'));
+  }
+  // 确保路径以/开头（Windows路径可能已经是C:/格式）
+  if (!pathname.startsWith('/') && !pathname.match(/^[A-Za-z]:/)) {
+    pathname = '/' + pathname;
+  }
+  return pathname;
+};
+
+// 设置iframe的src
+const setIframeSrc = async (iframeRef, folderName) => {
+  if (!iframeRef) {
+    console.warn(`[${folderName}] iframe引用不存在`);
+    return;
+  }
+  
+  const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+  
+  if (isElectron) {
+    // Electron环境：构建完整URL
+    try {
+      const currentUrl = window.location.href;
+      console.log(`[Electron-${folderName}] 开始构建iframe路径`);
+      console.log(`  - 当前页面URL: ${currentUrl}`);
+      
+      // 方法1：尝试使用IPC获取资源路径（如果可用）
+      if (window.electronAPI?.getResourcePath) {
+        try {
+          const resourcePath = await window.electronAPI.getResourcePath(`${folderName}/index.html`);
+          if (resourcePath) {
+            console.log(`[Electron-${folderName}] 使用IPC获取的路径: ${resourcePath}`);
+            iframeRef.src = resourcePath;
+            return;
+          }
+        } catch (ipcError) {
+          console.warn(`[Electron-${folderName}] IPC获取路径失败，使用降级方案:`, ipcError);
+        }
+      }
+      
+      // 方法2：基于当前URL构建路径
+      let basePath = currentUrl;
+      
+      // 处理file://协议路径
+      if (basePath.startsWith('file://')) {
+        // 移除file://前缀和index.html（如果存在）
+        let pathPart = basePath.replace(/^file:\/\/\//, '').replace(/^file:\/\//, '');
+        
+        // Windows路径处理：file:///C:/path/to/index.html -> C:/path/to
+        // macOS/Linux路径处理：file:///path/to/index.html -> /path/to
+        if (pathPart.includes('index.html')) {
+          pathPart = pathPart.substring(0, pathPart.lastIndexOf('/'));
+        }
+        
+        // 构建完整路径
+        const fullPath = `${pathPart}/${folderName}/index.html`;
+        // 转换为file://协议URL
+        // 检测Windows路径：以盘符开头（如 C:）
+        if (fullPath.match(/^[A-Za-z]:/)) {
+          // Windows路径：file:///C:/path/to/file
+          basePath = `file:///${fullPath.replace(/\\/g, '/')}`;
+        } else {
+          // macOS/Linux路径：file:///path/to/file
+          basePath = `file://${fullPath}`;
+        }
+      } else {
+        // HTTP/HTTPS协议：移除index.html，只保留目录路径
+        if (basePath.includes('index.html')) {
+          basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+        }
+        // 构建完整URL
+        basePath = `${basePath}/${folderName}/index.html`;
+      }
+      
+      console.log(`[Electron-${folderName}] 构建的完整路径: ${basePath}`);
+      iframeRef.src = basePath;
+      
+    } catch (error) {
+      console.error(`[Electron-${folderName}] 构建路径失败:`, error);
+      console.error(`  - 错误详情: ${error.message}`);
+      console.error(`  - 当前location: ${window.location.href}`);
+      
+      // 降级方案1：尝试使用相对路径
+      try {
+        const relativePath = `./${folderName}/index.html`;
+        console.log(`[Electron-${folderName}] 尝试使用相对路径: ${relativePath}`);
+        iframeRef.src = relativePath;
+      } catch (relativeError) {
+        console.error(`[Electron-${folderName}] 相对路径也失败:`, relativeError);
+        // 最终降级：使用绝对路径（从根目录）
+        iframeRef.src = `/${folderName}/index.html`;
+      }
+    }
+  } else {
+    // 非Electron环境（开发环境）：使用绝对路径
+    console.log(`[Dev-${folderName}] 使用开发环境路径: /${folderName}/index.html`);
+    iframeRef.src = `/${folderName}/index.html`;
+  }
+};
+
+// 监听tab切换，动态设置iframe src
+watch(constructionSubTab, async (newTab) => {
+  await nextTick();
+  if (newTab === 'plan' && planIframe.value) {
+    await setIframeSrc(planIframe.value, 'plane');
+  } else if (newTab === 'elevation' && facadeIframe.value) {
+    await setIframeSrc(facadeIframe.value, 'facade');
+  }
 });
 
-const facadeIframeSrc = computed(() => {
-  return getIframePath('facade');
+// 组件挂载后设置初始iframe src
+onMounted(async () => {
+  await nextTick();
+  if (constructionSubTab.value === 'plan' && planIframe.value) {
+    await setIframeSrc(planIframe.value, 'plane');
+  } else if (constructionSubTab.value === 'elevation' && facadeIframe.value) {
+    await setIframeSrc(facadeIframe.value, 'facade');
+  }
 });
 
 // 处理iframe加载完成
 const handleIframeLoad = (type) => {
-  console.log(`[${type}] iframe loaded successfully`);
+  console.log(`[${type}] ✅ iframe loaded successfully`);
   const iframe = document.querySelector(`iframe[title="${type === 'plan' ? '平面图编辑器' : '立面图编辑器'}"]`);
   if (iframe) {
     console.log(`[${type}] iframe src:`, iframe.src);
     console.log(`[${type}] iframe contentWindow:`, iframe.contentWindow);
+    
+    // 检查iframe内容是否加载成功，并设置base标签
+    try {
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (iframeDoc) {
+        console.log(`[${type}] iframe document readyState:`, iframeDoc.readyState);
+        console.log(`[${type}] iframe document title:`, iframeDoc.title);
+        
+        // 在Electron环境中，动态设置base标签确保相对路径正确解析
+        const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+        if (isElectron) {
+          // 等待一下确保DOM完全加载
+          setTimeout(() => {
+            try {
+              // 计算base路径：iframe的src去掉文件名，只保留目录
+              let baseHref = iframe.src;
+              if (baseHref.includes('index.html')) {
+                baseHref = baseHref.substring(0, baseHref.lastIndexOf('/') + 1);
+              } else if (!baseHref.endsWith('/')) {
+                baseHref = baseHref + '/';
+              }
+              
+              // 检查是否已有base标签
+              let baseTag = iframeDoc.querySelector('base');
+              
+              if (!baseTag) {
+                // 如果没有base标签，创建一个
+                baseTag = iframeDoc.createElement('base');
+                baseTag.setAttribute('href', baseHref);
+                // 插入到head的最前面
+                if (iframeDoc.head) {
+                  iframeDoc.head.insertBefore(baseTag, iframeDoc.head.firstChild);
+                  console.log(`[${type}] ✅ 已添加base标签: ${baseHref}`);
+                } else {
+                  // 如果head不存在，等待一下再试
+                  setTimeout(() => {
+                    if (iframeDoc.head) {
+                      iframeDoc.head.insertBefore(baseTag, iframeDoc.head.firstChild);
+                      console.log(`[${type}] ✅ 延迟添加base标签: ${baseHref}`);
+                    }
+                  }, 100);
+                }
+              } else {
+                // 如果已有base标签，更新它
+                baseTag.setAttribute('href', baseHref);
+                console.log(`[${type}] ✅ 已更新base标签: ${baseHref}`);
+              }
+            } catch (baseError) {
+              console.error(`[${type}] 设置base标签失败:`, baseError);
+            }
+          }, 50);
+        }
+      }
+    } catch (e) {
+      console.warn(`[${type}] 无法访问iframe内容（可能是跨域限制）:`, e.message);
+      // 即使无法访问，也尝试通过其他方式设置
+      console.log(`[${type}] iframe src: ${iframe.src}`);
+    }
   }
 };
 
 // 处理iframe加载错误
 const handleIframeError = (type) => {
-  console.error(`[${type}] iframe failed to load`);
+  console.error(`[${type}] ❌ iframe failed to load`);
   const iframe = document.querySelector(`iframe[title="${type === 'plan' ? '平面图编辑器' : '立面图编辑器'}"]`);
   if (iframe) {
-    console.error(`[${type}] iframe src:`, iframe.src);
-    console.error(`[${type}] iframe error details:`, {
-      src: iframe.src,
-      location: window.location.href,
-      isElectron: typeof window !== 'undefined' && window.electronAPI?.isElectron
-    });
+    const folderName = type === 'plan' ? 'plane' : 'facade';
+    
+    console.error(`[${type}] 错误详情:`);
+    console.error(`  - iframe src: ${iframe.src}`);
+    console.error(`  - 当前页面URL: ${window.location.href}`);
+    console.error(`  - 当前页面Origin: ${window.location.origin}`);
+    console.error(`  - 当前页面Pathname: ${window.location.pathname}`);
+    console.error(`  - 是否Electron环境: ${typeof window !== 'undefined' && window.electronAPI?.isElectron}`);
+    
+    // 尝试使用绝对路径重新加载
+    if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+      try {
+        const currentUrl = window.location.href;
+        
+        // 直接使用window.location构建路径
+        let basePath = currentUrl;
+        if (basePath.includes('index.html')) {
+          basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+        }
+        
+        // 构建新的URL
+        const newUrl = `${basePath}/${folderName}/index.html`;
+        console.log(`[${type}] 🔄 尝试重新加载，新URL: ${newUrl}`);
+        
+        // 延迟一下再设置，避免立即重试
+        setTimeout(() => {
+          iframe.src = newUrl;
+        }, 100);
+      } catch (error) {
+        console.error(`[${type}] 重新加载失败:`, error);
+        console.error(`  - 错误堆栈:`, error.stack);
+        
+        // 最终降级：使用相对路径
+        console.log(`[${type}] 🔄 尝试使用相对路径: ./${folderName}/index.html`);
+        setTimeout(() => {
+          iframe.src = `./${folderName}/index.html`;
+        }, 200);
+      }
+    }
   }
 };
 

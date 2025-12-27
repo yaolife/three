@@ -42,6 +42,31 @@ ipcMain.handle('open-external-app', async (event, appPath) => {
   }
 });
 
+// 处理获取资源路径的 IPC 消息
+ipcMain.handle('get-resource-path', async (event, relativePath) => {
+  try {
+    if (isDev) {
+      // 开发环境：返回开发服务器路径
+      return `http://localhost:5173/${relativePath}`;
+    } else {
+      // 生产环境：返回文件系统路径
+      const distPath = path.join(__dirname, '../dist', relativePath);
+      // 转换为file://协议路径
+      // Windows: file:///C:/path/to/file
+      // macOS/Linux: file:///path/to/file
+      const normalizedPath = path.normalize(distPath).replace(/\\/g, '/');
+      if (process.platform === 'win32') {
+        return `file:///${normalizedPath}`;
+      } else {
+        return `file://${normalizedPath}`;
+      }
+    }
+  } catch (error) {
+    console.error('获取资源路径失败:', error);
+    return null;
+  }
+});
+
 function createWindow() {
   // 创建浏览器窗口
   mainWindow = new BrowserWindow({

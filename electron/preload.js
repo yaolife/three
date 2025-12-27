@@ -13,8 +13,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
       return { success: false, error: error.message };
     }
   },
-  // 可以在这里添加需要暴露给渲染进程的 API
-  // 例如：
-  // getVersion: () => process.versions.electron,
-  // platform: process.platform,
+  // 获取当前页面的资源路径（用于iframe中的base标签设置）
+  getResourcePath: async (relativePath) => {
+    try {
+      return await ipcRenderer.invoke('get-resource-path', relativePath);
+    } catch (error) {
+      console.error('获取资源路径失败:', error);
+      return null;
+    }
+  },
 });
