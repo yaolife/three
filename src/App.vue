@@ -3,7 +3,10 @@
     <!-- 主内容区（移除侧边栏，宽屏显示） -->
     <el-container>
       <!-- 顶部导航栏：未登录时不显示 -->
-      <el-header v-if="isLoggedIn && !shouldHideHeader" class="header-container">
+      <el-header 
+        v-if="isLoggedIn && !shouldHideHeader" 
+        :class="['header-container', route.path === '/welcome' ? 'header-transparent' : '']"
+      >
         <div class="header-left">
           <el-button
             v-if="isMenuPage"
@@ -87,10 +90,10 @@
         </div>
       </el-header>
       
-      <!-- 路由视图：未登录时不渲染主内容，只显示登录弹窗 -->
+      <!-- 路由视图：未登录时也显示welcome页面以显示背景图 -->
       <el-main
-        v-if="isLoggedIn"
-        :class="['main-container', shouldHideSidebar ? 'full-width' : '']"
+        v-if="isLoggedIn || route.path === '/welcome'"
+        :class="['main-container', shouldHideSidebar ? 'full-width' : '', route.path === '/welcome' ? 'welcome-page-container' : '']"
       >
         <router-view />
       </el-main>
@@ -110,7 +113,6 @@
         <template #header>
           <div class="menu-dialog-header">
             <span>功能菜单</span>
-            <el-icon class="menu-close" @click="closeMenuDialog"><Close /></el-icon>
           </div>
         </template>
         <div class="menu-dialog-content">
@@ -371,11 +373,11 @@
         class="login-dialog"
         align-center
         append-to-body
-        :show-close="true"
+        :show-close="false"
       >
-        <template #header>
+        <!-- <template #header>
           <span class="login-dialog-header-title" >光热三维施工仿真软件</span>
-        </template>
+        </template> -->
         <div class="login-dialog-content">
           <img src="@/images/zgh.png" alt="zgh" class="login-logo-img" />
           <div class="login-title-section">
@@ -621,33 +623,33 @@ const handleLogout = async () => {
     // 清除本地状态
     userStore.logout();
     ElMessage.success("已退出登录");
-    // 跳转到默认页面并清空数据
-    router.push('/verification-projects').then(() => {
-      // 使用 nextTick 确保组件已挂载
-      nextTick(() => {
-        if (window.clearProjectListDirect) {
-          window.clearProjectListDirect();
-        }
-      });
-    });
-    showLoginDialog.value = true;
+    // 先关闭菜单弹窗
     showMenuDialog.value = false;
+    // 跳转到welcome页面以显示背景图
+    await router.push('/welcome');
+    // 使用 nextTick 确保组件已挂载
+    await nextTick();
+    if (window.clearProjectListDirect) {
+      window.clearProjectListDirect();
+    }
+    // 显示登录弹窗
+    showLoginDialog.value = true;
   } catch (error) {
     console.error("退出登录失败:", error);
     // 即使接口调用失败，也清除本地状态
     userStore.logout();
     ElMessage.warning("退出登录失败，已清除本地登录状态");
-    // 跳转到默认页面并清空数据
-    router.push('/verification-projects').then(() => {
-      // 使用 nextTick 确保组件已挂载
-      nextTick(() => {
-        if (window.clearProjectListDirect) {
-          window.clearProjectListDirect();
-        }
-      });
-    });
-    showLoginDialog.value = true;
+    // 先关闭菜单弹窗
     showMenuDialog.value = false;
+    // 跳转到welcome页面以显示背景图
+    await router.push('/welcome');
+    // 使用 nextTick 确保组件已挂载
+    await nextTick();
+    if (window.clearProjectListDirect) {
+      window.clearProjectListDirect();
+    }
+    // 显示登录弹窗
+    showLoginDialog.value = true;
   }
 };
 
@@ -1299,8 +1301,16 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
+  background-color: #fff;
+}
+
+/* welcome页面时，导航栏透明 */
+.header-container.header-transparent {
+  background-color: transparent;
+  box-shadow: none;
 }
 
 .header-left {
@@ -1377,6 +1387,13 @@ onMounted(() => {
 .main-container.full-width {
   padding: 0;
   background-color: #ffffff;
+}
+
+.main-container.welcome-page-container {
+  padding: 0;
+  background-color: transparent;
+  overflow: hidden;
+  position: relative;
 }
 
 .menu-dialog-content {
@@ -1487,10 +1504,7 @@ box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
     justify-content: center;
     align-items: center;
   padding: 40px 0 0 0;
-  background-image: url('@/images/login_bg.png'), linear-gradient(180deg, #000 0%, #1F415C 69.71%, #000F1B 100%);
-  background-size: cover, 100% 100%;
-  background-position: center, center;
-  background-repeat: no-repeat, no-repeat;
+  background: #ffffff;
   position: relative;
   overflow: hidden;
 }
@@ -1537,23 +1551,23 @@ box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
 }
 
 .login-main-title {
-  color: #fff;
+  color:#245E85;
   font-size: 24px;
   font-weight: 600;
   margin: 0 0 10px 0;
 }
 
 .login-sub-title {
-  color: #fff;
+  color: #245E85;
   font-size: 16px;
   margin: 0;
 }
 
 .login-prompt-text {
-  color: rgba(255, 255, 255, 0.70);
-font-weight: 400;
+  color: #666666;
+  font-weight: 400;
   font-size: 14px;
- width: 50%;
+  width: 50%;
   position: relative;
   z-index: 1; 
 }
@@ -1585,6 +1599,8 @@ font-weight: 400;
   border-radius: 6px;
   background-color: #fff;
   box-shadow: none;
+  border-radius: 1px;
+border: 1px solid #A2A2A2;
 }
 
 .login-input :deep(.el-input__wrapper:hover) {

@@ -1410,11 +1410,6 @@
             alt="地基示意图"
             class="crane-diagram"
           />
-          <img
-            src="/src/images/fou_item.png"
-            alt="地基示意图"
-            class="crane-diagram"
-          />
         </div>
       </div>
 
