@@ -264,7 +264,7 @@
               </div>
               
               <div class="property-item">
-                <label>起重机其它描述</label>
+                <label style="color: #000;font-weight: 500;">起重机其它描述</label>
                 <el-input
                   v-model="newPoint.remarks"
                   type="textarea"
@@ -275,44 +275,49 @@
                 />
               </div>
               
-              <div class="property-item">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <label>作业设备</label>
+              <div class="property-item" style="flex-direction: column; align-items: flex-start;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px;">
+                  <label style="width: auto; margin-bottom: 0;color: #000;font-weight: 500;margin-top: 10px;">作业设备</label>
                   <el-button type="primary" size="small" @click="addDeviceRow('new')">添加设备</el-button>
                 </div>
-                <el-table :data="newPoint.deviceInfo" border style="width: 100%">
-                  <el-table-column prop="deviceName" label="设备名" width="120">
-                    <template #default="{ row, $index }">
-                      <el-input v-model="row.deviceName" placeholder="设备名" size="small" />
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="deviceWeight" label="重量 (t)" width="100">
-                    <template #default="{ row, $index }">
-                      <el-input-number
-                        v-model="row.deviceWeight"
-                        :min="0"
-                        :step="0.1"
-                        size="small"
-                        style="width: 100%"
-                        placeholder="重量"
-                      />
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="操作" width="60">
-                    <template #default="{ $index }">
-                      <el-button
-                        type="danger"
-                        size="small"
-                        icon="Delete"
-                        @click="removeDeviceRow('new', $index)"
-                      />
-                    </template>
-                  </el-table-column>
-                </el-table>
+                <div class="device-list" style="width: 100%;">
+                  <div
+                    v-for="(device, index) in newPoint.deviceInfo"
+                    :key="index"
+                    class="device-item"
+                    style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fafafa;"
+                  >
+                    <el-input
+                      v-model="device.deviceName"
+                      placeholder="设备名"
+                      size="small"
+                      style="flex: 1; min-width: 0;"
+                    />
+                    <el-input-number
+                      v-model="device.deviceWeight"
+                      :min="0"
+                      :step="0.1"
+                      size="small"
+                      placeholder="重量"
+                      style="width: 100px;"
+                    />
+                    <span style="font-size: 12px; color: #909399; white-space: nowrap;">t</span>
+                    <el-button
+                      type="danger"
+                      size="small"
+                      icon="Delete"
+                      @click="removeDeviceRow('new', index)"
+                      style="flex-shrink: 0;"
+                    />
+                  </div>
+                  <div v-if="!newPoint.deviceInfo || newPoint.deviceInfo.length === 0" style="text-align: center; padding: 20px; color: #909399; font-size: 12px;">
+                    暂无设备，点击"添加设备"添加
+                  </div>
+                </div>
               </div>
               
               <div class="property-item">
-                <label>其它关注事项</label>
+                <label style="color: #000;font-weight: 500;">其它关注事项</label>
                 <el-input
                   v-model="newPoint.other"
                   type="textarea"
@@ -443,7 +448,7 @@
               </div>
               
               <div class="property-item">
-                <label>起重机其它描述</label>
+                <label style="color: #000;font-weight: 500;">起重机其它描述</label>
                 <el-input
                   v-model="editingPoint.remarks"
                   type="textarea"
@@ -454,44 +459,49 @@
                 />
               </div>
               
-              <div class="property-item">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <label>作业设备</label>
+              <div class="property-item" style="flex-direction: column; align-items: flex-start;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px;">
+                  <label style="width: auto; margin-bottom: 0;color: #000;font-weight: 500;margin-top: 10px;">作业设备</label>
                   <el-button type="primary" size="small" @click="addDeviceRow('edit')">添加设备</el-button>
                 </div>
-                <el-table :data="editingPoint.deviceInfo" border style="width: 100%">
-                  <el-table-column prop="deviceName" label="设备名" width="120">
-                    <template #default="{ row, $index }">
-                      <el-input v-model="row.deviceName" placeholder="设备名" size="small" />
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="deviceWeight" label="重量 (t)" width="100">
-                    <template #default="{ row, $index }">
-                      <el-input-number
-                        v-model="row.deviceWeight"
-                        :min="0"
-                        :step="0.1"
-                        size="small"
-                        style="width: 100%"
-                        placeholder="重量"
-                      />
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="操作" width="60">
-                    <template #default="{ $index }">
-                      <el-button
-                        type="danger"
-                        size="small"
-                        icon="Delete"
-                        @click="removeDeviceRow('edit', $index)"
-                      />
-                    </template>
-                  </el-table-column>
-                </el-table>
+                <div class="device-list" style="width: 100%;">
+                  <div
+                    v-for="(device, index) in editingPoint.deviceInfo"
+                    :key="index"
+                    class="device-item"
+                    style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 8px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fafafa;"
+                  >
+                    <el-input
+                      v-model="device.deviceName"
+                      placeholder="设备名"
+                      size="small"
+                      style="flex: 1; min-width: 0;"
+                    />
+                    <el-input-number
+                      v-model="device.deviceWeight"
+                      :min="0"
+                      :step="0.1"
+                      size="small"
+                      placeholder="重量"
+                      style="width: 100px;"
+                    />
+                    <span style="font-size: 12px; color: #909399; white-space: nowrap;">t</span>
+                    <el-button
+                      type="danger"
+                      size="small"
+                      icon="Delete"
+                      @click="removeDeviceRow('edit', index)"
+                      style="flex-shrink: 0;"
+                    />
+                  </div>
+                  <div v-if="!editingPoint.deviceInfo || editingPoint.deviceInfo.length === 0" style="text-align: center; padding: 20px; color: #909399; font-size: 12px;">
+                    暂无设备，点击"添加设备"添加
+                  </div>
+                </div>
               </div>
               
               <div class="property-item">
-                <label>其它关注事项</label>
+                <label style="color: #000;font-weight: 500;" >其它关注事项</label>
                 <el-input
                   v-model="editingPoint.other"
                   type="textarea"
