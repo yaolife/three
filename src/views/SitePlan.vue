@@ -4164,16 +4164,16 @@ const setCranePosition = () => {
   addPointDialogVisible.value = true;
 };
 
-// 计算弹窗顶部位置，使其比属性面板顶部少30px
+// 计算弹窗顶部位置，使其比属性面板顶部少10px
   const calculateDialogTop = () => {
     // 获取属性面板的位置信息
     const propertyPanel = document.querySelector('.property-panel');
     if (propertyPanel) {
       console.log('属性面板位置：', propertyPanel.getBoundingClientRect());
       const rect = propertyPanel.getBoundingClientRect();
-      return `${rect.top + 20}px`; // 顶部比属性面板顶部少30px
+      return `${rect.top + 10}px`; // 顶部比属性面板顶部少10px
     }
-    return '5%'; // 默认值
+    return '3%'; // 默认值
   };
 
   // 添加防范站位
