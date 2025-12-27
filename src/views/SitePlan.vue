@@ -263,8 +263,8 @@
                 <!-- <span class="unit">t/m²</span> -->
               </div>
               
-              <div class="property-item">
-                <label style="color: #000;font-weight: 500;">起重机其它描述</label>
+              <div class="property-item" style="flex-direction: column; align-items: flex-start;">
+                <label style="color: #000;font-weight: 500; margin-bottom: 8px; width: 100%;">起重机其它描述</label>
                 <el-input
                   v-model="newPoint.remarks"
                   type="textarea"
@@ -272,6 +272,7 @@
                   placeholder="请输入起重机其它描述"
                   maxlength="500"
                   show-word-limit
+                  style="width: 100%;"
                 />
               </div>
               
@@ -316,8 +317,8 @@
                 </div>
               </div>
               
-              <div class="property-item">
-                <label style="color: #000;font-weight: 500;">其它关注事项</label>
+              <div class="property-item" style="flex-direction: column; align-items: flex-start;">
+                <label style="color: #000;font-weight: 500; margin-bottom: 8px; width: 100%;">其它关注事项</label>
                 <el-input
                   v-model="newPoint.other"
                   type="textarea"
@@ -325,6 +326,7 @@
                   placeholder="请输入其它关注事项"
                   maxlength="500"
                   show-word-limit
+                  style="width: 100%;"
                 />
               </div>
             </template>
@@ -447,8 +449,8 @@
                 <!-- <span class="unit">t/m²</span> -->
               </div>
               
-              <div class="property-item">
-                <label style="color: #000;font-weight: 500;">起重机其它描述</label>
+              <div class="property-item" style="flex-direction: column; align-items: flex-start;">
+                <label style="color: #000;font-weight: 500; margin-bottom: 8px; width: 100%;">起重机其它描述</label>
                 <el-input
                   v-model="editingPoint.remarks"
                   type="textarea"
@@ -456,6 +458,7 @@
                   placeholder="请输入起重机其它描述"
                   maxlength="500"
                   show-word-limit
+                  style="width: 100%;"
                 />
               </div>
               
@@ -500,8 +503,8 @@
                 </div>
               </div>
               
-              <div class="property-item">
-                <label style="color: #000;font-weight: 500;" >其它关注事项</label>
+              <div class="property-item" style="flex-direction: column; align-items: flex-start;">
+                <label style="color: #000;font-weight: 500; margin-bottom: 8px; width: 100%;">其它关注事项</label>
                 <el-input
                   v-model="editingPoint.other"
                   type="textarea"
@@ -509,6 +512,7 @@
                   placeholder="请输入其它关注事项"
                   maxlength="500"
                   show-word-limit
+                  style="width: 100%;"
                 />
               </div>
             </template>
