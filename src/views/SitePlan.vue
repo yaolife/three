@@ -222,7 +222,7 @@
               
               <div class="point_title">工况</div>
               <div class="property-item">
-                <label>主臂长度</label>
+                <label>主臂长度(m)</label>
                 <el-input-number
                   controls-position="right"
                   v-model="newPoint.mainArmLength"
@@ -232,7 +232,7 @@
                 />
               </div>
               <div class="property-item">
-                <label>作业半径</label>
+                <label>作业半径(m)</label>
                 <el-input-number
                   controls-position="right"
                   v-model="newPoint.workRadius"
@@ -242,7 +242,7 @@
                 />
               </div>
               <div class="property-item">
-                <label>额定载荷</label>
+                <label>额定载荷(t)</label>
                 <el-input-number
                   controls-position="right"
                   v-model="newPoint.loadContent"
@@ -252,7 +252,7 @@
                 />
               </div>
               <div class="property-item">
-                <label>地基承载力</label>
+                <label>地基承载力(t/m²)</label>
                 <el-input-number
                   controls-position="right"
                   v-model="newPoint.groundLoad"
@@ -260,7 +260,7 @@
                   :step="1"
                   placeholder="10"
                 />
-                <span class="unit">t/m²</span>
+                <!-- <span class="unit">t/m²</span> -->
               </div>
               
               <div class="property-item">
@@ -401,7 +401,7 @@
               
               <div class="point_title">工况</div>
               <div class="property-item">
-                <label>主臂长度</label>
+                <label>主臂长度(m)</label>
                 <el-input-number
                   controls-position="right"
                   v-model="editingPoint.mainArmLength"
@@ -411,7 +411,7 @@
                 />
               </div>
               <div class="property-item">
-                <label>作业半径</label>
+                <label>作业半径(m)</label>
                 <el-input-number
                   controls-position="right"
                   v-model="editingPoint.workRadius"
@@ -421,7 +421,7 @@
                 />
               </div>
               <div class="property-item">
-                <label>额定载荷</label>
+                <label>额定载荷(t)</label>
                 <el-input-number
                   controls-position="right"
                   v-model="editingPoint.loadContent"
@@ -431,7 +431,7 @@
                 />
               </div>
               <div class="property-item">
-                <label>地基承载力</label>
+                <label>地基承载力(t/m²)</label>
                 <el-input-number
                   controls-position="right"
                   v-model="editingPoint.groundLoad"
@@ -439,7 +439,7 @@
                   :step="1"
                   placeholder="10"
                 />
-                <span class="unit">t/m²</span>
+                <!-- <span class="unit">t/m²</span> -->
               </div>
               
               <div class="property-item">
