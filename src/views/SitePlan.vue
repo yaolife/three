@@ -227,7 +227,8 @@
                   controls-position="right"
                   v-model="newPoint.mainArmLength"
                   :min="0"
-                  :step="1"
+                  :step="0.01"
+                  :precision="2"
                   placeholder="主臂长度"
                 />
               </div>
@@ -237,7 +238,8 @@
                   controls-position="right"
                   v-model="newPoint.workRadius"
                   :min="0"
-                  :step="1"
+                  :step="0.01"
+                  :precision="2"
                   placeholder="作业半径"
                 />
               </div>
@@ -247,7 +249,8 @@
                   controls-position="right"
                   v-model="newPoint.loadContent"
                   :min="0"
-                  :step="1"
+                  :step="0.01"
+                  :precision="2"
                   placeholder="额定载荷"
                 />
               </div>
@@ -297,7 +300,8 @@
                     <el-input-number
                       v-model="device.deviceWeight"
                       :min="0"
-                      :step="0.1"
+                      :step="0.01"
+                      :precision="2"
                       size="small"
                       placeholder="重量"
                       style="width: 100px;"
@@ -413,7 +417,8 @@
                   controls-position="right"
                   v-model="editingPoint.mainArmLength"
                   :min="0"
-                  :step="1"
+                  :step="0.01"
+                  :precision="2"
                   placeholder="主臂长度"
                 />
               </div>
@@ -423,7 +428,8 @@
                   controls-position="right"
                   v-model="editingPoint.workRadius"
                   :min="0"
-                  :step="1"
+                  :step="0.01"
+                  :precision="2"
                   placeholder="作业半径"
                 />
               </div>
@@ -433,7 +439,8 @@
                   controls-position="right"
                   v-model="editingPoint.loadContent"
                   :min="0"
-                  :step="1"
+                  :step="0.01"
+                  :precision="2"
                   placeholder="额定载荷"
                 />
               </div>
@@ -483,7 +490,8 @@
                     <el-input-number
                       v-model="device.deviceWeight"
                       :min="0"
-                      :step="0.1"
+                      :step="0.01"
+                      :precision="2"
                       size="small"
                       placeholder="重量"
                       style="width: 100px;"
