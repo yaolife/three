@@ -13,7 +13,7 @@ const Welcome = () => import("../views/Welcome.vue")
 const routes = [
   {
     path: "/",
-    redirect: "/Welcome",
+    redirect: "/welcome",
   },
   {
     path: "/welcome",
@@ -26,7 +26,7 @@ const routes = [
   // 兼容旧链接，统一跳转到校核计算项目
   {
     path: "/all-projects",
-    redirect: "/verification-projects",
+    redirect: "/welcome",
   },
   {
     path: "/verification-projects",
