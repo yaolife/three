@@ -284,7 +284,15 @@
                   <label style="width: auto; margin-bottom: 0;color: #000;font-weight: 500;margin-top: 10px;">作业设备</label>
                   <el-button type="primary" size="small" @click="addDeviceRow('new')">添加设备</el-button>
                 </div>
-                <div class="device-list" style="width: 100%;">
+                <div 
+                  class="device-list" 
+                  :style="{
+                    width: '100%',
+                    maxHeight: (newPoint.deviceInfo && newPoint.deviceInfo.length > 1) ? '70px' : 'none',
+                    overflowY: (newPoint.deviceInfo && newPoint.deviceInfo.length > 1) ? 'auto' : 'visible',
+                    paddingRight: (newPoint.deviceInfo && newPoint.deviceInfo.length > 1) ? '4px' : '0'
+                  }"
+                >
                   <div
                     v-for="(device, index) in newPoint.deviceInfo"
                     :key="index"
@@ -326,7 +334,7 @@
                 <el-input
                   v-model="newPoint.other"
                   type="textarea"
-                  :rows="3"
+                  :rows="2"
                   placeholder="请输入其它关注事项"
                   maxlength="500"
                   show-word-limit
@@ -474,7 +482,15 @@
                   <label style="width: auto; margin-bottom: 0;color: #000;font-weight: 500;margin-top: 10px;">作业设备</label>
                   <el-button type="primary" size="small" @click="addDeviceRow('edit')">添加设备</el-button>
                 </div>
-                <div class="device-list" style="width: 100%;">
+                <div 
+                  class="device-list" 
+                  :style="{
+                    width: '100%',
+                    maxHeight: (editingPoint.deviceInfo && editingPoint.deviceInfo.length > 1) ? '70px' : 'none',
+                    overflowY: (editingPoint.deviceInfo && editingPoint.deviceInfo.length > 1) ? 'auto' : 'visible',
+                    paddingRight: (editingPoint.deviceInfo && editingPoint.deviceInfo.length > 1) ? '4px' : '0'
+                  }"
+                >
                   <div
                     v-for="(device, index) in editingPoint.deviceInfo"
                     :key="index"
@@ -516,7 +532,7 @@
                 <el-input
                   v-model="editingPoint.other"
                   type="textarea"
-                  :rows="3"
+                  :rows="2"
                   placeholder="请输入其它关注事项"
                   maxlength="500"
                   show-word-limit
@@ -7110,6 +7126,30 @@ background: #FF8A37;
 /* 点位表单样式 */
 .point-form {
   overflow-y: auto;
+}
+
+/* 作业设备列表样式 */
+.device-list {
+  transition: max-height 0.2s ease;
+}
+
+/* 美化设备列表滚动条 */
+.device-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.device-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.device-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.device-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .radio-group {
