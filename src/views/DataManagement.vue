@@ -1598,9 +1598,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.data-management-container {
-  padding: 20px 0;
-}
 
 .page-card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -1614,9 +1611,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.page-content {
-  padding: 20px 0;
-}
 
 .data-tabs {
   width: 100%;

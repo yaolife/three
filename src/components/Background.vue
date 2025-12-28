@@ -1,5 +1,6 @@
 <template>
   <div 
+    v-if="isWelcomeRoute"
     class="app-background"
     :style="bgImageStyle"
   ></div>
@@ -7,7 +8,16 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { useRoute } from 'vue-router';
 import userStore from '../store/user.js';
+
+// 获取当前路由
+const route = useRoute();
+
+// 检查是否是welcome路由
+const isWelcomeRoute = computed(() => {
+  return route.path === '/welcome';
+});
 
 // 初始化时根据环境设置默认值，确保背景图能立即显示
 const isElectronEnv = typeof window !== 'undefined' && window.electronAPI?.isElectron;
@@ -15,15 +25,27 @@ const bgImageUrl = ref(isElectronEnv ? './bg.png' : '/bg.png');
 
 // 计算背景图样式
 const bgImageStyle = computed(() => {
+  // 如果不是welcome路由，返回空样式，确保背景图不显示
+  if (!isWelcomeRoute.value) {
+    console.log('[Background] bgImageStyle: 非welcome路由，返回空样式');
+    return {};
+  }
+  
   const url = bgImageUrl.value;
-  if (url) {
-    return { 
+  console.log('[Background] bgImageStyle: welcome路由，bgImageUrl:', url);
+  
+  if (url && url.trim() !== '') {
+    const style = { 
       backgroundImage: `url(${url})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat'
     };
+    console.log('[Background] bgImageStyle: 返回样式:', style);
+    return style;
   }
+  
+  console.log('[Background] bgImageStyle: bgImageUrl为空，返回空样式');
   return {};
 });
 
@@ -68,10 +90,17 @@ const testImageLoad = (url) => {
 
 // 构建背景图路径的函数（使用多种方法确保成功）
 const buildBgImagePath = async () => {
+  // 如果当前不是welcome路由，不构建路径
+  if (route.path !== '/welcome') {
+    console.log('[Background] 当前不是welcome路由，跳过构建路径');
+    return;
+  }
+  
   const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
   
   console.log('[Background] ========== 开始构建背景图路径 ==========');
   console.log('[Background] 是否Electron环境:', isElectron);
+  console.log('[Background] 当前路由:', route.path);
   
   if (isElectron) {
     // Electron环境：使用public目录下的bg.png
@@ -162,29 +191,90 @@ const buildBgImagePath = async () => {
     bgImageUrl.value = '/bg.png';
     console.log('[Background] 非Electron环境背景图路径:', bgImageUrl.value);
   }
+  
+  // 最后验证：如果当前是welcome路由但bgImageUrl仍为空，使用默认值
+  if (route.path === '/welcome' && (!bgImageUrl.value || bgImageUrl.value.trim() === '')) {
+    console.warn('[Background] ⚠️ 路径构建后bgImageUrl仍为空，使用默认值');
+    const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+    bgImageUrl.value = isElectron ? './bg.png' : '/bg.png';
+  }
+  
+  console.log('[Background] ========== 背景图路径构建完成 ==========');
+  console.log('[Background] 最终bgImageUrl:', bgImageUrl.value);
 };
 
 // 组件挂载时立即构建路径
 onMounted(async () => {
   console.log('[Background] 组件已挂载');
+  console.log('[Background] 当前路由:', route.path);
   console.log('[Background] 初始背景图URL:', bgImageUrl.value);
-  // 立即优化路径（初始值已在ref中设置）
-  await buildBgImagePath();
+  
+  // 只有在welcome路由时才构建路径
+  if (route.path === '/welcome') {
+    // 确保初始值正确（web端使用/bg.png，Electron端会在buildBgImagePath中处理）
+    const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+    if (!isElectron) {
+      // web端直接使用/bg.png，不需要复杂的路径构建
+      bgImageUrl.value = '/bg.png';
+      console.log('[Background] Web端，直接使用/bg.png');
+    } else {
+      // Electron端需要构建路径
+      await buildBgImagePath();
+    }
+    console.log('[Background] ✅ welcome路由，已设置背景图路径:', bgImageUrl.value);
+  } else {
+    // 非welcome路由时，清空背景图URL
+    bgImageUrl.value = '';
+    console.log('[Background] 非welcome路由，已清空背景图URL');
+  }
+});
+
+// 监听路由变化，确保非welcome路由时清空背景图
+watch(() => route.path, async (newPath, oldPath) => {
+  console.log('[Background] 路由变化:', oldPath, '->', newPath);
+  if (newPath !== '/welcome') {
+    // 非welcome路由时，清空背景图URL，确保不显示
+    bgImageUrl.value = '';
+    console.log('[Background] 已清空背景图URL（非welcome路由）');
+  } else {
+    // welcome路由时，重新构建路径
+    console.log('[Background] 切换到welcome路由，开始设置背景图路径');
+    const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+    if (!isElectron) {
+      // web端直接使用/bg.png
+      bgImageUrl.value = '/bg.png';
+      console.log('[Background] Web端，直接使用/bg.png');
+    } else {
+      // Electron端需要构建路径
+      await buildBgImagePath();
+    }
+    console.log('[Background] ✅ welcome路由，已设置背景图路径:', bgImageUrl.value);
+  }
 });
 </script>
 
 <style scoped>
 .app-background {
   position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
+  top: -20px !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 100vh !important;
+  width: 100vw !important;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 0;
+  /* 背景图覆盖整个页面，包括导航栏区域 */
+  z-index: 0; /* 背景图在最底层，覆盖整个页面 */
   pointer-events: none; /* 让背景图不阻挡交互 */
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  transform: translateZ(0); /* 强制硬件加速，避免渲染问题 */
+  display: block; /* 默认显示，但通过v-if和路由检查控制 */
 }
 </style>
 

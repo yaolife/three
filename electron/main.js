@@ -194,7 +194,7 @@ function createWindow() {
     icon: path.join(__dirname, '../public/favicon.ico'), // 如果有图标的话
     show: false, // 先不显示，等加载完成后再显示
     titleBarStyle: 'default',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#000000' // 改为黑色，避免与背景图产生白色间隙
   });
 
   // 加载应用

@@ -1,5 +1,8 @@
 <template>
-  <el-container class="app-container">
+  <el-container 
+    class="app-container"
+    :class="{ 'route-welcome': route.path === '/welcome' }"
+  >
     <!-- 主内容区（移除侧边栏，宽屏显示） -->
     <el-container>
       <!-- 顶部导航栏：未登录时不显示 -->
@@ -90,8 +93,8 @@
         </div>
       </el-header>
       
-      <!-- 背景图组件：只在welcome路由页面显示 -->
-      <Background v-if="isLoggedIn && route.path === '/welcome'" />
+      <!-- 背景图组件：只在welcome路由页面显示（登录和未登录都显示） -->
+      <Background v-if="route.path === '/welcome'" :key="route.path" />
       
       <!-- 路由视图 -->
       <el-main
@@ -105,7 +108,7 @@
     <!-- 功能菜单弹窗 -->
     <Teleport to="body">
       <el-dialog
-        v-model="showMenuDialog"
+         v-model="showMenuDialog"
         width="600px"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
@@ -1233,20 +1236,83 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* .app-container {
+.app-container {
   height: 100vh;
   overflow: hidden;
-} */
+  margin: 0;
+  padding: 0;
+  background-color: #f0f2f5; /* 默认背景色，非welcome页面使用 */
+}
+
+/* welcome页面时，外层app-container也要消除所有间距 */
+.app-container.route-welcome {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  position: relative;
+  background-color: transparent !important; /* welcome页面时透明，让背景图完全显示 */
+}
 
 /* welcome页面时，确保el-container也隐藏滚动条 */
 .app-container :deep(.el-container) {
   height: 100%;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* welcome页面时，所有el-container都要消除间距 */
+.app-container.route-welcome :deep(.el-container) {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background-color: transparent !important; /* welcome页面时透明，让背景图完全显示 */
+}
+
+/* welcome页面时，内层el-container也要消除间距 */
+.app-container.route-welcome :deep(.el-container > .el-container) {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
 }
 
 /* welcome页面时，el-main也要隐藏滚动条 */
 .app-container :deep(.el-main) {
   overflow: hidden;
+}
+
+/* welcome页面时，确保el-header没有默认的margin和padding，消除白色边框 */
+.app-container.route-welcome :deep(.el-header) {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  line-height: normal !important;
+  vertical-align: top !important;
 }
 
 .sidebar-container {
@@ -1340,14 +1406,44 @@ onMounted(async () => {
   position: relative;
   z-index: 1000;
   background-color: #fff; /* 默认白色背景 */
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+/* welcome页面时，导航栏默认也应该是透明的，让背景图完全显示 */
+.app-container.route-welcome .header-container {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 /* welcome页面时，导航栏透明，让背景图透过来 */
 .header-container.header-transparent {
-  background-color: transparent;
-  box-shadow: none;
+  background-color: transparent !important;
+  box-shadow: none !important;
   position: relative;
   z-index: 1000;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 20px !important; /* 只保留左右padding，用于内容对齐 */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  line-height: normal !important;
+  vertical-align: top !important;
 }
 
 .header-left {
@@ -1391,6 +1487,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* welcome页面时，header-right右侧要有间距 */
+.header-container.header-transparent .header-right {
+  margin-right: 20px; /* 给复制按钮等元素右侧留出间距 */
 }
 
 .user-status {
@@ -1535,6 +1636,11 @@ onMounted(async () => {
   z-index: 1;
 }
 
+/* welcome页面时，main-container也应该是透明的，让背景图完全显示 */
+.app-container.route-welcome .main-container {
+  background-color: transparent !important;
+}
+
 /* welcome页面时，背景透明，让背景图透过来 */
 .main-container.welcome-page-container {
   background-color: transparent;
@@ -1547,12 +1653,13 @@ onMounted(async () => {
 
 .main-container.welcome-page-container {
   padding: 0 !important;
-  background-color: transparent;
+  background-color: transparent !important; /* 确保透明，让背景图显示 */
   overflow: hidden !important;
   overflow-y: hidden !important;
   overflow-x: hidden !important;
   position: relative;
   height: 100%;
+  z-index: 1; /* 确保内容在背景图上方 */
 }
 
 /* welcome页面时，el-main也要隐藏滚动条 */

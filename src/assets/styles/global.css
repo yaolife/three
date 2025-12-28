@@ -1,5 +1,47 @@
 /* 全局样式文件 */
 
+/* 确保body和html没有默认的margin和padding，特别是在Electron环境中 */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* 不设置背景色，让背景图完全显示 */
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  /* 不设置背景色，让背景图完全显示 */
+}
+
+/* welcome页面时，确保html和body也是透明的 */
+body.route-welcome,
+body[data-route="/welcome"] {
+  background-color: transparent !important;
+}
+
+/* welcome页面时，全局消除el-header和el-container的默认样式 */
+body.route-welcome .el-header,
+body[data-route="/welcome"] .el-header {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+  border: none !important;
+}
+
+body.route-welcome .el-container,
+body[data-route="/welcome"] .el-container {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* 注意：背景图组件的显示/隐藏由组件内部的v-if控制，不需要全局CSS规则 */
+
 /* 修改Element Plus主按钮的背景颜色 */
 .el-button--primary {
   background-color: #0775DB !important;
