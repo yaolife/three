@@ -90,7 +90,10 @@
         </div>
       </el-header>
       
-      <!-- 路由视图：未登录时也显示welcome页面以显示背景图 -->
+      <!-- 背景图组件：只在welcome路由页面显示 -->
+      <Background v-if="isLoggedIn && route.path === '/welcome'" />
+      
+      <!-- 路由视图 -->
       <el-main
         v-if="isLoggedIn || route.path === '/welcome'"
         :class="['main-container', shouldHideSidebar ? 'full-width' : '', route.path === '/welcome' ? 'welcome-page-container' : '']"
@@ -438,6 +441,7 @@ import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
 import { login, loginOut, getCraneInfoPage, getLiftingInfoPage, getDeviceInfoPage, getCraneModelPage, dataSynchronization } from './api/index.js';
 import { translateLiftingType, translateCraneType } from './utils/common.js';
+import Background from './components/Background.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -1171,6 +1175,7 @@ watch(syncActiveTab, (newTab) => {
 // 页面加载时恢复用户状态
 onMounted(async () => {
   userStore.restoreUserState();
+  
   if (!userStore.userState.isLoggedIn) {
     // 未登录时，确保在welcome页面
     if (route.path !== '/welcome') {
@@ -1228,8 +1233,19 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.app-container {
+/* .app-container {
   height: 100vh;
+  overflow: hidden;
+} */
+
+/* welcome页面时，确保el-container也隐藏滚动条 */
+.app-container :deep(.el-container) {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* welcome页面时，el-main也要隐藏滚动条 */
+.app-container :deep(.el-main) {
   overflow: hidden;
 }
 
@@ -1323,13 +1339,15 @@ onMounted(async () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 1000;
-  background-color: #fff;
+  background-color: #fff; /* 默认白色背景 */
 }
 
-/* welcome页面时，导航栏透明 */
+/* welcome页面时，导航栏透明，让背景图透过来 */
 .header-container.header-transparent {
   background-color: transparent;
   box-shadow: none;
+  position: relative;
+  z-index: 1000;
 }
 
 .header-left {
@@ -1345,9 +1363,28 @@ onMounted(async () => {
   padding: 6px 12px;
 }
 
+/* 登录后，导航栏元素使用白色，让它们在背景图上可见 */
+.header-transparent .back-btn {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.header-transparent .back-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 .user-name {
   font-size: 14px;
   color: #304156;
+}
+
+/* 登录后，用户名文字改为白色 */
+.header-transparent .user-name {
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .header-right {
@@ -1363,28 +1400,54 @@ onMounted(async () => {
   padding: 6px 10px;
   border-radius: 6px;
   transition: background-color 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .user-status:hover {
   background: #f5f7fa;
 }
 
+/* 登录后，用户状态悬停效果 */
+.header-transparent .user-status:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .user-icon {
   width: 26px;
   height: 26px;
   margin-right: 8px;
+  position: relative;
+  z-index: 1;
 }
+
 
 .user-name {
   font-size: 14px;
   color: #304156;
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+/* 登录后，用户名文字改为白色 */
+.header-transparent .user-name {
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .logout-icon {
   width: 20px;
   height: 20px;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* 登录后，退出图标添加白色滤镜 */
+.header-transparent .logout-icon {
+  filter: brightness(0) invert(1);
 }
 
 .menu-button {
@@ -1395,24 +1458,107 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   margin-left: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 登录后，搜索框和按钮的样式 */
+.header-transparent .search-box :deep(.el-input__wrapper) {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+}
+
+.header-transparent .search-box :deep(.el-input__inner) {
+  color: #303133;
+}
+
+.header-transparent .search-box :deep(.el-input__prefix) {
+  color: #606266;
+}
+
+.header-transparent .search-box .el-button {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.header-transparent .search-box .el-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 登录后，导航栏按钮（创建项目、复制、云端数据同步）的样式 */
+.header-transparent .header-left .el-button,
+.header-transparent .header-right .el-button {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.header-transparent .header-left .el-button:hover,
+.header-transparent .header-right .el-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 创建项目按钮（primary类型）的特殊样式 */
+.header-transparent .header-left .el-button--primary {
+  background-color: rgba(64, 158, 255, 0.8);
+  border-color: rgba(64, 158, 255, 0.9);
+  color: #ffffff;
+}
+
+.header-transparent .header-left .el-button--primary:hover {
+  background-color: rgba(64, 158, 255, 0.9);
+  border-color: rgba(64, 158, 255, 1);
+}
+
+/* 登录后，导航栏按钮中的图标和图片的样式 */
+.header-transparent .header-left .el-button img,
+.header-transparent .header-right .el-button img {
+  filter: brightness(0) invert(1);
+}
+
+/* 下拉菜单图标样式 */
+.header-transparent .el-dropdown {
+  position: relative;
+  z-index: 1;
 }
 
 .main-container {
   padding: 20px;
-  background-color: #f0f2f5;
+  background-color: #f0f2f5; /* 默认背景色 */
   overflow-y: auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* welcome页面时，背景透明，让背景图透过来 */
+.main-container.welcome-page-container {
+  background-color: transparent;
 }
 
 .main-container.full-width {
   padding: 0;
-  background-color: #ffffff;
+  background-color: transparent;
 }
 
 .main-container.welcome-page-container {
-  padding: 0;
+  padding: 0 !important;
   background-color: transparent;
-  overflow: hidden;
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
   position: relative;
+  height: 100%;
+}
+
+/* welcome页面时，el-main也要隐藏滚动条 */
+.main-container.welcome-page-container :deep(.el-main) {
+  overflow: hidden !important;
+  height: 100%;
 }
 
 .menu-dialog-content {
