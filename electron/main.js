@@ -70,20 +70,7 @@ ipcMain.handle('get-resource-path', async (event, relativePath) => {
       
       // 如果是bg.png，优先查找public目录（Vite会将public目录复制到dist根目录）
       if (relativePath === 'bg.png') {
-        // public目录会被Vite复制到dist根目录，所以bg.png应该在dist根目录
-        // 优先查找dist根目录下的bg.png
-        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'dist', 'bg.png'));
-        possiblePaths.push(path.join(appPath, 'dist', 'bg.png'));
-        if (appPath.includes('.asar')) {
-          const asarPath = appPath.replace(/\.asar.*$/, '.asar');
-          possiblePaths.push(path.join(asarPath, 'dist', 'bg.png'));
-        }
-        
-        // 也尝试直接查找public目录（如果存在）
-        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'public', 'bg.png'));
-        possiblePaths.push(path.join(appPath, 'public', 'bg.png'));
-        
-        // 尝试查找assets目录中所有bg*.png文件（如果被hash化了）
+        // 优先查找assets目录中所有bg*.png文件（如果被hash化了）
         const assetsDirs = [
           path.join(appPath, 'dist', 'assets'),
           path.join(exeDir, 'resources', 'app', 'dist', 'assets'),
@@ -105,6 +92,39 @@ ipcMain.handle('get-resource-path', async (event, relativePath) => {
             continue;
           }
         }
+        
+        // public目录会被Vite复制到dist根目录，所以bg.png应该在dist根目录
+        // 优先查找dist根目录下的bg.png
+        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'dist', 'bg.png'));
+        possiblePaths.push(path.join(appPath, 'dist', 'bg.png'));
+        if (appPath.includes('.asar')) {
+          const asarPath = appPath.replace(/\.asar.*$/, '.asar');
+          possiblePaths.push(path.join(asarPath, 'dist', 'bg.png'));
+        }
+        
+        // 也尝试直接查找public目录（如果存在）
+        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'public', 'bg.png'));
+        possiblePaths.push(path.join(appPath, 'public', 'bg.png'));
+      } else {
+        // 对于其他资源文件（如plane/index.html, facade/index.html等），查找dist目录
+        // 1. resources/app/dist/（打包后的标准位置）
+        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'dist', relativePath));
+        
+        // 2. resources/app.asar/dist/（如果使用asar）
+        if (appPath.includes('.asar')) {
+          const asarPath = appPath.replace(/\.asar.*$/, '.asar');
+          possiblePaths.push(path.join(asarPath, 'dist', relativePath));
+        }
+        
+        // 3. dist根目录（相对于应用路径）
+        possiblePaths.push(path.join(appPath, 'dist', relativePath));
+        
+        // 4. 应用根目录
+        possiblePaths.push(path.join(appPath, relativePath));
+        
+        // 5. public目录（如果直接存在，如plane/index.html, facade/index.html）
+        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'public', relativePath));
+        possiblePaths.push(path.join(appPath, 'public', relativePath));
       }
       
       console.log('[Main Process] 尝试的路径列表:');

@@ -112,7 +112,8 @@ const buildBgImagePath = async () => {
         if (window.electronAPI?.getResourcePath) {
           try {
             const ipcPath = await window.electronAPI.getResourcePath('bg.png');
-            if (ipcPath) {
+            console.log('[Background] 方法1 - IPC返回的路径:', ipcPath);
+            if (ipcPath && ipcPath.trim() !== '') {
               console.log('[Background] 方法1 - IPC获取的路径:', ipcPath);
               const canLoad = await testImageLoad(ipcPath);
               if (canLoad) {
@@ -122,10 +123,14 @@ const buildBgImagePath = async () => {
               } else {
                 console.warn('[Background] ⚠️ IPC路径图片加载失败，尝试方法2');
               }
+            } else {
+              console.warn('[Background] ⚠️ IPC返回空路径，尝试方法2');
             }
           } catch (ipcError) {
             console.warn('[Background] ⚠️ IPC调用失败，尝试方法2:', ipcError);
           }
+        } else {
+          console.warn('[Background] ⚠️ IPC API不可用，尝试方法2');
         }
         
         // 方法2：使用new URL()构建路径
