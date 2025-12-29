@@ -6337,12 +6337,20 @@ const applyCraneDetailToForm = (detail, craneKey) => {
     [`equipmentNumber${suffix}`]: detail.deviceCode ?? "",
     [`model${suffix}`]: detail.model ?? "",
     [`equipmentType${suffix}`]: detail.deviceModel ?? "",
-    [`armType${suffix}`]:
-      detail?.armType !== undefined && detail?.armType !== null
-        ? (typeof detail.armType === 'string' ? detail.armType : String(detail.armType))
-        : detail?.boomType !== undefined && detail?.boomType !== null
-        ? (typeof detail.boomType === 'string' ? detail.boomType : String(detail.boomType))
-        : formData.value[`armType${suffix}`] ?? null,
+    [`armType${suffix}`]: (() => {
+      // 优先使用 performanceInfoId，如果没有则使用 armType 匹配
+      if (detail?.performanceInfoId !== undefined && detail?.performanceInfoId !== null) {
+        return typeof detail.performanceInfoId === 'string' ? detail.performanceInfoId : String(detail.performanceInfoId);
+      }
+      // 如果没有 performanceInfoId，尝试根据 armType 匹配
+      if (detail?.armType !== undefined && detail?.armType !== null) {
+        return typeof detail.armType === 'string' ? detail.armType : String(detail.armType);
+      }
+      if (detail?.boomType !== undefined && detail?.boomType !== null) {
+        return typeof detail.boomType === 'string' ? detail.boomType : String(detail.boomType);
+      }
+      return formData.value[`armType${suffix}`] ?? null;
+    })(),
     [`ratedLoad${suffix}`]: toNumberOrZero(detail.pq),
     [`mainBoomMaxLength${suffix}`]: toNumberOrZero(detail.mainArmLength),
     [`auxBoomLength${suffix}`]: toNumberOrZero(detail.minorArmLength),
@@ -6400,9 +6408,29 @@ const applyCraneDetailToForm = (detail, craneKey) => {
         if (performanceResponse && performanceResponse.code === '0' && performanceResponse.data) {
           const performanceList = Array.isArray(performanceResponse.data) ? performanceResponse.data : [];
           armTypeOptions1.value = performanceList;
-          // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
-          if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType)) {
-            formData.value.armType = performanceList[0].id;
+          // 优先使用 performanceInfoId 设置选中值
+          if (detail?.performanceInfoId !== undefined && detail?.performanceInfoId !== null) {
+            const performanceInfoId = typeof detail.performanceInfoId === 'string' ? detail.performanceInfoId : String(detail.performanceInfoId);
+            const foundOption = performanceList.find(item => String(item.id) === performanceInfoId);
+            if (foundOption) {
+              formData.value.armType = foundOption.id;
+            } else if (performanceList.length > 0) {
+              formData.value.armType = performanceList[0].id;
+            }
+          } else if (detail?.armType !== undefined && detail?.armType !== null) {
+            // 如果没有 performanceInfoId，尝试根据 armType 匹配
+            const armTypeValue = typeof detail.armType === 'string' ? detail.armType : String(detail.armType);
+            const foundOption = performanceList.find(item => String(item.armType) === armTypeValue);
+            if (foundOption) {
+              formData.value.armType = foundOption.id;
+            } else if (performanceList.length > 0) {
+              formData.value.armType = performanceList[0].id;
+            }
+          } else if (performanceList.length > 0) {
+            // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+            if (!performanceList.find(item => item.id === formData.value.armType)) {
+              formData.value.armType = performanceList[0].id;
+            }
           }
         }
       }).catch((error) => {
@@ -6451,9 +6479,29 @@ const applyCraneDetailToForm = (detail, craneKey) => {
         if (performanceResponse && performanceResponse.code === '0' && performanceResponse.data) {
           const performanceList = Array.isArray(performanceResponse.data) ? performanceResponse.data : [];
           armTypeOptions2.value = performanceList;
-          // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
-          if (performanceList.length > 0 && !performanceList.find(item => item.id === formData.value.armType2)) {
-            formData.value.armType2 = performanceList[0].id;
+          // 优先使用 performanceInfoId 设置选中值
+          if (detail?.performanceInfoId !== undefined && detail?.performanceInfoId !== null) {
+            const performanceInfoId = typeof detail.performanceInfoId === 'string' ? detail.performanceInfoId : String(detail.performanceInfoId);
+            const foundOption = performanceList.find(item => String(item.id) === performanceInfoId);
+            if (foundOption) {
+              formData.value.armType2 = foundOption.id;
+            } else if (performanceList.length > 0) {
+              formData.value.armType2 = performanceList[0].id;
+            }
+          } else if (detail?.armType !== undefined && detail?.armType !== null) {
+            // 如果没有 performanceInfoId，尝试根据 armType 匹配
+            const armTypeValue = typeof detail.armType === 'string' ? detail.armType : String(detail.armType);
+            const foundOption = performanceList.find(item => String(item.armType) === armTypeValue);
+            if (foundOption) {
+              formData.value.armType2 = foundOption.id;
+            } else if (performanceList.length > 0) {
+              formData.value.armType2 = performanceList[0].id;
+            }
+          } else if (performanceList.length > 0) {
+            // 如果列表不为空且当前选中的值不在列表中，重置为第一个选项的id
+            if (!performanceList.find(item => item.id === formData.value.armType2)) {
+              formData.value.armType2 = performanceList[0].id;
+            }
           }
         }
       }).catch((error) => {
@@ -6808,9 +6856,22 @@ const buildCraneDetail = (craneKey, itemIndex = 1) => {
       getCraneFieldValue("equipmentType", craneKey, "equipmentType")
     ),
     armType: (() => {
-      const armTypeValue = getCraneFieldValue("armType", craneKey, "armType");
-      return armTypeValue !== undefined && armTypeValue !== null
-        ? (typeof armTypeValue === 'string' ? armTypeValue : String(armTypeValue))
+      // 从组合类型下拉数据对象中获取 armType（返回数字类型）
+      const performanceInfoId = getCraneFieldValue("armType", craneKey, "armType");
+      if (performanceInfoId) {
+        const performanceOptions = isSecondCrane ? armTypeOptions2.value : armTypeOptions1.value;
+        const selectedOption = performanceOptions.find(option => option.id === performanceInfoId || String(option.id) === String(performanceInfoId));
+        if (selectedOption && selectedOption.armType !== undefined && selectedOption.armType !== null) {
+          return toNumberOrNull(selectedOption.armType);
+        }
+      }
+      return null;
+    })(),
+    performanceInfoId: (() => {
+      // 取组合类型下拉数据对象里的 id（当前选中的值）
+      const performanceInfoId = getCraneFieldValue("armType", craneKey, "armType");
+      return performanceInfoId !== undefined && performanceInfoId !== null
+        ? (typeof performanceInfoId === 'string' ? performanceInfoId : String(performanceInfoId))
         : null;
     })(),
     pq: toNumberOrNull(getCraneFieldValue("ratedLoad", craneKey, "ratedLoad")),
