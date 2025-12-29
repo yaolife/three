@@ -147,12 +147,13 @@ const buildBgImagePath = async () => {
           console.warn('[Background] ⚠️ new URL()方法失败，尝试方法3:', urlError);
         }
         
-        // 方法3：基于字符串构建路径
+        // 方法3：基于字符串构建路径（尝试dist根目录，因为public目录会被复制到dist根目录）
         try {
           let pathPart = currentUrl.replace(/^file:\/\/\//, '').replace(/^file:\/\//, '');
           if (pathPart.includes('index.html')) {
             pathPart = pathPart.substring(0, pathPart.lastIndexOf('/'));
           }
+          // 尝试dist根目录下的bg.png（public目录会被Vite复制到dist根目录）
           const bgPath = `${pathPart}/bg.png`;
           let finalPath;
           if (bgPath.match(/^[A-Za-z]:/)) {
@@ -160,7 +161,7 @@ const buildBgImagePath = async () => {
           } else {
             finalPath = `file://${bgPath}`;
           }
-          console.log('[Background] 方法3 - 字符串构建路径:', finalPath);
+          console.log('[Background] 方法3 - 字符串构建路径（dist根目录）:', finalPath);
           
           const canLoad = await testImageLoad(finalPath);
           if (canLoad) {
@@ -168,10 +169,26 @@ const buildBgImagePath = async () => {
             console.log('[Background] ✅ 背景图加载成功（方法3 - 字符串构建）');
             return;
           } else {
-            console.warn('[Background] ⚠️ 字符串构建路径图片加载失败，使用相对路径');
+            console.warn('[Background] ⚠️ 字符串构建路径图片加载失败，尝试方法4');
           }
         } catch (e) {
           console.error('[Background] 方法3失败:', e);
+        }
+        
+        // 方法4：尝试使用相对路径（./bg.png）
+        try {
+          const relativePath = './bg.png';
+          console.log('[Background] 方法4 - 使用相对路径:', relativePath);
+          const canLoad = await testImageLoad(relativePath);
+          if (canLoad) {
+            bgImageUrl.value = relativePath;
+            console.log('[Background] ✅ 背景图加载成功（方法4 - 相对路径）');
+            return;
+          } else {
+            console.warn('[Background] ⚠️ 相对路径图片加载失败，使用最终降级路径');
+          }
+        } catch (e) {
+          console.error('[Background] 方法4失败:', e);
         }
         
         // 最终降级：使用相对路径
