@@ -1489,9 +1489,10 @@ onMounted(async () => {
   gap: 12px;
 }
 
-/* welcome页面时，header-right右侧要有间距 */
+/* welcome页面时，header-right右侧要有间距，顶部要有10px间距 */
 .header-container.header-transparent .header-right {
   margin-right: 20px; /* 给复制按钮等元素右侧留出间距 */
+  margin-top: 10px !important; /* welcome页面时，与顶部保留10px间距 */
 }
 
 .user-status {
