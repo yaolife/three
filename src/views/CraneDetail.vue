@@ -477,7 +477,7 @@
                   placeholder="请输入主臂长度"
                   size="small"
                 >
-                  <template #append>值</template>
+                  <template #append>m</template>
                 </el-input>
               </template>
             </el-table-column>
