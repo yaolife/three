@@ -271,7 +271,12 @@ watch(() => route.path, async (newPath, oldPath) => {
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
   outline: none !important;
+  box-shadow: none !important;
   box-sizing: border-box !important;
   transform: translateZ(0); /* 强制硬件加速，避免渲染问题 */
   display: block; /* 默认显示，但通过v-if和路由检查控制 */
