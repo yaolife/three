@@ -2,6 +2,47 @@
 <html>
   <head>
     <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <base href="./" />
+    <!-- 动态设置base标签，确保在Electron中资源路径正确 - 必须在所有资源加载前执行 -->
+    <script type="text/javascript">
+      (function() {
+        try {
+          // 获取当前页面的URL
+          const currentUrl = window.location.href;
+          console.log('[Plane] 当前URL:', currentUrl);
+          
+          // 计算base路径：去掉文件名，只保留目录
+          let baseHref = currentUrl;
+          if (baseHref.includes('index.html')) {
+            baseHref = baseHref.substring(0, baseHref.lastIndexOf('/') + 1);
+          } else if (!baseHref.endsWith('/')) {
+            baseHref = baseHref + '/';
+          }
+          
+          // 查找或更新base标签
+          let baseTag = document.querySelector('base');
+          if (!baseTag) {
+            baseTag = document.createElement('base');
+            document.head.insertBefore(baseTag, document.head.firstChild);
+          }
+          baseTag.href = baseHref;
+          console.log('[Plane] Base标签已设置:', baseHref);
+          
+          // 验证base标签设置
+          if (document.querySelector('base').href !== baseHref) {
+            console.warn('[Plane] Base标签设置可能失败，当前href:', document.querySelector('base').href);
+          }
+        } catch (e) {
+          console.error('[Plane] 设置base标签失败:', e);
+          // 降级方案：确保base标签至少存在
+          if (!document.querySelector('base')) {
+            const baseTag = document.createElement('base');
+            baseTag.href = './';
+            document.head.insertBefore(baseTag, document.head.firstChild);
+          }
+        }
+      })();
+    </script>
     <link
       rel="icon"
       href="images/favicon.svg"

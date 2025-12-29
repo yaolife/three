@@ -1,8 +1,195 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, protocol } = require('electron');
 const path = require('path');
+const { spawn } = require('child_process');
+const fs = require('fs');
 const isDev = process.env.NODE_ENV === 'development';
 
 let mainWindow;
+
+// 处理打开外部应用的 IPC 消息
+ipcMain.handle('open-external-app', async (event, appPath) => {
+  try {
+    // 构建完整的应用路径
+    let fullPath;
+    if (path.isAbsolute(appPath)) {
+      // 绝对路径直接使用
+      fullPath = appPath;
+    } else {
+      // 相对路径：相对于 Electron 应用可执行文件所在的目录
+      // 例如：应用在 D:\yj\lightHeat\simulation\ThreeConstruction.exe
+      // 外部应用在 D:\yj\lightHeat\simulation\PT3DMPD\PT3DMPD.exe
+      // 使用 app.getPath('exe') 获取可执行文件路径，然后获取其所在目录
+      const exePath = app.getPath('exe');
+      const appDir = path.dirname(exePath);
+      fullPath = path.join(appDir, appPath);
+    }
+    
+    console.log('尝试打开外部应用:', fullPath);
+    console.log('应用目录:', path.dirname(app.getPath('exe')));
+    
+    // 使用 spawn 启动外部应用
+    const child = spawn(fullPath, [], {
+      detached: true,
+      stdio: 'ignore'
+    });
+    
+    // 不等待子进程，立即返回
+    child.unref();
+    
+    return { success: true };
+  } catch (error) {
+    console.error('打开外部应用失败:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// 处理获取资源路径的 IPC 消息
+ipcMain.handle('get-resource-path', async (event, relativePath) => {
+  try {
+    if (isDev) {
+      // 开发环境：返回开发服务器路径
+      return `http://localhost:5173/${relativePath}`;
+    } else {
+      // 生产环境：查找文件系统路径
+      // 在打包后的应用中，需要使用可执行文件路径来构建资源路径
+      const exePath = app.getPath('exe');
+      const exeDir = path.dirname(exePath);
+      
+      // 获取应用路径（可能是asar包路径）
+      const appPath = app.getAppPath();
+      
+      console.log('[Main Process] ========== 获取资源路径 ==========');
+      console.log('[Main Process] 资源文件:', relativePath);
+      console.log('[Main Process] 可执行文件路径:', exePath);
+      console.log('[Main Process] 可执行文件目录:', exeDir);
+      console.log('[Main Process] 应用路径:', appPath);
+      console.log('[Main Process] 是否asar包:', appPath.includes('.asar'));
+      
+      // 尝试多个可能的位置
+      const possiblePaths = [];
+      
+      // 如果是bg.png，优先查找public目录（Vite会将public目录复制到dist根目录）
+      if (relativePath === 'bg.png') {
+        // 优先查找assets目录中所有bg*.png文件（如果被hash化了）
+        const assetsDirs = [
+          path.join(appPath, 'dist', 'assets'),
+          path.join(exeDir, 'resources', 'app', 'dist', 'assets'),
+        ];
+        
+        for (const assetsDir of assetsDirs) {
+          try {
+            if (fs.existsSync(assetsDir)) {
+              const files = fs.readdirSync(assetsDir);
+              const bgFiles = files.filter(f => f.startsWith('bg') && f.endsWith('.png'));
+              if (bgFiles.length > 0) {
+                const bgFile = path.join(assetsDir, bgFiles[0]);
+                possiblePaths.unshift(bgFile); // 优先使用hash化的文件
+                console.log('[Main Process] 找到assets目录中的bg文件:', bgFile);
+              }
+            }
+          } catch (assetsError) {
+            // 继续尝试下一个目录
+            continue;
+          }
+        }
+        
+        // public目录会被Vite复制到dist根目录，所以bg.png应该在dist根目录
+        // 优先查找dist根目录下的bg.png
+        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'dist', 'bg.png'));
+        possiblePaths.push(path.join(appPath, 'dist', 'bg.png'));
+        if (appPath.includes('.asar')) {
+          const asarPath = appPath.replace(/\.asar.*$/, '.asar');
+          possiblePaths.push(path.join(asarPath, 'dist', 'bg.png'));
+        }
+        
+        // 也尝试直接查找public目录（如果存在）
+        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'public', 'bg.png'));
+        possiblePaths.push(path.join(appPath, 'public', 'bg.png'));
+      } else {
+        // 对于其他资源文件（如plane/index.html, facade/index.html等），查找dist目录
+        // 1. resources/app/dist/（打包后的标准位置）
+        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'dist', relativePath));
+        
+        // 2. resources/app.asar/dist/（如果使用asar）
+        if (appPath.includes('.asar')) {
+          const asarPath = appPath.replace(/\.asar.*$/, '.asar');
+          possiblePaths.push(path.join(asarPath, 'dist', relativePath));
+        }
+        
+        // 3. dist根目录（相对于应用路径）
+        possiblePaths.push(path.join(appPath, 'dist', relativePath));
+        
+        // 4. 应用根目录
+        possiblePaths.push(path.join(appPath, relativePath));
+        
+        // 5. public目录（如果直接存在，如plane/index.html, facade/index.html）
+        possiblePaths.push(path.join(exeDir, 'resources', 'app', 'public', relativePath));
+        possiblePaths.push(path.join(appPath, 'public', relativePath));
+      }
+      
+      console.log('[Main Process] 尝试的路径列表:');
+      possiblePaths.forEach((p, i) => {
+        console.log(`  ${i + 1}. ${p} (存在: ${fs.existsSync(p)})`);
+      });
+      
+      // 检查每个可能的路径
+      for (const potentialPath of possiblePaths) {
+        try {
+          if (fs.existsSync(potentialPath)) {
+            const normalizedPath = path.normalize(potentialPath).replace(/\\/g, '/');
+            let fileUrl;
+            if (process.platform === 'win32') {
+              // Windows: file:///C:/path/to/file
+              fileUrl = `file:///${normalizedPath}`;
+            } else {
+              // macOS/Linux: file:///path/to/file
+              fileUrl = `file://${normalizedPath}`;
+            }
+            console.log('[Main Process] ✅ 找到资源文件:', fileUrl);
+            return fileUrl;
+          }
+        } catch (checkError) {
+          // 继续尝试下一个路径
+          continue;
+        }
+      }
+      
+      // 如果所有路径都不存在，返回最可能的路径（让浏览器尝试加载）
+      const fallbackPath = path.join(exeDir, 'resources', 'app', 'dist', relativePath);
+      const normalizedPath = path.normalize(fallbackPath).replace(/\\/g, '/');
+      let fileUrl;
+      if (process.platform === 'win32') {
+        fileUrl = `file:///${normalizedPath}`;
+      } else {
+        fileUrl = `file://${normalizedPath}`;
+      }
+      console.warn('[Main Process] ⚠️ 资源文件未找到，返回默认路径:', fileUrl);
+      return fileUrl;
+    }
+  } catch (error) {
+    console.error('[Main Process] 获取资源路径失败:', error);
+    console.error('[Main Process] 错误堆栈:', error.stack);
+    return null;
+  }
+});
+
+// 注册自定义协议处理资源文件（用于更可靠地加载本地资源）
+function setupProtocol() {
+  if (!isDev) {
+    // 只在生产环境注册协议
+    try {
+      protocol.registerFileProtocol('app', (request, callback) => {
+        const url = request.url.substr(6); // 移除 'app://' 前缀
+        const filePath = path.normalize(`${__dirname}/../${url}`);
+        console.log('[Main Process] app://协议请求:', url, '->', filePath);
+        callback({ path: filePath });
+      });
+      console.log('[Main Process] ✅ 已注册app://协议');
+    } catch (error) {
+      console.warn('[Main Process] 注册app://协议失败（可能已注册）:', error);
+    }
+  }
+}
 
 function createWindow() {
   // 创建浏览器窗口
@@ -16,12 +203,13 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      webSecurity: true
+      webSecurity: false, // 在Electron中禁用webSecurity以允许加载本地文件
+      allowRunningInsecureContent: true
     },
     icon: path.join(__dirname, '../public/favicon.ico'), // 如果有图标的话
     show: false, // 先不显示，等加载完成后再显示
     titleBarStyle: 'default',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#000000' // 改为黑色，避免与背景图产生白色间隙
   });
 
   // 加载应用
@@ -59,6 +247,7 @@ function createWindow() {
 
 // 当 Electron 完成初始化并准备创建浏览器窗口时调用此方法
 app.whenReady().then(() => {
+  setupProtocol();
   createWindow();
 
   app.on('activate', () => {

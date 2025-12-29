@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router"
+import userStore from "../store/user.js"
 
 // 懒加载组件
 const AllProjects = () => import("../views/AllProjects.vue")
@@ -8,16 +9,25 @@ const UserManagement = () => import("../views/UserManagement.vue")
 const RiggingDetail = () => import("../views/RiggingDetail.vue")
 const CraneDetail = () => import("../views/CraneDetail.vue")
 const SitePlan = () => import("../views/SitePlan.vue")
+const Welcome = () => import("../views/Welcome.vue")
 
 const routes = [
   {
     path: "/",
-    redirect: "/verification-projects",
+    redirect: "/welcome",
+  },
+  {
+    path: "/welcome",
+    name: "Welcome",
+    component: Welcome,
+    meta: {
+      title: "首页",
+    },
   },
   // 兼容旧链接，统一跳转到校核计算项目
   {
     path: "/all-projects",
-    redirect: "/verification-projects",
+    redirect: "/welcome",
   },
   {
     path: "/verification-projects",
@@ -133,6 +143,13 @@ router.beforeEach((to, from, next) => {
   if (to.meta.title) {
     document.title = to.meta.title + " - 光热三维施工仿真软件"
   }
+  
+  // 如果未登录且不是访问welcome页面，重定向到welcome页面
+  if (!userStore.userState.isLoggedIn && to.path !== '/welcome') {
+    next('/welcome');
+    return;
+  }
+  
   next()
 })
 

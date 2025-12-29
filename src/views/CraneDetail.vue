@@ -836,18 +836,22 @@ const handleConfirm = async () => {
     ElMessage.warning("请输入车体配重");
     return;
   }
-  if (!craneSpecs.value.maxLiftingHeight) {
-    ElMessage.warning("请输入最大起升高度");
-    return;
-  }
-  if (!craneSpecs.value.maxLiftingMoment) {
+  if (craneSpecs.value.maxLiftingMoment === "" || craneSpecs.value.maxLiftingMoment === undefined) {
     ElMessage.warning("请输入最大起重力矩");
     return;
   }
-  if (!craneSpecs.value.maxLuffingAngle) {
-    ElMessage.warning("请输入最大变幅角度");
-    return;
-  }
+  // 以下字段改为非必填项：
+  // - 最大起升高度 (maxLiftingHeight)
+  // - 主钩重量 (mainHookWeight)
+  // - 副钩吊钩重量 (auxHookWeight)
+  // - 最大变幅角度 (maxLuffingAngle)
+  // - 最小变幅角度 (minLuffingAngle)
+  // - 超起平衡重重量 (superLiftCounterweightWeight)
+  // - 超起平衡重回转半径 (superLiftCounterweightRadius)
+  // - 副臂最大长度 (jibMaxLength)
+  // - 主钩最大钓重 (mainHookMaxCapacity)
+  // - 副钩最大钓重 (auxHookMaxCapacity)
+  // - 主臂+副臂最大长度 (totalBoomMaxLength)
 
   const calcType = Number(craneInfo.value.calculationType || 1);
 
@@ -1018,13 +1022,31 @@ const handleConfirm = async () => {
 .crane-detail-container {
   padding: 20px;
   background-color: #f5f7fa;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .detail-card {
   max-width: 1200px;
   margin: 0 auto;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 让 el-card 的 body 可以滚动 */
+:deep(.el-card__body) {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
 }
 
 .card-header {
@@ -1036,10 +1058,12 @@ const handleConfirm = async () => {
 .info-section {
   padding: 20px 0;
   border-bottom: 1px solid #e4e7ed;
+  flex-shrink: 0;
 }
 
 .edit-section {
   padding: 20px 0;
+  flex-shrink: 0;
 }
 
 .section-header {
@@ -1074,6 +1098,13 @@ const handleConfirm = async () => {
   justify-content: center;
   padding: 30px 0 10px;
   border-top: 1px solid #e4e7ed;
+  flex-shrink: 0;
+  margin-top: auto;
+  background-color: #fff;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.el-form-item) {

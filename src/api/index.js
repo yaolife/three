@@ -17,7 +17,7 @@ const getApiBaseUrl = () => {
   // Electron 环境使用完整 URL
   if (isElectron) {
     // 默认 API 地址，请根据实际情况修改
-    return "http://192.168.1.106:18080";
+    return "http://192.168.0.102:18080"; 
   }
   
   // Web 环境使用相对路径（通过 Vite 代理）
@@ -49,14 +49,14 @@ function checkResponseCode(result) {
       window.dispatchEvent(new CustomEvent("tokenCleared"));
       // 延迟跳转，确保当前请求的错误处理完成
       setTimeout(() => {
-        // 如果当前不在全部项目页面，使用 Vue Router 跳转
-        if (window.location.pathname !== "/all-projects") {
+        // 跳转到welcome页面
+        if (window.location.pathname !== "/welcome") {
           // 检查是否有 Vue Router 实例可用（由 App.vue 暴露）
           if (window.__VUE_ROUTER__) {
-            window.__VUE_ROUTER__.push("/all-projects");
+            window.__VUE_ROUTER__.push("/welcome");
           } else {
             // 如果没有 Vue Router，使用 window.location.href
-            window.location.href = "/all-projects";
+            window.location.href = "/welcome";
           }
         }
       }, 100);
@@ -1003,6 +1003,15 @@ export async function getCranePerformanceInfo(id) {
     throw error
   }
 }
+
+/**
+ * 虚拟仿真项目table操作栏打开
+ * @param {object} params - 参数{ "id": "项目id" }
+ * @returns {Promise} - 
+ */
+export function openSimulation(params) {
+  return post("/projectInfo/openSimulation", params)
+}
 export default {
   getLiftingInfoPage,
   addUpdateLiftingInfo,
@@ -1064,5 +1073,6 @@ export default {
   deleteModelItem,
   modelPush,
   getStreamImage,
-  getCranePerformanceInfo
+  getCranePerformanceInfo,
+  openSimulation
 }

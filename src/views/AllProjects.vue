@@ -25,14 +25,37 @@
         <el-table-column prop="title" align="center" label="项目标题" max-width="130" />
         <el-table-column prop="belongingProject" align="center" label="所属项目" width="170" />
         <el-table-column prop="belongingDept" align="center" label="创建部门" width="170" />
-        <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
-        <el-table-column align="center" label="操作" width="160" fixed="right">
+        <el-table-column 
+          v-if="projectTypeFilter === 2" 
+          align="center" 
+          label="所属类型" 
+          width="120"
+        >
           <template #default="scope">
+            {{ scope.row.projectType === 3 ? '三维' : '二维' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" align="center" label="创建时间" width="170" />
+        <el-table-column 
+          align="center" 
+          label="操作" 
+          :width="getOperationColumnWidth()" 
+          fixed="right"
+        >
+          <template #default="scope">
+            <el-button
+              v-if="shouldShowOpenButton(scope.row)"
+              type="primary"
+              size="small"
+              @click="handleOpen(scope.row)"
+            >
+              打开
+            </el-button>
             <el-button
               type="default"
               size="small"
               @click="handleEdit(scope.row)"
-              style="margin-left: 8px"
+              :style="shouldShowOpenButton(scope.row) ? 'margin-left: 8px' : ''"
             >
               编辑
             </el-button>
@@ -79,6 +102,17 @@
         <el-form-item label="所属项目">
           <el-input v-model="formData.belongingProject" placeholder="请输入所属项目" />
         </el-form-item>
+        
+        <el-form-item 
+          v-if="projectTypeFilter === 2 && !formData.id" 
+          label="所属类型" 
+          prop="dimension"
+        >
+          <el-select v-model="formData.dimension" placeholder="请选择所属类型">
+            <el-option label="二维" :value="2" />
+            <el-option label="三维" :value="3" />
+          </el-select>
+        </el-form-item>
       </el-form>
       
       <template #footer>
@@ -98,7 +132,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Upload } from '@element-plus/icons-vue'
-import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem, pushProject } from '../api/index.js'
+import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem, pushProject, openSimulation } from '../api/index.js'
 import userStore from '../store/user.js'
 
 // 初始化 router 和 route
@@ -130,7 +164,7 @@ const resolveDefaultFileType = (type) => (type === 0 ? 0 : 1)
 
 const createEmptyFormData = () => {
   const defaultType = resolveDefaultProjectType()
-  return {
+  const formData = {
     id: null,
     title: '',
     projectType: defaultType,
@@ -138,6 +172,11 @@ const createEmptyFormData = () => {
     belongingProject: '',
     belongingDept: ''
   }
+  // 如果是总平规划项目（construction-plans），添加所属类型字段，默认为二维（2）
+  if (defaultType === 2) {
+    formData.dimension = 2
+  }
+  return formData
 }
 
 // 项目数据
@@ -390,7 +429,12 @@ const loadProjectData = async () => {
       pageSize: pageSize.value
     }
     
-    if (projectTypeFilter.value !== null && projectTypeFilter.value !== undefined) {
+    // construction-plans 页面使用 projectTypeList，其他页面使用 projectType
+    if (projectTypeFilter.value === 2) {
+      // 总平规划项目：使用 projectTypeList，包含二维和三维
+      params.projectTypeList = [2, 3]
+    } else if (projectTypeFilter.value !== null && projectTypeFilter.value !== undefined) {
+      // 其他项目类型：使用单个 projectType
       params.projectType = projectTypeFilter.value
     }
     
@@ -451,8 +495,8 @@ const handleEdit = (row) => {
       name: 'CalculationDetail',
       params: { id: row.id }
     })
-  } else if (row.projectType === 2) {
-    // 总平规划类型跳转到总平规划页面
+  } else if (row.projectType === 2 || row.projectType === 3) {
+    // 总平规划类型（二维或三维）跳转到总平规划页面
     router.push({
       name: 'SitePlan',
       params: { id: row.id },
@@ -501,6 +545,74 @@ const handleDelete = async (row) => {
   }
 }
 
+// 判断是否显示打开按钮
+const shouldShowOpenButton = (row) => {
+  // 虚拟仿真项目（projectType === 1）显示打开按钮
+  if (row.projectType === 1) {
+    return true
+  }
+  // 总平规划项目（construction-plans）中，三维（projectType === 3）显示打开按钮
+  if (projectTypeFilter.value === 2 && row.projectType === 3) {
+    return true
+  }
+  return false
+}
+
+// 获取操作列宽度
+const getOperationColumnWidth = () => {
+  // 虚拟仿真项目固定宽度 220
+  if (projectTypeFilter.value === 1) {
+    return 220
+  }
+  // 总平规划项目：检查是否有三维项目需要显示打开按钮
+  const hasThreeDProject = projectData.value.some(item => item.projectType === 3)
+  if (projectTypeFilter.value === 2 && hasThreeDProject) {
+    return 220
+  }
+  return 160
+}
+
+// 处理打开
+const handleOpen = async (row) => {
+  try {
+    if (!row.id) {
+      ElMessage.error('项目ID不存在')
+      return
+    }
+    
+    // 调用 openSimulation 接口
+    const response = await openSimulation({ id: row.id })
+    
+    if (response.code === '0') {
+      // 检查是否在 Electron 环境中
+      if (window.electronAPI && window.electronAPI.openExternalApp) {
+        // 根据项目类型选择不同的应用路径
+        let appPath = 'PT3DMPD\\PT3DMPD.exe' // 默认使用 PT3DMPD（construction-plans 三维项目）
+        if (row.projectType === 1) {
+          // virtual-simulation 页面使用 PT3DS
+          appPath = 'PT3DS\\PT3DS.exe'
+        }
+        
+        // 使用 Electron 方法打开外部应用
+        const result = await window.electronAPI.openExternalApp(appPath)
+        if (result.success) {
+          ElMessage.success('打开成功')
+        } else {
+          ElMessage.error(result.error || '打开应用失败')
+        }
+      } else {
+        // 非 Electron 环境，只提示接口调用成功
+        ElMessage.success('操作成功')
+      }
+    } else {
+      ElMessage.error(response.msg || '操作失败')
+    }
+  } catch (error) {
+    console.error('打开项目失败:', error)
+    ElMessage.error('打开项目失败')
+  }
+}
+
 // 提交表单
 const submitForm = async () => {
   try {
@@ -517,13 +629,19 @@ const submitForm = async () => {
       belongingDept: formData.value.belongingDept
     }
     
+    // 如果是总平规划项目（construction-plans）且是新建，使用 dimension 的值作为 projectType
+    if (projectTypeFilter.value === 2 && !formData.value.id && formData.value.dimension) {
+      submitData.projectType = formData.value.dimension
+    }
+    
     const response = await handleEditProject(submitData)
     
     if (response.code === '0') {
       const isCreate = !formData.value.id // 是否为新建
-      const projectType = formData.value.projectType
+      // 使用 submitData.projectType，因为可能已经被 dimension 覆盖
+      const projectType = submitData.projectType
       const isCalculation = projectType === 0       // 校核计算项目
-      const isGeneralPlan = projectType === 2       // 总平规划项目
+      const isGeneralPlan = projectType === 2 || projectType === 3  // 总平规划项目（二维或三维）
       
       ElMessage.success(formData.value.id ? '编辑成功' : '创建成功')
       showCreateDialog.value = false
@@ -537,15 +655,22 @@ const submitForm = async () => {
           params: { id: projectId }
         })
       } else if (isCreate && isGeneralPlan) {
-        // 新建总平规划项目：直接跳转到 SitePlan 页面
-        const projectId = response.data // 创建成功返回的项目ID
-        const projectTitle = formData.value.title // 从表单获取标题
-        resetForm()
-        router.push({
-          name: 'SitePlan',
-          params: { id: projectId },
-          query: { title: projectTitle || '' }
-        })
+        // 新建总平规划项目
+        if (projectType === 3) {
+          // 三维项目：不跳转，直接关闭弹窗并刷新列表
+          resetForm()
+          loadProjectData()
+        } else {
+          // 二维项目：直接跳转到 SitePlan 页面
+          const projectId = response.data // 创建成功返回的项目ID
+          const projectTitle = formData.value.title // 从表单获取标题
+          resetForm()
+          router.push({
+            name: 'SitePlan',
+            params: { id: projectId },
+            query: { title: projectTitle || '' }
+          })
+        }
       } else {
         // 其他情况：仅刷新列表
         resetForm()

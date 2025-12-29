@@ -1,9 +1,15 @@
 <template>
-  <el-container class="app-container">
+  <el-container 
+    class="app-container"
+    :class="{ 'route-welcome': route.path === '/welcome' }"
+  >
     <!-- 主内容区（移除侧边栏，宽屏显示） -->
     <el-container>
       <!-- 顶部导航栏：未登录时不显示 -->
-      <el-header v-if="isLoggedIn && !shouldHideHeader" class="header-container">
+      <el-header 
+        v-if="isLoggedIn && !shouldHideHeader" 
+        :class="['header-container', route.path === '/welcome' ? 'header-transparent' : '']"
+      >
         <div class="header-left">
           <el-button
             v-if="isMenuPage"
@@ -87,10 +93,13 @@
         </div>
       </el-header>
       
-      <!-- 路由视图：未登录时不渲染主内容，只显示登录弹窗 -->
+      <!-- 背景图组件：只在welcome路由页面显示（登录和未登录都显示） -->
+      <Background v-if="route.path === '/welcome'" :key="route.path" />
+      
+      <!-- 路由视图 -->
       <el-main
-        v-if="isLoggedIn"
-        :class="['main-container', shouldHideSidebar ? 'full-width' : '']"
+        v-if="isLoggedIn || route.path === '/welcome'"
+        :class="['main-container', shouldHideSidebar ? 'full-width' : '', route.path === '/welcome' ? 'welcome-page-container' : '']"
       >
         <router-view />
       </el-main>
@@ -99,29 +108,28 @@
     <!-- 功能菜单弹窗 -->
     <Teleport to="body">
       <el-dialog
-        v-model="showMenuDialog"
-        width="420px"
+         v-model="showMenuDialog"
+        width="600px"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
         :show-close="false"
         append-to-body
+        class="menu-dialog"
       >
         <template #header>
           <div class="menu-dialog-header">
             <span>功能菜单</span>
-            <el-icon class="menu-close" @click="closeMenuDialog"><Close /></el-icon>
           </div>
         </template>
         <div class="menu-dialog-content">
-          <el-button
+          <div
             v-for="item in menuOptions"
             :key="item.path"
-            type="default"
             class="menu-dialog-item"
             @click="handleMenuSelect(item.path)"
           >
             {{ item.label }}
-          </el-button>
+          </div>
         </div>
       </el-dialog>
     </Teleport>
@@ -371,11 +379,11 @@
         class="login-dialog"
         align-center
         append-to-body
-        :show-close="true"
+        :show-close="false"
       >
-        <template #header>
+        <!-- <template #header>
           <span class="login-dialog-header-title" >光热三维施工仿真软件</span>
-        </template>
+        </template> -->
         <div class="login-dialog-content">
           <img src="@/images/zgh.png" alt="zgh" class="login-logo-img" />
           <div class="login-title-section">
@@ -436,6 +444,7 @@ import { ElMessage } from "element-plus";
 import userStore from './store/user.js';
 import { login, loginOut, getCraneInfoPage, getLiftingInfoPage, getDeviceInfoPage, getCraneModelPage, dataSynchronization } from './api/index.js';
 import { translateLiftingType, translateCraneType } from './utils/common.js';
+import Background from './components/Background.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -520,9 +529,9 @@ const activeMenu = computed(() => route.path || "/verification-projects");
 const menuOptions = computed(() => {
   // 所有菜单项及其对应的 menus 值
   const allMenus = [
-    { label: "校核计算项目", path: "/verification-projects", menuValue: "0" },
-    { label: "虚拟仿真项目", path: "/virtual-simulation", menuValue: "1" },
-    { label: "总平规划项目", path: "/construction-plans", menuValue: "2" },
+    { label: "校核计算", path: "/verification-projects", menuValue: "0" },
+      { label: "三维仿真", path: "/virtual-simulation", menuValue: "1" },
+    { label: "总平规划平台", path: "/construction-plans", menuValue: "2" },
     { label: "数据管理", path: "/data-management", menuValue: "3" },
     { label: "账号管理", path: "/user-management", menuValue: "4" },
   ];
@@ -621,33 +630,33 @@ const handleLogout = async () => {
     // 清除本地状态
     userStore.logout();
     ElMessage.success("已退出登录");
-    // 跳转到默认页面并清空数据
-    router.push('/verification-projects').then(() => {
-      // 使用 nextTick 确保组件已挂载
-      nextTick(() => {
-        if (window.clearProjectListDirect) {
-          window.clearProjectListDirect();
-        }
-      });
-    });
-    showLoginDialog.value = true;
+    // 先关闭菜单弹窗
     showMenuDialog.value = false;
+    // 跳转到welcome页面以显示背景图
+    await router.push('/welcome');
+    // 使用 nextTick 确保组件已挂载
+    await nextTick();
+    if (window.clearProjectListDirect) {
+      window.clearProjectListDirect();
+    }
+    // 显示登录弹窗
+    showLoginDialog.value = true;
   } catch (error) {
     console.error("退出登录失败:", error);
     // 即使接口调用失败，也清除本地状态
     userStore.logout();
     ElMessage.warning("退出登录失败，已清除本地登录状态");
-    // 跳转到默认页面并清空数据
-    router.push('/verification-projects').then(() => {
-      // 使用 nextTick 确保组件已挂载
-      nextTick(() => {
-        if (window.clearProjectListDirect) {
-          window.clearProjectListDirect();
-        }
-      });
-    });
-    showLoginDialog.value = true;
+    // 先关闭菜单弹窗
     showMenuDialog.value = false;
+    // 跳转到welcome页面以显示背景图
+    await router.push('/welcome');
+    // 使用 nextTick 确保组件已挂载
+    await nextTick();
+    if (window.clearProjectListDirect) {
+      window.clearProjectListDirect();
+    }
+    // 显示登录弹窗
+    showLoginDialog.value = true;
   }
 };
 
@@ -685,9 +694,11 @@ const handleLogin = async () => {
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
-      // 跳转到默认页面并刷新
-      router.push('/verification-projects').then(() => {
-        triggerRefresh(null);
+      // 跳转到登录后的空白中转页，并弹出功能菜单供选择
+      router.push('/welcome').then(() => {
+        nextTick(() => {
+          openMenuDialog();
+        });
       });
     } else {
       ElMessage.error(response?.msg || "登录失败，请检查用户名和密码");
@@ -734,9 +745,11 @@ const handleOfflineLogin = async () => {
       // 清空表单
       loginForm.username = "";
       loginForm.password = "";
-      // 跳转到默认页面并刷新
-      router.push('/verification-projects').then(() => {
-        triggerRefresh(null);
+      // 跳转到登录后的空白中转页，并弹出功能菜单供选择
+      router.push('/welcome').then(() => {
+        nextTick(() => {
+          openMenuDialog();
+        });
       });
     } else {
       ElMessage.error(response?.msg || "管理员登录失败，请检查用户名和密码");
@@ -1163,24 +1176,60 @@ watch(syncActiveTab, (newTab) => {
 });
 
 // 页面加载时恢复用户状态
-onMounted(() => {
+onMounted(async () => {
   userStore.restoreUserState();
+  
   if (!userStore.userState.isLoggedIn) {
+    // 未登录时，确保在welcome页面
+    if (route.path !== '/welcome') {
+      await router.push('/welcome');
+      await nextTick();
+    }
     showLoginDialog.value = true;
+  } else {
+    // 如果已登录，自动显示功能菜单弹窗
+    // 使用 nextTick 确保组件完全挂载后再显示菜单
+    nextTick(() => {
+      // 如果当前不在欢迎页面，先跳转到欢迎页面
+      if (route.path !== '/welcome') {
+        router.push('/welcome').then(() => {
+          nextTick(() => {
+            openMenuDialog();
+          });
+        });
+      } else {
+        // 如果已经在欢迎页面，直接显示菜单
+        openMenuDialog();
+      }
+    });
   }
   // 暴露 router 实例到 window，供 api/index.js 中的 checkResponseCode 使用
   window.__VUE_ROUTER__ = router;
   
   // 监听 token 被清除的事件，同步更新登录状态
-  window.addEventListener("tokenCleared", () => {
+  window.addEventListener("tokenCleared", async () => {
     userStore.logout();
+    // 跳转到welcome页面
+    if (route.path !== '/welcome') {
+      await router.push('/welcome');
+      await nextTick();
+    }
+    // 显示登录弹窗
+    showLoginDialog.value = true;
   });
   
   // 监听 storage 变化事件（处理跨标签页的情况）
-  window.addEventListener("storage", (e) => {
+  window.addEventListener("storage", async (e) => {
     if (e.key === "token" && !e.newValue) {
       // token 被清除
       userStore.logout();
+      // 跳转到welcome页面
+      if (route.path !== '/welcome') {
+        await router.push('/welcome');
+        await nextTick();
+      }
+      // 显示登录弹窗
+      showLoginDialog.value = true;
     }
   });
 });
@@ -1190,6 +1239,80 @@ onMounted(() => {
 .app-container {
   height: 100vh;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f2f5; /* 默认背景色，非welcome页面使用 */
+}
+
+/* welcome页面时，外层app-container也要消除所有间距 */
+.app-container.route-welcome {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  position: relative;
+  background-color: transparent !important; /* welcome页面时透明，让背景图完全显示 */
+}
+
+/* welcome页面时，确保el-container也隐藏滚动条 */
+.app-container :deep(.el-container) {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* welcome页面时，所有el-container都要消除间距 */
+.app-container.route-welcome :deep(.el-container) {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background-color: transparent !important; /* welcome页面时透明，让背景图完全显示 */
+}
+
+/* welcome页面时，内层el-container也要消除间距 */
+.app-container.route-welcome :deep(.el-container > .el-container) {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+/* welcome页面时，el-main也要隐藏滚动条 */
+.app-container :deep(.el-main) {
+  overflow: hidden;
+}
+
+/* welcome页面时，确保el-header没有默认的margin和padding，消除白色边框 */
+.app-container.route-welcome :deep(.el-header) {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  line-height: normal !important;
+  vertical-align: top !important;
 }
 
 .sidebar-container {
@@ -1279,8 +1402,48 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
+  background-color: #fff; /* 默认白色背景 */
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+/* welcome页面时，导航栏默认也应该是透明的，让背景图完全显示 */
+.app-container.route-welcome .header-container {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* welcome页面时，导航栏透明，让背景图透过来 */
+.header-container.header-transparent {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  position: relative;
+  z-index: 1000;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 20px !important; /* 只保留左右padding，用于内容对齐 */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  line-height: normal !important;
+  vertical-align: top !important;
 }
 
 .header-left {
@@ -1296,15 +1459,40 @@ onMounted(() => {
   padding: 6px 12px;
 }
 
+/* 登录后，导航栏元素使用白色，让它们在背景图上可见 */
+.header-transparent .back-btn {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.header-transparent .back-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 .user-name {
   font-size: 14px;
   color: #304156;
+}
+
+/* 登录后，用户名文字改为白色 */
+.header-transparent .user-name {
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* welcome页面时，header-right右侧要有间距，顶部要有10px间距 */
+.header-container.header-transparent .header-right {
+  margin-right: 20px; /* 给复制按钮等元素右侧留出间距 */
+  margin-top: 10px !important; /* welcome页面时，与顶部保留10px间距 */
 }
 
 .user-status {
@@ -1314,28 +1502,54 @@ onMounted(() => {
   padding: 6px 10px;
   border-radius: 6px;
   transition: background-color 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .user-status:hover {
   background: #f5f7fa;
 }
 
+/* 登录后，用户状态悬停效果 */
+.header-transparent .user-status:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .user-icon {
   width: 26px;
   height: 26px;
   margin-right: 8px;
+  position: relative;
+  z-index: 1;
 }
+
 
 .user-name {
   font-size: 14px;
   color: #304156;
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+/* 登录后，用户名文字改为白色 */
+.header-transparent .user-name {
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .logout-icon {
   width: 20px;
   height: 20px;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* 登录后，退出图标添加白色滤镜 */
+.header-transparent .logout-icon {
+  filter: brightness(0) invert(1);
 }
 
 .menu-button {
@@ -1346,38 +1560,166 @@ onMounted(() => {
   display: flex;
   align-items: center;
   margin-left: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 登录后，搜索框和按钮的样式 */
+.header-transparent .search-box :deep(.el-input__wrapper) {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+}
+
+.header-transparent .search-box :deep(.el-input__inner) {
+  color: #303133;
+}
+
+.header-transparent .search-box :deep(.el-input__prefix) {
+  color: #606266;
+}
+
+.header-transparent .search-box .el-button {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.header-transparent .search-box .el-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 登录后，导航栏按钮（创建项目、复制、云端数据同步）的样式 */
+.header-transparent .header-left .el-button,
+.header-transparent .header-right .el-button {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.header-transparent .header-left .el-button:hover,
+.header-transparent .header-right .el-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 创建项目按钮（primary类型）的特殊样式 */
+.header-transparent .header-left .el-button--primary {
+  background-color: rgba(64, 158, 255, 0.8);
+  border-color: rgba(64, 158, 255, 0.9);
+  color: #ffffff;
+}
+
+.header-transparent .header-left .el-button--primary:hover {
+  background-color: rgba(64, 158, 255, 0.9);
+  border-color: rgba(64, 158, 255, 1);
+}
+
+/* 登录后，导航栏按钮中的图标和图片的样式 */
+.header-transparent .header-left .el-button img,
+.header-transparent .header-right .el-button img {
+  filter: brightness(0) invert(1);
+}
+
+/* 下拉菜单图标样式 */
+.header-transparent .el-dropdown {
+  position: relative;
+  z-index: 1;
 }
 
 .main-container {
   padding: 20px;
-  background-color: #f0f2f5;
+  background-color: #f0f2f5; /* 默认背景色 */
   overflow-y: auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* welcome页面时，main-container也应该是透明的，让背景图完全显示 */
+.app-container.route-welcome .main-container {
+  background-color: transparent !important;
+}
+
+/* welcome页面时，背景透明，让背景图透过来 */
+.main-container.welcome-page-container {
+  background-color: transparent;
 }
 
 .main-container.full-width {
   padding: 0;
-  background-color: #ffffff;
+  background-color: transparent;
+}
+
+.main-container.welcome-page-container {
+  padding: 0 !important;
+  background-color: transparent !important; /* 确保透明，让背景图显示 */
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  position: relative;
+  height: 100%;
+  z-index: 1; /* 确保内容在背景图上方 */
+}
+
+/* welcome页面时，el-main也要隐藏滚动条 */
+.main-container.welcome-page-container :deep(.el-main) {
+  overflow: hidden !important;
+  height: 100%;
 }
 
 .menu-dialog-content {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  padding: 20px;
 }
 
 .menu-dialog-item {
   width: 100%;
-  color: #2B507D;
+  height: 120px;
+  display: flex;
+  align-items: center;
   justify-content: center;
+
+  border-radius: 8px;
+  color: #2B507D;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  user-select: none;
+border: 1px solid #B3B3B3;
+  background-color: #e8e8e8;
+box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.menu-dialog-item:hover {
+  background-color: #d8d8d8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.menu-dialog-item:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .menu-dialog-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  padding: 4px 4px 0 4px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.menu-dialog :deep(.el-dialog__body) {
+  padding: 0 !important;
 }
 
 .menu-close {
@@ -1435,10 +1777,7 @@ onMounted(() => {
     justify-content: center;
     align-items: center;
   padding: 40px 0 0 0;
-  background-image: url('@/images/login_bg.png'), linear-gradient(180deg, #000 0%, #1F415C 69.71%, #000F1B 100%);
-  background-size: cover, 100% 100%;
-  background-position: center, center;
-  background-repeat: no-repeat, no-repeat;
+  background: #ffffff;
   position: relative;
   overflow: hidden;
 }
@@ -1485,23 +1824,23 @@ onMounted(() => {
 }
 
 .login-main-title {
-  color: #fff;
+  color:#245E85;
   font-size: 24px;
   font-weight: 600;
   margin: 0 0 10px 0;
 }
 
 .login-sub-title {
-  color: #fff;
+  color: #245E85;
   font-size: 16px;
   margin: 0;
 }
 
 .login-prompt-text {
-  color: rgba(255, 255, 255, 0.70);
-font-weight: 400;
+  color: #666666;
+  font-weight: 400;
   font-size: 14px;
- width: 50%;
+  width: 50%;
   position: relative;
   z-index: 1; 
 }
@@ -1533,6 +1872,8 @@ font-weight: 400;
   border-radius: 6px;
   background-color: #fff;
   box-shadow: none;
+  border-radius: 1px;
+border: 1px solid #A2A2A2;
 }
 
 .login-input :deep(.el-input__wrapper:hover) {
