@@ -1023,6 +1023,8 @@ const handleConfirm = async () => {
   padding: 20px;
   background-color: #f5f7fa;
   min-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .detail-card {

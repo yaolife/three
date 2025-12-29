@@ -1599,8 +1599,21 @@ onMounted(() => {
 
 <style scoped>
 
+.data-management-container {
+  height: 100%;
+  overflow-y: auto;
+}
+
 .page-card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .card-header {
@@ -1614,10 +1627,15 @@ onMounted(() => {
 
 .data-tabs {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .tab-content {
   padding: 20px 0;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .toolbar {
@@ -1655,5 +1673,27 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* 为所有弹窗的body添加滚动条 */
+:deep(.el-dialog__body) {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* 确保弹窗内容可以滚动 */
+:deep(.el-dialog) {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+:deep(.el-dialog__header) {
+  flex-shrink: 0;
+}
+
+:deep(.el-dialog__footer) {
+  flex-shrink: 0;
 }
 </style>
