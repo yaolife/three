@@ -28,7 +28,7 @@
         <el-table-column 
           v-if="projectTypeFilter === 2" 
           align="center" 
-          label="所属维度" 
+          label="所属类型" 
           width="120"
         >
           <template #default="scope">
@@ -105,10 +105,10 @@
         
         <el-form-item 
           v-if="projectTypeFilter === 2 && !formData.id" 
-          label="所属维度" 
+          label="所属类型" 
           prop="dimension"
         >
-          <el-select v-model="formData.dimension" placeholder="请选择所属维度">
+          <el-select v-model="formData.dimension" placeholder="请选择所属类型">
             <el-option label="二维" :value="2" />
             <el-option label="三维" :value="3" />
           </el-select>
@@ -172,7 +172,7 @@ const createEmptyFormData = () => {
     belongingProject: '',
     belongingDept: ''
   }
-  // 如果是总平规划项目（construction-plans），添加所属维度字段，默认为二维（2）
+  // 如果是总平规划项目（construction-plans），添加所属类型字段，默认为二维（2）
   if (defaultType === 2) {
     formData.dimension = 2
   }
