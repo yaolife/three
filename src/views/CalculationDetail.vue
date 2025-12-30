@@ -3222,7 +3222,7 @@
                 T:履带平均接地比压=
             {{
               formatNumber(foundationCalculationResult.calculationProcess.pressure).toFixed(2)
-            }}t
+            }}t/m²
           </div>
           <el-button
             type="text"
@@ -3249,7 +3249,7 @@
         <div class="section-content conclusion" style="padding: 12px">
           履带平均接地比压计算结果为{{
             formatNumber(foundationCalculationResult.calculationProcess.pressure).toFixed(2)
-          }}t
+          }}t/m²
         </div>
       </div>
     </div>
