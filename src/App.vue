@@ -788,7 +788,7 @@ const handleCopy = () => {
   console.log('复制按钮被点击，当前路由:', route.path);
   
   // 检查当前是否在项目列表页面
-  const projectListPaths = ['/all-projects', '/verification-projects', '/virtual-simulation', '/construction-plans'];
+  const projectListPaths = ['/verification-projects', '/virtual-simulation', '/construction-plans'];
   if (!projectListPaths.includes(route.path)) {
     ElMessage.warning('请在项目列表页面使用复制功能');
     return;
@@ -807,7 +807,7 @@ const handleSearch = () => {
   console.log('搜索按钮被点击，搜索关键词:', searchTitle.value);
   
   // 检查当前是否在项目列表页面
-  const projectListPaths = ['/all-projects', '/verification-projects', '/virtual-simulation', '/construction-plans'];
+  const projectListPaths = ['/verification-projects', '/virtual-simulation', '/construction-plans'];
   if (!projectListPaths.includes(route.path)) {
     ElMessage.warning('请在项目列表页面使用搜索功能');
     return;
