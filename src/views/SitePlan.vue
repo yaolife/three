@@ -2827,16 +2827,24 @@ const drawTextShape = (coords, config = {}) => {
 
 const capturePointSnapshot = (point) => {
   if (!canvas.value) return null;
+  // convertToCanvasCoords 返回的是变换前的坐标（原始坐标）
   const { x, y } = convertToCanvasCoords(point.x, point.y);
-  const radius = 400; // 以点位为中心，半径为400px进行截图
+  
+  // 计算变换后的坐标（canvas 上实际绘制的位置）
+  // 变换公式：transformed = original * scale + offset
+  const transformedX = x * scale.value + offsetX.value;
+  const transformedY = y * scale.value + offsetY.value;
+  
+  const radius = 400; // 以点位为中心，半径为400px进行截图（变换后的坐标系）
   const size = radius * 2;
   const snapshotCanvas = document.createElement("canvas");
   snapshotCanvas.width = size;
   snapshotCanvas.height = size;
   const snapshotCtx = snapshotCanvas.getContext("2d");
 
-  const sx = Math.max(0, x - radius);
-  const sy = Math.max(0, y - radius);
+  // 使用变换后的坐标计算截图区域
+  const sx = Math.max(0, transformedX - radius);
+  const sy = Math.max(0, transformedY - radius);
   const sw = Math.min(size, canvas.value.width - sx);
   const sh = Math.min(size, canvas.value.height - sy);
 
@@ -2844,7 +2852,7 @@ const capturePointSnapshot = (point) => {
   snapshotCtx.fillStyle = "#ffffff";
   snapshotCtx.fillRect(0, 0, size, size);
   
-  // 先绘制 Canvas 内容
+  // 先绘制 Canvas 内容（从变换后的坐标位置截图）
   snapshotCtx.drawImage(
     canvas.value,
     sx,
@@ -2861,18 +2869,27 @@ const capturePointSnapshot = (point) => {
   const shapes = getShapesForPoint(point.id);
   if (shapes.length > 0) {
     shapes.forEach((shape) => {
+      // 获取形状的变换前坐标
       const shapeCoords = convertToCanvasCoords(
         shape.position?.x || point.x,
         shape.position?.y || point.y
       );
       
-      // 计算形状相对于截图区域的偏移
-      const offsetX = shapeCoords.x - sx - radius;
-      const offsetY = shapeCoords.y - sy - radius;
+      // 计算形状的变换后坐标（SVG overlay 也应用了 scale，所以形状的位置和大小都需要考虑缩放）
+      const transformedShapeX = shapeCoords.x * scale.value + offsetX.value;
+      const transformedShapeY = shapeCoords.y * scale.value + offsetY.value;
+      
+      // 计算形状相对于截图区域的偏移（在变换后的坐标系中）
+      const offsetXInSnapshot = transformedShapeX - sx;
+      const offsetYInSnapshot = transformedShapeY - sy;
       
       // 在截图 Canvas 上绘制形状
+      // 注意：形状的大小也需要缩放，因为 SVG overlay 应用了 scale
       snapshotCtx.save();
-      snapshotCtx.translate(radius + offsetX, radius + offsetY);
+      // 将形状绘制到正确的位置（相对于截图区域）
+      snapshotCtx.translate((size - sw) / 2 + offsetXInSnapshot, (size - sh) / 2 + offsetYInSnapshot);
+      // 应用缩放，使形状大小与 SVG overlay 中显示的一致
+      snapshotCtx.scale(scale.value, scale.value);
       
       const config = shape.config || {};
       switch (shape.tool) {
