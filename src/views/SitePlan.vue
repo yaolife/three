@@ -610,22 +610,56 @@
             </div>
           </div>
           <!-- 施工场景平面图（优先显示后端流，其次本地导入预览） -->
-          <!-- 背景平面图仅作为 Canvas 绘制和尺寸计算的参考，实际显示由 Canvas 完成 -->
-          <!-- 为避免与 Canvas 视觉错位，这里的 img 设置为透明，只保留在文档流中用于尺寸和加载事件 -->
-          <img
-            ref="imageRef"
-            :src="planImageUrl || importedImage"
-            alt="总平规划图"
-            class="plan-image"
-            :style="{
-              transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
-              transformOrigin: '0 0',
-              opacity: 0,
-              pointerEvents: 'none'
-            }"
-            @load="handleImageLoad"
-            @error="handleImageError"
-          />
+          <!-- CAD 文件使用 iframe 显示，其他使用 img 标签 -->
+          <template v-if="planImageFileType === 'cad' && cadFileBlob">
+            <!-- CAD 文件使用 iframe 显示 -->
+            <iframe
+              ref="cadIframeRef"
+              :src="planImageUrl"
+              class="plan-image cad-iframe"
+              :style="{
+                transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+                transformOrigin: '0 0',
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                pointerEvents: 'none'
+              }"
+            ></iframe>
+            <!-- 隐藏的 img 用于尺寸计算 -->
+            <img
+              ref="imageRef"
+              :src="planImageUrl"
+              alt="总平规划图"
+              class="plan-image"
+              :style="{
+                position: 'absolute',
+                opacity: 0,
+                pointerEvents: 'none',
+                visibility: 'hidden'
+              }"
+              @load="handleImageLoad"
+              @error="handleImageError"
+            />
+          </template>
+          <template v-else>
+            <!-- 背景平面图仅作为 Canvas 绘制和尺寸计算的参考，实际显示由 Canvas 完成 -->
+            <!-- 为避免与 Canvas 视觉错位，这里的 img 设置为透明，只保留在文档流中用于尺寸和加载事件 -->
+            <img
+              ref="imageRef"
+              :src="planImageUrl || importedImage"
+              alt="总平规划图"
+              class="plan-image"
+              :style="{
+                transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+                transformOrigin: '0 0',
+                opacity: 0,
+                pointerEvents: 'none'
+              }"
+              @load="handleImageLoad"
+              @error="handleImageError"
+            />
+          </template>
           <!-- Canvas覆盖层用于绘制点位和路径 -->
           <canvas
             ref="canvas"
@@ -1164,6 +1198,10 @@ const flatImageFile = ref(null);
 const planImageUrl = ref(null);
 // 施工场景平面图是否正在加载中（用于显示 loading）
 const isPlanImageLoading = ref(false);
+// 当前文件类型：'image' | 'svg' | 'cad' | 'unknown'
+const planImageFileType = ref('image');
+// CAD 文件流（用于 iframe 显示）
+const cadFileBlob = ref(null);
 
 // 起重机相关数据
 const cranes = ref([]);
@@ -1232,6 +1270,7 @@ const isDragging = ref(false);
 const lastMouseX = ref(0);
 const lastMouseY = ref(0);
 const imageRef = ref(null);
+const cadIframeRef = ref(null);
 const imageWidth = ref(0);
 const imageHeight = ref(0);
 const imageNaturalWidth = ref(0);
@@ -3065,20 +3104,36 @@ onMounted(async () => {
 
 // 处理图片加载
 const handleImageLoad = () => {
-  console.log('图片加载完成');
+  console.log('========== handleImageLoad 被调用 ==========');
   if (imageRef.value) {
     imageNaturalWidth.value = imageRef.value.naturalWidth;
     imageNaturalHeight.value = imageRef.value.naturalHeight;
-    console.log('图片尺寸:', imageNaturalWidth.value, imageNaturalHeight.value);
+    console.log('✓ 图片尺寸:', imageNaturalWidth.value, 'x', imageNaturalHeight.value);
+    console.log('✓ 图片 src:', imageRef.value.src?.substring(0, 100));
+    
     nextTick(() => {
       updateImageDimensions();
       // 确保Canvas已初始化
       if (!ctx.value && canvas.value) {
+        console.log('初始化 Canvas');
         initCanvas();
-      } else {
+      } else if (canvas.value && ctx.value) {
+        console.log('立即绘制 Canvas');
         drawAllTrajectories();
+        
+        // 延迟再次绘制，确保图片完全加载
+        setTimeout(() => {
+          if (canvas.value && ctx.value && imageRef.value && imageRef.value.complete) {
+            console.log('延迟绘制 Canvas');
+            drawAllTrajectories();
+          }
+        }, 100);
+      } else {
+        console.warn('Canvas 或 ctx 不存在');
       }
     });
+  } else {
+    console.error('❌ imageRef.value 不存在');
   }
 };
 
@@ -4618,11 +4673,194 @@ const setCranePosition = () => {
             importedImage.value = null; // 使用后端图片，不再用本地预览
 
             try {
-              // 使用封装的 getStreamImage 接口获取图片流
+              // 使用封装的 getStreamImage 接口获取图片流（可能是图片、SVG 或 CAD 文件流）
               isPlanImageLoading.value = true;
               const blob = await getStreamImage(flatId);
-              planImageUrl.value = URL.createObjectURL(blob);
-              console.log("✓ 已通过 getStreamImage 加载施工场景平面图");
+              
+              if (!blob) {
+                console.error('getStreamImage 返回的 blob 为空');
+                planImageUrl.value = null;
+                ElMessage.warning("加载施工场景平面图失败");
+                return;
+              }
+              
+              // 检测文件类型
+              const blobType = blob.type || '';
+              let isSvgFile = blobType.includes('svg') || blobType.includes('image/svg');
+              
+              // 如果类型不明确，尝试读取文件内容的前几个字节来判断
+              if (!isSvgFile && blob.size > 0) {
+                try {
+                  const arrayBuffer = await blob.slice(0, 100).arrayBuffer();
+                  const uint8Array = new Uint8Array(arrayBuffer);
+                  const textDecoder = new TextDecoder('utf-8');
+                  const preview = textDecoder.decode(uint8Array);
+                  
+                  // 检查是否是 SVG（SVG 通常以 <svg 或 <?xml 开头）
+                  if (preview.trim().startsWith('<svg') || preview.trim().startsWith('<?xml')) {
+                    isSvgFile = true;
+                    console.log('通过内容检测，确认为 SVG 文件');
+                  }
+                } catch (e) {
+                  console.warn('无法读取文件内容进行类型检测:', e);
+                }
+              }
+              
+              console.log('获取到文件流:', {
+                size: blob.size,
+                type: blobType,
+                sizeKB: (blob.size / 1024).toFixed(2) + ' KB',
+                isSvgFile: isSvgFile
+              });
+              
+              // 如有旧的 blob: URL，先释放
+              if (planImageUrl.value && planImageUrl.value.startsWith("blob:")) {
+                URL.revokeObjectURL(planImageUrl.value);
+              }
+              
+              // 创建新的 blob URL
+              const newBlobUrl = URL.createObjectURL(blob);
+              
+              // 清空旧的引用
+              importedImage.value = null;
+              
+              // 先清空 planImageUrl，确保触发更新
+              planImageUrl.value = null;
+              
+              // 等待 DOM 更新
+              await nextTick();
+              await new Promise(resolve => setTimeout(resolve, 50));
+              
+              // 设置新的 URL
+              planImageUrl.value = newBlobUrl;
+              
+              console.log('✓ 已设置 planImageUrl:', newBlobUrl);
+              
+              // 再次等待 DOM 更新，确保 img 元素的 src 已更新
+              await nextTick();
+              await new Promise(resolve => setTimeout(resolve, 100));
+              
+              // 无论是什么格式，都尝试用图片元素显示
+              if (imageRef.value) {
+                const img = imageRef.value;
+                console.log('✓ 图片元素存在，当前 src:', img.src?.substring(0, 100));
+                
+                // 创建一个更健壮的加载等待机制
+                const imageLoadPromise = new Promise((resolve, reject) => {
+                  let resolved = false;
+                  
+                  // 检查是否已经加载完成
+                  const checkComplete = () => {
+                    if (resolved) return false;
+                    if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+                      console.log('✓ 图片已加载完成（检查时）');
+                      resolved = true;
+                      resolve();
+                      return true;
+                    }
+                    return false;
+                  };
+                  
+                  // 如果已经完成，直接返回
+                  if (checkComplete()) {
+                    return;
+                  }
+                  
+                  // 监听加载事件
+                  const onLoad = () => {
+                    if (resolved) return;
+                    console.log('✓ 图片 load 事件触发');
+                    img.removeEventListener('load', onLoad);
+                    img.removeEventListener('error', onError);
+                    resolved = true;
+                    resolve();
+                  };
+                  
+                  // 监听错误事件
+                  const onError = (e) => {
+                    if (resolved) return;
+                    console.error('✗ 图片加载错误:', e);
+                    img.removeEventListener('load', onLoad);
+                    img.removeEventListener('error', onError);
+                    resolved = true;
+                    reject(new Error('图片加载失败'));
+                  };
+                  
+                  img.addEventListener('load', onLoad);
+                  img.addEventListener('error', onError);
+                  
+                  // 定期检查（每 100ms 检查一次）
+                  const checkInterval = setInterval(() => {
+                    if (resolved) {
+                      clearInterval(checkInterval);
+                      return;
+                    }
+                    if (checkComplete()) {
+                      clearInterval(checkInterval);
+                    }
+                  }, 100);
+                  
+                  // 设置超时（15秒）
+                  setTimeout(() => {
+                    if (resolved) return;
+                    clearInterval(checkInterval);
+                    img.removeEventListener('load', onLoad);
+                    img.removeEventListener('error', onError);
+                    
+                    // 即使超时，也检查一下是否已经加载
+                    if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+                      console.log('✓ 图片在超时前已加载完成');
+                      resolved = true;
+                      resolve();
+                    } else {
+                      console.error('✗ 图片加载超时');
+                      resolved = true;
+                      reject(new Error('图片加载超时'));
+                    }
+                  }, 15000);
+                });
+                
+                try {
+                  await imageLoadPromise;
+                  console.log('✓ 图片加载 Promise 完成，调用 handleImageLoad');
+                  
+                  // 再次等待一下，确保图片完全渲染
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  
+                  // 调用 handleImageLoad 更新尺寸并绘制
+                  handleImageLoad();
+                  
+                  // 再次强制绘制一次，确保显示
+                  await nextTick();
+                  if (canvas.value && ctx.value) {
+                    drawAllTrajectories();
+                  }
+                  
+                  console.log("✓ 已通过 getStreamImage 加载施工场景平面图");
+                } catch (error) {
+                  console.error("等待图片加载失败:", error);
+                  
+                  // 即使加载失败，也尝试调用 handleImageLoad（可能图片已经加载了）
+                  try {
+                    if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+                      console.log('✓ 虽然 Promise 失败，但图片已加载，继续处理');
+                      handleImageLoad();
+                      await nextTick();
+                      if (canvas.value && ctx.value) {
+                        drawAllTrajectories();
+                      }
+                      console.log("✓ 已通过 getStreamImage 加载施工场景平面图（恢复）");
+                    } else {
+                      console.log("✓ 已通过 getStreamImage 加载施工场景平面图（但加载状态异常）");
+                    }
+                  } catch (e) {
+                    console.error("处理图片失败:", e);
+                    console.log("✓ 已通过 getStreamImage 加载施工场景平面图（但处理失败）");
+                  }
+                }
+              } else {
+                console.log("✓ 已通过 getStreamImage 加载施工场景平面图（但图片元素不存在）");
+              }
             } catch (e) {
               console.error("加载施工场景平面图失败:", e);
               planImageUrl.value = null;
@@ -5645,31 +5883,293 @@ const handleBack = () => {
   };
 
   // 处理导入平面图（顶部/弹窗入口）
-  const handleImportPlan = () => {
+  const handleImportPlan = async () => {
     // 创建隐藏的文件输入元素
     if (!fileInput.value) {
       fileInput.value = document.createElement("input");
       fileInput.value.type = "file";
-      fileInput.value.accept = "image/*";
-      fileInput.value.onchange = (event) => {
+      // 支持图片文件和 CAD 文件（.dwg 和 .dxf）
+      fileInput.value.accept = "image/*,.dwg,.dxf";
+      fileInput.value.onchange = async (event) => {
         const file = event.target.files[0];
         if (file) {
-          // 记录用户选择的平面图文件，保存时上传以获取 flatImageFileId
-          flatImageFile.value = file;
-          // 每次重新选择图片时，认为是新的平面图，清空旧的 fileId
-          flatImageFileId.value = null;
-
-          // 创建图片预览URL
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            importedImage.value = e.target.result;
-            console.log("已导入图片:", importedImage.value);
-            // 使用新导入的图片进行显示，不再使用后端图片
-            planImageUrl.value = null;
-            // 关闭弹窗
-            dialogVisible.value = false;
-          };
-          reader.readAsDataURL(file);
+          const fileName = file.name.toLowerCase();
+          const isCadFile = fileName.endsWith('.dwg') || fileName.endsWith('.dxf');
+          
+          if (isCadFile) {
+            // CAD 文件需要上传到后端，然后通过 getStreamImage 获取文件流显示
+            try {
+              ElMessage.info("正在上传 CAD 文件，请稍候...");
+              const uploadResponse = await uploadImage(file, file.name);
+              
+              if (uploadResponse && uploadResponse.code === "0" && uploadResponse.data && uploadResponse.data.fileId) {
+                flatImageFileId.value = uploadResponse.data.fileId;
+                flatImageFile.value = null; // 清空临时文件引用，因为已经上传成功
+                
+                // 立即调用 getStreamImage 获取文件流并显示
+                try {
+                  console.log('开始获取 CAD 文件流，fileId:', uploadResponse.data.fileId);
+                  const blob = await getStreamImage(uploadResponse.data.fileId);
+                  
+                  if (!blob) {
+                    console.error('getStreamImage 返回的 blob 为空');
+                    ElMessage.warning("CAD 文件上传成功，但无法加载预览，请刷新页面查看");
+                    return;
+                  }
+                  
+                  // 检测文件类型
+                  const blobType = blob.type || '';
+                  let isSvgFile = blobType.includes('svg') || blobType.includes('image/svg');
+                  let isImageFile = blobType.startsWith('image/') || isSvgFile;
+                  
+                  // 如果类型不明确，尝试读取文件内容的前几个字节来判断
+                  if (!isSvgFile && blob.size > 0) {
+                    try {
+                      const arrayBuffer = await blob.slice(0, 200).arrayBuffer();
+                      const uint8Array = new Uint8Array(arrayBuffer);
+                      const textDecoder = new TextDecoder('utf-8');
+                      const preview = textDecoder.decode(uint8Array);
+                      
+                      // 检查是否是 SVG（SVG 通常以 <svg 或 <?xml 开头）
+                      if (preview.trim().startsWith('<svg') || preview.trim().startsWith('<?xml')) {
+                        isSvgFile = true;
+                        isImageFile = true;
+                        console.log('✓ 通过内容检测，确认为 SVG 文件');
+                      } else {
+                        // 检查是否是图片格式（PNG, JPEG, GIF 等）
+                        const header = Array.from(uint8Array.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('');
+                        if (header.startsWith('89504e47') || // PNG
+                            header.startsWith('ffd8ff') || // JPEG
+                            header.startsWith('47494638')) { // GIF
+                          isImageFile = true;
+                          console.log('✓ 通过内容检测，确认为图片文件');
+                        }
+                      }
+                    } catch (e) {
+                      console.warn('无法读取文件内容进行类型检测:', e);
+                    }
+                  }
+                  
+                  console.log('获取到文件 blob:', {
+                    size: blob.size,
+                    type: blobType,
+                    sizeKB: (blob.size / 1024).toFixed(2) + ' KB',
+                    isSvgFile: isSvgFile,
+                    isImageFile: isImageFile
+                  });
+                  
+                  // 如有旧的 blob: URL，先释放
+                  if (planImageUrl.value && planImageUrl.value.startsWith("blob:")) {
+                    URL.revokeObjectURL(planImageUrl.value);
+                  }
+                  
+                  // 清空旧的引用
+                  importedImage.value = null;
+                  cadFileBlob.value = null;
+                  
+                  // 如果是图片或 SVG，使用 img 标签显示
+                  if (isImageFile || isSvgFile) {
+                    planImageFileType.value = isSvgFile ? 'svg' : 'image';
+                    
+                    // 创建新的 blob URL
+                    const newBlobUrl = URL.createObjectURL(blob);
+                    
+                    // 先清空 planImageUrl，确保触发更新
+                    planImageUrl.value = null;
+                    
+                    // 等待 DOM 更新
+                    await nextTick();
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                    
+                    // 设置新的 URL
+                    planImageUrl.value = newBlobUrl;
+                    
+                    console.log('✓ 已设置 planImageUrl (图片/SVG):', newBlobUrl);
+                    
+                    // 再次等待 DOM 更新，确保 img 元素的 src 已更新
+                    await nextTick();
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // 使用图片元素显示
+                    if (imageRef.value) {
+                      const img = imageRef.value;
+                      console.log('✓ 图片元素存在，当前 src:', img.src?.substring(0, 100));
+                      
+                      // 创建一个更健壮的加载等待机制
+                      const imageLoadPromise = new Promise((resolve, reject) => {
+                        let resolved = false;
+                        
+                        // 检查是否已经加载完成
+                        const checkComplete = () => {
+                          if (resolved) return false;
+                          if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+                            console.log('✓ 图片已加载完成（检查时）');
+                            resolved = true;
+                            resolve();
+                            return true;
+                          }
+                          return false;
+                        };
+                        
+                        // 如果已经完成，直接返回
+                        if (checkComplete()) {
+                          return;
+                        }
+                        
+                        // 监听加载事件
+                        const onLoad = () => {
+                          if (resolved) return;
+                          console.log('✓ 图片 load 事件触发');
+                          img.removeEventListener('load', onLoad);
+                          img.removeEventListener('error', onError);
+                          resolved = true;
+                          resolve();
+                        };
+                        
+                        // 监听错误事件
+                        const onError = (e) => {
+                          if (resolved) return;
+                          console.error('✗ 图片加载错误:', e);
+                          img.removeEventListener('load', onLoad);
+                          img.removeEventListener('error', onError);
+                          resolved = true;
+                          reject(new Error('图片加载失败'));
+                        };
+                        
+                        img.addEventListener('load', onLoad);
+                        img.addEventListener('error', onError);
+                        
+                        // 定期检查（每 100ms 检查一次）
+                        const checkInterval = setInterval(() => {
+                          if (resolved) {
+                            clearInterval(checkInterval);
+                            return;
+                          }
+                          if (checkComplete()) {
+                            clearInterval(checkInterval);
+                          }
+                        }, 100);
+                        
+                        // 设置超时（15秒）
+                        setTimeout(() => {
+                          if (resolved) return;
+                          clearInterval(checkInterval);
+                          img.removeEventListener('load', onLoad);
+                          img.removeEventListener('error', onError);
+                          
+                          // 即使超时，也检查一下是否已经加载
+                          if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+                            console.log('✓ 图片在超时前已加载完成');
+                            resolved = true;
+                            resolve();
+                          } else {
+                            console.error('✗ 图片加载超时');
+                            resolved = true;
+                            reject(new Error('图片加载超时'));
+                          }
+                        }, 15000);
+                      });
+                      
+                      try {
+                        await imageLoadPromise;
+                        console.log('✓ 图片加载 Promise 完成，调用 handleImageLoad');
+                        
+                        // 再次等待一下，确保图片完全渲染
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                        // 调用 handleImageLoad 更新尺寸并绘制
+                        handleImageLoad();
+                        
+                        // 再次强制绘制一次，确保显示
+                        await nextTick();
+                        if (canvas.value && ctx.value) {
+                          drawAllTrajectories();
+                        }
+                        
+                        ElMessage.success("CAD 文件上传成功，已加载" + (isSvgFile ? " SVG 图片" : "图片"));
+                      } catch (error) {
+                        console.error("等待图片加载失败:", error);
+                        
+                        // 即使加载失败，也尝试调用 handleImageLoad（可能图片已经加载了）
+                        try {
+                          if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+                            console.log('✓ 虽然 Promise 失败，但图片已加载，继续处理');
+                            handleImageLoad();
+                            await nextTick();
+                            if (canvas.value && ctx.value) {
+                              drawAllTrajectories();
+                            }
+                            ElMessage.success("CAD 文件上传成功，已加载");
+                          } else {
+                            ElMessage.warning("CAD 文件上传成功，但图片加载可能有问题，请刷新页面查看");
+                          }
+                        } catch (e) {
+                          console.error("处理图片失败:", e);
+                          ElMessage.warning("CAD 文件上传成功，但图片加载可能有问题，请刷新页面查看");
+                        }
+                      }
+                    } else {
+                      console.error('✗ 图片元素不存在');
+                      ElMessage.warning("CAD 文件上传成功，但图片元素未找到");
+                    }
+                  } else {
+                    // 如果不是图片格式，可能是 CAD 文件流，尝试使用 iframe 或其他方式
+                    console.warn('⚠️ 文件流不是图片格式，可能是 CAD 文件流');
+                    planImageFileType.value = 'cad';
+                    cadFileBlob.value = blob;
+                    
+                    // 尝试创建一个 data URL 用于 iframe
+                    const reader = new FileReader();
+                    const dataUrlPromise = new Promise((resolve, reject) => {
+                      reader.onload = () => resolve(reader.result);
+                      reader.onerror = reject;
+                      reader.readAsDataURL(blob);
+                    });
+                    
+                    try {
+                      const dataUrl = await dataUrlPromise;
+                      const newBlobUrl = URL.createObjectURL(blob);
+                      
+                      planImageUrl.value = null;
+                      await nextTick();
+                      planImageUrl.value = newBlobUrl;
+                      
+                      console.log('✓ 已设置 planImageUrl (CAD):', newBlobUrl);
+                      
+                      ElMessage.warning("CAD 文件上传成功，但浏览器无法直接显示 DWG/DXF 格式。建议后端将 CAD 文件转换为 SVG 或图片格式。");
+                    } catch (e) {
+                      console.error("创建 CAD 文件 URL 失败:", e);
+                      ElMessage.warning("CAD 文件上传成功，但无法显示。请确保后端返回 SVG 或图片格式。");
+                    }
+                  }
+                  
+                  // 关闭弹窗
+                  dialogVisible.value = false;
+                } catch (error) {
+                  console.error("加载 CAD 文件流失败:", error);
+                  ElMessage.warning("CAD 文件上传成功，但无法加载预览，请刷新页面查看");
+                }
+              } else {
+                ElMessage.error(uploadResponse?.msg || "CAD 文件上传失败");
+              }
+            } catch (error) {
+              console.error("上传 CAD 文件失败:", error);
+              ElMessage.error("上传 CAD 文件失败，请稍后重试");
+            }
+          } else {
+            // 图片文件使用 FileReader 预览
+            flatImageFile.value = file;
+            flatImageFileId.value = null;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              importedImage.value = e.target.result;
+              console.log("已导入图片:", importedImage.value);
+              planImageUrl.value = null;
+              dialogVisible.value = false;
+            };
+            reader.readAsDataURL(file);
+          }
         }
       };
     }
