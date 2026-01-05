@@ -52,8 +52,8 @@ const handleLogin = () => {
     ElMessage.success('登录成功')
     // 设置用户状态
     userStore.login(loginForm.username)
-    // 登录成功后跳转到全部项目页面
-    router.push('/all-projects')
+    // 登录成功后跳转到中转欢迎页面
+    router.push('/welcome')
   } else {
     ElMessage.error('请输入用户名和密码')
   }
@@ -63,7 +63,7 @@ const skipLogin = () => {
   // 设置跳过登录状态
   userStore.skipLogin()
   // 直接进入系统
-  router.push('/all-projects')
+  router.push('/welcome')
 }
 </script>
 
