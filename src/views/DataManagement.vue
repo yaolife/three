@@ -20,9 +20,9 @@
                     搜索
                   </el-button>
                 </div>
-                <el-button type="primary" @click="handleAddCrane">
-                  <el-icon><Plus /></el-icon>
-                  新建
+                <el-button @click="handleAddCrane">
+                  <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+                   <span style="margin-left: 6px">新建</span>
                 </el-button>
               </div>
               <el-table
