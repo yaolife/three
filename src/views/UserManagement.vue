@@ -1,11 +1,6 @@
 <template>
   <div class="user-management-container">
     <el-card class="page-card">
-      <template #header>
-        <div class="card-header">
-          <span>账号管理</span>
-        </div>
-      </template>
       <div class="page-content">
         <div class="toolbar">
           <div class="search-group">
@@ -625,7 +620,7 @@ onMounted(() => {
 
 <style scoped>
 .user-management-container {
-  padding: 20px 0;
+  padding: 5px 0;
 }
 
 .page-card {
@@ -640,9 +635,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.page-content {
-  padding: 20px 0;
-}
 
 .toolbar {
   display: flex;
