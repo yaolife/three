@@ -4809,20 +4809,76 @@ const setCranePosition = () => {
             importedImage.value = null; // 使用后端图片，不再用本地预览
 
             try {
-              // 使用封装的 getStreamImage 接口获取图片流（可能是图片、SVG 或 CAD 文件流）
+              // 使用封装的 getStreamImage 接口获取图片流（可能是 PNG 图片、SVG 或 CAD 文件流）
               isPlanImageLoading.value = true;
               const blob = await getStreamImage(flatId);
 
               if (!blob) {
-                console.error('getStreamImage 返回的 blob 为空');
+                console.error("getStreamImage 返回的 blob 为空");
                 planImageUrl.value = null;
                 ElMessage.warning("加载施工场景平面图失败");
                 return;
               }
 
-              // 统一处理 CAD 文件显示
-              await handleCadFileDisplay(blob, flatId);
-              console.log("✓ 已通过 getStreamImage 加载施工场景平面图");
+              // 根据返回的 Blob 类型判断是普通图片 / SVG 还是 CAD 文件流
+              const blobType = blob.type || "";
+              let isSvgFile = blobType.includes("svg") || blobType.includes("image/svg");
+              let isImageFile = blobType.startsWith("image/") || isSvgFile;
+
+              // 如果类型不明确，尝试读取文件内容前几个字节来判断（兼容后端未正确设置 Content-Type 的情况）
+              if (!isSvgFile && !isImageFile && blob.size > 0) {
+                try {
+                  const arrayBuffer = await blob.slice(0, 200).arrayBuffer();
+                  const uint8Array = new Uint8Array(arrayBuffer);
+                  const textDecoder = new TextDecoder("utf-8");
+                  const preview = textDecoder.decode(uint8Array);
+
+                  // 检查是否是 SVG（SVG 通常以 <svg 或 <?xml 开头）
+                  if (preview.trim().startsWith("<svg") || preview.trim().startsWith("<?xml")) {
+                    isSvgFile = true;
+                    isImageFile = true;
+                    console.log("✓ 通过内容检测，确认为 SVG 文件（getStreamImage）");
+                  }
+                } catch (e) {
+                  console.warn("无法读取文件内容进行类型检测（getStreamImage）:", e);
+                }
+              }
+
+              console.log("getStreamImage 返回的文件信息:", {
+                size: blob.size,
+                type: blobType,
+                isSvgFile,
+                isImageFile,
+              });
+
+              if (isImageFile) {
+                // 普通图片或 SVG：按图片方式处理（与之前 PNG 逻辑一致）
+                isCadFile.value = false;
+
+                // 释放旧的 blob: URL
+                if (planImageUrl.value && planImageUrl.value.startsWith("blob:")) {
+                  URL.revokeObjectURL(planImageUrl.value);
+                }
+                if (cadBlobUrl.value && cadBlobUrl.value.startsWith("blob:")) {
+                  URL.revokeObjectURL(cadBlobUrl.value);
+                }
+
+                const newBlobUrl = URL.createObjectURL(blob);
+
+                // 先清空再赋值，强制触发 img 重新加载
+                planImageUrl.value = null;
+                cadBlobUrl.value = null;
+
+                await nextTick();
+
+                planImageUrl.value = newBlobUrl;
+
+                console.log("✓ 已通过 getStreamImage 设置平面图 URL (图片/SVG):", newBlobUrl);
+              } else {
+                // 非图片类型，按 CAD 文件处理
+                await handleCadFileDisplay(blob, flatId);
+                console.log("✓ 已通过 getStreamImage 加载 CAD 类型施工场景平面图");
+              }
             } catch (e) {
               console.error("加载施工场景平面图失败:", e);
               planImageUrl.value = null;
