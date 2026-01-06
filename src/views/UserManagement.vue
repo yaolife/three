@@ -95,14 +95,16 @@
           </el-table-column>
         </el-table>
 
-        <el-pagination
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          :total="total"
-          layout="total, prev, pager, next"
-          class="pagination"
-          @current-change="handlePageChange"
-        />
+        <div class="pagination-container">
+          <div class="pagination-info">共 {{ total }} 条</div>
+          <el-pagination
+            v-model:current-page="currentPage"
+            :page-size="pageSize"
+            :total="total"
+            layout="prev, pager, next"
+            @current-change="handlePageChange"
+          />
+        </div>
       </div>
     </el-card>
 
@@ -654,10 +656,20 @@ onMounted(() => {
   align-items: center;
 }
 
-.pagination {
-  margin-top: 20px;
+.pagination-container {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 20px;
+  border-top: 1px solid #ebeef5;
+}
+
+.pagination-info {
+  color: #606266;
+  font-size: 14px;
+  margin-right: 0;
 }
 
 .dialog-footer {

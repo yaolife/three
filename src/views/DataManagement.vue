@@ -110,7 +110,7 @@
                   v-model:page-size="cranePageSize"
                   :page-sizes="[10, 20, 50, 100]"
                   :total="craneTotal"
-                  layout="prev, pager, next, jumper, sizes"
+                  layout="prev, pager, next"
                   @current-change="handleCranePageChange"
                   @size-change="handleCranePageSizeChange"
                 />
@@ -223,7 +223,7 @@
                   v-model:page-size="riggingPageSize"
                   :page-sizes="[10, 20, 50, 100]"
                   :total="riggingTotal"
-                  layout="prev, pager, next, jumper, sizes"
+                  layout="prev, pager, next"
                   @current-change="handleRiggingPageChange"
                   @size-change="handleRiggingPageSizeChange"
                 />
@@ -325,7 +325,7 @@
                   v-model:page-size="equipmentPageSize"
                   :page-sizes="[10, 20, 50, 100]"
                   :total="equipmentTotal"
-                  layout="prev, pager, next, jumper, sizes"
+                  layout="prev, pager, next"
                   @current-change="handleEquipmentPageChange"
                   @size-change="handleEquipmentPageSizeChange"
                 />
@@ -416,7 +416,7 @@
                   v-model:page-size="craneModelPageSize"
                   :page-sizes="[10, 20, 50, 100]"
                   :total="craneModelTotal"
-                  layout="prev, pager, next, jumper, sizes"
+                  layout="prev, pager, next"
                   @current-change="handleCraneModelPageChange"
                   @size-change="handleCraneModelPageSizeChange"
                 />
@@ -1658,15 +1658,18 @@ onMounted(() => {
 
 .pagination-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  gap: 16px;
   margin-top: 20px;
-  padding: 0 20px;
+  padding: 20px;
+  border-top: 1px solid #ebeef5;
 }
 
 .pagination-info {
   color: #606266;
   font-size: 14px;
+  margin-right: 0;
 }
 
 .dialog-footer {

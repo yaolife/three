@@ -195,7 +195,7 @@
                     v-model:page-size="syncCranePageSize"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="syncCraneTotal"
-                    layout="prev, pager, next, jumper, sizes"
+                    layout="prev, pager, next"
                     @current-change="handleSyncCranePageChange"
                     @size-change="handleSyncCranePageSizeChange"
                   />
@@ -250,7 +250,7 @@
                     v-model:page-size="syncRiggingPageSize"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="syncRiggingTotal"
-                    layout="prev, pager, next, jumper, sizes"
+                    layout="prev, pager, next"
                     @current-change="handleSyncRiggingPageChange"
                     @size-change="handleSyncRiggingPageSizeChange"
                   />
@@ -300,7 +300,7 @@
                     v-model:page-size="syncEquipmentPageSize"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="syncEquipmentTotal"
-                    layout="prev, pager, next, jumper, sizes"
+                    layout="prev, pager, next"
                     @current-change="handleSyncEquipmentPageChange"
                     @size-change="handleSyncEquipmentPageSizeChange"
                   />
@@ -350,7 +350,7 @@
                     v-model:page-size="syncCraneModelPageSize"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="syncCraneModelTotal"
-                    layout="prev, pager, next, jumper, sizes"
+                    layout="prev, pager, next"
                     @current-change="handleSyncCraneModelPageChange"
                     @size-change="handleSyncCraneModelPageSizeChange"
                   />
@@ -1998,7 +1998,8 @@ border: 1px solid #A2A2A2;
   justify-content: space-between;
   align-items: center;
   margin-top: 20px;
-  padding: 0 20px;
+  padding: 20px;
+  border-top: 1px solid #ebeef5;
 }
 
 .pagination-info {
@@ -2032,5 +2033,100 @@ body .login-dialog .el-dialog__header {
   border: none !important;
   border-bottom: none !important;
   border-right: none !important;
+}
+
+/* 全局样式：所有 table 的分页样式 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 20px;
+  border-top: 1px solid #ebeef5;
+}
+
+.pagination-info {
+  color: #606266;
+  font-size: 14px;
+  margin-right: 0;
+}
+
+/* 分页组件样式优化 */
+.el-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.el-pagination .btn-prev,
+.el-pagination .btn-next {
+  min-width: 32px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  background-color: #fff;
+  color: #606266;
+  border-radius: 4px;
+  margin: 0 4px;
+}
+
+.el-pagination .btn-prev:hover,
+.el-pagination .btn-next:hover {
+  color: #409eff;
+  border-color: #409eff;
+}
+
+.el-pagination .btn-prev.is-disabled,
+.el-pagination .btn-next.is-disabled {
+  color: #c0c4cc;
+  border-color: #e4e7ed;
+  background-color: #f5f7fa;
+  cursor: not-allowed;
+}
+
+.el-pagination .el-pager {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.el-pagination .el-pager li {
+  min-width: 32px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 4px;
+  border: 1px solid #dcdfe6;
+  background-color: #fff;
+  color: #606266;
+  border-radius: 4px;
+  margin: 0 2px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.el-pagination .el-pager li:hover {
+  color: #409eff;
+  border-color: #409eff;
+}
+
+.el-pagination .el-pager li.is-active {
+  color: #409eff;
+  border-color: #409eff;
+  background-color: #ecf5ff;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.el-pagination .el-pager li.more {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.el-pagination .el-pager li.more:hover {
+  color: #606266;
+  border: none;
 }
 </style>

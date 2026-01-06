@@ -80,7 +80,7 @@
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :page-sizes="[10, 20, 50, 100]"
-          layout="prev, pager, next, jumper, sizes"
+          layout="prev, pager, next"
           :total="total"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
@@ -770,15 +770,18 @@ defineExpose({
 
 .pagination-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  gap: 16px;
   margin-top: 20px;
-  padding: 0 20px;
+  padding: 20px;
+  border-top: 1px solid #ebeef5;
 }
 
 .pagination-info {
   color: #606266;
   font-size: 14px;
+  margin-right: 0;
 }
 
 /* 项目类型选择样式 */
