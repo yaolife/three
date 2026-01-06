@@ -25,11 +25,11 @@
             </el-button>
           </div>
           <div style="display: flex; gap: 12px;">
-            <el-button @click="handleAdd">
-            <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
-            <span style="margin-left: 6px">新增用户</span>
+            <el-button class="um-action-btn" @click="handleAdd">
+              <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+              <span style="margin-left: 6px">新增用户</span>
             </el-button>
-            <el-button @click="handleExport" :loading="exportLoading">
+            <el-button class="um-action-btn" @click="handleExport" :loading="exportLoading">
               <el-icon><Download /></el-icon>
               导出
             </el-button>
@@ -47,9 +47,9 @@
               {{ scope.$index + 1 + (currentPage - 1) * pageSize }}
             </template>
           </el-table-column>
-          <el-table-column prop="userNickName" align="center" label="用户昵称" min-width="120" />
-          <el-table-column prop="userName" align="center"  label="用户名" min-width="120" />
-          <el-table-column prop="userUnit" align="center" label="用户单位" min-width="150" />
+          <el-table-column prop="userNickName" label="用户昵称" min-width="120" />
+          <el-table-column prop="userName" label="用户名" min-width="120" />
+          <el-table-column prop="userUnit" label="用户单位" min-width="150" />
           <el-table-column prop="level" label="账号级别" width="120" align="center">
             <template #default="scope">
               <el-tag :type="scope.row.level === 1 ? 'danger' : 'info'">
@@ -67,8 +67,8 @@
               />
             </template>
           </el-table-column>
-          <el-table-column prop="createName" align="center" label="创建人名称" width="120" />
-          <el-table-column prop="createTime" align="center" label="创建时间" width="180" />
+          <el-table-column prop="createName" label="创建人名称" width="120" />
+          <el-table-column prop="createTime" label="创建时间" width="180" />
           <el-table-column label="操作" width="200" fixed="right" align="center">
             <template #default="scope">
               <el-button
@@ -646,6 +646,23 @@ onMounted(() => {
 .search-group {
   display: flex;
   align-items: center;
+}
+
+/* user-management 页面“新增用户 / 导出”按钮样式 */
+.um-action-btn {
+  border-radius: 4px;
+  background: #EBEBEB;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+  border: none;
+  color: #5E5E5E;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+}
+
+.um-action-btn:hover {
+  background: #E0E0E0;
+  color: #5E5E5E;
 }
 
 .pagination-container {
