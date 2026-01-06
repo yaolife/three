@@ -1,13 +1,58 @@
 <template>
   <div class="all-projects-container">
     <el-card class="project-table-card">
-      <!-- 上传按钮工具栏 -->
-      <div class="table-toolbar" v-if="canShowUpload">
-        <div class="toolbar-spacer"></div>
-        <el-button type="primary" @click="handleUpload">
-          <el-icon><Upload /></el-icon>
-          上传
-        </el-button>
+      <!-- 顶部功能工具栏：创建 / 搜索 / 云端同步 / 复制 / 上传 -->
+      <div class="projects-toolbar">
+        <div class="projects-toolbar-left">
+          <el-button type="primary" @click="handleCreateClick">
+            <el-icon><Plus /></el-icon>
+            创建项目
+          </el-button>
+          <div class="projects-search-box">
+            <el-input
+              v-model="searchTitle"
+              placeholder="请输入项目标题"
+              prefix-icon="Search"
+              style="width: 240px"
+              clearable
+              @keyup.enter="handleSearchClick"
+            />
+            <el-button type="default" style="margin-left: 8px" @click="handleSearchClick">
+              搜索
+            </el-button>
+          </div>
+        </div>
+        <div class="projects-toolbar-right">
+          <el-button
+            v-if="userStore.userState.userInfo?.loginType === 0"
+            type="default"
+            @click="handleCloudSyncClick"
+          >
+            <img
+              style="width: 18px; height: 18px; margin-right: 4px"
+              src="@/images/synchronize.png"
+              alt="数据同步"
+            />
+            云端数据同步
+          </el-button>
+          <el-button type="default" style="margin-left: 8px" @click="handleCopyClick">
+            <img
+              style="width: 18px; height: 18px; margin-right: 4px"
+              src="@/images/copy.png"
+              alt="复制"
+            />
+            复制
+          </el-button>
+          <el-button
+            v-if="canShowUpload"
+            type="primary"
+            style="margin-left: 8px"
+            @click="handleUpload"
+          >
+            <el-icon><Upload /></el-icon>
+            上传
+          </el-button>
+        </div>
       </div>
       
       <!-- 项目列表表格 -->
@@ -131,7 +176,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Upload } from '@element-plus/icons-vue'
+import { Upload, Plus, Search } from '@element-plus/icons-vue'
 import { getAllProject, handleEditProject, deleteProjectItem, copyProjectItem, pushProject, openSimulation } from '../api/index.js'
 import userStore from '../store/user.js'
 
@@ -323,6 +368,31 @@ const checkCreateFlag = () => {
 const handleSelectionChange = (selection) => {
   selectedProjects.value = selection;
   console.log('选中的项目:', selection);
+};
+
+// 顶部工具栏：创建项目
+const handleCreateClick = () => {
+  // 直接打开当前列表页面的创建项目弹窗
+  openCreateDialog();
+};
+
+// 顶部工具栏：搜索
+const handleSearchClick = () => {
+  searchProject(searchTitle.value);
+};
+
+// 顶部工具栏：云端数据同步
+const handleCloudSyncClick = () => {
+  if (window.openSyncDialogDirect) {
+    window.openSyncDialogDirect();
+  } else {
+    ElMessage.warning('云端数据同步暂不可用，请刷新页面后重试');
+  }
+};
+
+// 顶部工具栏：复制
+const handleCopyClick = () => {
+  copyProject();
 };
 
 // 处理上传按钮点击
@@ -751,16 +821,28 @@ defineExpose({
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.table-toolbar {
+/* 顶部功能工具栏样式 */
+.projects-toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  padding: 3px 20px;
-  margin-bottom: 0;
+  padding-bottom:  20px;
 }
 
-.toolbar-spacer {
-  flex: 1;
+.projects-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.projects-search-box {
+  display: flex;
+  align-items: center;
+}
+
+.projects-toolbar-right {
+  display: flex;
+  align-items: center;
 }
 
 .create-project-btn-container {

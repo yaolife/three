@@ -38,26 +38,7 @@
             {{ backMenuLabel }}
           </span>
           <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
-          <!-- 只在项目列表页面显示创建项目按钮和搜索框 -->
-          <template v-if="isProjectListPage">
-            <el-button type="primary" size="large" @click="createProject">
-              <el-icon style="font-size: 10px; margin-right: 5px;background-color: white;color: #06F;padding: 2px;"><Plus /></el-icon>
-              创建项目
-            </el-button>
-            <div class="search-box">
-              <el-input 
-                v-model="searchTitle" 
-                placeholder="请输入项目标题" 
-                prefix-icon="Search" 
-                size="large"
-                @keyup.enter="handleSearch"
-                clearable
-              />
-              <el-button type="default" size="large" style="margin-left: 8px" @click="handleSearch">
-                搜索
-              </el-button>
-            </div>
-          </template>
+          <!-- 项目列表页的创建 / 搜索 已移动到列表页面上方，这里不再显示 -->
         </div>
         <div class="header-right">
           <div class="user-status" @click="handleStatusClick">
@@ -72,30 +53,7 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-button 
-            v-if="userStore.userState.userInfo?.loginType === 0"
-            type="default" 
-            size="large" 
-            style="margin-left: 12px" 
-            @click="handleDataSynchronization"
-          >
-             <img
-                 style="width: 22px; height: 22px;margin-right: 5px;"
-                src="@/images/synchronize.png"
-                alt="数据同步"
-                :fit="'cover'"
-              />
-            <span>云端数据同步</span>
-          </el-button>   
-          <el-button type="default" size="large" style="margin-left: 12px" @click="handleCopy">
-                  <img
-                 style="width: 22px; height: 22px;margin-right: 5px;"
-                src="@/images/copy.png"
-                alt="复制"
-                :fit="'cover'"
-              />
-             <span>复制</span>
-          </el-button>
+          <!-- 云端数据同步 / 复制 已移动到项目列表页面的表格上方 -->
         </div>
       </el-header>
       
@@ -1014,6 +972,11 @@ const fetchSyncEquipmentData = async () => {
     syncEquipmentLoading.value = false;
   }
 };
+
+// 暴露云端数据同步方法，供列表页面调用
+if (typeof window !== "undefined") {
+  window.openSyncDialogDirect = handleDataSynchronization;
+}
 
 // 起重机分页变化
 const handleSyncCranePageChange = (page) => {
