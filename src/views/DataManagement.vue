@@ -1643,16 +1643,38 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   margin-bottom: 12px;
-  padding-top: 8px;
 }
 
 .data-tabs :deep(.el-tabs__nav-wrap) {
   display: flex;
   justify-content: center;
+  padding: 3px 0;
 }
 
 .data-tabs :deep(.el-tabs__nav) {
   margin: 0 auto;
+}
+
+/* 选中状态下的 Tab 样式 */
+.data-tabs :deep(.el-tabs__item.is-active) {
+  background: #2F6A92;
+  color: #FFF !important;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 2px 2px 0 0;
+}
+
+/* Tab 基础样式：文字居中显示 */
+.data-tabs :deep(.el-tabs__item) {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 去掉选中 Tab 下方的下划线（活动条） */
+.data-tabs :deep(.el-tabs__active-bar) {
+  display: none;
 }
 
 .tab-content {
