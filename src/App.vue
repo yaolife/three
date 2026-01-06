@@ -2067,15 +2067,16 @@ body .login-dialog .el-dialog__header {
   padding: 0 8px;
   border: none;
   background-color: transparent;
-  color: #606266;
+  color: #000;
   border-radius: 0;
   margin: 0 4px;
 }
 
 .el-pagination .btn-prev:hover,
 .el-pagination .btn-next:hover {
-  color: #409eff;
-  border-color: #409eff;
+  color: #000;
+  border-radius: 2px;
+  background: rgba(191, 191, 191, 0.32);
 }
 
 .el-pagination .btn-prev.is-disabled,
