@@ -25,11 +25,11 @@
             </el-button>
           </div>
           <div style="display: flex; gap: 12px;">
-            <el-button type="primary" @click="handleAdd">
-              <el-icon><Plus /></el-icon>
-              新增用户
+            <el-button @click="handleAdd">
+            <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+            <span style="margin-left: 6px">新增用户</span>
             </el-button>
-            <el-button type="primary" @click="handleExport" :loading="exportLoading">
+            <el-button @click="handleExport" :loading="exportLoading">
               <el-icon><Download /></el-icon>
               导出
             </el-button>
