@@ -413,7 +413,7 @@
             </div>
           </div>
           <div class="login-buttons">
-            <el-button type="primary" class="login-confirm-btn" @click="handleLogin" :loading="isConfirmLogging">
+            <el-button  class="login-confirm-btn" @click="handleLogin" :loading="isConfirmLogging">
               确认登录
             </el-button>
             <el-button type="warning" class="login-offline-btn" @click="handleOfflineLogin" :loading="isAdminLogging">
@@ -1839,6 +1839,7 @@ box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
 .login-prompt-text {
   color: #666666;
   font-weight: 400;
+   margin-bottom: 2px;
   font-size: 14px;
   width: 50%;
   position: relative;
@@ -1910,14 +1911,14 @@ border: 1px solid #A2A2A2;
 }
 
 .login-confirm-btn {
-  background-color: #409eff;
-  border-color: #409eff;
+  background-color: #245E85;
+  border-color: #245E85;
   color: #fff;
 }
 
 .login-confirm-btn:hover {
-  background-color: #66b1ff;
-  border-color: #66b1ff;
+  background-color: #245E85;
+  border-color: #245E85;
 }
 
 .login-offline-btn {
