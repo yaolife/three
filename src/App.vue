@@ -2018,4 +2018,20 @@ body .login-dialog .el-dialog__header {
   padding-bottom: 0 !important;
   --el-dialog-padding-primary: 0 !important;
 }
+
+/* 全局样式：所有 table 的表头样式 */
+.el-table__header th,
+.el-table__header th.el-table__cell,
+.el-table__header-wrapper .el-table__header th,
+.el-table__header-wrapper .el-table__header th.el-table__cell,
+.el-table thead th.el-table__cell {
+  border-radius: 1px !important;
+  background: #EBEBEB !important;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset !important;
+  color: #454545 !important;
+  font-size: 14px !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-right: none !important;
+}
 </style>
