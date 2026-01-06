@@ -1672,6 +1672,15 @@ onMounted(() => {
   justify-content: center;
 }
 
+/* 第一个和最后一个 Tab 的左右内边距 */
+.data-tabs :deep(.el-tabs__nav .el-tabs__item:nth-child(2)) {
+  padding-left: 20px;
+}
+
+.data-tabs :deep(.el-tabs__nav .el-tabs__item:last-child) {
+  padding-right: 20px;
+}
+
 /* 去掉选中 Tab 下方的下划线（活动条） */
 .data-tabs :deep(.el-tabs__active-bar) {
   display: none;
@@ -1764,4 +1773,5 @@ onMounted(() => {
 :deep(.el-dialog__footer) {
   flex-shrink: 0;
 }
+
 </style>
