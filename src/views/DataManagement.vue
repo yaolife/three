@@ -20,7 +20,7 @@
                     搜索
                   </el-button>
                 </div>
-                <el-button @click="handleAddCrane">
+                <el-button class="dm-create-btn" @click="handleAddCrane">
                   <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
                    <span style="margin-left: 6px">新建</span>
                 </el-button>
@@ -135,7 +135,7 @@
                     搜索
                   </el-button>
                 </div>
-                <el-button @click="handleAddRigging">
+                <el-button class="dm-create-btn" @click="handleAddRigging">
                   <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
                    <span style="margin-left: 6px">新建</span>
                 </el-button>
@@ -248,7 +248,7 @@
                     搜索
                   </el-button>
                 </div>
-                <el-button @click="handleAddEquipment">
+                <el-button class="dm-create-btn" @click="handleAddEquipment">
                  <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
                    <span style="margin-left: 6px">新建</span>
                 </el-button>
@@ -350,7 +350,7 @@
                     搜索
                   </el-button>
                 </div>
-                <el-button @click="handleAddCraneModel">
+                <el-button class="dm-create-btn" @click="handleAddCraneModel">
                  <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
                    <span style="margin-left: 6px">新建</span>
                 </el-button>
@@ -1647,6 +1647,23 @@ onMounted(() => {
   display: flex;
   align-items: center;
   margin-right: 20px;
+}
+
+/* data-management 页面所有“新建”按钮样式 */
+.dm-create-btn {
+  border-radius: 4px;
+  background: #EBEBEB;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+  border: none;
+  color: #5E5E5E;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+}
+
+.dm-create-btn:hover {
+  background: #E0E0E0;
+  color: #5E5E5E;
 }
 
 /* 数据管理页面 Tab 下搜索输入框边框样式 */
