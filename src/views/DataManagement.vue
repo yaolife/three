@@ -1611,6 +1611,11 @@ onMounted(() => {
   flex-direction: column;
 }
 
+/* 去掉卡片内容顶部多余留白，让 tabs 靠近上边缘 */
+.page-card :deep(.el-card__body) {
+  padding: 0 20px 20px;
+}
+
 .page-content {
   flex: 1;
   overflow-y: auto;
@@ -1630,6 +1635,24 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  margin-top: 0;
+}
+
+/* 将 4 个 tab 居中并挨在一起显示 */
+.data-tabs :deep(.el-tabs__header) {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  padding-top: 8px;
+}
+
+.data-tabs :deep(.el-tabs__nav-wrap) {
+  display: flex;
+  justify-content: center;
+}
+
+.data-tabs :deep(.el-tabs__nav) {
+  margin: 0 auto;
 }
 
 .tab-content {
