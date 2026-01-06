@@ -34,7 +34,7 @@
               <el-icon><Plus /></el-icon>
               新增用户
             </el-button>
-            <el-button type="success" @click="handleExport" :loading="exportLoading">
+            <el-button type="primary" @click="handleExport" :loading="exportLoading">
               <el-icon><Download /></el-icon>
               导出
             </el-button>
