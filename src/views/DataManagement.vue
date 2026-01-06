@@ -1633,7 +1633,6 @@ onMounted(() => {
 }
 
 .tab-content {
-  padding: 20px 0;
   flex: 1;
   overflow-y: auto;
 }
