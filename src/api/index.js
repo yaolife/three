@@ -566,7 +566,7 @@ export async function convertDxfToPng(file, fileName = "cad.dwg") {
       headers["token"] = token;
     }
 
-    const response = await fetch(`${API_BASE_URL}/file/upload/convertDxfToPng`, {
+    const response = await fetch(`${API_BASE_URL}/file/upload/convertDxfToSvg`, {
       method: "POST",
       headers: headers,
       body: formData,
