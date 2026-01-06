@@ -13,7 +13,7 @@
               clearable
               @keyup.enter="handleSearchClick"
             />
-            <el-button type="default" style="margin:0 8px" @click="handleSearchClick">
+            <el-button class="search-btn" type="default" style="margin:0 8px" @click="handleSearchClick">
               搜索
             </el-button>
              <el-button class="create-project-btn" @click="handleCreateClick">

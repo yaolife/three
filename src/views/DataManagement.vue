@@ -16,7 +16,7 @@
                     clearable
                     @keyup.enter="handleCraneSearch"
                   />
-                  <el-button type="primary" @click="handleCraneSearch" style="margin-left: 8px">
+                  <el-button class="search-btn" @click="handleCraneSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
                 </div>
@@ -131,7 +131,7 @@
                     clearable
                     @keyup.enter="handleRiggingSearch"
                   />
-                  <el-button type="primary" @click="handleRiggingSearch" style="margin-left: 8px">
+                  <el-button class="search-btn" @click="handleRiggingSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
                 </div>
@@ -244,7 +244,7 @@
                     clearable
                     @keyup.enter="handleEquipmentSearch"
                   />
-                  <el-button type="primary" @click="handleEquipmentSearch" style="margin-left: 8px">
+                  <el-button class="search-btn" @click="handleEquipmentSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
                 </div>
@@ -346,7 +346,7 @@
                     clearable
                     @keyup.enter="handleCraneModelSearch"
                   />
-                  <el-button type="primary" @click="handleCraneModelSearch" style="margin-left: 8px">
+                  <el-button class="search-btn" @click="handleCraneModelSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
                 </div>

@@ -25,7 +25,7 @@
               clearable
               @keyup.enter="handleSearch"
             />
-            <el-button type="primary" @click="handleSearch" style="margin-left: 12px">
+            <el-button class="search-btn" type="primary" @click="handleSearch" style="margin-left: 12px">
               搜索
             </el-button>
           </div>

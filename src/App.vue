@@ -125,7 +125,7 @@
                       clearable
                       @keyup.enter="handleSyncCraneSearch"
                     />
-                    <el-button type="primary" @click="handleSyncCraneSearch" style="margin-left: 8px">
+                    <el-button class="search-btn" @click="handleSyncCraneSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
                   </div>
@@ -180,7 +180,7 @@
                       clearable
                       @keyup.enter="handleSyncRiggingSearch"
                     />
-                    <el-button type="primary" @click="handleSyncRiggingSearch" style="margin-left: 8px">
+                    <el-button class="search-btn" @click="handleSyncRiggingSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
                   </div>
@@ -235,7 +235,7 @@
                       clearable
                       @keyup.enter="handleSyncEquipmentSearch"
                     />
-                    <el-button type="primary" @click="handleSyncEquipmentSearch" style="margin-left: 8px">
+                    <el-button class="search-btn" @click="handleSyncEquipmentSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
                   </div>
@@ -285,7 +285,7 @@
                       clearable
                       @keyup.enter="handleSyncCraneModelSearch"
                     />
-                    <el-button type="primary" @click="handleSyncCraneModelSearch" style="margin-left: 8px">
+                    <el-button class="search-btn" @click="handleSyncCraneModelSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
                   </div>
@@ -1558,7 +1558,7 @@ onMounted(async () => {
   z-index: 1;
 }
 
-/* 登录后，搜索框和按钮的样式 */
+/* 登录后，搜索框样式（保留，仅作用于 header），按钮样式统一走全局规则 */
 .header-transparent .search-box :deep(.el-input__wrapper) {
   background-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
@@ -2155,6 +2155,23 @@ body .login-dialog .el-dialog__header {
 .el-table .el-button:hover {
   background-color: transparent !important;
   color: #578FFF !important;
+}
+
+/* 全局样式：搜索按钮统一样式（通过 search-btn 类控制） */
+.search-btn {
+  border-radius: 4px !important;
+  background: #EBEBEB !important;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset !important;
+  border: none !important;
+  color: #5E5E5E !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 6px 14px !important;
+}
+
+.search-btn:hover {
+  background: #E0E0E0 !important;
+  color: #5E5E5E !important;
 }
 
 /* 全局样式：所有 table 每一行底部线条颜色 */
