@@ -381,9 +381,6 @@
         append-to-body
         :show-close="false"
       >
-        <!-- <template #header>
-          <span class="login-dialog-header-title" >光热三维施工仿真软件</span>
-        </template> -->
         <div class="login-dialog-content">
           <img src="@/images/zgh.png" alt="zgh" class="login-logo-img" />
           <div class="login-title-section">
