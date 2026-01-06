@@ -135,9 +135,9 @@
                     搜索
                   </el-button>
                 </div>
-                <el-button type="primary" @click="handleAddRigging">
-                  <el-icon><Plus /></el-icon>
-                  新建
+                <el-button @click="handleAddRigging">
+                  <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+                   <span style="margin-left: 6px">新建</span>
                 </el-button>
               </div>
               <!-- Add loading state for table -->
@@ -248,9 +248,9 @@
                     搜索
                   </el-button>
                 </div>
-                <el-button type="primary" @click="handleAddEquipment">
-                  <el-icon><Plus /></el-icon>
-                  新建
+                <el-button @click="handleAddEquipment">
+                 <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+                   <span style="margin-left: 6px">新建</span>
                 </el-button>
               </div>
               <el-table
@@ -350,9 +350,9 @@
                     搜索
                   </el-button>
                 </div>
-                <el-button type="primary" @click="handleAddCraneModel">
-                  <el-icon><Plus /></el-icon>
-                  新建
+                <el-button @click="handleAddCraneModel">
+                 <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+                   <span style="margin-left: 6px">新建</span>
                 </el-button>
               </div>
               <el-table
@@ -1639,7 +1639,6 @@ onMounted(() => {
 
 .toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
@@ -1647,6 +1646,7 @@ onMounted(() => {
 .search-group {
   display: flex;
   align-items: center;
+  margin-right: 20px;
 }
 
 /* 数据管理页面 Tab 下搜索输入框边框样式 */
