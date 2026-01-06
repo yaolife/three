@@ -1968,9 +1968,6 @@ border: 1px solid #A2A2A2;
   width: 100%;
 }
 
-.sync-tab-content {
-  padding: 20px 0;
-}
 
 .sync-toolbar {
   display: flex;
