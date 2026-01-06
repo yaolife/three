@@ -333,8 +333,8 @@
             </div>
           </el-tab-pane>
 
-          <!-- 起重机模型库 -->
-          <el-tab-pane label="起重机模型库" name="craneModel">
+          <!-- 三维模型库 -->
+          <el-tab-pane label="三维模型库" name="craneModel">
             <div class="tab-content">
               <div class="toolbar">
                 <div class="search-group">
@@ -602,10 +602,10 @@
       </template>
     </el-dialog>
 
-    <!-- 新建起重机模型库弹窗 -->
+    <!-- 新建三维模型库弹窗 -->
     <el-dialog
       v-model="craneModelDialogVisible"
-      title="新建起重机模型库"
+      title="新建三维模型库"
       width="500px"
       :close-on-click-modal="false"
     >
@@ -695,7 +695,7 @@ const equipmentTotal = ref(0);
 const equipmentData = ref([]);
 const equipmentLoading = ref(false);
 
-// 起重机模型库数据
+// 三维模型库数据
 const craneModelSearch = ref("");
 const craneModelPage = ref(1);
 const craneModelPageSize = ref(10);
@@ -739,7 +739,7 @@ const craneForm = ref({
   push: 0, // 是否推送，0否1是
 });
 
-// 新建起重机模型库弹窗
+// 新建三维模型库弹窗
 const craneModelDialogVisible = ref(false);
 const craneModelForm = ref({
   modelName: "",
@@ -823,7 +823,7 @@ const handleAddEquipment = () => {
   };
 };
 
-// 新建起重机模型库
+// 新建三维模型库
 const handleAddCraneModel = () => {
   craneModelDialogVisible.value = true;
   craneModelForm.value = {
@@ -920,7 +920,7 @@ const handleDelete = (row, type) => {
     });
 };
 
-// 删除起重机模型库数据
+// 删除三维模型库数据
 const handleDeleteCraneModel = (row) => {
   ElMessageBox.confirm(
     "确定要删除该起重机模型数据吗？",
@@ -1335,17 +1335,17 @@ const handleEquipmentSubmit = async () => {
   }
 };
 
-// 处理起重机模型库文件选择
+// 处理三维模型库文件选择
 const handleCraneModelFileChange = (file) => {
   // Element Plus on-change 回调的第一个参数是当前文件
   craneModelFile.value = file.raw || file;
 };
 
-// 获取起重机模型库数据
+// 获取三维模型库数据
 const fetchCraneModelData = async () => {
   // 检查登录状态，如果未登录或登录失败，不加载数据
   if (!userStore.userState.isLoggedIn) {
-    console.log("用户未登录，不加载起重机模型库数据");
+    console.log("用户未登录，不加载三维模型库数据");
     craneModelData.value = [];
     craneModelTotal.value = 0;
     craneModelLoading.value = false;
@@ -1376,10 +1376,10 @@ const fetchCraneModelData = async () => {
     } else {
       craneModelData.value = [];
       craneModelTotal.value = 0;
-      ElMessage.error(response?.message || "获取起重机模型库数据失败");
+      ElMessage.error(response?.message || "获取三维模型库数据失败");
     }
   } catch (error) {
-    console.error("获取起重机模型库数据失败:", error);
+    console.error("获取三维模型库数据失败:", error);
     craneModelData.value = [];
     craneModelTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
@@ -1388,26 +1388,26 @@ const fetchCraneModelData = async () => {
   }
 };
 
-// 起重机模型库分页变化
+// 三维模型库分页变化
 const handleCraneModelPageChange = (page) => {
   craneModelPage.value = page;
   fetchCraneModelData();
 };
 
-// 起重机模型库搜索
+// 三维模型库搜索
 const handleCraneModelSearch = () => {
   craneModelPage.value = 1;
   fetchCraneModelData();
 };
 
-// 起重机模型库每页条数变化
+// 三维模型库每页条数变化
 const handleCraneModelPageSizeChange = (size) => {
   craneModelPageSize.value = size;
   craneModelPage.value = 1;
   fetchCraneModelData();
 };
 
-// 新建起重机模型库提交
+// 新建三维模型库提交
 const handleCraneModelSubmit = async () => {
   if (!craneModelForm.value.modelName) {
     ElMessage.warning("请输入模型名称");
@@ -1459,14 +1459,14 @@ const handleCraneModelSubmit = async () => {
       ElMessage.error(res?.message || "新增失败");
     }
   } catch (error) {
-    console.error("新增起重机模型库失败:", error);
+    console.error("新增三维模型库失败:", error);
     ElMessage.error("新增失败，请检查网络连接");
   } finally {
     craneModelSubmitting.value = false;
   }
 };
 
-// 处理起重机模型库推送状态变化
+// 处理三维模型库推送状态变化
 const handleCraneModelPushChange = async (row) => {
   try {
     const requestParams = {
@@ -1484,7 +1484,7 @@ const handleCraneModelPushChange = async (row) => {
       ElMessage.error(response?.message || "更新失败");
     }
   } catch (error) {
-    console.error("更新起重机模型库推送状态失败:", error);
+    console.error("更新三维模型库推送状态失败:", error);
     // 如果更新失败，恢复原值
     row.push = row.push === 1 ? 0 : 1;
     ElMessage.error("更新失败，请检查网络连接");

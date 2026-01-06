@@ -272,8 +272,8 @@
               </div>
             </el-tab-pane>
 
-            <!-- 起重机模型库 -->
-            <el-tab-pane label="起重机模型库" name="craneModel">
+            <!-- 三维模型库 -->
+            <el-tab-pane label="三维模型库" name="craneModel">
               <div class="sync-tab-content">
                 <div class="sync-toolbar">
                   <div class="search-group">
@@ -446,7 +446,7 @@ const syncEquipmentData = ref([]);
 const syncEquipmentLoading = ref(false);
 const syncEquipmentSelected = ref([]);
 
-// 起重机模型库同步数据
+// 三维模型库同步数据
 const syncCraneModelSearch = ref("");
 const syncCraneModelPage = ref(1);
 const syncCraneModelPageSize = ref(10);
@@ -858,7 +858,7 @@ const fetchSyncCraneData = async () => {
   }
 };
 
-// 获取同步起重机模型库数据
+// 获取同步三维模型库数据
 const fetchSyncCraneModelData = async () => {
   syncCraneModelLoading.value = true;
   try {
@@ -884,10 +884,10 @@ const fetchSyncCraneModelData = async () => {
     } else {
       syncCraneModelData.value = [];
       syncCraneModelTotal.value = 0;
-      ElMessage.error(response?.message || "获取起重机模型库数据失败");
+      ElMessage.error(response?.message || "获取三维模型库数据失败");
     }
   } catch (error) {
-    console.error("获取起重机模型库数据失败:", error);
+    console.error("获取三维模型库数据失败:", error);
     syncCraneModelData.value = [];
     syncCraneModelTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
@@ -1032,7 +1032,7 @@ const handleSyncEquipmentSearch = () => {
   fetchSyncEquipmentData();
 };
 
-// 起重机模型库分页变化
+// 三维模型库分页变化
 const handleSyncCraneModelPageChange = (page) => {
   syncCraneModelPage.value = page;
   fetchSyncCraneModelData();
@@ -1044,7 +1044,7 @@ const handleSyncCraneModelPageSizeChange = (size) => {
   fetchSyncCraneModelData();
 };
 
-// 起重机模型库搜索
+// 三维模型库搜索
 const handleSyncCraneModelSearch = () => {
   syncCraneModelPage.value = 1;
   fetchSyncCraneModelData();
@@ -1101,7 +1101,7 @@ const handleConfirmSync = async () => {
     });
   }
   
-  // 起重机模型库数据 (type: 3)
+  // 三维模型库数据 (type: 3)
   if (syncCraneModelSelected.value.length > 0) {
     syncData.push({
       type: 3,
@@ -1119,9 +1119,9 @@ const handleConfirmSync = async () => {
     for (const item of syncData) {
       const response = await dataSynchronization(item);
       if (response && response.code === '0') {
-        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '起重机模型库'}数据同步成功`);
+        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '三维模型库'}数据同步成功`);
       } else {
-        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '起重机模型库'}数据同步失败`);
+        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '三维模型库'}数据同步失败`);
       }
     }
     // 关闭弹窗

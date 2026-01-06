@@ -914,7 +914,7 @@ export function pushProject(params) {
   return post("/projectInfo/dataUpload", params)
 }
 /**
- * 起重机模型库分页接口
+ * 三维模型库分页接口
  * @param {object} params - 分页参数 { pageNum, pageSize }
  * @returns {Promise} - 返回分页数据
  */
@@ -922,7 +922,7 @@ export function getCraneModelPage(params) {
   return post("/template/model/page", params)
 }
 /**
- * 起重机模型库新增修改接口
+ * 三维模型库新增修改接口
  * @param {object} params - 分页参数 { id, modeName }
  * @returns {Promise} - 返回操作结果
  */
@@ -930,7 +930,7 @@ export function addModelInfo(params) {
   return post("/template/model/addUpdate", params)
 }
 /**
- * 删除起重机模型库数据
+ * 删除三维模型库数据
  * @param {string|number} id - 模版ID
  * @returns {Promise} - 返回操作结果
  */
@@ -944,7 +944,7 @@ export async function deleteModelItem(id) {
   }
 }
 /**
- * 起重机模型库table列是否推送开关接口
+ * 三维模型库table列是否推送开关接口
  * @param {object} params - 参数{ "id": "用户id82",
   "push": 0 }
  * @returns {Promise} - 
