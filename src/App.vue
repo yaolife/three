@@ -2065,10 +2065,10 @@ body .login-dialog .el-dialog__header {
   height: 32px;
   line-height: 32px;
   padding: 0 8px;
-  border: 1px solid #dcdfe6;
-  background-color: #fff;
+  border: none;
+  background-color: transparent;
   color: #606266;
-  border-radius: 4px;
+  border-radius: 0;
   margin: 0 4px;
 }
 
@@ -2097,26 +2097,30 @@ body .login-dialog .el-dialog__header {
   height: 32px;
   line-height: 32px;
   padding: 0 4px;
-  border: 1px solid #dcdfe6;
-  background-color: #fff;
+  border-radius: 0;
+  border: none;
+  background-color: transparent;
   color: #606266;
-  border-radius: 4px;
   margin: 0 2px;
   cursor: pointer;
   text-align: center;
 }
 
 .el-pagination .el-pager li:hover {
-  color: #409eff;
-  border-color: #409eff;
+  color: #000;
+  border-radius: 2px;
+  border: 1px solid #000;
+  background: #FFF;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.25);
 }
 
 .el-pagination .el-pager li.is-active {
-  color: #409eff;
-  border-color: #409eff;
-  background-color: #ecf5ff;
+  color: #000;
+  border-radius: 2px;
+  border: 1px solid #000;
+  background: #FFF;
   font-weight: 500;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.25);
 }
 
 .el-pagination .el-pager li.more {
