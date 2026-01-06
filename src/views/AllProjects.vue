@@ -3,11 +3,7 @@
     <el-card class="project-table-card">
       <!-- 顶部功能工具栏：创建 / 搜索 / 云端同步 / 复制 / 上传 -->
       <div class="projects-toolbar">
-        <div class="projects-toolbar-left">
-          <el-button type="primary" @click="handleCreateClick">
-             <img src="@/images/create.png" alt="create" class="create-icon" />
-            创建项目
-          </el-button>
+        <div class="projects-toolbar-left"> 
           <div class="projects-search-box">
             <el-input
               v-model="searchTitle"
@@ -17,9 +13,13 @@
               clearable
               @keyup.enter="handleSearchClick"
             />
-            <el-button type="default" style="margin-left: 8px" @click="handleSearchClick">
+            <el-button type="default" style="margin:0 8px" @click="handleSearchClick">
               搜索
             </el-button>
+             <el-button class="create-project-btn" @click="handleCreateClick">
+            <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+            <span style="margin-left: 6px">创建项目</span>
+          </el-button>
           </div>
         </div>
         <div class="projects-toolbar-right">
@@ -843,6 +843,23 @@ defineExpose({
 .projects-toolbar-right {
   display: flex;
   align-items: center;
+}
+
+/* 创建项目按钮样式 */
+.create-project-btn {
+  border-radius: 4px;
+  background: #EBEBEB;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+  border: none;
+  color: #5E5E5E;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+}
+
+.create-project-btn:hover {
+  background: #E0E0E0;
+  color: #5E5E5E;
 }
 
 .create-project-btn-container {
