@@ -2,8 +2,8 @@
   <div class="calculation-detail-container">
     <div class="header">
       <el-button type="default" class="back-btn" @click.stop="handleBackToVerification">
-        <img src="@/images/back.png" alt="back" class="back-icon" />
-        返回
+         <img src="@/images/back.png" alt="back" class="back-icon" width="20" height="14" />
+          <span style="margin-left: 4px">返回</span>
       </el-button>
       <div class="header-left" @click="openEditTitleDialog">
         <span class="project-title">{{ projectTitle }}</span>
