@@ -840,6 +840,12 @@ defineExpose({
   align-items: center;
 }
 
+/* 搜索输入框边框样式 */
+.projects-search-box :deep(.el-input__wrapper) {
+  border: 1px solid #999 !important;
+  box-shadow: none !important;
+}
+
 .projects-toolbar-right {
   display: flex;
   align-items: center;
