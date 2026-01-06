@@ -1997,9 +1997,7 @@ border: 1px solid #A2A2A2;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
   padding: 20px;
-  border-top: 1px solid #ebeef5;
 }
 
 .pagination-info {
@@ -2041,9 +2039,7 @@ body .login-dialog .el-dialog__header {
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-top: 20px;
   padding: 20px;
-  border-top: 1px solid #ebeef5;
 }
 
 .pagination-info {

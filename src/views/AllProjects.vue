@@ -773,9 +773,7 @@ defineExpose({
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-top: 20px;
   padding: 20px;
-  border-top: 1px solid #ebeef5;
 }
 
 .pagination-info {
