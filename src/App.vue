@@ -1982,7 +1982,7 @@ border: 1px solid #A2A2A2;
 }
 
 /* 云端下载弹窗中的搜索输入框边框样式 */
-.sync-dialog :deep(.el-input__wrapper) {
+.search-group :deep(.el-input__wrapper) {
   border: 1px solid #999 !important;
   box-shadow: none !important;
 }
