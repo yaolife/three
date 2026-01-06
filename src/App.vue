@@ -1739,11 +1739,34 @@ box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
 
 .login-dialog :deep(.el-dialog__header) {
   padding: 20px 20px 0 20px !important;
-  margin-bottom: 0;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: none;
+}
+
+/* 覆盖 Element Plus 使用的 CSS 变量 - 必须在多个层级设置 */
+.login-dialog {
+  --el-dialog-padding-primary: 0 !important;
+}
+
+.login-dialog :deep(.el-dialog) {
+  --el-dialog-padding-primary: 0 !important;
+}
+
+.login-dialog :deep(.el-dialog__header) {
+  --el-dialog-padding-primary: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* 使用更具体的选择器确保覆盖 */
+.login-dialog.el-dialog :deep(.el-dialog__header),
+.login-dialog :deep(.el-dialog .el-dialog__header),
+body .login-dialog :deep(.el-dialog__header) {
+  padding-bottom: 0 !important;
+  --el-dialog-padding-primary: 0 !important;
 }
 
 .login-dialog :deep(.el-dialog__headerbtn) {
@@ -1981,5 +2004,18 @@ border: 1px solid #A2A2A2;
 .pagination-info {
   color: #606266;
   font-size: 14px;
+}
+</style>
+
+<style>
+/* 全局样式：确保覆盖 Element Plus 的默认 padding-bottom */
+.login-dialog .el-dialog__header {
+  padding-bottom: 0 !important;
+  --el-dialog-padding-primary: 0 !important;
+}
+
+body .login-dialog .el-dialog__header {
+  padding-bottom: 0 !important;
+  --el-dialog-padding-primary: 0 !important;
 }
 </style>
