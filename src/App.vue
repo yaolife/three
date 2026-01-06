@@ -59,7 +59,7 @@
             <span class="user-name">{{ displayUserName }}</span>
           </div>
           <el-dropdown v-if="userStore.userState.isLoggedIn" @command="handleCommand">
-            <img class="logout-icon" src="@/images/back.png" alt="logout" />
+            <img class="logout-icon" src="@/images/exit.png" alt="logout" />
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="logout">退出登录</el-dropdown-item>
