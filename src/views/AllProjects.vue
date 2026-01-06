@@ -33,7 +33,7 @@
               src="@/images/synchronize.png"
               alt="数据同步"
             />
-            云端数据同步
+            云端下载
           </el-button>
           <el-button type="default" style="margin-left: 8px" @click="handleCopyClick">
             <img
@@ -381,12 +381,12 @@ const handleSearchClick = () => {
   searchProject(searchTitle.value);
 };
 
-// 顶部工具栏：云端数据同步
+// 顶部工具栏：云端下载
 const handleCloudSyncClick = () => {
   if (window.openSyncDialogDirect) {
     window.openSyncDialogDirect();
   } else {
-    ElMessage.warning('云端数据同步暂不可用，请刷新页面后重试');
+    ElMessage.warning('云端下载暂不可用，请刷新页面后重试');
   }
 };
 

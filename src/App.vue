@@ -53,7 +53,7 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <!-- 云端数据同步 / 复制 已移动到项目列表页面的表格上方 -->
+          <!-- 云端下载 / 复制 已移动到项目列表页面的表格上方 -->
         </div>
       </el-header>
       
@@ -98,11 +98,11 @@
       </el-dialog>
     </Teleport>
 
-    <!-- 云端数据同步弹窗 -->
+    <!-- 云端下载弹窗 -->
     <Teleport to="body">
       <el-dialog
         v-model="showSyncDialog"
-        title="云端数据同步"
+        title="云端下载"
         width="90%"
         :close-on-click-modal="false"
         align-center
@@ -415,7 +415,7 @@ const isLoggedIn = computed(() => userStore.userState.isLoggedIn);
 // 搜索关键词
 const searchTitle = ref("");
 
-// 云端数据同步弹窗相关
+// 云端下载弹窗相关
 const showSyncDialog = ref(false);
 const syncActiveTab = ref("crane");
 
@@ -793,7 +793,7 @@ const handleSearch = () => {
   }
 };
 
-// 处理云端数据同步按钮点击
+// 处理云端下载按钮点击
 const handleDataSynchronization = () => {
   if (!userStore.userState.isLoggedIn) {
     ElMessage.warning('请先登录');
@@ -973,7 +973,7 @@ const fetchSyncEquipmentData = async () => {
   }
 };
 
-// 暴露云端数据同步方法，供列表页面调用
+// 暴露云端下载方法，供列表页面调用
 if (typeof window !== "undefined") {
   window.openSyncDialogDirect = handleDataSynchronization;
 }
@@ -1583,7 +1583,7 @@ onMounted(async () => {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-/* 登录后，导航栏按钮（创建项目、复制、云端数据同步）的样式 */
+/* 登录后，导航栏按钮（创建项目、复制、云端下载）的样式 */
 .header-transparent .header-left .el-button,
 .header-transparent .header-right .el-button {
   color: #ffffff;
@@ -1953,7 +1953,7 @@ border: 1px solid #A2A2A2;
   align-items: center;
 }
 
-/* 云端数据同步弹窗样式 */
+/* 云端下载弹窗样式 */
 .sync-dialog :deep(.el-dialog__body) {
   padding: 20px;
   max-height: 70vh;
@@ -1984,7 +1984,7 @@ border: 1px solid #A2A2A2;
   align-items: center;
 }
 
-/* 云端数据同步弹窗中的搜索输入框边框样式 */
+/* 云端下载弹窗中的搜索输入框边框样式 */
 .sync-dialog :deep(.el-input__wrapper) {
   border: 1px solid #999 !important;
   box-shadow: none !important;
@@ -1996,7 +1996,7 @@ border: 1px solid #A2A2A2;
   gap: 10px;
 }
 
-/* 云端数据同步弹窗：表格分页和总计挨在一起且居中 */
+/* 云端下载弹窗：表格分页和总计挨在一起且居中 */
 .sync-dialog .pagination-container {
   display: flex;
   justify-content: center;
