@@ -2027,7 +2027,6 @@ body .login-dialog .el-dialog__header {
 .el-table thead th.el-table__cell {
   border-radius: 1px !important;
   background: #EBEBEB !important;
-  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset !important;
   color: #454545 !important;
   font-size: 14px !important;
   border: none !important;
