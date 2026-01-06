@@ -19,8 +19,11 @@
             @click="openMenuDialog"
           >
             <img src="@/images/back.png" alt="back" class="back-icon" />
-            返回
+            <span style="margin-left: 4px">返回</span>
           </el-button>
+          <span v-if="isMenuPage && currentMenuLabel" class="header-menu-label">
+            {{ currentMenuLabel }}
+          </span>
           <el-button
             v-else-if="isEditPage"
             type="default"
@@ -29,8 +32,11 @@
             @click="handleBackToList"
           >
             <img src="@/images/back.png" alt="back" class="back-icon" />
-            返回
+            <span style="margin-left: 4px">返回</span>
           </el-button>
+          <span v-if="isEditPage && backMenuLabel" class="header-menu-label">
+            {{ backMenuLabel }}
+          </span>
           <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
           <!-- 只在项目列表页面显示创建项目按钮和搜索框 -->
           <template v-if="isProjectListPage">
@@ -522,25 +528,37 @@ const backToPath = computed(() => route.meta.backTo || '/verification-projects')
 
 const activeMenu = computed(() => route.path || "/verification-projects");
 
+// 所有功能菜单配置（用于菜单渲染和返回按钮文字）
+const ALL_MENUS = [
+  { label: "校核计算", path: "/verification-projects", menuValue: "0" },
+  { label: "三维仿真", path: "/virtual-simulation", menuValue: "1" },
+  { label: "总平规划平台", path: "/construction-plans", menuValue: "2" },
+  { label: "数据管理", path: "/data-management", menuValue: "3" },
+  { label: "账号管理", path: "/user-management", menuValue: "4" },
+];
+
 const menuOptions = computed(() => {
-  // 所有菜单项及其对应的 menus 值
-  const allMenus = [
-    { label: "校核计算", path: "/verification-projects", menuValue: "0" },
-      { label: "三维仿真", path: "/virtual-simulation", menuValue: "1" },
-    { label: "总平规划平台", path: "/construction-plans", menuValue: "2" },
-    { label: "数据管理", path: "/data-management", menuValue: "3" },
-    { label: "账号管理", path: "/user-management", menuValue: "4" },
-  ];
-  
   // 获取用户菜单权限
   const userMenus = userStore.userState.userInfo.menus || [];
   
   // 根据用户的 menus 数组过滤菜单
-  return allMenus.filter(menu => {
+  return ALL_MENUS.filter(menu => {
     // 将 menuValue 转换为字符串进行比较
     return userMenus.includes(String(menu.menuValue));
   });
 });
+
+// 根据路径获取功能菜单名称
+const getMenuLabelByPath = (path) => {
+  const item = ALL_MENUS.find((menu) => menu.path === path);
+  return item ? item.label : "";
+};
+
+// 当前页面对应的菜单名称（用于菜单页返回按钮）
+const currentMenuLabel = computed(() => getMenuLabelByPath(route.path));
+
+// 编辑页返回路径对应的菜单名称（用于编辑页返回按钮）
+const backMenuLabel = computed(() => getMenuLabelByPath(backToPath.value));
 
 const displayUserName = computed(() => {
   if (!userStore.userState.isLoggedIn) return "未登录，点击登录";
@@ -1464,6 +1482,12 @@ onMounted(async () => {
   height: 18px;
   margin-right: 4px;
   vertical-align: middle;
+}
+
+.header-menu-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
 }
 
 /* 登录后，导航栏元素使用白色，让它们在背景图上可见 */
