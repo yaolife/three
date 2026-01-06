@@ -25,6 +25,7 @@
         <div class="projects-toolbar-right">
           <el-button
             v-if="userStore.userState.userInfo?.loginType === 0"
+            class="toolbar-action-btn"
             type="default"
             @click="handleCloudSyncClick"
           >
@@ -35,7 +36,7 @@
             />
             云端下载
           </el-button>
-          <el-button type="default" style="margin-left: 8px" @click="handleCopyClick">
+          <el-button class="toolbar-action-btn" type="default" style="margin-left: 8px" @click="handleCopyClick">
             <img
               style="width: 18px; height: 18px; margin-right: 4px"
               src="@/images/copy.png"
@@ -45,6 +46,7 @@
           </el-button>
           <el-button
             v-if="canShowUpload"
+            class="toolbar-action-btn"
             type="primary"
             style="margin-left: 8px"
             @click="handleUpload"
@@ -849,6 +851,23 @@ defineExpose({
 .projects-toolbar-right {
   display: flex;
   align-items: center;
+}
+
+/* 云端下载 / 复制 / 上传按钮样式 */
+.toolbar-action-btn {
+  border-radius: 4px;
+  background: #EBEBEB;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+  border: none;
+  color: #5E5E5E;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+}
+
+.toolbar-action-btn:hover {
+  background: #E0E0E0;
+  color: #5E5E5E;
 }
 
 /* 创建项目按钮样式 */
