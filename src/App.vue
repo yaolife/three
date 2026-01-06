@@ -2134,4 +2134,19 @@ body .login-dialog .el-dialog__header {
   color: #606266;
   border: none;
 }
+
+/* 全局样式：所有 table 操作列中的按钮样式 */
+.el-table .el-button {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #578FFF !important;
+  font-size: 14px !important;
+  padding: 0 4px;
+}
+
+.el-table .el-button:hover {
+  background-color: transparent !important;
+  color: #578FFF !important;
+}
 </style>
