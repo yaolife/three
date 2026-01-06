@@ -542,6 +542,54 @@ export async function getProjectAllDetail(id) {
 }
 
 /**
+ * CAD 文件转 SVG 接口
+ * @param {File|Blob} file - CAD 文件（File 或 Blob 对象）
+ * @param {string} fileName - 文件名（可选，如果是 Blob 需要提供）
+ * @returns {Promise} - 返回转换后的 SVG 文件流
+ */
+export async function convertDxfToPng(file, fileName = "cad.dwg") {
+  try {
+    // 确保是 File 对象，如果是 Blob 则转换为 File
+    let fileToUpload = file;
+    if (file instanceof Blob && !(file instanceof File)) {
+      fileToUpload = new File([file], fileName, { type: file.type || "application/octet-stream" });
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileToUpload);
+
+    // 获取请求头（不包含 Content-Type，让浏览器自动设置）
+    const headers = {};
+    const token = localStorage.getItem("token");
+    if (token) {
+      // 使用与其他接口一致的 token 字段格式
+      headers["token"] = token;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/file/upload/convertDxfToPng`, {
+      method: "POST",
+      headers: headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // 返回 Blob，供前端使用
+    const blob = await response.blob();
+    return blob;
+  } catch (error) {
+    // 如果已经抛出"请重新登录"错误，直接抛出
+    if (error.message === "请重新登录") {
+      throw error;
+    }
+    console.error("CAD 转 PNG API请求失败:", error);
+    throw error;
+  }
+}
+
+/**
  * 文件上传接口（form-data，文件流形式）
  * @param {File|Blob} file - 上传的文件（File 或 Blob 对象）
  * @param {string} fileName - 文件名（可选，如果是 Blob 需要提供）
@@ -554,10 +602,10 @@ export async function uploadImage(file, fileName = "image.png") {
     if (file instanceof Blob && !(file instanceof File)) {
       fileToUpload = new File([file], fileName, { type: file.type || "image/png" });
     }
-    
+
     const formData = new FormData();
     formData.append("file", fileToUpload);
-    
+
     // 获取请求头（不包含 Content-Type，让浏览器自动设置）
     const headers = {};
     const token = localStorage.getItem("token");
@@ -565,7 +613,7 @@ export async function uploadImage(file, fileName = "image.png") {
       // 使用与其他接口一致的 token 字段格式
       headers["token"] = token;
     }
-    
+
     const response = await fetch(`${API_BASE_URL}/file/upload/upload`, {
       method: "POST",
       headers: headers,
