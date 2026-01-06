@@ -47,7 +47,6 @@
           <el-button
             v-if="canShowUpload"
             class="toolbar-action-btn"
-            type="primary"
             style="margin-left: 8px"
             @click="handleUpload"
           >
