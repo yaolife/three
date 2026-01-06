@@ -5,7 +5,7 @@
       <div class="projects-toolbar">
         <div class="projects-toolbar-left">
           <el-button type="primary" @click="handleCreateClick">
-            <el-icon><Plus /></el-icon>
+             <img src="@/images/create.png" alt="create" class="create-icon" />
             创建项目
           </el-button>
           <div class="projects-search-box">
