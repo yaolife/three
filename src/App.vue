@@ -18,7 +18,7 @@
             class="back-btn"
             @click="openMenuDialog"
           >
-            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+            <img src="@/images/back.png" alt="back" class="back-icon" />
             返回
           </el-button>
           <el-button
@@ -28,7 +28,7 @@
             class="back-btn"
             @click="handleBackToList"
           >
-            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+            <img src="@/images/back.png" alt="back" class="back-icon" />
             返回
           </el-button>
           <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
@@ -434,7 +434,6 @@ import {
   DataAnalysis,
   User,
   Lock,
-  ArrowLeft,
   Close,
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
@@ -1450,10 +1449,21 @@ onMounted(async () => {
 }
 
 .back-btn {
-  color: #000000;
+  color: #878787;
   margin-right: 16px;
   font-size: 14px;
+  font-weight: 600;
   padding: 6px 12px;
+  border-radius: 2px;
+  background: #FDFDFD;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.15) inset;
+}
+
+.back-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  vertical-align: middle;
 }
 
 /* 登录后，导航栏元素使用白色，让它们在背景图上可见 */

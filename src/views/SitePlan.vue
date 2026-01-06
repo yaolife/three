@@ -4,8 +4,8 @@
     <div class="page-header">
       <div class="header-content">
         <el-button type="default" class="back-btn" @click="handleBack">
-          <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
-          返回
+          <img src="@/images/back.png" alt="back" class="back-icon" width="20" height="14" />
+          <span style="margin-left: 4px">返回</span>
         </el-button>
         <div class="project_title">{{ projectTitle || '总平规划项目' }}</div>
       </div>
@@ -1133,7 +1133,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { ArrowLeft, Search, Close, User, Lock, Loading, Delete } from "@element-plus/icons-vue";
+import { Search, Close, User, Lock, Loading, Delete } from "@element-plus/icons-vue";
 import startIconSrc from "@/images/point.png";
 import liftingIconSrc from "@/images/crane_point.png";
 import movingIconSrc from "@/images/move_point.png";
@@ -6283,14 +6283,18 @@ const handleBack = () => {
 }
 
 .back-btn {
-  color: #000000;
+  color: #878787;
   margin-right: 16px;
   font-size: 14px;
+  font-weight: 600;
   padding: 6px 12px;
+  border-radius: 2px;
+  background: #FDFDFD;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.15) inset;
 }
 
 .back-btn:hover {
-  color: #000000;
+  color: #878787;
   cursor: pointer;
 }
 

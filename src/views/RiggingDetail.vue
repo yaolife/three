@@ -4,8 +4,8 @@
       <template #header>
         <div class="card-header">
           <div class="header-left">
-            <el-button @click="handleBack" link>
-              <el-icon><ArrowLeft /></el-icon>
+            <el-button @click="handleBack" type="default" class="back-btn">
+              <img src="@/images/back.png" alt="back" class="back-icon" />
               返回
             </el-button>
             <span class="title">吊索具详情</span>
@@ -75,7 +75,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ArrowLeft, Plus } from '@element-plus/icons-vue';
+import { Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { translateLiftingType } from "@/utils/common.js";
 import { getLiftingDetailPage, addUpdateLiftingDetail, deleteSubItem, getLiftingInfoPage } from '@/api/index.js';
@@ -421,6 +421,16 @@ onMounted(async () => {
   font-size: 14px;
   font-weight: 500;
   color: #303133;
+}
+
+.back-btn {
+  color: #878787;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 2px;
+  background: #FDFDFD;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.15) inset;
 }
 
 .pagination {

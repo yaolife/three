@@ -2,7 +2,7 @@
   <div class="calculation-detail-container">
     <div class="header">
       <el-button type="default" class="back-btn" @click.stop="handleBackToVerification">
-        <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+        <img src="@/images/back.png" alt="back" class="back-icon" />
         返回
       </el-button>
       <div class="header-left" @click="openEditTitleDialog">
@@ -3416,7 +3416,6 @@
 import { ref, computed, watch, watchEffect, reactive, nextTick, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import {
-  ArrowLeft,
   Edit,
   Tools,
   Connection,
@@ -7416,10 +7415,14 @@ const handleExportAll = async (exportType = 0) => {
 }
 
 .back-btn {
-  color: #000000;
+  color: #878787;
   margin-right: 16px;
   font-size: 14px;
+  font-weight: 600;
   padding: 6px 12px;
+  border-radius: 2px;
+  background: #FDFDFD;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.15) inset;
 }
 
 .header-left {
