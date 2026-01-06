@@ -1984,6 +1984,12 @@ border: 1px solid #A2A2A2;
   align-items: center;
 }
 
+/* 云端数据同步弹窗中的搜索输入框边框样式 */
+.sync-dialog :deep(.el-input__wrapper) {
+  border: 1px solid #999 !important;
+  box-shadow: none !important;
+}
+
 .sync-dialog-footer {
   display: flex;
   justify-content: flex-end;

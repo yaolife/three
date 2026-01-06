@@ -1649,6 +1649,12 @@ onMounted(() => {
   align-items: center;
 }
 
+/* 数据管理页面 Tab 下搜索输入框边框样式 */
+.search-group :deep(.el-input__wrapper) {
+  border: 1px solid #999 !important;
+  box-shadow: none !important;
+}
+
 .pagination {
   margin-top: 20px;
   display: flex;
