@@ -2027,6 +2027,14 @@ border: 1px solid #A2A2A2;
   gap: 10px;
 }
 
+/* 云端数据同步弹窗：表格分页和总计挨在一起且居中 */
+.sync-dialog .pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
 .pagination-container {
   display: flex;
   justify-content: space-between;
