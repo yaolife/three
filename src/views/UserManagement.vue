@@ -47,9 +47,9 @@
               {{ scope.$index + 1 + (currentPage - 1) * pageSize }}
             </template>
           </el-table-column>
-          <el-table-column prop="userNickName" label="用户昵称" min-width="120" />
-          <el-table-column prop="userName" label="用户名" min-width="120" />
-          <el-table-column prop="userUnit" label="用户单位" min-width="150" />
+          <el-table-column prop="userNickName" align="center" label="用户昵称" min-width="120" />
+          <el-table-column prop="userName" align="center"  label="用户名" min-width="120" />
+          <el-table-column prop="userUnit" align="center" label="用户单位" min-width="150" />
           <el-table-column prop="level" label="账号级别" width="120" align="center">
             <template #default="scope">
               <el-tag :type="scope.row.level === 1 ? 'danger' : 'info'">
@@ -67,8 +67,8 @@
               />
             </template>
           </el-table-column>
-          <el-table-column prop="createName" label="创建人名称" width="120" />
-          <el-table-column prop="createTime" label="创建时间" width="180" />
+          <el-table-column prop="createName" align="center" label="创建人名称" width="120" />
+          <el-table-column prop="createTime" align="center" label="创建时间" width="180" />
           <el-table-column label="操作" width="200" fixed="right" align="center">
             <template #default="scope">
               <el-button
