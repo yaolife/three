@@ -2145,4 +2145,10 @@ body .login-dialog .el-dialog__header {
   background-color: transparent !important;
   color: #578FFF !important;
 }
+
+/* 全局样式：所有 table 每一行底部线条颜色 */
+.el-table__body td,
+.el-table__body td.el-table__cell {
+  border-bottom: 1px solid rgba(80, 80, 80, 0.30) !important;
+}
 </style>
