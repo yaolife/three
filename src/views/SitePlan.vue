@@ -5912,9 +5912,9 @@ const handleBack = () => {
         const file = event.target.files[0];
         if (file) {
           const fileName = file.name.toLowerCase();
-          const isCadFile = fileName.endsWith('.dwg') || fileName.endsWith('.dxf');
+          const isCadFileType = fileName.endsWith('.dwg') || fileName.endsWith('.dxf');
           
-          if (isCadFile) {
+          if (isCadFileType) {
             // CAD 文件需要先转换为 SVG，然后上传到后端，最后通过 getStreamImage 获取文件流显示
             try {
               ElMessage.info("正在转换 CAD 文件为 SVG，请稍候...");
@@ -5992,8 +5992,11 @@ const handleBack = () => {
                   
                   // 清空旧的引用
                   importedImage.value = null;
-                  isCadFile.value = false;
-                  cadViewerUrl.value = null;
+                  isCadFile.value = false; // 使用全局 ref，不是局部变量
+                  if (cadBlobUrl.value && cadBlobUrl.value.startsWith("blob:")) {
+                    URL.revokeObjectURL(cadBlobUrl.value);
+                  }
+                  cadBlobUrl.value = null;
                   
                   // 如果是图片或 SVG 格式，使用 img 标签显示
                   if (isImageFile || isSvgFile) {
