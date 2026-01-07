@@ -373,6 +373,15 @@
                   min-width="150"
                 />
                 <el-table-column
+                  prop="type"
+                  label="模型类型"
+                  min-width="120"
+                >
+                  <template #default="scope">
+                    {{ translateModelType(scope.row.type) }}
+                  </template>
+                </el-table-column>
+                <el-table-column
                   prop="createName"
                   label="创建人"
                   width="120"
@@ -613,6 +622,14 @@
         <el-form-item label="模型名称">
           <el-input v-model="craneModelForm.modelName" placeholder="请输入模型名称" />
         </el-form-item>
+        <el-form-item label="模型类型">
+          <el-select v-model="craneModelForm.type" placeholder="请选择模型类型">
+            <el-option label="起重机" :value="0" />
+            <el-option label="吊索具" :value="1" />
+            <el-option label="设备" :value="2" />
+            <el-option label="运输车" :value="3" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="导入模型">
           <el-upload
             class="upload-demo"
@@ -743,11 +760,23 @@ const craneForm = ref({
 const craneModelDialogVisible = ref(false);
 const craneModelForm = ref({
   modelName: "",
+  type: 0, // 模型类型，0:起重机 1:吊索具 2:设备 3:运输车，默认选中第一个
   fileId: "",
   push: 0,
 });
 const craneModelFile = ref(null);
 const craneModelSubmitting = ref(false);
+
+// 翻译模型类型
+const translateModelType = (type) => {
+  const typeMap = {
+    0: "起重机",
+    1: "吊索具",
+    2: "设备",
+    3: "运输车",
+  };
+  return typeMap[type] || "未知";
+};
 
 // 子类型选项
 const subTypeOptions = ref([]);
@@ -828,7 +857,9 @@ const handleAddCraneModel = () => {
   craneModelDialogVisible.value = true;
   craneModelForm.value = {
     modelName: "",
+    type: 0, // 默认选中第一个（起重机）
     fileId: "",
+    push: 0,
   };
   craneModelFile.value = null;
 };
@@ -1439,6 +1470,7 @@ const handleCraneModelSubmit = async () => {
 
     const params = {
       modelName: craneModelForm.value.modelName,
+      type: craneModelForm.value.type !== undefined && craneModelForm.value.type !== null ? craneModelForm.value.type : 0,
       fileId,
       push: craneModelForm.value.push || 0,
     };
@@ -1449,6 +1481,7 @@ const handleCraneModelSubmit = async () => {
       craneModelDialogVisible.value = false;
       craneModelForm.value = {
         modelName: "",
+        type: 0,
         fileId: "",
         push: 0,
       };
