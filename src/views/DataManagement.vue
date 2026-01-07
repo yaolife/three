@@ -346,6 +346,16 @@
                     clearable
                     @keyup.enter="handleCraneModelSearch"
                   />
+                  <el-select
+                    v-model="craneModelTypeSearch"
+                    style="width: 140px; margin-left: 8px"
+                  >
+                    <el-option label="全部" :value="-1" />
+                    <el-option label="起重机" :value="0" />
+                    <el-option label="吊索具" :value="1" />
+                    <el-option label="设备" :value="2" />
+                    <el-option label="运输车" :value="3" />
+                  </el-select>
                   <el-button class="search-btn" @click="handleCraneModelSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
@@ -714,6 +724,7 @@ const equipmentLoading = ref(false);
 
 // 三维模型库数据
 const craneModelSearch = ref("");
+const craneModelTypeSearch = ref(-1); // 模型类型搜索条件，-1表示"全部"，默认选中"全部"
 const craneModelPage = ref(1);
 const craneModelPageSize = ref(10);
 const craneModelTotal = ref(0);
@@ -1393,6 +1404,11 @@ const fetchCraneModelData = async () => {
     // 如果有搜索关键词，添加搜索参数
     if (craneModelSearch.value && craneModelSearch.value.trim()) {
       params.modelName = craneModelSearch.value.trim();
+    }
+
+    // 如果选择了模型类型（不是"全部"），添加类型搜索参数
+    if (craneModelTypeSearch.value !== null && craneModelTypeSearch.value !== undefined && craneModelTypeSearch.value !== -1) {
+      params.type = craneModelTypeSearch.value;
     }
 
     const response = await getCraneModelPage(params);
