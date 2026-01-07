@@ -1328,16 +1328,6 @@ const handleRiggingPageSizeChange = (size) => {
   fetchRiggingData();
 };
 
-watch(activeTab, (newTab) => {
-  if (newTab === "rigging" && riggingData.value.length === 0) {
-    fetchRiggingData();
-  } else if (newTab === "crane" && craneData.value.length === 0) {
-    fetchCraneData();
-  } else if (newTab === "craneModel" && craneModelData.value.length === 0) {
-    fetchCraneModelData();
-  }
-});
-
 // 处理设备弹窗确定按钮
 const handleEquipmentSubmit = async () => {
   // 表单验证
