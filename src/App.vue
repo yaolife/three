@@ -285,6 +285,16 @@
                       clearable
                       @keyup.enter="handleSyncCraneModelSearch"
                     />
+                    <el-select
+                      v-model="syncCraneModelTypeSearch"
+                      style="width: 140px; margin-left: 8px"
+                    >
+                      <el-option label="全部" :value="-1" />
+                      <el-option label="起重机" :value="0" />
+                      <el-option label="吊索具" :value="1" />
+                      <el-option label="设备" :value="2" />
+                      <el-option label="运输车" :value="3" />
+                    </el-select>
                     <el-button class="search-btn" @click="handleSyncCraneModelSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
@@ -304,6 +314,11 @@
                     </template>
                   </el-table-column>
                   <el-table-column prop="modelName" label="模型名称" min-width="150" />
+                  <el-table-column prop="type" label="模型类型" min-width="120">
+                    <template #default="scope">
+                      {{ translateModelType(scope.row.type) }}
+                    </template>
+                  </el-table-column>
                   <el-table-column prop="createName" label="创建人" width="120" />
                   <el-table-column prop="createTime" label="录入时间" width="180" />
                 </el-table>
@@ -409,6 +424,17 @@ import Background from './components/Background.vue';
 const route = useRoute();
 const router = useRouter();
 
+// 翻译模型类型
+const translateModelType = (type) => {
+  const typeMap = {
+    0: "起重机",
+    1: "吊索具",
+    2: "设备",
+    3: "运输车",
+  };
+  return typeMap[type] || "未知";
+};
+
 // 是否已登录
 const isLoggedIn = computed(() => userStore.userState.isLoggedIn);
 
@@ -448,6 +474,7 @@ const syncEquipmentSelected = ref([]);
 
 // 三维模型库同步数据
 const syncCraneModelSearch = ref("");
+const syncCraneModelTypeSearch = ref(-1); // 模型类型搜索条件，-1表示"全部"，默认选中"全部"
 const syncCraneModelPage = ref(1);
 const syncCraneModelPageSize = ref(10);
 const syncCraneModelTotal = ref(0);
@@ -870,6 +897,11 @@ const fetchSyncCraneModelData = async () => {
 
     if (syncCraneModelSearch.value && syncCraneModelSearch.value.trim()) {
       params.modelName = syncCraneModelSearch.value.trim();
+    }
+
+    // 如果选择了模型类型（不是"全部"），添加类型搜索参数
+    if (syncCraneModelTypeSearch.value !== null && syncCraneModelTypeSearch.value !== undefined && syncCraneModelTypeSearch.value !== -1) {
+      params.type = syncCraneModelTypeSearch.value;
     }
 
     const response = await getCraneModelPage(params);
