@@ -4409,7 +4409,7 @@ const selectCrane = (crane) => {
 // 设置起重机点位（打开添加起点弹窗）
 const setCranePosition = () => {
   if (!selectedCrane.value) return;
-  // 计算默认坐标（以图片左上角为原点，右侧10%，下方10%的位置）
+  // 计算默认坐标（以图片左上角为原点，右侧20%，下方20%的位置）
   const defaultCoords = getDefaultPointGeoCoords(0.2, 0.2);
   // 重置新点位数据
   newPoint.value = createBasePoint({
@@ -4449,7 +4449,7 @@ const setCranePosition = () => {
       return;
     }
     
-    // 计算默认坐标（以图片左上角为原点，右侧10%，下方10%的位置）
+    // 计算默认坐标（以图片左上角为原点，右侧20%，下方20%的位置）
     const defaultCoords = getDefaultPointGeoCoords(0.2, 0.2);
     // 重置新点位数据
     const isStart = false; // 添加路径点位不是起点
@@ -4562,7 +4562,7 @@ const setCranePosition = () => {
       }
     }
 
-    // 如果坐标不存在，使用默认坐标（以图片左上角为原点，右侧10%，下方10%的位置）
+    // 如果坐标不存在，使用默认坐标（以图片左上角为原点，右侧20%，下方20%的位置）
     let xCoord = typeof newPoint.value.x === "number" ? newPoint.value.x : parseFloat(newPoint.value.x);
     let yCoord = typeof newPoint.value.y === "number" ? newPoint.value.y : parseFloat(newPoint.value.y);
     if (!xCoord || !yCoord || isNaN(xCoord) || isNaN(yCoord)) {
