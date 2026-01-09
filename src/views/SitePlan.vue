@@ -3417,6 +3417,37 @@ const convertToGeoCoords = (canvasX, canvasY) => {
   }
 };
 
+// 根据图片尺寸计算默认点位的地理坐标（以图片左上角为原点）
+// percentX: X方向的百分比（0-1），0表示左上角，1表示右上角
+// percentY: Y方向的百分比（0-1），0表示左上角，1表示左下角
+const getDefaultPointGeoCoords = (percentX = 0.2, percentY = 0.2) => {
+  if (!imageRef.value || !canvas.value) {
+    // 如果没有图片，返回默认坐标
+    return { x: 112.0, y: 38.0 };
+  }
+  
+  try {
+    // 获取图片的显示尺寸（变换后的尺寸）
+    const imageRect = imageRef.value.getBoundingClientRect();
+    const displayedWidth = imageRect.width;
+    const displayedHeight = imageRect.height;
+    
+    if (displayedWidth === 0 || displayedHeight === 0) {
+      return { x: 112.0, y: 38.0 };
+    }
+    
+    // 计算图片上的像素坐标（变换前的坐标）
+    const canvasX = percentX * (displayedWidth / scale.value);
+    const canvasY = percentY * (displayedHeight / scale.value);
+    
+    // 转换为地理坐标
+    return convertToGeoCoords(canvasX, canvasY);
+  } catch (error) {
+    console.error('计算默认坐标错误:', error);
+    return { x: 112.0, y: 38.0 };
+  }
+};
+
 // 绘制单个起重机的轨迹（已废弃，现在使用drawAllTrajectories统一绘制）
 // 保留此函数以兼容播放进度绘制
 const drawCraneTrajectory = (crane, isHighlighted = false) => {
@@ -4378,11 +4409,15 @@ const selectCrane = (crane) => {
 // 设置起重机点位（打开添加起点弹窗）
 const setCranePosition = () => {
   if (!selectedCrane.value) return;
+  // 计算默认坐标（以图片左上角为原点，右侧10%，下方10%的位置）
+  const defaultCoords = getDefaultPointGeoCoords(0.1, 0.1);
   // 重置新点位数据
   newPoint.value = createBasePoint({
     isStart: true,
     type: "lifting",
     name: getNextPointName("lifting", selectedCrane.value.points || [], true),
+    x: defaultCoords.x,
+    y: defaultCoords.y,
   });
   // 打开添加点位弹窗
   addPointDialogVisible.value = true;
@@ -4414,12 +4449,16 @@ const setCranePosition = () => {
       return;
     }
     
+    // 计算默认坐标（以图片左上角为原点，右侧10%，下方10%的位置）
+    const defaultCoords = getDefaultPointGeoCoords(0.1, 0.1);
     // 重置新点位数据
     const isStart = false; // 添加路径点位不是起点
     newPoint.value = createBasePoint({
       name: `移动点位${pointCount}`,
       isStart,
       type: "moving",
+      x: defaultCoords.x,
+      y: defaultCoords.y,
     });
     // 打开添加点位弹窗
     addPointDialogVisible.value = true;
@@ -4523,8 +4562,14 @@ const setCranePosition = () => {
       }
     }
 
-    const xCoord = typeof newPoint.value.x === "number" ? newPoint.value.x : parseFloat(newPoint.value.x) || 112;
-    const yCoord = typeof newPoint.value.y === "number" ? newPoint.value.y : parseFloat(newPoint.value.y) || 38;
+    // 如果坐标不存在，使用默认坐标（以图片左上角为原点，右侧10%，下方10%的位置）
+    let xCoord = typeof newPoint.value.x === "number" ? newPoint.value.x : parseFloat(newPoint.value.x);
+    let yCoord = typeof newPoint.value.y === "number" ? newPoint.value.y : parseFloat(newPoint.value.y);
+    if (!xCoord || !yCoord || isNaN(xCoord) || isNaN(yCoord)) {
+      const defaultCoords = getDefaultPointGeoCoords(0.1, 0.1);
+      xCoord = defaultCoords.x;
+      yCoord = defaultCoords.y;
+    }
 
     const pointToAdd = {
       ...createBasePoint(),
