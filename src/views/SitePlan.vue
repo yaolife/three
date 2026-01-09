@@ -7657,7 +7657,7 @@ const handleBack = () => {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 3px 16px;
+  padding: 0px 16px;
 }
 .punctuation{
   color: #FFF;
