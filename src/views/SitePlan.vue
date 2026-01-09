@@ -4410,7 +4410,7 @@ const selectCrane = (crane) => {
 const setCranePosition = () => {
   if (!selectedCrane.value) return;
   // 计算默认坐标（以图片左上角为原点，右侧10%，下方10%的位置）
-  const defaultCoords = getDefaultPointGeoCoords(0.1, 0.1);
+  const defaultCoords = getDefaultPointGeoCoords(0.2, 0.2);
   // 重置新点位数据
   newPoint.value = createBasePoint({
     isStart: true,
@@ -4450,7 +4450,7 @@ const setCranePosition = () => {
     }
     
     // 计算默认坐标（以图片左上角为原点，右侧10%，下方10%的位置）
-    const defaultCoords = getDefaultPointGeoCoords(0.1, 0.1);
+    const defaultCoords = getDefaultPointGeoCoords(0.2, 0.2);
     // 重置新点位数据
     const isStart = false; // 添加路径点位不是起点
     newPoint.value = createBasePoint({
@@ -4566,7 +4566,7 @@ const setCranePosition = () => {
     let xCoord = typeof newPoint.value.x === "number" ? newPoint.value.x : parseFloat(newPoint.value.x);
     let yCoord = typeof newPoint.value.y === "number" ? newPoint.value.y : parseFloat(newPoint.value.y);
     if (!xCoord || !yCoord || isNaN(xCoord) || isNaN(yCoord)) {
-      const defaultCoords = getDefaultPointGeoCoords(0.1, 0.1);
+      const defaultCoords = getDefaultPointGeoCoords(0.2, 0.2);
       xCoord = defaultCoords.x;
       yCoord = defaultCoords.y;
     }
