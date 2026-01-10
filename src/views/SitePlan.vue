@@ -3490,13 +3490,16 @@ const convertToCanvasCoords = (x, y) => {
   }
   
   try {
-    // 获取图片的显示尺寸（变换后的尺寸）
-    const imageRect = imageRef.value.getBoundingClientRect();
-    const displayedWidth = imageRect.width;
-    const displayedHeight = imageRect.height;
+    // 关键：使用固定的参考尺寸（canvas.width x canvas.height）作为坐标映射基准
+    // 图片按canvas.width x canvas.height绘制（在变换后的坐标系中）
+    // Canvas应用了scale变换，所以变换会自动应用
+    // 坐标映射应该基于固定的canvas尺寸，而不是随scale变化的尺寸
+    // 这样确保无论scale如何变化，标注和点位在图片上的相对位置都保持不变
+    const referenceWidth = canvas.value.width;
+    const referenceHeight = canvas.value.height;
     
-    if (displayedWidth === 0 || displayedHeight === 0) {
-      console.warn('图片尺寸为0，使用默认映射');
+    if (referenceWidth === 0 || referenceHeight === 0) {
+      console.warn('Canvas尺寸为0，使用默认映射');
       return { x: x * 5, y: y * 5 };
     }
     
@@ -3512,9 +3515,10 @@ const convertToCanvasCoords = (x, y) => {
     const normalizedX = (x - coordMinX.value) / coordRangeX;
     const normalizedY = (y - coordMinY.value) / coordRangeY;
     
-    // 映射到图片坐标（变换前的坐标，transform会自动应用）
-    const canvasX = normalizedX * (displayedWidth / scale.value);
-    const canvasY = normalizedY * (displayedHeight / scale.value);
+    // 映射到图片坐标（变换前的坐标，使用固定的canvas尺寸作为参考）
+    // 这样无论scale如何变化，坐标映射关系都保持一致
+    const canvasX = normalizedX * referenceWidth;
+    const canvasY = normalizedY * referenceHeight;
     
     return { x: canvasX, y: canvasY };
   } catch (error) {
@@ -3531,18 +3535,20 @@ const convertToGeoCoords = (canvasX, canvasY) => {
   }
   
   try {
-    // 获取图片的显示尺寸（变换后的尺寸）
-    const imageRect = imageRef.value.getBoundingClientRect();
-    const displayedWidth = imageRect.width;
-    const displayedHeight = imageRect.height;
+    // 关键：使用固定的参考尺寸（canvas.width x canvas.height）作为坐标映射基准
+    // 与convertToCanvasCoords保持一致，使用固定的canvas尺寸
+    // 这样无论scale如何变化，坐标转换关系都保持一致
+    const referenceWidth = canvas.value.width;
+    const referenceHeight = canvas.value.height;
     
-    if (displayedWidth === 0 || displayedHeight === 0) {
+    if (referenceWidth === 0 || referenceHeight === 0) {
       return { x: canvasX / 5, y: canvasY / 5 };
     }
     
     // canvasX和canvasY是变换前的坐标，需要归一化
-    const normalizedX = canvasX / (displayedWidth / scale.value);
-    const normalizedY = canvasY / (displayedHeight / scale.value);
+    // 使用固定的canvas尺寸作为参考基准
+    const normalizedX = canvasX / referenceWidth;
+    const normalizedY = canvasY / referenceHeight;
     
     // 转换为地理坐标
     const coordRangeX = coordMaxX.value - coordMinX.value;
@@ -3837,9 +3843,11 @@ const drawAllTrajectories = () => {
   ctx.value.scale(scale.value, scale.value);
   
   // 先绘制背景图片（如果存在）
+  // 恢复之前的逻辑：直接使用canvas尺寸绘制，确保初始化时显示正确
+  // 坐标转换仍然基于图片原始尺寸，确保缩放时位置不变
   if (imageRef.value && imageRef.value.complete) {
     ctx.value.save();
-    // 直接绘制图片，填充整个canvas
+    // 直接绘制图片，填充整个canvas（恢复之前的逻辑）
     ctx.value.drawImage(
       imageRef.value,
       0,
