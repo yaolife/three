@@ -560,6 +560,42 @@
             <span>施工场景平面图加载中...</span>
           </div>
 
+          <!-- 标尺组件 -->
+          <template v-if="(planImageUrl || importedImage) && canvasSize.width > 0 && canvasSize.height > 0">
+            <!-- 标尺交汇角落 -->
+            <div class="ruler-corner" style="position: absolute; left: 0; top: 0; width: 50px; height: 20px; background-color: #fafafa; border-right: 1px solid #d9d9d9; border-bottom: 1px solid #d9d9d9; z-index: 6; box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);"></div>
+            
+            <!-- 顶部水平标尺 -->
+            <div class="ruler-horizontal" :style="{ width: canvasSize.width + 'px', height: '20px', left: '50px', top: '0' }">
+              <div class="ruler-content">
+                <div
+                  v-for="tick in horizontalTicks"
+                  :key="`h-${tick.value}`"
+                  class="ruler-tick horizontal-tick"
+                  :style="{ left: tick.position + 'px' }"
+                >
+                  <div class="tick-line"></div>
+                  <div class="tick-label">{{ tick.label }}</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 左侧垂直标尺 -->
+            <div class="ruler-vertical" :style="{ width: '50px', height: canvasSize.height + 'px', left: '0', top: '20px' }">
+              <div class="ruler-content">
+                <div
+                  v-for="tick in verticalTicks"
+                  :key="`v-${tick.value}`"
+                  class="ruler-tick vertical-tick"
+                  :style="{ top: tick.position + 'px' }"
+                >
+                  <div class="tick-line"></div>
+                  <div class="tick-label">{{ tick.label }}</div>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <!-- 有平面图时：显示绘制工具 + 平面图 + 画布 -->
           <template v-if="planImageUrl || importedImage">
           <div v-if="selectedCrane" class="drawing-toolbar">
@@ -1279,6 +1315,9 @@ const canvasSize = reactive({
   height: 0,
 });
 
+// 标尺0点位置跟随图片移动（以图片左上角为0点）
+// 0点位置会根据图片的offsetX和offsetY动态变化
+
 // 顶部自由标注工具相关状态（与点位绘制完全独立）
 const freeAnnotationToolOptions = [
   { type: "free-rect-1", label: "矩形" },
@@ -1597,6 +1636,108 @@ const canCompleteDrawing = computed(() => {
 const activeShape = computed(() => {
   if (!activeShapeId.value) return null;
   return shapeOverlays.value.find((shape) => shape.id === activeShapeId.value) || null;
+});
+
+// 计算水平标尺刻度（0刻度跟随图片移动，以图片左上角为0点）
+const horizontalTicks = computed(() => {
+  if (!canvas.value || canvasSize.width === 0) return [];
+  
+  const ticks = [];
+  const interval = 50; // 固定刻度间距50px
+  
+  // 0点位置 = 图片左上角在画布上的位置 = offsetX（考虑scale的影响）
+  // 图片左上角在图片坐标系中是0，在画布上的位置就是offsetX
+  const zeroPosition = offsetX.value;
+  
+  // 计算需要显示的刻度范围
+  // 从0点向左和向右扩展，确保能看到负数（无限小）和正数（无限大）
+  const visibleStart = -interval * 20; // 向左扩展足够远以显示负数
+  const visibleEnd = canvasSize.width + interval * 20; // 向右扩展足够远以显示正数
+  
+  // 计算起始和结束刻度值（以相对于0点的偏移为单位）
+  const startOffset = Math.floor((visibleStart - zeroPosition) / interval) * interval;
+  const endOffset = Math.ceil((visibleEnd - zeroPosition) / interval) * interval;
+  
+  // 生成刻度
+  for (let offset = startOffset; offset <= endOffset; offset += interval) {
+    // 计算该偏移值在画布上的位置
+    const position = zeroPosition + offset;
+    
+    // 只显示在可视区域附近的刻度（但允许超出一些以显示负数）
+    if (position >= -interval * 5 && position <= canvasSize.width + interval * 5) {
+      ticks.push({
+        value: offset,
+        position: position,
+        label: offset
+      });
+    }
+  }
+  
+  // 确保0点总是显示（即使不在可视区域内也添加）
+  const hasZero = ticks.some(tick => Math.abs(tick.value) < 0.1);
+  if (!hasZero) {
+    ticks.push({
+      value: 0,
+      position: zeroPosition,
+      label: 0
+    });
+  }
+  
+  // 按位置排序
+  ticks.sort((a, b) => a.position - b.position);
+  
+  return ticks;
+});
+
+// 计算垂直标尺刻度（0刻度跟随图片移动，以图片左上角为0点）
+const verticalTicks = computed(() => {
+  if (!canvas.value || canvasSize.height === 0) return [];
+  
+  const ticks = [];
+  const interval = 50; // 固定刻度间距50px
+  
+  // 0点位置 = 图片左上角在画布上的位置 = offsetY（考虑scale的影响）
+  // 图片左上角在图片坐标系中是0，在画布上的位置就是offsetY
+  const zeroPosition = offsetY.value;
+  
+  // 计算需要显示的刻度范围
+  // 从0点向上和向下扩展，确保能看到负数（无限小）和正数（无限大）
+  const visibleStart = -interval * 20; // 向上扩展足够远以显示负数
+  const visibleEnd = canvasSize.height + interval * 20; // 向下扩展足够远以显示正数
+  
+  // 计算起始和结束刻度值（以相对于0点的偏移为单位）
+  const startOffset = Math.floor((visibleStart - zeroPosition) / interval) * interval;
+  const endOffset = Math.ceil((visibleEnd - zeroPosition) / interval) * interval;
+  
+  // 生成刻度
+  for (let offset = startOffset; offset <= endOffset; offset += interval) {
+    // 计算该偏移值在画布上的位置
+    const position = zeroPosition + offset;
+    
+    // 只显示在可视区域附近的刻度（但允许超出一些以显示负数）
+    if (position >= -interval * 5 && position <= canvasSize.height + interval * 5) {
+      ticks.push({
+        value: offset,
+        position: position,
+        label: offset
+      });
+    }
+  }
+  
+  // 确保0点总是显示（即使不在可视区域内也添加）
+  const hasZero = ticks.some(tick => Math.abs(tick.value) < 0.1);
+  if (!hasZero) {
+    ticks.push({
+      value: 0,
+      position: zeroPosition,
+      label: 0
+    });
+  }
+  
+  // 按位置排序
+  ticks.sort((a, b) => a.position - b.position);
+  
+  return ticks;
 });
 
 const renderedShapeItems = computed(() => {
@@ -7261,6 +7402,89 @@ const handleBack = () => {
   align-items: center;
   box-sizing: border-box;
   margin-right: 280px;
+  padding-left: 50px;
+  padding-top: 20px;
+}
+
+/* 标尺样式 */
+.ruler-horizontal {
+  position: absolute;
+  background-color: #fafafa;
+  border-bottom: 1px solid #d9d9d9;
+  overflow: visible;
+  z-index: 5;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.ruler-vertical {
+  position: absolute;
+  background-color: #fafafa;
+  border-right: 1px solid #d9d9d9;
+  overflow: visible;
+  z-index: 5;
+  user-select: none;
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.ruler-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.ruler-tick {
+  position: absolute;
+}
+
+.horizontal-tick {
+  top: 0;
+}
+
+.vertical-tick {
+  left: 0;
+}
+
+.tick-line {
+  background-color: #8c8c8c;
+}
+
+.horizontal-tick .tick-line {
+  width: 1px;
+  height: 8px;
+  margin-top: 0;
+}
+
+.vertical-tick .tick-line {
+  width: 8px;
+  height: 1px;
+  margin-left: 0;
+}
+
+.tick-label {
+  position: absolute;
+  color: #595959;
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.horizontal-tick .tick-label {
+  top: 9px;
+  left: 2px;
+  transform: translateX(-50%);
+}
+
+.vertical-tick .tick-label {
+  left: 25px;
+  top: 2px;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: center center;
+  width: 30px;
+  text-align: center;
 }
 
 .plan-loading-mask {
