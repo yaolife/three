@@ -7150,6 +7150,7 @@ const handleBack = () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  z-index: 10; /* 确保属性面板在标尺之上 */
 }
 
 .panel-header {
