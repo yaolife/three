@@ -7533,7 +7533,7 @@ const handleBack = () => {
 
 .drawing-toolbar {
   position: absolute;
-  top: 16px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
