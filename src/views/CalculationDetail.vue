@@ -1,14 +1,23 @@
 <template>
   <div class="calculation-detail-container">
     <div class="header">
-      <el-button type="default" class="back-btn" @click.stop="handleBackToVerification">
-         <img src="@/images/back.png" alt="back" class="back-icon" width="20" height="14" />
-          <span style="margin-left: 4px">返回</span>
-      </el-button>
+      <div class="header-left-actions">
+        <div class="back-btn" @click.stop="handleBackToVerification">
+           <img src="@/images/goBack.png" alt="back" class="back-icon" width="21" height="21" />
+            <span style="margin-left: 4px">返回</span>
+        </div>
+        <div class="export-btn" @click="openExportSelectDialog">
+           <img src="@/images/export.png" alt="export" class="edit" width="20" height="17"/>
+           <span>导出</span>
+        </div>
+      </div>
       <div class="header-left" @click="openEditTitleDialog">
         <span class="project-title">{{ projectTitle }}</span>
         <img src="@/images/hoisting.png" alt="edit" class="edit" />
       </div>
+    </div>
+
+    <div class="tabs-row">
       <el-tabs
         v-model="activeTab"
         class="calculation-tabs"
@@ -16,21 +25,7 @@
       >
         <el-tab-pane label="起重机校核计算" name="crane">
           <template #label>
-            <div class="tab-label">
-              <img
-                style="width: 22px; height: 22px"
-                v-if="activeTab === 'crane'"
-                src="@/images/active_crane.png"
-                alt=""
-                :fit="'cover'"
-              />
-              <img
-                v-else
-                style="width: 22px; height: 22px"
-                src="@/images/crane.png"
-                alt=""
-                :fit="'cover'"
-              />
+            <div class="tab-label">           
               起重机校核计算
             </div>
           </template>
@@ -38,20 +33,6 @@
         <el-tab-pane label="吊索具校核计算" name="lifting">
           <template #label>
             <div class="tab-label">
-              <img
-                style="width: 22px; height: 22px"
-                v-if="activeTab === 'lifting'"
-                src="@/images/active_slings.png"
-                alt=""
-                :fit="'cover'"
-              />
-              <img
-                v-else
-                style="width: 22px; height: 22px"
-                src="@/images/slings.png"
-                alt=""
-                :fit="'cover'"
-              />
               吊索具校核计算
             </div>
           </template>
@@ -59,21 +40,6 @@
         <el-tab-pane label="地基承载力校核计算" name="foundation">
           <template #label>
             <div class="tab-label">
-              <img
-                style="width: 22px; height: 22px"
-                v-if="activeTab === 'foundation'"
-                src="@/images/active_base.png"
-                alt=""
-                :fit="'cover'"
-              />
-              <img
-                v-else
-                style="width: 22px; height: 22px"
-                src="@/images/base.png"
-                alt=""
-                :fit="'cover'"
-              />
-
               地基承载力校核计算
             </div>
           </template>
@@ -82,26 +48,11 @@
         <el-tab-pane label="施工平立面图" name="construction">
           <template #label>
             <div class="tab-label">
-              <img
-                style="width: 22px; height: 22px"
-                v-if="activeTab === 'construction'"
-                src="@/images/active_drawing.png"
-                alt=""
-                :fit="'cover'"
-              />
-              <img
-                v-else
-                style="width: 22px; height: 22px"
-                src="@/images/drawing.png"
-                alt=""
-                :fit="'cover'"
-              />
               施工平立面图
             </div>
           </template>
         </el-tab-pane>
       </el-tabs>
-      <el-button type="primary" @click="openExportSelectDialog">导出</el-button>
     </div>
 
     <div class="content-wrapper">
@@ -3371,45 +3322,63 @@
     </template>
   </el-dialog>
 
-  <!-- 导出选择弹窗 -->
-  <el-dialog
-    v-model="exportSelectDialogVisible"
-    title="选择导出类型"
-    width="420px"
-    :close-on-click-modal="false"
-    class="export-select-dialog"
+  <!-- 导出选择下拉菜单 -->
+  <div 
+    v-if="exportSelectDialogVisible" 
+    class="export-dropdown-overlay"
+    @click="exportSelectDialogVisible = false"
   >
-    <div class="export-select-content">
-      <el-radio-group v-model="selectedExportType" class="export-radio-group">
-        <el-radio :label="'all'" class="export-radio-item">
-          <span class="radio-label">导出方案文件</span>
-        </el-radio>
-        <el-radio :label="'crane'" class="export-radio-item">
-          <span class="radio-label">起重机校核计算</span>
-        </el-radio>
-        <el-radio :label="'lifting'" class="export-radio-item">
-          <span class="radio-label">吊索具校核计算</span>
-        </el-radio>
-        <el-radio :label="'foundation'" class="export-radio-item">
-          <span class="radio-label">地基承载力校核计算</span>
-        </el-radio>
-        <el-radio :label="'template'" class="export-radio-item">
-          <span class="radio-label">按模版导出</span>
-        </el-radio>
-      </el-radio-group>
-    </div>
-    <template #footer>
-      <div class="export-dialog-footer">
-        <el-button @click="exportSelectDialogVisible = false">取消</el-button>
-        <el-button 
-          type="primary" 
-          @click="handleExportSelectConfirm"
-        >
-          确定
-        </el-button>
+    <div 
+      class="export-dropdown-menu"
+      @click.stop
+    >
+      <div 
+        class="export-menu-item"
+        :class="{ 'is-hover': hoveredExportItem === 'all', 'is-selected': selectedExportType === 'all' }"
+        @mouseenter="hoveredExportItem = 'all'"
+        @mouseleave="hoveredExportItem = null"
+        @click="handleExportItemClick('all')"
+      >
+        <span class="menu-item-label">导出方案文件 (全部结果和视图)</span>
       </div>
-    </template>
-  </el-dialog>
+      <div 
+        class="export-menu-item"
+        :class="{ 'is-hover': hoveredExportItem === 'crane', 'is-selected': selectedExportType === 'crane' }"
+        @mouseenter="hoveredExportItem = 'crane'"
+        @mouseleave="hoveredExportItem = null"
+        @click="handleExportItemClick('crane')"
+      >
+        <span class="menu-item-label">导出起重机校核计算结果</span>
+      </div>
+      <div 
+        class="export-menu-item"
+        :class="{ 'is-hover': hoveredExportItem === 'lifting', 'is-selected': selectedExportType === 'lifting' }"
+        @mouseenter="hoveredExportItem = 'lifting'"
+        @mouseleave="hoveredExportItem = null"
+        @click="handleExportItemClick('lifting')"
+      >
+        <span class="menu-item-label">导出吊索具校核计算结果</span>
+      </div>
+      <div 
+        class="export-menu-item"
+        :class="{ 'is-hover': hoveredExportItem === 'foundation', 'is-selected': selectedExportType === 'foundation' }"
+        @mouseenter="hoveredExportItem = 'foundation'"
+        @mouseleave="hoveredExportItem = null"
+        @click="handleExportItemClick('foundation')"
+      >
+        <span class="menu-item-label">导出地基承载力计算结果</span>
+      </div>
+      <div 
+        class="export-menu-item"
+        :class="{ 'is-hover': hoveredExportItem === 'template', 'is-selected': selectedExportType === 'template' }"
+        @mouseenter="hoveredExportItem = 'template'"
+        @mouseleave="hoveredExportItem = null"
+        @click="handleExportItemClick('template')"
+      >
+        <span class="menu-item-label">按模板导出</span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -4719,6 +4688,7 @@ const equipmentCategories = ref([]);
 // 导出选择弹窗相关
 const exportSelectDialogVisible = ref(false);
 const selectedExportType = ref('all'); // 'all', 'crane', 'lifting', 'foundation', 'template'
+const hoveredExportItem = ref(null); // 当前hover的选项
 const equipmentProducts = ref([]);
 const equipmentModels = ref([]);
 const selectedCategory = ref(null);
@@ -7236,15 +7206,15 @@ const handleExport = async (type) => {
 // 打开导出选择弹窗
 const openExportSelectDialog = () => {
   selectedExportType.value = 'all'; // 默认选中第一个
+  hoveredExportItem.value = null;
   exportSelectDialogVisible.value = true;
 };
 
-// 处理导出确认（从弹窗中）
-const handleExportSelectConfirm = async () => {
-  const type = selectedExportType.value;
-  
+// 处理导出选项点击（选中即触发）
+const handleExportItemClick = async (type) => {
   // 关闭弹窗
   exportSelectDialogVisible.value = false;
+  selectedExportType.value = type;
   
   try {
     if (type === 'all') {
@@ -7407,31 +7377,46 @@ const handleExportAll = async (exportType = 0) => {
 }
 
 .header {
-  background: white;
-  padding: 6px 24px;
+ border-bottom: 1px solid #D2D2D2;
+background: #F1F1F1;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  padding: 5px 12px;
+}
+
+.header-left-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .back-btn {
-  color: #878787;
-  margin-right: 16px;
+  width: 70px;
   font-size: 14px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 2px;
-  background: #FDFDFD;
-  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.15) inset;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+.export-btn {
+   width: 50px;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   gap: 3px;
+  font-size: 14px;
+}
+.export-btn:hover{
+  cursor: pointer;
+}
 .header-left {
   display: flex;
-  width: 30%;
+  width: 100%;
+  justify-content: center;
   align-items: center;
-  gap: 12px;
-  position: relative;
-  right: 10%;
+  gap: 6px;
 }
 .header-left:hover {
   cursor: pointer;
@@ -7441,14 +7426,31 @@ const handleExportAll = async (exportType = 0) => {
   color: #333;
 }
 
+.tabs-row {
+  border-bottom: 1px solid #D2D2D2;
+  background: #F0F0F0;
+  padding: 0 12px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+}
+
 /* Tabs样式 */
 .calculation-tabs {
-  background: white;
-  margin-left: -30%;
+  background: transparent;
 }
 
 .calculation-tabs :deep(.el-tabs__header) {
   margin: 0;
+  border-bottom: none;
+}
+
+.calculation-tabs :deep(.el-tabs__active-bar) {
+  display: none;
+}
+
+.calculation-tabs :deep(.el-tabs__nav-wrap::after) {
+  display: none;
 }
 
 .calculation-tabs :deep(.el-tabs__nav-scroll) {
@@ -7462,10 +7464,11 @@ const handleExportAll = async (exportType = 0) => {
 
 .calculation-tabs :deep(.el-tabs__item) {
   padding: 0 24px;
-  height: 50px;
-  line-height: 50px;
-  font-size: 14px;
-  color: #666;
+  font-size: 12px;
+  color: #707070;
+  font-weight: 400;
+  height: 30px;
+  line-height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7477,7 +7480,11 @@ const handleExportAll = async (exportType = 0) => {
 }
 
 .calculation-tabs :deep(.el-tabs__item.is-active) {
-  color: #409eff;
+  color: #535353;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 0 5px 0 0;
+  background: #FFF;
 }
 
 .tab-label {
@@ -7871,7 +7878,12 @@ const handleExportAll = async (exportType = 0) => {
   background-color: #0775db;
   color: white;
 }
-
+.el-tabs--top>.el-tabs__header .el-tabs__item:nth-child(2){
+  padding-left: 20px;
+}
+:deep(.el-tabs--top>.el-tabs__header .el-tabs__item:last-child){
+   padding-right: 20px;
+}
 /* 吊索具校核计算特有样式 */
 .section-title-with-button {
   display: flex;
@@ -8324,160 +8336,50 @@ color: #0775DB;
   justify-content: center;
 }
 
-/* 导出选择弹窗样式 */
-.export-select-dialog :deep(.el-dialog) {
+/* 导出选择下拉菜单样式 */
+.export-dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  background: transparent;
+}
+
+.export-dropdown-menu {
+  position: absolute;
+  top: 60px;
+  left: 24px;
+  background: white;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 320px;
+  padding: 8px 0;
+  z-index: 2001;
 }
 
-.export-select-dialog :deep(.el-dialog__header) {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.export-select-dialog :deep(.el-dialog__title) {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-
-.export-select-content {
-  padding: 20px;
-  min-height: 200px;
-  text-align: left;
-  direction: ltr;
-}
-
-.export-select-content * {
-  text-align: left;
-}
-
-.export-radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.export-radio-group :deep(.el-radio-group) {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.export-radio-group :deep(.el-radio-group__label) {
-  display: none;
-}
-
-.export-radio-item {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  padding: 6px 16px !important;
-  border: 2px solid #e4e7ed;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+.export-menu-item {
+  padding: 10px 16px;
   cursor: pointer;
-  background: #fafafa;
-  margin: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  width: 100% !important;
-  box-sizing: border-box;
-  text-align: left !important;
-  text-indent: 0 !important;
-}
-
-.export-radio-item:hover {
-  border-color: #409eff;
-  background: #f0f7ff;
-  transform: translateX(4px);
-}
-
-.export-radio-item.is-checked {
-  border-color: #409eff;
-  background: #ecf5ff;
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
-}
-
-.export-radio-item :deep(.el-radio) {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  width: 100% !important;
-  margin: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  padding: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-.export-radio-item :deep(.el-radio__input) {
-  margin-right: 10px !important;
-  margin-left: 0 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  padding: 0 !important;
-  flex-shrink: 0;
-  order: -1;
-}
-
-.export-radio-item :deep(.el-radio__label) {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  text-align: left !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  width: auto !important;
-}
-
-.export-radio-item :deep(.el-radio__input.is-checked .el-radio__inner) {
-  background-color: #409eff;
-  border-color: #409eff;
-}
-
-.export-radio-item :deep(.el-radio__input.is-checked .el-radio__inner::after) {
-  background-color: #fff;
-}
-
-.radio-label {
-  font-size: 15px;
-  color: #333;
-  font-weight: 500;
-  text-align: left !important;
-  display: inline-block;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.export-radio-item.is-checked .radio-label {
-  color: #409eff;
-}
-
-.export-dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.export-dialog-footer .el-button {
-  padding: 10px 24px;
-  border-radius: 6px;
+  transition: background-color 0.2s ease;
   font-size: 14px;
+  color: #333;
+  user-select: none;
+}
+
+.export-menu-item.is-hover {
+  background-color: #f0f7ff;
+}
+
+.export-menu-item.is-selected {
+  background-color: #409eff;
+  color: white;
+}
+
+.menu-item-label {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
 }
 </style>
