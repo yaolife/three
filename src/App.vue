@@ -18,9 +18,12 @@
             class="back-btn"
             @click="openMenuDialog"
           >
-            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
-            返回
+            <img src="@/images/back.png" alt="back" class="back-icon" />
+            <span style="margin-left: 4px">返回</span>
           </el-button>
+          <span v-if="isMenuPage && currentMenuLabel" class="header-menu-label">
+            {{ currentMenuLabel }}
+          </span>
           <el-button
             v-else-if="isEditPage"
             type="default"
@@ -28,30 +31,14 @@
             class="back-btn"
             @click="handleBackToList"
           >
-            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
-            返回
+            <img src="@/images/back.png" alt="back" class="back-icon" />
+            <span style="margin-left: 4px">返回</span>
           </el-button>
+          <span v-if="isEditPage && backMenuLabel" class="header-menu-label">
+            {{ backMenuLabel }}
+          </span>
           <!-- <span class="user-name">{{ userStore.userState.isLoggedIn ? userStore.userState.userInfo.name : '未登录' }}</span> -->
-          <!-- 只在项目列表页面显示创建项目按钮和搜索框 -->
-          <template v-if="isProjectListPage">
-            <el-button type="primary" size="large" @click="createProject">
-              <el-icon style="font-size: 10px; margin-right: 5px;background-color: white;color: #06F;padding: 2px;"><Plus /></el-icon>
-              创建项目
-            </el-button>
-            <div class="search-box">
-              <el-input 
-                v-model="searchTitle" 
-                placeholder="请输入项目标题" 
-                prefix-icon="Search" 
-                size="large"
-                @keyup.enter="handleSearch"
-                clearable
-              />
-              <el-button type="default" size="large" style="margin-left: 8px" @click="handleSearch">
-                搜索
-              </el-button>
-            </div>
-          </template>
+          <!-- 项目列表页的创建 / 搜索 已移动到列表页面上方，这里不再显示 -->
         </div>
         <div class="header-right">
           <div class="user-status" @click="handleStatusClick">
@@ -59,37 +46,14 @@
             <span class="user-name">{{ displayUserName }}</span>
           </div>
           <el-dropdown v-if="userStore.userState.isLoggedIn" @command="handleCommand">
-            <img class="logout-icon" src="@/images/back.png" alt="logout" />
+            <img class="logout-icon" src="@/images/exit.png" alt="logout" />
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-button 
-            v-if="userStore.userState.userInfo?.loginType === 0"
-            type="default" 
-            size="large" 
-            style="margin-left: 12px" 
-            @click="handleDataSynchronization"
-          >
-             <img
-                 style="width: 22px; height: 22px;margin-right: 5px;"
-                src="@/images/synchronize.png"
-                alt="数据同步"
-                :fit="'cover'"
-              />
-            <span>云端数据同步</span>
-          </el-button>   
-          <el-button type="default" size="large" style="margin-left: 12px" @click="handleCopy">
-                  <img
-                 style="width: 22px; height: 22px;margin-right: 5px;"
-                src="@/images/copy.png"
-                alt="复制"
-                :fit="'cover'"
-              />
-             <span>复制</span>
-          </el-button>
+          <!-- 云端下载 / 复制 已移动到项目列表页面的表格上方 -->
         </div>
       </el-header>
       
@@ -134,11 +98,11 @@
       </el-dialog>
     </Teleport>
 
-    <!-- 云端数据同步弹窗 -->
+    <!-- 云端下载弹窗 -->
     <Teleport to="body">
       <el-dialog
         v-model="showSyncDialog"
-        title="云端数据同步"
+        title="云端下载"
         width="90%"
         :close-on-click-modal="false"
         align-center
@@ -161,7 +125,7 @@
                       clearable
                       @keyup.enter="handleSyncCraneSearch"
                     />
-                    <el-button type="primary" @click="handleSyncCraneSearch" style="margin-left: 8px">
+                    <el-button class="search-btn" @click="handleSyncCraneSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
                   </div>
@@ -195,7 +159,7 @@
                     v-model:page-size="syncCranePageSize"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="syncCraneTotal"
-                    layout="prev, pager, next, jumper, sizes"
+                    layout="prev, pager, next"
                     @current-change="handleSyncCranePageChange"
                     @size-change="handleSyncCranePageSizeChange"
                   />
@@ -216,7 +180,7 @@
                       clearable
                       @keyup.enter="handleSyncRiggingSearch"
                     />
-                    <el-button type="primary" @click="handleSyncRiggingSearch" style="margin-left: 8px">
+                    <el-button class="search-btn" @click="handleSyncRiggingSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
                   </div>
@@ -250,7 +214,7 @@
                     v-model:page-size="syncRiggingPageSize"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="syncRiggingTotal"
-                    layout="prev, pager, next, jumper, sizes"
+                    layout="prev, pager, next"
                     @current-change="handleSyncRiggingPageChange"
                     @size-change="handleSyncRiggingPageSizeChange"
                   />
@@ -271,7 +235,7 @@
                       clearable
                       @keyup.enter="handleSyncEquipmentSearch"
                     />
-                    <el-button type="primary" @click="handleSyncEquipmentSearch" style="margin-left: 8px">
+                    <el-button class="search-btn" @click="handleSyncEquipmentSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
                   </div>
@@ -300,7 +264,7 @@
                     v-model:page-size="syncEquipmentPageSize"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="syncEquipmentTotal"
-                    layout="prev, pager, next, jumper, sizes"
+                    layout="prev, pager, next"
                     @current-change="handleSyncEquipmentPageChange"
                     @size-change="handleSyncEquipmentPageSizeChange"
                   />
@@ -308,8 +272,8 @@
               </div>
             </el-tab-pane>
 
-            <!-- 起重机模型库 -->
-            <el-tab-pane label="起重机模型库" name="craneModel">
+            <!-- 三维模型库 -->
+            <el-tab-pane label="三维模型库" name="craneModel">
               <div class="sync-tab-content">
                 <div class="sync-toolbar">
                   <div class="search-group">
@@ -321,7 +285,17 @@
                       clearable
                       @keyup.enter="handleSyncCraneModelSearch"
                     />
-                    <el-button type="primary" @click="handleSyncCraneModelSearch" style="margin-left: 8px">
+                    <el-select
+                      v-model="syncCraneModelTypeSearch"
+                      style="width: 140px; margin-left: 8px"
+                    >
+                      <el-option label="全部" :value="-1" />
+                      <el-option label="起重机" :value="0" />
+                      <el-option label="吊索具" :value="1" />
+                      <el-option label="设备" :value="2" />
+                      <el-option label="运输车" :value="3" />
+                    </el-select>
+                    <el-button class="search-btn" @click="handleSyncCraneModelSearch" style="margin-left: 8px">
                       搜索
                     </el-button>
                   </div>
@@ -340,6 +314,11 @@
                     </template>
                   </el-table-column>
                   <el-table-column prop="modelName" label="模型名称" min-width="150" />
+                  <el-table-column prop="type" label="模型类型" min-width="120">
+                    <template #default="scope">
+                      {{ translateModelType(scope.row.type) }}
+                    </template>
+                  </el-table-column>
                   <el-table-column prop="createName" label="创建人" width="120" />
                   <el-table-column prop="createTime" label="录入时间" width="180" />
                 </el-table>
@@ -350,7 +329,7 @@
                     v-model:page-size="syncCraneModelPageSize"
                     :page-sizes="[10, 20, 50, 100]"
                     :total="syncCraneModelTotal"
-                    layout="prev, pager, next, jumper, sizes"
+                    layout="prev, pager, next"
                     @current-change="handleSyncCraneModelPageChange"
                     @size-change="handleSyncCraneModelPageSizeChange"
                   />
@@ -381,9 +360,6 @@
         append-to-body
         :show-close="false"
       >
-        <!-- <template #header>
-          <span class="login-dialog-header-title" >光热三维施工仿真软件</span>
-        </template> -->
         <div class="login-dialog-content">
           <img src="@/images/zgh.png" alt="zgh" class="login-logo-img" />
           <div class="login-title-section">
@@ -413,7 +389,7 @@
             </div>
           </div>
           <div class="login-buttons">
-            <el-button type="primary" class="login-confirm-btn" @click="handleLogin" :loading="isConfirmLogging">
+            <el-button  class="login-confirm-btn" @click="handleLogin" :loading="isConfirmLogging">
               确认登录
             </el-button>
             <el-button type="warning" class="login-offline-btn" @click="handleOfflineLogin" :loading="isAdminLogging">
@@ -437,7 +413,6 @@ import {
   DataAnalysis,
   User,
   Lock,
-  ArrowLeft,
   Close,
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
@@ -449,13 +424,24 @@ import Background from './components/Background.vue';
 const route = useRoute();
 const router = useRouter();
 
+// 翻译模型类型
+const translateModelType = (type) => {
+  const typeMap = {
+    0: "起重机",
+    1: "吊索具",
+    2: "设备",
+    3: "运输车",
+  };
+  return typeMap[type] || "未知";
+};
+
 // 是否已登录
 const isLoggedIn = computed(() => userStore.userState.isLoggedIn);
 
 // 搜索关键词
 const searchTitle = ref("");
 
-// 云端数据同步弹窗相关
+// 云端下载弹窗相关
 const showSyncDialog = ref(false);
 const syncActiveTab = ref("crane");
 
@@ -486,8 +472,9 @@ const syncEquipmentData = ref([]);
 const syncEquipmentLoading = ref(false);
 const syncEquipmentSelected = ref([]);
 
-// 起重机模型库同步数据
+// 三维模型库同步数据
 const syncCraneModelSearch = ref("");
+const syncCraneModelTypeSearch = ref(-1); // 模型类型搜索条件，-1表示"全部"，默认选中"全部"
 const syncCraneModelPage = ref(1);
 const syncCraneModelPageSize = ref(10);
 const syncCraneModelTotal = ref(0);
@@ -526,25 +513,37 @@ const backToPath = computed(() => route.meta.backTo || '/verification-projects')
 
 const activeMenu = computed(() => route.path || "/verification-projects");
 
+// 所有功能菜单配置（用于菜单渲染和返回按钮文字）
+const ALL_MENUS = [
+  { label: "校核计算", path: "/verification-projects", menuValue: "0" },
+  { label: "三维仿真", path: "/virtual-simulation", menuValue: "1" },
+  { label: "总平规划平台", path: "/construction-plans", menuValue: "2" },
+  { label: "数据管理", path: "/data-management", menuValue: "3" },
+  { label: "账号管理", path: "/user-management", menuValue: "4" },
+];
+
 const menuOptions = computed(() => {
-  // 所有菜单项及其对应的 menus 值
-  const allMenus = [
-    { label: "校核计算", path: "/verification-projects", menuValue: "0" },
-      { label: "三维仿真", path: "/virtual-simulation", menuValue: "1" },
-    { label: "总平规划平台", path: "/construction-plans", menuValue: "2" },
-    { label: "数据管理", path: "/data-management", menuValue: "3" },
-    { label: "账号管理", path: "/user-management", menuValue: "4" },
-  ];
-  
   // 获取用户菜单权限
   const userMenus = userStore.userState.userInfo.menus || [];
   
   // 根据用户的 menus 数组过滤菜单
-  return allMenus.filter(menu => {
+  return ALL_MENUS.filter(menu => {
     // 将 menuValue 转换为字符串进行比较
     return userMenus.includes(String(menu.menuValue));
   });
 });
+
+// 根据路径获取功能菜单名称
+const getMenuLabelByPath = (path) => {
+  const item = ALL_MENUS.find((menu) => menu.path === path);
+  return item ? item.label : "";
+};
+
+// 当前页面对应的菜单名称（用于菜单页返回按钮）
+const currentMenuLabel = computed(() => getMenuLabelByPath(route.path));
+
+// 编辑页返回路径对应的菜单名称（用于编辑页返回按钮）
+const backMenuLabel = computed(() => getMenuLabelByPath(backToPath.value));
 
 const displayUserName = computed(() => {
   if (!userStore.userState.isLoggedIn) return "未登录，点击登录";
@@ -821,7 +820,7 @@ const handleSearch = () => {
   }
 };
 
-// 处理云端数据同步按钮点击
+// 处理云端下载按钮点击
 const handleDataSynchronization = () => {
   if (!userStore.userState.isLoggedIn) {
     ElMessage.warning('请先登录');
@@ -886,7 +885,7 @@ const fetchSyncCraneData = async () => {
   }
 };
 
-// 获取同步起重机模型库数据
+// 获取同步三维模型库数据
 const fetchSyncCraneModelData = async () => {
   syncCraneModelLoading.value = true;
   try {
@@ -898,6 +897,11 @@ const fetchSyncCraneModelData = async () => {
 
     if (syncCraneModelSearch.value && syncCraneModelSearch.value.trim()) {
       params.modelName = syncCraneModelSearch.value.trim();
+    }
+
+    // 如果选择了模型类型（不是"全部"），添加类型搜索参数
+    if (syncCraneModelTypeSearch.value !== null && syncCraneModelTypeSearch.value !== undefined && syncCraneModelTypeSearch.value !== -1) {
+      params.type = syncCraneModelTypeSearch.value;
     }
 
     const response = await getCraneModelPage(params);
@@ -912,10 +916,10 @@ const fetchSyncCraneModelData = async () => {
     } else {
       syncCraneModelData.value = [];
       syncCraneModelTotal.value = 0;
-      ElMessage.error(response?.message || "获取起重机模型库数据失败");
+      ElMessage.error(response?.message || "获取三维模型库数据失败");
     }
   } catch (error) {
-    console.error("获取起重机模型库数据失败:", error);
+    console.error("获取三维模型库数据失败:", error);
     syncCraneModelData.value = [];
     syncCraneModelTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
@@ -1001,6 +1005,11 @@ const fetchSyncEquipmentData = async () => {
   }
 };
 
+// 暴露云端下载方法，供列表页面调用
+if (typeof window !== "undefined") {
+  window.openSyncDialogDirect = handleDataSynchronization;
+}
+
 // 起重机分页变化
 const handleSyncCranePageChange = (page) => {
   syncCranePage.value = page;
@@ -1055,7 +1064,7 @@ const handleSyncEquipmentSearch = () => {
   fetchSyncEquipmentData();
 };
 
-// 起重机模型库分页变化
+// 三维模型库分页变化
 const handleSyncCraneModelPageChange = (page) => {
   syncCraneModelPage.value = page;
   fetchSyncCraneModelData();
@@ -1067,7 +1076,7 @@ const handleSyncCraneModelPageSizeChange = (size) => {
   fetchSyncCraneModelData();
 };
 
-// 起重机模型库搜索
+// 三维模型库搜索
 const handleSyncCraneModelSearch = () => {
   syncCraneModelPage.value = 1;
   fetchSyncCraneModelData();
@@ -1124,7 +1133,7 @@ const handleConfirmSync = async () => {
     });
   }
   
-  // 起重机模型库数据 (type: 3)
+  // 三维模型库数据 (type: 3)
   if (syncCraneModelSelected.value.length > 0) {
     syncData.push({
       type: 3,
@@ -1142,9 +1151,9 @@ const handleConfirmSync = async () => {
     for (const item of syncData) {
       const response = await dataSynchronization(item);
       if (response && response.code === '0') {
-        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '起重机模型库'}数据同步成功`);
+        ElMessage.success(`${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '三维模型库'}数据同步成功`);
       } else {
-        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '起重机模型库'}数据同步失败`);
+        ElMessage.error(response?.message || `${item.type === 0 ? '起重机' : item.type === 1 ? '吊索具' : item.type === 2 ? '设备' : '三维模型库'}数据同步失败`);
       }
     }
     // 关闭弹窗
@@ -1453,10 +1462,27 @@ onMounted(async () => {
 }
 
 .back-btn {
-  color: #000000;
+  color: #878787;
   margin-right: 16px;
   font-size: 14px;
+  font-weight: 600;
   padding: 6px 12px;
+  border-radius: 2px;
+  background: #FDFDFD;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.15) inset;
+}
+
+.back-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.header-menu-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
 }
 
 /* 登录后，导航栏元素使用白色，让它们在背景图上可见 */
@@ -1564,7 +1590,7 @@ onMounted(async () => {
   z-index: 1;
 }
 
-/* 登录后，搜索框和按钮的样式 */
+/* 登录后，搜索框样式（保留，仅作用于 header），按钮样式统一走全局规则 */
 .header-transparent .search-box :deep(.el-input__wrapper) {
   background-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
@@ -1589,7 +1615,7 @@ onMounted(async () => {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-/* 登录后，导航栏按钮（创建项目、复制、云端数据同步）的样式 */
+/* 登录后，导航栏按钮（创建项目、复制、云端下载）的样式 */
 .header-transparent .header-left .el-button,
 .header-transparent .header-right .el-button {
   color: #ffffff;
@@ -1742,11 +1768,34 @@ box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
 
 .login-dialog :deep(.el-dialog__header) {
   padding: 20px 20px 0 20px !important;
-  margin-bottom: 0;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: none;
+}
+
+/* 覆盖 Element Plus 使用的 CSS 变量 - 必须在多个层级设置 */
+.login-dialog {
+  --el-dialog-padding-primary: 0 !important;
+}
+
+.login-dialog :deep(.el-dialog) {
+  --el-dialog-padding-primary: 0 !important;
+}
+
+.login-dialog :deep(.el-dialog__header) {
+  --el-dialog-padding-primary: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* 使用更具体的选择器确保覆盖 */
+.login-dialog.el-dialog :deep(.el-dialog__header),
+.login-dialog :deep(.el-dialog .el-dialog__header),
+body .login-dialog :deep(.el-dialog__header) {
+  padding-bottom: 0 !important;
+  --el-dialog-padding-primary: 0 !important;
 }
 
 .login-dialog :deep(.el-dialog__headerbtn) {
@@ -1839,6 +1888,7 @@ box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
 .login-prompt-text {
   color: #666666;
   font-weight: 400;
+   margin-bottom: 2px;
   font-size: 14px;
   width: 50%;
   position: relative;
@@ -1910,14 +1960,14 @@ border: 1px solid #A2A2A2;
 }
 
 .login-confirm-btn {
-  background-color: #409eff;
-  border-color: #409eff;
+  background-color: #245E85;
+  border-color: #245E85;
   color: #fff;
 }
 
 .login-confirm-btn:hover {
-  background-color: #66b1ff;
-  border-color: #66b1ff;
+  background-color: #245E85;
+  border-color: #245E85;
 }
 
 .login-offline-btn {
@@ -1935,7 +1985,7 @@ border: 1px solid #A2A2A2;
   align-items: center;
 }
 
-/* 云端数据同步弹窗样式 */
+/* 云端下载弹窗样式 */
 .sync-dialog :deep(.el-dialog__body) {
   padding: 20px;
   max-height: 70vh;
@@ -1950,9 +2000,6 @@ border: 1px solid #A2A2A2;
   width: 100%;
 }
 
-.sync-tab-content {
-  padding: 20px 0;
-}
 
 .sync-toolbar {
   display: flex;
@@ -1966,22 +2013,199 @@ border: 1px solid #A2A2A2;
   align-items: center;
 }
 
+/* 云端下载弹窗中的搜索输入框边框样式 */
+.search-group :deep(.el-input__wrapper) {
+  border: 1px solid #999 !important;
+  box-shadow: none !important;
+}
+
 .sync-dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
+/* 云端下载弹窗：表格分页和总计挨在一起且居中 */
+.sync-dialog .pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
 .pagination-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
-  padding: 0 20px;
+  padding: 20px;
 }
 
 .pagination-info {
   color: #606266;
   font-size: 14px;
+}
+</style>
+
+<style>
+/* 全局样式：确保覆盖 Element Plus 的默认 padding-bottom */
+.login-dialog .el-dialog__header {
+  padding-bottom: 0 !important;
+  --el-dialog-padding-primary: 0 !important;
+}
+
+body .login-dialog .el-dialog__header {
+  padding-bottom: 0 !important;
+  --el-dialog-padding-primary: 0 !important;
+}
+
+/* 全局样式：所有 table 的表头样式 */
+.el-table__header th,
+.el-table__header th.el-table__cell,
+.el-table__header-wrapper .el-table__header th,
+.el-table__header-wrapper .el-table__header th.el-table__cell,
+.el-table thead th.el-table__cell {
+  border-radius: 1px !important;
+  background: #EBEBEB !important;
+  color: #454545 !important;
+  font-size: 14px !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-right: none !important;
+}
+
+/* 全局样式：所有 table 的分页样式 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.pagination-info {
+  color: #606266;
+  font-size: 14px;
+  margin-right: 0;
+}
+
+/* 分页组件样式优化 */
+.el-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.el-pagination .btn-prev,
+.el-pagination .btn-next {
+  min-width: 32px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 8px;
+  border: none;
+  background-color: transparent;
+  color: #000;
+  border-radius: 0;
+  margin: 0 4px;
+}
+
+.el-pagination .btn-prev:hover,
+.el-pagination .btn-next:hover {
+  color: #000;
+  border-radius: 2px;
+  background: rgba(191, 191, 191, 0.32);
+}
+
+.el-pagination .btn-prev.is-disabled,
+.el-pagination .btn-next.is-disabled {
+  color: #c0c4cc;
+  border-color: #e4e7ed;
+  background-color: #f5f7fa;
+  cursor: not-allowed;
+}
+
+.el-pagination .el-pager {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.el-pagination .el-pager li {
+  min-width: 32px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 4px;
+  border-radius: 0;
+  border: none;
+  background-color: transparent;
+  color: #606266;
+  margin: 0 2px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.el-pagination .el-pager li:hover {
+  color: #000;
+  border-radius: 2px;
+  border: 1px solid #000;
+  background: #FFF;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.25);
+}
+
+.el-pagination .el-pager li.is-active {
+  color: #000;
+  border-radius: 2px;
+  border: 1px solid #000;
+  background: #FFF;
+  font-weight: 500;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.25);
+}
+
+.el-pagination .el-pager li.more {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.el-pagination .el-pager li.more:hover {
+  color: #606266;
+  border: none;
+}
+
+/* 全局样式：所有 table 操作列中的按钮样式 */
+.el-table .el-button {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #578FFF !important;
+  font-size: 14px !important;
+  padding: 0 4px;
+}
+
+.el-table .el-button:hover {
+  background-color: transparent !important;
+  color: #578FFF !important;
+}
+
+/* 全局样式：搜索按钮统一样式（通过 search-btn 类控制） */
+.search-btn {
+  border-radius: 4px !important;
+  background: #EBEBEB !important;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset !important;
+  border: none !important;
+  color: #5E5E5E !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 6px 14px !important;
+}
+
+.search-btn:hover {
+  background: #E0E0E0 !important;
+  color: #5E5E5E !important;
+}
+
+/* 全局样式：所有 table 每一行底部线条颜色 */
+.el-table__body td,
+.el-table__body td.el-table__cell {
+  border-bottom: 1px solid rgba(80, 80, 80, 0.30) !important;
 }
 </style>

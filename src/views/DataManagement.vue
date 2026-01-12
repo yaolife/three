@@ -16,13 +16,13 @@
                     clearable
                     @keyup.enter="handleCraneSearch"
                   />
-                  <el-button type="primary" @click="handleCraneSearch" style="margin-left: 8px">
+                  <el-button class="search-btn" @click="handleCraneSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
                 </div>
-                <el-button type="primary" @click="handleAddCrane">
-                  <el-icon><Plus /></el-icon>
-                  新建
+                <el-button class="dm-create-btn" @click="handleAddCrane">
+                  <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+                   <span style="margin-left: 6px">新建</span>
                 </el-button>
               </div>
               <el-table
@@ -110,7 +110,7 @@
                   v-model:page-size="cranePageSize"
                   :page-sizes="[10, 20, 50, 100]"
                   :total="craneTotal"
-                  layout="prev, pager, next, jumper, sizes"
+                  layout="prev, pager, next"
                   @current-change="handleCranePageChange"
                   @size-change="handleCranePageSizeChange"
                 />
@@ -131,13 +131,13 @@
                     clearable
                     @keyup.enter="handleRiggingSearch"
                   />
-                  <el-button type="primary" @click="handleRiggingSearch" style="margin-left: 8px">
+                  <el-button class="search-btn" @click="handleRiggingSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
                 </div>
-                <el-button type="primary" @click="handleAddRigging">
-                  <el-icon><Plus /></el-icon>
-                  新建
+                <el-button class="dm-create-btn" @click="handleAddRigging">
+                  <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+                   <span style="margin-left: 6px">新建</span>
                 </el-button>
               </div>
               <!-- Add loading state for table -->
@@ -223,7 +223,7 @@
                   v-model:page-size="riggingPageSize"
                   :page-sizes="[10, 20, 50, 100]"
                   :total="riggingTotal"
-                  layout="prev, pager, next, jumper, sizes"
+                  layout="prev, pager, next"
                   @current-change="handleRiggingPageChange"
                   @size-change="handleRiggingPageSizeChange"
                 />
@@ -244,13 +244,13 @@
                     clearable
                     @keyup.enter="handleEquipmentSearch"
                   />
-                  <el-button type="primary" @click="handleEquipmentSearch" style="margin-left: 8px">
+                  <el-button class="search-btn" @click="handleEquipmentSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
                 </div>
-                <el-button type="primary" @click="handleAddEquipment">
-                  <el-icon><Plus /></el-icon>
-                  新建
+                <el-button class="dm-create-btn" @click="handleAddEquipment">
+                 <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+                   <span style="margin-left: 6px">新建</span>
                 </el-button>
               </div>
               <el-table
@@ -325,7 +325,7 @@
                   v-model:page-size="equipmentPageSize"
                   :page-sizes="[10, 20, 50, 100]"
                   :total="equipmentTotal"
-                  layout="prev, pager, next, jumper, sizes"
+                  layout="prev, pager, next"
                   @current-change="handleEquipmentPageChange"
                   @size-change="handleEquipmentPageSizeChange"
                 />
@@ -333,8 +333,8 @@
             </div>
           </el-tab-pane>
 
-          <!-- 起重机模型库 -->
-          <el-tab-pane label="起重机模型库" name="craneModel">
+          <!-- 三维模型库 -->
+          <el-tab-pane label="三维模型库" name="craneModel">
             <div class="tab-content">
               <div class="toolbar">
                 <div class="search-group">
@@ -346,13 +346,23 @@
                     clearable
                     @keyup.enter="handleCraneModelSearch"
                   />
-                  <el-button type="primary" @click="handleCraneModelSearch" style="margin-left: 8px">
+                  <el-select
+                    v-model="craneModelTypeSearch"
+                    style="width: 140px; margin-left: 8px"
+                  >
+                    <el-option label="全部" :value="-1" />
+                    <el-option label="起重机" :value="0" />
+                    <el-option label="吊索具" :value="1" />
+                    <el-option label="设备" :value="2" />
+                    <el-option label="运输车" :value="3" />
+                  </el-select>
+                  <el-button class="search-btn" @click="handleCraneModelSearch" style="margin-left: 8px">
                     搜索
                   </el-button>
                 </div>
-                <el-button type="primary" @click="handleAddCraneModel">
-                  <el-icon><Plus /></el-icon>
-                  新建
+                <el-button class="dm-create-btn" @click="handleAddCraneModel">
+                 <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+                   <span style="margin-left: 6px">新建</span>
                 </el-button>
               </div>
               <el-table
@@ -372,6 +382,15 @@
                   label="模型名称"
                   min-width="150"
                 />
+                <el-table-column
+                  prop="type"
+                  label="模型类型"
+                  min-width="120"
+                >
+                  <template #default="scope">
+                    {{ translateModelType(scope.row.type) }}
+                  </template>
+                </el-table-column>
                 <el-table-column
                   prop="createName"
                   label="创建人"
@@ -416,7 +435,7 @@
                   v-model:page-size="craneModelPageSize"
                   :page-sizes="[10, 20, 50, 100]"
                   :total="craneModelTotal"
-                  layout="prev, pager, next, jumper, sizes"
+                  layout="prev, pager, next"
                   @current-change="handleCraneModelPageChange"
                   @size-change="handleCraneModelPageSizeChange"
                 />
@@ -602,16 +621,24 @@
       </template>
     </el-dialog>
 
-    <!-- 新建起重机模型库弹窗 -->
+    <!-- 新建三维模型库弹窗 -->
     <el-dialog
       v-model="craneModelDialogVisible"
-      title="新建起重机模型库"
+      title="新建三维模型库"
       width="500px"
       :close-on-click-modal="false"
     >
       <el-form :model="craneModelForm" label-width="100px">
         <el-form-item label="模型名称">
           <el-input v-model="craneModelForm.modelName" placeholder="请输入模型名称" />
+        </el-form-item>
+        <el-form-item label="模型类型">
+          <el-select v-model="craneModelForm.type" placeholder="请选择模型类型">
+            <el-option label="起重机" :value="0" />
+            <el-option label="吊索具" :value="1" />
+            <el-option label="设备" :value="2" />
+            <el-option label="运输车" :value="3" />
+          </el-select>
         </el-form-item>
         <el-form-item label="导入模型">
           <el-upload
@@ -695,8 +722,9 @@ const equipmentTotal = ref(0);
 const equipmentData = ref([]);
 const equipmentLoading = ref(false);
 
-// 起重机模型库数据
+// 三维模型库数据
 const craneModelSearch = ref("");
+const craneModelTypeSearch = ref(-1); // 模型类型搜索条件，-1表示"全部"，默认选中"全部"
 const craneModelPage = ref(1);
 const craneModelPageSize = ref(10);
 const craneModelTotal = ref(0);
@@ -739,15 +767,27 @@ const craneForm = ref({
   push: 0, // 是否推送，0否1是
 });
 
-// 新建起重机模型库弹窗
+// 新建三维模型库弹窗
 const craneModelDialogVisible = ref(false);
 const craneModelForm = ref({
   modelName: "",
+  type: 0, // 模型类型，0:起重机 1:吊索具 2:设备 3:运输车，默认选中第一个
   fileId: "",
   push: 0,
 });
 const craneModelFile = ref(null);
 const craneModelSubmitting = ref(false);
+
+// 翻译模型类型
+const translateModelType = (type) => {
+  const typeMap = {
+    0: "起重机",
+    1: "吊索具",
+    2: "设备",
+    3: "运输车",
+  };
+  return typeMap[type] || "未知";
+};
 
 // 子类型选项
 const subTypeOptions = ref([]);
@@ -823,12 +863,14 @@ const handleAddEquipment = () => {
   };
 };
 
-// 新建起重机模型库
+// 新建三维模型库
 const handleAddCraneModel = () => {
   craneModelDialogVisible.value = true;
   craneModelForm.value = {
     modelName: "",
+    type: 0, // 默认选中第一个（起重机）
     fileId: "",
+    push: 0,
   };
   craneModelFile.value = null;
 };
@@ -920,7 +962,7 @@ const handleDelete = (row, type) => {
     });
 };
 
-// 删除起重机模型库数据
+// 删除三维模型库数据
 const handleDeleteCraneModel = (row) => {
   ElMessageBox.confirm(
     "确定要删除该起重机模型数据吗？",
@@ -1286,16 +1328,6 @@ const handleRiggingPageSizeChange = (size) => {
   fetchRiggingData();
 };
 
-watch(activeTab, (newTab) => {
-  if (newTab === "rigging" && riggingData.value.length === 0) {
-    fetchRiggingData();
-  } else if (newTab === "crane" && craneData.value.length === 0) {
-    fetchCraneData();
-  } else if (newTab === "craneModel" && craneModelData.value.length === 0) {
-    fetchCraneModelData();
-  }
-});
-
 // 处理设备弹窗确定按钮
 const handleEquipmentSubmit = async () => {
   // 表单验证
@@ -1335,17 +1367,17 @@ const handleEquipmentSubmit = async () => {
   }
 };
 
-// 处理起重机模型库文件选择
+// 处理三维模型库文件选择
 const handleCraneModelFileChange = (file) => {
   // Element Plus on-change 回调的第一个参数是当前文件
   craneModelFile.value = file.raw || file;
 };
 
-// 获取起重机模型库数据
+// 获取三维模型库数据
 const fetchCraneModelData = async () => {
   // 检查登录状态，如果未登录或登录失败，不加载数据
   if (!userStore.userState.isLoggedIn) {
-    console.log("用户未登录，不加载起重机模型库数据");
+    console.log("用户未登录，不加载三维模型库数据");
     craneModelData.value = [];
     craneModelTotal.value = 0;
     craneModelLoading.value = false;
@@ -1364,6 +1396,11 @@ const fetchCraneModelData = async () => {
       params.modelName = craneModelSearch.value.trim();
     }
 
+    // 如果选择了模型类型（不是"全部"），添加类型搜索参数
+    if (craneModelTypeSearch.value !== null && craneModelTypeSearch.value !== undefined && craneModelTypeSearch.value !== -1) {
+      params.type = craneModelTypeSearch.value;
+    }
+
     const response = await getCraneModelPage(params);
 
     if (response && response.code === "0") {
@@ -1376,10 +1413,10 @@ const fetchCraneModelData = async () => {
     } else {
       craneModelData.value = [];
       craneModelTotal.value = 0;
-      ElMessage.error(response?.message || "获取起重机模型库数据失败");
+      ElMessage.error(response?.message || "获取三维模型库数据失败");
     }
   } catch (error) {
-    console.error("获取起重机模型库数据失败:", error);
+    console.error("获取三维模型库数据失败:", error);
     craneModelData.value = [];
     craneModelTotal.value = 0;
     ElMessage.error("获取数据失败，请检查网络连接");
@@ -1388,26 +1425,26 @@ const fetchCraneModelData = async () => {
   }
 };
 
-// 起重机模型库分页变化
+// 三维模型库分页变化
 const handleCraneModelPageChange = (page) => {
   craneModelPage.value = page;
   fetchCraneModelData();
 };
 
-// 起重机模型库搜索
+// 三维模型库搜索
 const handleCraneModelSearch = () => {
   craneModelPage.value = 1;
   fetchCraneModelData();
 };
 
-// 起重机模型库每页条数变化
+// 三维模型库每页条数变化
 const handleCraneModelPageSizeChange = (size) => {
   craneModelPageSize.value = size;
   craneModelPage.value = 1;
   fetchCraneModelData();
 };
 
-// 新建起重机模型库提交
+// 新建三维模型库提交
 const handleCraneModelSubmit = async () => {
   if (!craneModelForm.value.modelName) {
     ElMessage.warning("请输入模型名称");
@@ -1439,6 +1476,7 @@ const handleCraneModelSubmit = async () => {
 
     const params = {
       modelName: craneModelForm.value.modelName,
+      type: craneModelForm.value.type !== undefined && craneModelForm.value.type !== null ? craneModelForm.value.type : 0,
       fileId,
       push: craneModelForm.value.push || 0,
     };
@@ -1449,6 +1487,7 @@ const handleCraneModelSubmit = async () => {
       craneModelDialogVisible.value = false;
       craneModelForm.value = {
         modelName: "",
+        type: 0,
         fileId: "",
         push: 0,
       };
@@ -1459,14 +1498,14 @@ const handleCraneModelSubmit = async () => {
       ElMessage.error(res?.message || "新增失败");
     }
   } catch (error) {
-    console.error("新增起重机模型库失败:", error);
+    console.error("新增三维模型库失败:", error);
     ElMessage.error("新增失败，请检查网络连接");
   } finally {
     craneModelSubmitting.value = false;
   }
 };
 
-// 处理起重机模型库推送状态变化
+// 处理三维模型库推送状态变化
 const handleCraneModelPushChange = async (row) => {
   try {
     const requestParams = {
@@ -1484,7 +1523,7 @@ const handleCraneModelPushChange = async (row) => {
       ElMessage.error(response?.message || "更新失败");
     }
   } catch (error) {
-    console.error("更新起重机模型库推送状态失败:", error);
+    console.error("更新三维模型库推送状态失败:", error);
     // 如果更新失败，恢复原值
     row.push = row.push === 1 ? 0 : 1;
     ElMessage.error("更新失败，请检查网络连接");
@@ -1611,6 +1650,11 @@ onMounted(() => {
   flex-direction: column;
 }
 
+/* 去掉卡片内容顶部多余留白，让 tabs 靠近上边缘 */
+.page-card :deep(.el-card__body) {
+  padding: 0 20px 20px;
+}
+
 .page-content {
   flex: 1;
   overflow-y: auto;
@@ -1630,17 +1674,64 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  margin-top: 0;
+}
+
+/* 将 4 个 tab 居中并挨在一起显示 */
+.data-tabs :deep(.el-tabs__header) {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.data-tabs :deep(.el-tabs__nav-wrap) {
+  display: flex;
+  justify-content: center;
+  padding: 3px 0;
+}
+
+.data-tabs :deep(.el-tabs__nav) {
+  margin: 0 auto;
+}
+
+/* 选中状态下的 Tab 样式 */
+.data-tabs :deep(.el-tabs__item.is-active) {
+  background: #2F6A92;
+  color: #FFF !important;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 2px 2px 0 0;
+}
+
+/* Tab 基础样式：文字居中显示 */
+.data-tabs :deep(.el-tabs__item) {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 第一个和最后一个 Tab 的左右内边距 */
+.data-tabs :deep(.el-tabs__nav .el-tabs__item:nth-child(2)) {
+  padding-left: 20px;
+}
+
+.data-tabs :deep(.el-tabs__nav .el-tabs__item:last-child) {
+  padding-right: 20px;
+}
+
+/* 去掉选中 Tab 下方的下划线（活动条） */
+.data-tabs :deep(.el-tabs__active-bar) {
+  display: none;
 }
 
 .tab-content {
-  padding: 20px 0;
   flex: 1;
   overflow-y: auto;
 }
 
 .toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
@@ -1648,6 +1739,30 @@ onMounted(() => {
 .search-group {
   display: flex;
   align-items: center;
+  margin-right: 20px;
+}
+
+/* data-management 页面所有“新建”按钮样式 */
+.dm-create-btn {
+  border-radius: 4px;
+  background: #EBEBEB;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+  border: none;
+  color: #5E5E5E;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+}
+
+.dm-create-btn:hover {
+  background: #E0E0E0;
+  color: #5E5E5E;
+}
+
+/* 数据管理页面 Tab 下搜索输入框边框样式 */
+.search-group :deep(.el-input__wrapper) {
+  border: 1px solid #999 !important;
+  box-shadow: none !important;
 }
 
 .pagination {
@@ -1658,15 +1773,16 @@ onMounted(() => {
 
 .pagination-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-top: 20px;
-  padding: 0 20px;
+  gap: 16px;
+  padding: 20px;
 }
 
 .pagination-info {
   color: #606266;
   font-size: 14px;
+  margin-right: 0;
 }
 
 .dialog-footer {
@@ -1696,4 +1812,5 @@ onMounted(() => {
 :deep(.el-dialog__footer) {
   flex-shrink: 0;
 }
+
 </style>

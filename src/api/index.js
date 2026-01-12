@@ -1122,5 +1122,6 @@ export default {
   modelPush,
   getStreamImage,
   getCranePerformanceInfo,
-  openSimulation
+  openSimulation,
+  convertDxfToPng
 }

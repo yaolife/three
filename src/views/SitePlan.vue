@@ -4,8 +4,8 @@
     <div class="page-header">
       <div class="header-content">
         <el-button type="default" class="back-btn" @click="handleBack">
-          <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
-          返回
+            <img src="@/images/back.png" alt="back" class="back-icon" width="20" height="14" />
+          <span style="margin-left: 4px">返回</span>
         </el-button>
         <div class="project_title">{{ projectTitle || '总平规划项目' }}</div>
       </div>
@@ -560,6 +560,42 @@
             <span>施工场景平面图加载中...</span>
           </div>
 
+          <!-- 标尺组件 -->
+          <template v-if="(planImageUrl || importedImage) && canvasSize.width > 0 && canvasSize.height > 0">
+            <!-- 标尺交汇角落 -->
+            <div class="ruler-corner" style="position: absolute; left: 0; top: 0; width: 50px; height: 20px; background-color: #fafafa; border-right: 1px solid #d9d9d9; border-bottom: 1px solid #d9d9d9; z-index: 6; box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);"></div>
+            
+            <!-- 顶部水平标尺 -->
+            <div class="ruler-horizontal" :style="{ width: canvasSize.width + 'px', height: '20px', left: '50px', top: '0' }">
+              <div class="ruler-content">
+                <div
+                  v-for="tick in horizontalTicks"
+                  :key="`h-${tick.value}`"
+                  class="ruler-tick horizontal-tick"
+                  :style="{ left: tick.position + 'px' }"
+                >
+                  <div class="tick-line"></div>
+                  <div class="tick-label">{{ tick.label }}</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 左侧垂直标尺 -->
+            <div class="ruler-vertical" :style="{ width: '50px', height: canvasSize.height + 'px', left: '0', top: '20px' }">
+              <div class="ruler-content">
+                <div
+                  v-for="tick in verticalTicks"
+                  :key="`v-${tick.value}`"
+                  class="ruler-tick vertical-tick"
+                  :style="{ top: tick.position + 'px' }"
+                >
+                  <div class="tick-line"></div>
+                  <div class="tick-label">{{ tick.label }}</div>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <!-- 有平面图时：显示绘制工具 + 平面图 + 画布 -->
           <template v-if="planImageUrl || importedImage">
           <div v-if="selectedCrane" class="drawing-toolbar">
@@ -692,7 +728,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="item.config.strokeWidth || 2"
+                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
                   stroke-linecap="round"
                 />
                 <polygon
@@ -710,7 +746,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="item.config.strokeWidth || 2"
+                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
                   stroke-linecap="round"
                 />
                 <polygon
@@ -766,6 +802,7 @@
                 :height="item.config.height || 0"
                 :fill="item.config.fill || 'rgba(255,255,255,0.2)'"
                 :stroke="item.config.stroke || '#F59A23'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
                 :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
               />
               <circle
@@ -776,6 +813,7 @@
                 :r="item.config.radius || MIN_RADIUS"
                 :fill="item.config.fill || 'rgba(38,132,255,0.25)'"
                 :stroke="item.config.stroke || '#2684FF'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
               />
               <polygon
                 v-else-if="item.tool === 'triangle'"
@@ -783,6 +821,7 @@
                 :points="createTrianglePoints(item.canvasX, item.canvasY, item.config.size || MIN_TRIANGLE_SIZE, item.config.rotate || 0)"
                 :fill="item.config.fill || 'rgba(245,108,108,0.25)'"
                 :stroke="item.config.stroke || '#F56C6C'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
               />
               <polygon
                 v-else-if="item.tool === 'pentagon'"
@@ -790,6 +829,7 @@
                 :points="createPentagonPoints(item.canvasX, item.canvasY, item.config.size || 48, item.config.rotate || 0)"
                 :fill="item.config.fill || 'rgba(52,152,219,0.25)'"
                 :stroke="item.config.stroke || '#3498DB'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
               />
               <path
                 v-else-if="item.tool === 'sector'"
@@ -797,6 +837,7 @@
                 :d="createSectorPath(item.canvasX, item.canvasY, item.config.radius || MIN_RADIUS, item.config.rotate || 0, (item.config.rotate || 0) + (item.config.angle || 60))"
                 :fill="item.config.fill || 'rgba(255,196,112,0.25)'"
                 :stroke="item.config.stroke || '#F59A23'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
               />
               <text
                 v-else-if="item.tool === 'text'"
@@ -804,7 +845,7 @@
                 :x="item.canvasX"
                 :y="item.canvasY"
                 :fill="item.config.color || '#1F2D3D'"
-                :font-size="item.config.fontSize || 14"
+                :font-size="((item.config.fontSize || 14) * scale)"
                 :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 text-anchor="middle"
                 dominant-baseline="middle"
@@ -820,7 +861,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="item.config.strokeWidth || 2"
+                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
                   stroke-linecap="round"
                   :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 />
@@ -841,7 +882,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="item.config.strokeWidth || 2"
+                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
                   stroke-linecap="round"
                   :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 />
@@ -1279,6 +1320,9 @@ const canvasSize = reactive({
   height: 0,
 });
 
+// 标尺0点位置跟随图片移动（以图片左上角为0点）
+// 0点位置会根据图片的offsetX和offsetY动态变化
+
 // 顶部自由标注工具相关状态（与点位绘制完全独立）
 const freeAnnotationToolOptions = [
   { type: "free-rect-1", label: "矩形" },
@@ -1597,6 +1641,108 @@ const canCompleteDrawing = computed(() => {
 const activeShape = computed(() => {
   if (!activeShapeId.value) return null;
   return shapeOverlays.value.find((shape) => shape.id === activeShapeId.value) || null;
+});
+
+// 计算水平标尺刻度（0刻度跟随图片移动，以图片左上角为0点）
+const horizontalTicks = computed(() => {
+  if (!canvas.value || canvasSize.width === 0) return [];
+  
+  const ticks = [];
+  const interval = 50; // 固定刻度间距50px
+  
+  // 0点位置 = 图片左上角在画布上的位置 = offsetX（考虑scale的影响）
+  // 图片左上角在图片坐标系中是0，在画布上的位置就是offsetX
+  const zeroPosition = offsetX.value;
+  
+  // 计算需要显示的刻度范围
+  // 从0点向左和向右扩展，确保能看到负数（无限小）和正数（无限大）
+  const visibleStart = -interval * 20; // 向左扩展足够远以显示负数
+  const visibleEnd = canvasSize.width + interval * 20; // 向右扩展足够远以显示正数
+  
+  // 计算起始和结束刻度值（以相对于0点的偏移为单位）
+  const startOffset = Math.floor((visibleStart - zeroPosition) / interval) * interval;
+  const endOffset = Math.ceil((visibleEnd - zeroPosition) / interval) * interval;
+  
+  // 生成刻度
+  for (let offset = startOffset; offset <= endOffset; offset += interval) {
+    // 计算该偏移值在画布上的位置
+    const position = zeroPosition + offset;
+    
+    // 只显示在可视区域附近的刻度（但允许超出一些以显示负数）
+    if (position >= -interval * 5 && position <= canvasSize.width + interval * 5) {
+      ticks.push({
+        value: offset,
+        position: position,
+        label: offset
+      });
+    }
+  }
+  
+  // 确保0点总是显示（即使不在可视区域内也添加）
+  const hasZero = ticks.some(tick => Math.abs(tick.value) < 0.1);
+  if (!hasZero) {
+    ticks.push({
+      value: 0,
+      position: zeroPosition,
+      label: 0
+    });
+  }
+  
+  // 按位置排序
+  ticks.sort((a, b) => a.position - b.position);
+  
+  return ticks;
+});
+
+// 计算垂直标尺刻度（0刻度跟随图片移动，以图片左上角为0点）
+const verticalTicks = computed(() => {
+  if (!canvas.value || canvasSize.height === 0) return [];
+  
+  const ticks = [];
+  const interval = 50; // 固定刻度间距50px
+  
+  // 0点位置 = 图片左上角在画布上的位置 = offsetY（考虑scale的影响）
+  // 图片左上角在图片坐标系中是0，在画布上的位置就是offsetY
+  const zeroPosition = offsetY.value;
+  
+  // 计算需要显示的刻度范围
+  // 从0点向上和向下扩展，确保能看到负数（无限小）和正数（无限大）
+  const visibleStart = -interval * 20; // 向上扩展足够远以显示负数
+  const visibleEnd = canvasSize.height + interval * 20; // 向下扩展足够远以显示正数
+  
+  // 计算起始和结束刻度值（以相对于0点的偏移为单位）
+  const startOffset = Math.floor((visibleStart - zeroPosition) / interval) * interval;
+  const endOffset = Math.ceil((visibleEnd - zeroPosition) / interval) * interval;
+  
+  // 生成刻度
+  for (let offset = startOffset; offset <= endOffset; offset += interval) {
+    // 计算该偏移值在画布上的位置
+    const position = zeroPosition + offset;
+    
+    // 只显示在可视区域附近的刻度（但允许超出一些以显示负数）
+    if (position >= -interval * 5 && position <= canvasSize.height + interval * 5) {
+      ticks.push({
+        value: offset,
+        position: position,
+        label: offset
+      });
+    }
+  }
+  
+  // 确保0点总是显示（即使不在可视区域内也添加）
+  const hasZero = ticks.some(tick => Math.abs(tick.value) < 0.1);
+  if (!hasZero) {
+    ticks.push({
+      value: 0,
+      position: zeroPosition,
+      label: 0
+    });
+  }
+  
+  // 按位置排序
+  ticks.sort((a, b) => a.position - b.position);
+  
+  return ticks;
 });
 
 const renderedShapeItems = computed(() => {
@@ -3349,13 +3495,16 @@ const convertToCanvasCoords = (x, y) => {
   }
   
   try {
-    // 获取图片的显示尺寸（变换后的尺寸）
-    const imageRect = imageRef.value.getBoundingClientRect();
-    const displayedWidth = imageRect.width;
-    const displayedHeight = imageRect.height;
+    // 关键：使用固定的参考尺寸（canvas.width x canvas.height）作为坐标映射基准
+    // 图片按canvas.width x canvas.height绘制（在变换后的坐标系中）
+    // Canvas应用了scale变换，所以变换会自动应用
+    // 坐标映射应该基于固定的canvas尺寸，而不是随scale变化的尺寸
+    // 这样确保无论scale如何变化，标注和点位在图片上的相对位置都保持不变
+    const referenceWidth = canvas.value.width;
+    const referenceHeight = canvas.value.height;
     
-    if (displayedWidth === 0 || displayedHeight === 0) {
-      console.warn('图片尺寸为0，使用默认映射');
+    if (referenceWidth === 0 || referenceHeight === 0) {
+      console.warn('Canvas尺寸为0，使用默认映射');
       return { x: x * 5, y: y * 5 };
     }
     
@@ -3371,9 +3520,10 @@ const convertToCanvasCoords = (x, y) => {
     const normalizedX = (x - coordMinX.value) / coordRangeX;
     const normalizedY = (y - coordMinY.value) / coordRangeY;
     
-    // 映射到图片坐标（变换前的坐标，transform会自动应用）
-    const canvasX = normalizedX * (displayedWidth / scale.value);
-    const canvasY = normalizedY * (displayedHeight / scale.value);
+    // 映射到图片坐标（变换前的坐标，使用固定的canvas尺寸作为参考）
+    // 这样无论scale如何变化，坐标映射关系都保持一致
+    const canvasX = normalizedX * referenceWidth;
+    const canvasY = normalizedY * referenceHeight;
     
     return { x: canvasX, y: canvasY };
   } catch (error) {
@@ -3390,18 +3540,20 @@ const convertToGeoCoords = (canvasX, canvasY) => {
   }
   
   try {
-    // 获取图片的显示尺寸（变换后的尺寸）
-    const imageRect = imageRef.value.getBoundingClientRect();
-    const displayedWidth = imageRect.width;
-    const displayedHeight = imageRect.height;
+    // 关键：使用固定的参考尺寸（canvas.width x canvas.height）作为坐标映射基准
+    // 与convertToCanvasCoords保持一致，使用固定的canvas尺寸
+    // 这样无论scale如何变化，坐标转换关系都保持一致
+    const referenceWidth = canvas.value.width;
+    const referenceHeight = canvas.value.height;
     
-    if (displayedWidth === 0 || displayedHeight === 0) {
+    if (referenceWidth === 0 || referenceHeight === 0) {
       return { x: canvasX / 5, y: canvasY / 5 };
     }
     
     // canvasX和canvasY是变换前的坐标，需要归一化
-    const normalizedX = canvasX / (displayedWidth / scale.value);
-    const normalizedY = canvasY / (displayedHeight / scale.value);
+    // 使用固定的canvas尺寸作为参考基准
+    const normalizedX = canvasX / referenceWidth;
+    const normalizedY = canvasY / referenceHeight;
     
     // 转换为地理坐标
     const coordRangeX = coordMaxX.value - coordMinX.value;
@@ -3414,6 +3566,37 @@ const convertToGeoCoords = (canvasX, canvasY) => {
   } catch (error) {
     console.error('坐标转换错误:', error);
     return { x: canvasX / 5, y: canvasY / 5 };
+  }
+};
+
+// 根据图片尺寸计算默认点位的地理坐标（以图片左上角为原点）
+// percentX: X方向的百分比（0-1），0表示左上角，1表示右上角
+// percentY: Y方向的百分比（0-1），0表示左上角，1表示左下角
+const getDefaultPointGeoCoords = (percentX = 0.2, percentY = 0.1) => {
+  if (!imageRef.value || !canvas.value) {
+    // 如果没有图片，返回默认坐标
+    return { x: 112.0, y: 38.0 };
+  }
+  
+  try {
+    // 获取图片的显示尺寸（变换后的尺寸）
+    const imageRect = imageRef.value.getBoundingClientRect();
+    const displayedWidth = imageRect.width;
+    const displayedHeight = imageRect.height;
+    
+    if (displayedWidth === 0 || displayedHeight === 0) {
+      return { x: 112.0, y: 38.0 };
+    }
+    
+    // 计算图片上的像素坐标（变换前的坐标）
+    const canvasX = percentX * (displayedWidth / scale.value);
+    const canvasY = percentY * (displayedHeight / scale.value);
+    
+    // 转换为地理坐标
+    return convertToGeoCoords(canvasX, canvasY);
+  } catch (error) {
+    console.error('计算默认坐标错误:', error);
+    return { x: 112.0, y: 38.0 };
   }
 };
 
@@ -3665,9 +3848,11 @@ const drawAllTrajectories = () => {
   ctx.value.scale(scale.value, scale.value);
   
   // 先绘制背景图片（如果存在）
+  // 恢复之前的逻辑：直接使用canvas尺寸绘制，确保初始化时显示正确
+  // 坐标转换仍然基于图片原始尺寸，确保缩放时位置不变
   if (imageRef.value && imageRef.value.complete) {
     ctx.value.save();
-    // 直接绘制图片，填充整个canvas
+    // 直接绘制图片，填充整个canvas（恢复之前的逻辑）
     ctx.value.drawImage(
       imageRef.value,
       0,
@@ -4178,7 +4363,7 @@ const handleCanvasWheel = (event) => {
   const mouseY = event.clientY - rect.top;
   
   const scaleRatio = event.deltaY > 0 ? 0.9 : 1.1;
-  const newScale = Math.max(1, Math.min(5, scale.value * scaleRatio));
+  const newScale = Math.max(0.3, Math.min(5, scale.value * scaleRatio));
   
   // 调整偏移量以保持鼠标位置不变
   // 鼠标在变换前坐标系中的位置
@@ -4378,11 +4563,15 @@ const selectCrane = (crane) => {
 // 设置起重机点位（打开添加起点弹窗）
 const setCranePosition = () => {
   if (!selectedCrane.value) return;
+  // 计算默认坐标（以图片左上角为原点，右侧20%，下方10%的位置）
+  const defaultCoords = getDefaultPointGeoCoords(0.2, 0.1);
   // 重置新点位数据
   newPoint.value = createBasePoint({
     isStart: true,
     type: "lifting",
     name: getNextPointName("lifting", selectedCrane.value.points || [], true),
+    x: defaultCoords.x,
+    y: defaultCoords.y,
   });
   // 打开添加点位弹窗
   addPointDialogVisible.value = true;
@@ -4414,12 +4603,16 @@ const setCranePosition = () => {
       return;
     }
     
+    // 计算默认坐标（以图片左上角为原点，右侧20%，下方20%的位置）
+    const defaultCoords = getDefaultPointGeoCoords(0.2, 0.1);
     // 重置新点位数据
     const isStart = false; // 添加路径点位不是起点
     newPoint.value = createBasePoint({
       name: `移动点位${pointCount}`,
       isStart,
       type: "moving",
+      x: defaultCoords.x,
+      y: defaultCoords.y,
     });
     // 打开添加点位弹窗
     addPointDialogVisible.value = true;
@@ -4523,8 +4716,14 @@ const setCranePosition = () => {
       }
     }
 
-    const xCoord = typeof newPoint.value.x === "number" ? newPoint.value.x : parseFloat(newPoint.value.x) || 112;
-    const yCoord = typeof newPoint.value.y === "number" ? newPoint.value.y : parseFloat(newPoint.value.y) || 38;
+    // 如果坐标不存在，使用默认坐标（以图片左上角为原点，右侧20%，下方20%的位置）
+    let xCoord = typeof newPoint.value.x === "number" ? newPoint.value.x : parseFloat(newPoint.value.x);
+    let yCoord = typeof newPoint.value.y === "number" ? newPoint.value.y : parseFloat(newPoint.value.y);
+    if (!xCoord || !yCoord || isNaN(xCoord) || isNaN(yCoord)) {
+      const defaultCoords = getDefaultPointGeoCoords(0.2, 0.1);
+      xCoord = defaultCoords.x;
+      yCoord = defaultCoords.y;
+    }
 
     const pointToAdd = {
       ...createBasePoint(),
@@ -6802,14 +7001,19 @@ const handleBack = () => {
 }
 
 .back-btn {
-  color: #000000;
+  color: #878787;
   margin-right: 16px;
   font-size: 14px;
+  font-weight: 600;
   padding: 6px 12px;
+  border-radius: 2px;
+  margin-left: 10px;
+  background: #FDFDFD;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.15) inset;
 }
 
 .back-btn:hover {
-  color: #000000;
+  color: #878787;
   cursor: pointer;
 }
 
@@ -6959,6 +7163,7 @@ const handleBack = () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  z-index: 10; /* 确保属性面板在标尺之上 */
 }
 
 .panel-header {
@@ -7211,6 +7416,89 @@ const handleBack = () => {
   align-items: center;
   box-sizing: border-box;
   margin-right: 280px;
+  padding-left: 50px;
+  padding-top: 20px;
+}
+
+/* 标尺样式 */
+.ruler-horizontal {
+  position: absolute;
+  background-color: #fafafa;
+  border-bottom: 1px solid #d9d9d9;
+  overflow: visible;
+  z-index: 5;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.ruler-vertical {
+  position: absolute;
+  background-color: #fafafa;
+  border-right: 1px solid #d9d9d9;
+  overflow: visible;
+  z-index: 5;
+  user-select: none;
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.ruler-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.ruler-tick {
+  position: absolute;
+}
+
+.horizontal-tick {
+  top: 0;
+}
+
+.vertical-tick {
+  left: 0;
+}
+
+.tick-line {
+  background-color: #8c8c8c;
+}
+
+.horizontal-tick .tick-line {
+  width: 1px;
+  height: 8px;
+  margin-top: 0;
+}
+
+.vertical-tick .tick-line {
+  width: 8px;
+  height: 1px;
+  margin-left: 0;
+}
+
+.tick-label {
+  position: absolute;
+  color: #595959;
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.horizontal-tick .tick-label {
+  top: 9px;
+  left: 2px;
+  transform: translateX(-50%);
+}
+
+.vertical-tick .tick-label {
+  left: 25px;
+  top: 2px;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: center center;
+  width: 30px;
+  text-align: center;
 }
 
 .plan-loading-mask {
@@ -7250,7 +7538,7 @@ const handleBack = () => {
 
 .drawing-toolbar {
   position: absolute;
-  top: 16px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
@@ -7652,7 +7940,7 @@ const handleBack = () => {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 6px 16px;
+  padding: 0px 16px;
 }
 .punctuation{
   color: #FFF;

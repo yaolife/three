@@ -1,11 +1,6 @@
 <template>
   <div class="user-management-container">
     <el-card class="page-card">
-      <template #header>
-        <div class="card-header">
-          <span>账号管理</span>
-        </div>
-      </template>
       <div class="page-content">
         <div class="toolbar">
           <div class="search-group">
@@ -25,16 +20,16 @@
               clearable
               @keyup.enter="handleSearch"
             />
-            <el-button type="primary" @click="handleSearch" style="margin-left: 12px">
+            <el-button class="search-btn"  @click="handleSearch" style="margin-left: 12px">
               搜索
             </el-button>
           </div>
           <div style="display: flex; gap: 12px;">
-            <el-button type="primary" @click="handleAdd">
-              <el-icon><Plus /></el-icon>
-              新增用户
+            <el-button class="um-action-btn" @click="handleAdd">
+              <img src="@/images/create.png" alt="create" class="create-icon" width="15" height="15" />
+              <span style="margin-left: 6px">新增用户</span>
             </el-button>
-            <el-button type="success" @click="handleExport" :loading="exportLoading">
+            <el-button class="um-action-btn" @click="handleExport" :loading="exportLoading">
               <el-icon><Download /></el-icon>
               导出
             </el-button>
@@ -95,14 +90,16 @@
           </el-table-column>
         </el-table>
 
-        <el-pagination
-          v-model:current-page="currentPage"
-          :page-size="pageSize"
-          :total="total"
-          layout="total, prev, pager, next"
-          class="pagination"
-          @current-change="handlePageChange"
-        />
+        <div class="pagination-container">
+          <div class="pagination-info">共 {{ total }} 条</div>
+          <el-pagination
+            v-model:current-page="currentPage"
+            :page-size="pageSize"
+            :total="total"
+            layout="prev, pager, next"
+            @current-change="handlePageChange"
+          />
+        </div>
       </div>
     </el-card>
 
@@ -623,7 +620,7 @@ onMounted(() => {
 
 <style scoped>
 .user-management-container {
-  padding: 20px 0;
+  padding: 5px 0;
 }
 
 .page-card {
@@ -638,9 +635,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.page-content {
-  padding: 20px 0;
-}
 
 .toolbar {
   display: flex;
@@ -654,10 +648,35 @@ onMounted(() => {
   align-items: center;
 }
 
-.pagination {
-  margin-top: 20px;
+/* user-management 页面“新增用户 / 导出”按钮样式 */
+.um-action-btn {
+  border-radius: 4px;
+  background: #EBEBEB;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+  border: none;
+  color: #5E5E5E;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+}
+
+.um-action-btn:hover {
+  background: #E0E0E0;
+  color: #5E5E5E;
+}
+
+.pagination-container {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.pagination-info {
+  color: #606266;
+  font-size: 14px;
+  margin-right: 0;
 }
 
 .dialog-footer {
