@@ -728,7 +728,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="item.config.strokeWidth || 2"
+                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
                   stroke-linecap="round"
                 />
                 <polygon
@@ -746,7 +746,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="item.config.strokeWidth || 2"
+                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
                   stroke-linecap="round"
                 />
                 <polygon
@@ -802,6 +802,7 @@
                 :height="item.config.height || 0"
                 :fill="item.config.fill || 'rgba(255,255,255,0.2)'"
                 :stroke="item.config.stroke || '#F59A23'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
                 :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
               />
               <circle
@@ -812,6 +813,7 @@
                 :r="item.config.radius || MIN_RADIUS"
                 :fill="item.config.fill || 'rgba(38,132,255,0.25)'"
                 :stroke="item.config.stroke || '#2684FF'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
               />
               <polygon
                 v-else-if="item.tool === 'triangle'"
@@ -819,6 +821,7 @@
                 :points="createTrianglePoints(item.canvasX, item.canvasY, item.config.size || MIN_TRIANGLE_SIZE, item.config.rotate || 0)"
                 :fill="item.config.fill || 'rgba(245,108,108,0.25)'"
                 :stroke="item.config.stroke || '#F56C6C'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
               />
               <polygon
                 v-else-if="item.tool === 'pentagon'"
@@ -826,6 +829,7 @@
                 :points="createPentagonPoints(item.canvasX, item.canvasY, item.config.size || 48, item.config.rotate || 0)"
                 :fill="item.config.fill || 'rgba(52,152,219,0.25)'"
                 :stroke="item.config.stroke || '#3498DB'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
               />
               <path
                 v-else-if="item.tool === 'sector'"
@@ -833,6 +837,7 @@
                 :d="createSectorPath(item.canvasX, item.canvasY, item.config.radius || MIN_RADIUS, item.config.rotate || 0, (item.config.rotate || 0) + (item.config.angle || 60))"
                 :fill="item.config.fill || 'rgba(255,196,112,0.25)'"
                 :stroke="item.config.stroke || '#F59A23'"
+                :stroke-width="((item.config.strokeWidth || 2) * scale)"
               />
               <text
                 v-else-if="item.tool === 'text'"
@@ -840,7 +845,7 @@
                 :x="item.canvasX"
                 :y="item.canvasY"
                 :fill="item.config.color || '#1F2D3D'"
-                :font-size="item.config.fontSize || 14"
+                :font-size="((item.config.fontSize || 14) * scale)"
                 :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 text-anchor="middle"
                 dominant-baseline="middle"
@@ -856,7 +861,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="item.config.strokeWidth || 2"
+                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
                   stroke-linecap="round"
                   :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 />
@@ -877,7 +882,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="item.config.strokeWidth || 2"
+                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
                   stroke-linecap="round"
                   :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 />
