@@ -3572,7 +3572,7 @@ const convertToGeoCoords = (canvasX, canvasY) => {
 // 根据图片尺寸计算默认点位的地理坐标（以图片左上角为原点）
 // percentX: X方向的百分比（0-1），0表示左上角，1表示右上角
 // percentY: Y方向的百分比（0-1），0表示左上角，1表示左下角
-const getDefaultPointGeoCoords = (percentX = 0.2, percentY = 0.2) => {
+const getDefaultPointGeoCoords = (percentX = 0.2, percentY = 0.1) => {
   if (!imageRef.value || !canvas.value) {
     // 如果没有图片，返回默认坐标
     return { x: 112.0, y: 38.0 };
@@ -4563,8 +4563,8 @@ const selectCrane = (crane) => {
 // 设置起重机点位（打开添加起点弹窗）
 const setCranePosition = () => {
   if (!selectedCrane.value) return;
-  // 计算默认坐标（以图片左上角为原点，右侧20%，下方20%的位置）
-  const defaultCoords = getDefaultPointGeoCoords(0.2, 0.2);
+  // 计算默认坐标（以图片左上角为原点，右侧20%，下方10%的位置）
+  const defaultCoords = getDefaultPointGeoCoords(0.2, 0.1);
   // 重置新点位数据
   newPoint.value = createBasePoint({
     isStart: true,
@@ -4604,7 +4604,7 @@ const setCranePosition = () => {
     }
     
     // 计算默认坐标（以图片左上角为原点，右侧20%，下方20%的位置）
-    const defaultCoords = getDefaultPointGeoCoords(0.2, 0.2);
+    const defaultCoords = getDefaultPointGeoCoords(0.2, 0.1);
     // 重置新点位数据
     const isStart = false; // 添加路径点位不是起点
     newPoint.value = createBasePoint({
@@ -4720,7 +4720,7 @@ const setCranePosition = () => {
     let xCoord = typeof newPoint.value.x === "number" ? newPoint.value.x : parseFloat(newPoint.value.x);
     let yCoord = typeof newPoint.value.y === "number" ? newPoint.value.y : parseFloat(newPoint.value.y);
     if (!xCoord || !yCoord || isNaN(xCoord) || isNaN(yCoord)) {
-      const defaultCoords = getDefaultPointGeoCoords(0.2, 0.2);
+      const defaultCoords = getDefaultPointGeoCoords(0.2, 0.1);
       xCoord = defaultCoords.x;
       yCoord = defaultCoords.y;
     }
