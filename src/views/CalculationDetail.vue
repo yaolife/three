@@ -1294,19 +1294,43 @@
           </div>
 
           <div class="action-buttons">
-            <el-button>重置</el-button>
-            <el-button
-              type="primary"
-              :loading="saveLoading.lifting"
-              @click="handleSave('lifting')"
-              >保存</el-button
-            >
-            <el-button type="primary" @click="showLiftingResult()"
-              >计算结果</el-button
-            >
-            <el-button type="primary" @click="handleExportConfirm('lifting')"
-              >导出</el-button
-            >
+
+ <div class="single-buttons">
+              <img
+                src="/src/images/reset.png"
+                alt="重置计算"
+                width="36"
+                height="36"
+              />
+              <span>重置计算</span>
+            </div>
+            <div class="single-buttons"    @click="handleSave('lifting')">
+              <img
+                src="/src/images/save_result.png"
+                alt="保存"
+                width="36"
+                height="36"
+              />
+              <span>保存结果</span>
+            </div>
+            <div class="single-buttons" @click="showLiftingResult()">
+              <img
+                src="/src/images/calculation_result.png"
+                alt="计算结果"
+                width="36"
+                height="36"
+              />
+              <span>计算结果</span>
+            </div>
+            <div class="single-buttons" @click="handleExportConfirm('lifting')">
+              <img
+                src="/src/images/export_result.png"
+                alt="导出结果"
+                width="36"
+                height="36"
+              />
+              <span>导出结果</span>
+            </div>
           </div>
         </el-scrollbar>
       </div>
@@ -8284,6 +8308,9 @@ stroke-width: 1px;
 stroke: #9C9C9C;
 box-shadow: -5px -5px 0 0 #EBEBEB inset;
    border: 1px solid #c3c3c3;
+}
+.action-buttons:hover {
+  cursor: pointer;
 }
 .action-buttons .single-buttons{
   display: flex;
