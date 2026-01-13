@@ -7837,6 +7837,14 @@ background: #F1F1F1;
   text-align: left;
 }
 
+/* 统一输入框和下拉框边框样式 */
+:deep(.el-textarea__inner),
+:deep(.el-select),
+:deep(.form-grid .el-input),
+:deep(.el-input) {
+  border: 1px solid #828A99 !important;
+}
+
 
 
 /* 起重机参数部分样式 - 添加边框并实现每行2列布局 */
