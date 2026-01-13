@@ -65,7 +65,7 @@
               <!-- 基本信息 -->
               <div class="section crane-parameters-section">
                 <div class="section-title">基本信息</div>
-                <div class="form-content" style="margin-left: -20px;">
+                <div class="form-content">
                   <div class="form-grid">
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
@@ -176,15 +176,6 @@
                       />
                       <span class="unit">m</span>
                     </div>
-                    <label class="form-label" style="margin-left: -20px;">作业半径<span>(r)</span></label>
-                    <div class="input-with-unit error">
-                      <el-input-number
-                        v-model="formData.workRadius"
-                        controls-position="right"
-                        :precision="2"
-                      />
-                      <span class="unit">m</span>
-                    </div>
                   </div>
 
                   <div class="form-row">
@@ -247,6 +238,18 @@
                         controls-position="right"
                         :precision="2"
                         placeholder="请输入超起平衡回转半径"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">作业半径<span>(r)</span></label>
+                    <div class="input-with-unit error">
+                      <el-input-number
+                        v-model="formData.workRadius"
+                        controls-position="right"
+                        :precision="2"
                       />
                       <span class="unit">m</span>
                     </div>
@@ -377,15 +380,6 @@
                       />
                       <span class="unit">m</span>
                     </div>
-                    <label class="form-label" style="margin-left: -20px;">作业半径<span>(r)</span></label>
-                    <div class="input-with-unit error">
-                      <el-input-number
-                        v-model="formData.workRadius2"
-                        controls-position="right"
-                        :precision="2"
-                      />
-                      <span class="unit">m</span>
-                    </div>
                   </div>
 
                   <div class="form-row">
@@ -444,6 +438,18 @@
                     <div class="input-with-unit">
                       <el-input-number
                         v-model="formData.superLiftRadius2"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="form-label">作业半径<span>(r)</span></label>
+                    <div class="input-with-unit error">
+                      <el-input-number
+                        v-model="formData.workRadius2"
                         controls-position="right"
                         :precision="2"
                       />
@@ -7813,16 +7819,14 @@ background: #F1F1F1;
 }
 
 :deep(.el-input-number) {
-  width: 100px;
+  width: 200px;
 }
 
 :deep(.el-input-number .el-input__inner) {
   text-align: left;
 }
 
-:deep(.el-select) {
-  width: 200px;
-}
+
 
 /* 起重机参数部分样式 - 添加边框并实现每行2列布局 */
 .crane-parameters-section {
