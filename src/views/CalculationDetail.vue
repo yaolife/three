@@ -7373,7 +7373,7 @@ const handleExportAll = async (exportType = 0) => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background: #FFF;
 }
 
 .header {
@@ -7511,7 +7511,8 @@ background: #F1F1F1;
 
 .right-panel {
   flex: 1;
-  background: #bebebe;
+  border: 1px solid #000;
+  background: #F4F4F4;
   border-radius: 4px;
   padding: 20px;
   display: flex;
