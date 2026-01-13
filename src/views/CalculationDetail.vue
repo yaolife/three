@@ -7527,9 +7527,6 @@ background: #F1F1F1;
   justify-content: center;
 }
 
-.section {
-  margin-bottom: 24px;
-}
 
 .section-title {
   font-size: 16px;
@@ -7556,8 +7553,7 @@ background: #F1F1F1;
 /* 带边框的区块样式 */
 .section-with-border {
   border-radius: 4px;
-  padding: 20px;
-  margin-top: 15px;
+  padding: 0 12px 20px 12px;
 }
 
 .form-row {
@@ -7832,7 +7828,6 @@ background: #F1F1F1;
 .crane-parameters-section {
   border-radius: 4px;
   padding: 10px;
-  margin-bottom: 24px;
 }
 
 .form-grid {
@@ -7902,6 +7897,13 @@ background: #F1F1F1;
  background: #006CAF;
 box-shadow: -2px 1px 0 0 rgba(0, 72, 154, 0.25) inset;
   color: white;
+}
+
+/* 起重机参数Tabs的content样式 */
+.left-panel :deep(.el-tabs--card > .el-tabs__content) {
+  background: #FAFAFA;
+  border: 1px solid #9C9C9C;
+  box-shadow: -5px -5px 0 0 #EBEBEB inset;
 }
 :deep(.el-tabs--top>.el-tabs__header .el-tabs__item:nth-child(2)){
   padding-left: 20px;
