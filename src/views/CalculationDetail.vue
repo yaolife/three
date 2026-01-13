@@ -7815,7 +7815,7 @@ background: #F1F1F1;
 .crane-parameters-section {
   border: 1px solid #e5e5e5;
   border-radius: 4px;
-  padding: 20px;
+  padding: 10px;
   margin-bottom: 24px;
 }
 
