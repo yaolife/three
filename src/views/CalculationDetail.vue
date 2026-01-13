@@ -7399,7 +7399,9 @@ background: #F1F1F1;
   justify-content: center;
   align-items: center;
 }
-
+.back-btn:hover {
+  cursor: pointer;
+}
 .export-btn {
    width: 50px;
    display: flex;
@@ -7875,7 +7877,8 @@ background: #F1F1F1;
 :deep(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
   display: flex;
   align-items: center;
-  background-color: #0775db;
+ background: #006CAF;
+box-shadow: -2px 1px 0 0 rgba(0, 72, 154, 0.25) inset;
   color: white;
 }
 :deep(.el-tabs--top>.el-tabs__header .el-tabs__item:nth-child(2)){
