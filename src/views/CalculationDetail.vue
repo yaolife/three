@@ -640,10 +640,10 @@ box-shadow: -5px -5px 0 0 #EBEBEB inset;">
                   <table>
                     <thead>
                       <tr>
-                        <th width="60">勾选</th>
-                        <th width="80">序号</th>
+                        <th width="30">勾选</th>
+                        <th width="30">序号</th>
                         <th>系数名称</th>
-                        <th width="120">值</th>
+                        <th width="80">值</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -7653,6 +7653,10 @@ background: #F1F1F1;
 
 .weight-parameters .form-label {
   min-width: 80px;
+}
+
+.weight-parameters .input-with-unit :deep(.el-input-number) {
+  width: 110px;
 }
 
 .weight-table {
