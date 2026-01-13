@@ -7875,6 +7875,11 @@ background: #F1F1F1;
   }
 }
 /* 起重机参数Tabs样式 */
+:deep(.el-tabs--card > .el-tabs__header) {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
 :deep(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
   display: flex;
   align-items: center;
