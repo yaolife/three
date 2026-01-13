@@ -7495,16 +7495,16 @@ background: #F1F1F1;
 
 .content-wrapper {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   padding: 16px;
   overflow: hidden;
 }
 
 .left-panel {
-  width: 60%;
+  width: 50%;
   background: white;
   border-radius: 4px;
-  padding: 20px;
+  padding: 0 12px;
 }
 
 .right-panel {
