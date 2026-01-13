@@ -7878,7 +7878,7 @@ background: #F1F1F1;
   background-color: #0775db;
   color: white;
 }
-.el-tabs--top>.el-tabs__header .el-tabs__item:nth-child(2){
+:deep(.el-tabs--top>.el-tabs__header .el-tabs__item:nth-child(2)){
   padding-left: 20px;
 }
 :deep(.el-tabs--top>.el-tabs__header .el-tabs__item:last-child){
