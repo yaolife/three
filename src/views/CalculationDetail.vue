@@ -7564,6 +7564,15 @@ background: #F1F1F1;
   margin-top: 6px;
   padding-bottom: 0;
 }
+
+/* 吊装计算设置区域样式 */
+.section-hoisting .form-row .form-label {
+  min-width: 130px; /* 与起重机1吊点至设备重心距离L1保持左对齐 */
+}
+
+.section-hoisting :deep(.el-select) {
+  width: 30%;
+}
 .form-row {
   display: flex;
   align-items: center;
