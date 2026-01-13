@@ -135,7 +135,7 @@
               <!-- 起重机工况 -->
               <div class="section section-with-border">
                 <div class="section-title">起重机工况</div>
-                <div class="form-content">
+                <div class="form-content" style="padding-bottom: 0;">
                   <div class="form-row">
                     <label class="form-label">额定载荷PQ</label>
                     <div class="input-with-unit">
@@ -339,7 +339,7 @@
               <!-- 起重机工况 -->
               <div class="section section-with-border">
                 <div class="section-title">起重机工况</div>
-                <div class="form-content">
+                <div class="form-content" style="padding-bottom: 0;">
                   <div class="form-row">
                     <label class="form-label">额定载荷PQ</label>
                     <div class="input-with-unit">
@@ -462,16 +462,18 @@
           </el-tabs>
 
           <!-- 吊装计算设置 -->
-          <div class="section section-with-border" style="fill: #FAFAFA;
+          <div class="section section-with-border section-hoisting" style="fill: #FAFAFA;
 stroke-width: 1px;
 stroke: #9C9C9C;
 box-shadow: -5px -5px 0 0 #EBEBEB inset;
+border: 1px solid #C3C3C3
   ">
             <div class="section-title">吊装计算设置</div>
             <div class="form-content" style=" background: none;
   border: none;
   box-shadow: none;
   filter: none;
+  padding-bottom: 0;
   border-radius: 0;">
               <div class="form-row">
                 <label class="form-label">吊装方式</label>
@@ -7535,9 +7537,8 @@ background: #F1F1F1;
 
 
 .section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  font-size: 14px;
+  color:#4E5969;
   padding-bottom: 8px;
 }
 
@@ -7555,13 +7556,15 @@ background: #F1F1F1;
   border-radius: 4px;
   padding: 12px;
 }
-
 /* 带边框的区块样式 */
 .section-with-border {
   border-radius: 4px;
   padding: 0 12px 20px 12px;
 }
-
+.left-panel .section-hoisting{
+  margin-top: 6px;
+  padding-bottom: 0;
+}
 .form-row {
   display: flex;
   align-items: center;
@@ -7665,8 +7668,8 @@ background: #F1F1F1;
 .result-section .section-title {
   background-color: #ffeebf;
   padding: 8px 12px;
-  font-weight: bold;
-  color: #666;
+  font-size: 14px;
+  color: #4E5969;
 }
 
 .result-section .section-content {
@@ -7734,8 +7737,8 @@ background: #F1F1F1;
 
 .result-final .section-title {
   background-color: #ffeebf;
-  font-weight: bold;
-  color: #666;
+   color: #4E5969;
+   font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -7819,7 +7822,7 @@ background: #F1F1F1;
 }
 
 :deep(.el-input-number) {
-  width: 200px;
+  width: 180px;
 }
 
 :deep(.el-input-number .el-input__inner) {
