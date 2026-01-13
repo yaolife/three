@@ -468,7 +468,6 @@ stroke: #9C9C9C;
 box-shadow: -5px -5px 0 0 #EBEBEB inset;
 border: 1px solid #C3C3C3
   ">
-            <div class="section-title">吊装计算设置</div>
             <div class="form-content" style=" background: none;
   border: none;
   box-shadow: none;
@@ -476,7 +475,7 @@ border: 1px solid #C3C3C3
   padding-bottom: 0;
   border-radius: 0;">
               <div class="form-row">
-                <label class="form-label">吊装方式</label>
+                <label class="form-label">吊装计算设置</label>
                 <el-select
                   v-model="formData.liftingMethod"
                   placeholder="请选择"
@@ -1442,7 +1441,7 @@ border: 1px solid #C3C3C3
 
       <div class="result-section">
         <div class="section-title">
-          项目吊装方式:{{ singleResult.liftingMethod }}
+          项目吊装计算设置:{{ singleResult.liftingMethod }}
         </div>
       </div>
 
@@ -2644,7 +2643,7 @@ border: 1px solid #C3C3C3
 
       <div class="result-section">
         <div class="section-title">
-          项目吊装方式:{{ doubleResult.liftingMethod }}
+          项目吊装计算设置:{{ doubleResult.liftingMethod }}
         </div>
       </div>
 
@@ -5251,7 +5250,7 @@ const showCalculationResult = (silent = false) => {
   const activeCraneKey = currentCraneKey.value;
   const activeWeightData = collectCraneWeightData(activeCraneKey);
 
-  // 根据吊装方式显示不同的弹窗
+  // 根据吊装计算设置显示不同的弹窗
   if (formData.value.liftingMethod === "single") {
     const isSecondCraneActive = activeCraneKey === "crane2";
     const ratedLoad = toNumberOrZero(
