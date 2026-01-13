@@ -8292,6 +8292,16 @@ box-shadow: -5px -5px 0 0 #EBEBEB inset;
   justify-content: center;
   align-items: center;
 }
+
+.action-buttons .single-buttons img {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  background: #EBEBEB;
+  box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+  padding: 12px;
+  box-sizing: border-box;
+}
 .diagram-container {
   width: 100%;
   height: 100%;
