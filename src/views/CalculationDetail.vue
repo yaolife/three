@@ -456,9 +456,17 @@
           </el-tabs>
 
           <!-- 吊装计算设置 -->
-          <div class="section section-with-border">
+          <div class="section section-with-border" style="fill: #FAFAFA;
+stroke-width: 1px;
+stroke: #9C9C9C;
+box-shadow: -5px -5px 0 0 #EBEBEB inset;
+  ">
             <div class="section-title">吊装计算设置</div>
-            <div class="form-content">
+            <div class="form-content" style=" background: none;
+  border: none;
+  box-shadow: none;
+  filter: none;
+  border-radius: 0;">
               <div class="form-row">
                 <label class="form-label">吊装方式</label>
                 <el-select
@@ -7431,7 +7439,6 @@ background: #F1F1F1;
 .tabs-row {
   border-bottom: 1px solid #D2D2D2;
   background: #F0F0F0;
-  padding: 0 12px;
   height: 30px;
   display: flex;
   align-items: center;
@@ -7535,9 +7542,19 @@ background: #F1F1F1;
   padding: 0 12px;
 }
 
+/* 起重机参数Tabs下的基本信息和起重机工况的form-content样式 */
+.left-panel .crane-parameters-section .form-content,
+.left-panel .section-with-border .form-content {
+  background: #EDEDED;
+  border: 1px solid #C3C3C3;
+  box-shadow: 2px 2px 0 0 rgba(185, 185, 185, 0.26) inset;
+  filter: drop-shadow(0 1px 0 rgba(86, 86, 86, 0.57));
+  border-radius: 4px;
+  padding: 12px;
+}
+
 /* 带边框的区块样式 */
 .section-with-border {
-  border: 1px solid #e5e5e5;
   border-radius: 4px;
   padding: 20px;
   margin-top: 15px;
@@ -7813,7 +7830,6 @@ background: #F1F1F1;
 
 /* 起重机参数部分样式 - 添加边框并实现每行2列布局 */
 .crane-parameters-section {
-  border: 1px solid #e5e5e5;
   border-radius: 4px;
   padding: 10px;
   margin-bottom: 24px;
