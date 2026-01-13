@@ -1295,7 +1295,7 @@
 
           <div class="action-buttons">
 
- <div class="single-buttons">
+          <div class="single-buttons">
               <img
                 src="/src/images/reset.png"
                 alt="重置计算"
@@ -1482,19 +1482,43 @@
           </div>
 
           <div class="action-buttons">
-            <el-button @click="resetFoundation">重置</el-button>
-            <el-button
-              type="primary"
-              :loading="saveLoading.foundation"
-              @click="handleSave('foundation')"
-              >保存</el-button
-            >
-            <el-button type="primary" @click="calculateFoundation()"
-              >计算结果</el-button
-            >
-            <el-button type="primary" @click="handleExportConfirm('foundation')"
-              >导出</el-button
-            >
+
+         <div class="single-buttons" @click="resetFoundation">
+              <img
+                src="/src/images/reset.png"
+                alt="重置计算"
+                width="36"
+                height="36"
+              />
+              <span>重置计算</span>
+            </div>
+            <div class="single-buttons"     @click="handleSave('foundation')">
+              <img
+                src="/src/images/save_result.png"
+                alt="保存"
+                width="36"
+                height="36"
+              />
+              <span>保存结果</span>
+            </div>
+            <div class="single-buttons"  @click="calculateFoundation()">
+              <img
+                src="/src/images/calculation_result.png"
+                alt="计算结果"
+                width="36"
+                height="36"
+              />
+              <span>计算结果</span>
+            </div>
+            <div class="single-buttons" @click="handleExportConfirm('foundation')">
+              <img
+                src="/src/images/export_result.png"
+                alt="导出结果"
+                width="36"
+                height="36"
+              />
+              <span>导出结果</span>
+            </div>
           </div>
         </el-scrollbar>
       </div>
