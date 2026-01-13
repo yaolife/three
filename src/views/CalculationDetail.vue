@@ -7637,14 +7637,14 @@ background: #F1F1F1;
 }
 
 .weight-parameters {
-  width: 44%;
+  width: 40%;
   border-radius: 4px;
   padding: 10px;
 }
 
 .weight-parameters .form-row {
   margin-bottom: 12px;
-  gap: 12px;
+  gap: 6px;
 }
 
 .weight-parameters .form-row:last-child {
