@@ -539,12 +539,18 @@ border: 1px solid #C3C3C3
           </div>
 
           <!-- 重量计算设置 -->
-          <div class="section section-with-border">
-            <div class="section-title">重量计算设置</div>
-            <div class="form-content">
+          <div class="section section-with-border" style="border:none; box-shadow: none;padding: 0;margin-top: 6px;background: none;
+  filter:none;">
+            <div class="form-content" style="border:none; box-shadow: none;padding: 0;margin-top: 6px;background: none;
+  filter:none;">
               <div class="weight-calculation-layout">
                 <!-- 左侧重量参数 -->
-                <div class="weight-parameters">
+                <div class="weight-parameters" style="fill: #FAFAFA;
+stroke-width: 1px;
+stroke: #9C9C9C;
+border: 1px solid #C3C3C3;
+box-shadow: -5px -5px 0 0 #EBEBEB inset;">
+                      <div class="section-title">重量计算设置</div>
                   <div class="form-row weight-set">
                     <el-checkbox
                       v-model="currentWeightSettings.isEquipmentWeightChecked"
@@ -625,7 +631,12 @@ border: 1px solid #C3C3C3
                 </div>
 
                 <!-- 右侧系数表 -->
-                <div class="weight-table">
+                <div class="weight-table" style="fill: #FAFAFA;
+stroke-width: 1px;
+stroke: #9C9C9C;
+border: 1px solid #C3C3C3;
+box-shadow: -5px -5px 0 0 #EBEBEB inset;">
+                     <div class="section-title">系数设置</div>
                   <table>
                     <thead>
                       <tr>
@@ -7622,15 +7633,13 @@ background: #F1F1F1;
 
 .weight-calculation-layout {
   display: flex;
-  gap: 20px;
+  gap: 6px;
 }
 
 .weight-parameters {
-  width: 40%;
-  border: 1px solid #e5e5e5;
+  width: 44%;
   border-radius: 4px;
-  padding: 16px;
-  background: #fafafa;
+  padding: 10px;
 }
 
 .weight-parameters .form-row {
@@ -7643,12 +7652,13 @@ background: #F1F1F1;
 }
 
 .weight-parameters .form-label {
-  min-width: 150px;
+  min-width: 80px;
 }
 
 .weight-table {
   flex: 1;
   margin-top: 0;
+  padding: 10px;
 }
 
 .weight-table table {
