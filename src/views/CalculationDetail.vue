@@ -748,7 +748,7 @@
           </div>
 
           <div class="action-buttons">
-            <div>
+            <div class="single-buttons">
               <img
                 src="/src/images/reset.png"
                 alt="重置计算"
@@ -757,7 +757,7 @@
               />
               <span>重置计算</span>
             </div>
-            <div @click="handleSave('crane')">
+            <div class="single-buttons" @click="handleSave('crane')">
               <img
                 src="/src/images/save_result.png"
                 alt="保存"
@@ -766,7 +766,7 @@
               />
               <span>保存结果</span>
             </div>
-            <div @click="showCalculationResult()">
+            <div class="single-buttons" @click="showCalculationResult()">
               <img
                 src="/src/images/calculation_result.png"
                 alt="计算结果"
@@ -775,7 +775,7 @@
               />
               <span>计算结果</span>
             </div>
-            <div @click="handleExportConfirm('crane')">
+            <div class="single-buttons" @click="handleExportConfirm('crane')">
               <img
                 src="/src/images/export_result.png"
                 alt="导出结果"
@@ -8275,12 +8275,23 @@ const handleExportAll = async (exportType = 0) => {
 
 .action-buttons {
   display: flex;
-  justify-content: center;
+  justify-content: space-evenly;
   gap: 12px;
   margin-top: 24px;
-  padding-top: 24px;
+  padding: 15px 0;
+  fill: #FAFAFA;
+stroke-width: 1px;
+stroke: #9C9C9C;
+box-shadow: -5px -5px 0 0 #EBEBEB inset;
+   border: 1px solid #c3c3c3;
 }
-
+.action-buttons .single-buttons{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+}
 .diagram-container {
   width: 100%;
   height: 100%;
