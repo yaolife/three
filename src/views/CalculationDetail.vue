@@ -8421,8 +8421,19 @@ box-shadow: -5px -5px 0 0 #EBEBEB inset;
 :deep(.form-grid .el-input),
 :deep(.el-input) {
   border: 1px solid #828a99 !important;
+  height:23px;
 }
-
+:deep(.el-select__wrapper){
+  min-height:23px;
+  padding: 0 12px;
+  box-shadow: none;
+}
+:deep(.el-select__input){
+   height:23px;
+}
+.el-input-number.is-controls-right .el-input-number__decrease, .el-input-number.is-controls-right .el-input-number__increase{
+  --el-input-number-controls-height:10px;
+}
 /* 起重机参数部分样式 - 添加边框并实现每行2列布局 */
 .crane-parameters-section {
   border-radius: 4px;
@@ -8432,7 +8443,7 @@ box-shadow: -5px -5px 0 0 #EBEBEB inset;
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 13px;
 }
 
 .form-grid .form-row {
