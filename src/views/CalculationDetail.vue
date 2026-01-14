@@ -810,6 +810,7 @@
       <div v-if="activeTab === 'lifting'" class="left-panel">
         <el-scrollbar>
           <!-- 设备吊索设置 -->
+           <div class="sling-parameters">
           <div class="section section-with-border">
             <div class="section-title">设备设置</div>
             <div class="form-content">
@@ -1242,8 +1243,12 @@
                   </template>
                 </div>
               </div>
-              <!-- 系数设置 -->
-              <div class="section section-with-border">
+            
+            </div>
+          </div>
+          </div>
+         <!-- 系数设置 -->
+          <div class="section section-with-border">
                 <div class="section-title">系数设置</div>
                 <div class="form-content">
                   <div class="system-table">
@@ -1290,9 +1295,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
           <div class="action-buttons">
 
           <div class="single-buttons">
@@ -8054,7 +8056,7 @@ const handleExportAll = async (exportType = 0) => {
   border: 1px solid #000;
   background: #f4f4f4;
   border-radius: 4px;
-  padding: 20px;
+  padding: 17px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8063,13 +8065,19 @@ const handleExportAll = async (exportType = 0) => {
 .section-title {
   font-size: 14px;
   color: #4e5969;
-  padding-bottom: 8px;
+  padding-top: 6px;
 }
 
 .form-content {
   padding: 0 12px;
 }
-
+.sling-parameters{
+  fill: #FAFAFA;
+stroke-width: 1px;
+stroke: #9C9C9C;
+box-shadow: -5px -5px 0 0 #EBEBEB inset;
+border: 1px solid #9C9C9C;
+}
 /* 起重机参数Tabs下的基本信息和起重机工况的form-content样式 */
 .left-panel .crane-parameters-section .form-content,
 .left-panel .section-with-border .form-content {
