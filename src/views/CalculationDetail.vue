@@ -867,56 +867,81 @@
                       <el-radio value="withBeam">有吊梁</el-radio>
                     </el-radio-group>
                   </div>
-                  <div class="form-row">
+                  <div
+                    class="form-row"
+                    :class="{
+                      'disabled-row':
+                        commonDeviceSettings.liftingType === 'withBeam',
+                    }"
+                  >
                     <el-checkbox
                       v-model="commonDeviceSettings.isSinglePointLifting"
                       style="margin-left: 20px"
                       @change="handleSinglePointLiftingChange"
-                      v-if="commonDeviceSettings.liftingType !== 'withBeam'"
+                      :disabled="commonDeviceSettings.liftingType === 'withBeam'"
                     >
                       是否单点吊装
                     </el-checkbox>
                   </div>
-                  <!-- 有吊梁情况下显示平衡梁参数 -->
-                  <div v-if="commonDeviceSettings.liftingType === 'withBeam'">
-                    <div class="form-row">
-                      <label class="form-label"
-                        >平衡梁重量<span>G1</span></label
-                      >
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="commonDeviceSettings.beamWeight"
-                          controls-position="right"
-                          :precision="2"
-                        />
-                        <span class="unit">t</span>
-                      </div>
+                  <!-- 平衡梁参数：无吊梁时置灰禁用，有吊梁时可编辑 -->
+                  <div
+                    class="form-row"
+                    :class="{
+                      'disabled-row':
+                        commonDeviceSettings.liftingType === 'noBeam',
+                    }"
+                  >
+                    <label class="form-label"
+                      >平衡梁重量<span>G1</span></label
+                    >
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="commonDeviceSettings.beamWeight"
+                        controls-position="right"
+                        :precision="2"
+                        :disabled="commonDeviceSettings.liftingType === 'noBeam'"
+                      />
+                      <span class="unit">t</span>
                     </div>
+                  </div>
 
-                    <div class="form-row">
-                      <label class="form-label">平衡梁长度</label>
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="commonDeviceSettings.beamLength"
-                          controls-position="right"
-                          :precision="2"
-                        />
-                        <span class="unit">m</span>
-                      </div>
+                  <div
+                    class="form-row"
+                    :class="{
+                      'disabled-row':
+                        commonDeviceSettings.liftingType === 'noBeam',
+                    }"
+                  >
+                    <label class="form-label">平衡梁长度</label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="commonDeviceSettings.beamLength"
+                        controls-position="right"
+                        :precision="2"
+                        :disabled="commonDeviceSettings.liftingType === 'noBeam'"
+                      />
+                      <span class="unit">m</span>
                     </div>
+                  </div>
 
-                    <div class="form-row">
-                      <label class="form-label" style="max-width: 150px"
-                        >吊梁下部吊具重量<span>G2</span></label
-                      >
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="commonDeviceSettings.beamSlingWeight"
-                          controls-position="right"
-                          :precision="2"
-                        />
-                        <span class="unit">t</span>
-                      </div>
+                  <div
+                    class="form-row"
+                    :class="{
+                      'disabled-row':
+                        commonDeviceSettings.liftingType === 'noBeam',
+                    }"
+                  >
+                    <label class="form-label" style="max-width: 150px"
+                      >吊梁下部吊具重量<span>G2</span></label
+                    >
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="commonDeviceSettings.beamSlingWeight"
+                        controls-position="right"
+                        :precision="2"
+                        :disabled="commonDeviceSettings.liftingType === 'noBeam'"
+                      />
+                      <span class="unit">t</span>
                     </div>
                   </div>
                 </div>
@@ -8100,6 +8125,12 @@ const handleExportAll = async (exportType = 0) => {
 .sling-device-info > div:nth-child(2) {
   flex: 1;
 }
+
+/* 吊梁设置/是否单点吊装 置灰样式 */
+.disabled-row {
+  opacity: 0.5;
+}
+
 /* 起重机参数Tabs下的基本信息和起重机工况的form-content样式 */
 .left-panel .crane-parameters-section .form-content,
 .left-panel .section-with-border .form-content {
