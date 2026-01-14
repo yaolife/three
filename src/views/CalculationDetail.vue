@@ -811,6 +811,7 @@
         <el-scrollbar>
           <!-- 设备吊索设置 -->
            <div class="sling-parameters">
+            <div class="sling-device-info">
           <div class="section section-with-border">
             <div class="section-title">设备设置</div>
             <div class="form-content">
@@ -846,7 +847,7 @@
                 </div>
               </div>
 
-              <div class="form-row" style="margin-top: 16px">
+              <div class="form-row" style="margin-top: 13px">
                 <label class="form-label">设备重量<span>(G)</span></label>
                 <div class="input-with-unit">
                   <el-input-number
@@ -856,7 +857,15 @@
                   />
                   <span class="unit">t</span>
                 </div>
-                <el-radio-group v-model="commonDeviceSettings.liftingType">
+         
+              </div>
+            </div>
+          </div>
+            <div class="section section-with-border">
+            <div class="section-title">吊梁设置</div>
+            <div class="form-content">               
+                <div class="form-row" style="margin-top: 13px"> 
+                      <el-radio-group v-model="commonDeviceSettings.liftingType">
                   <el-radio value="noBeam">无吊梁</el-radio>
                   <el-radio value="withBeam">有吊梁</el-radio>
                 </el-radio-group>
@@ -868,15 +877,13 @@
                 >
                   是否单点吊装
                 </el-checkbox>
-              </div>
-
-              <!-- 有吊梁情况下显示平衡梁参数 -->
+                </div>
+                   <!-- 有吊梁情况下显示平衡梁参数 -->
               <div
-                class="form-row"
+            
                 v-if="commonDeviceSettings.liftingType === 'withBeam'"
-                style="display: flex; gap: 20px"
               >
-                <div style="display: flex; align-items: center">
+                <div    class="form-row">
                   <label class="form-label">平衡梁重量<span>G1</span></label>
                   <div class="input-with-unit">
                     <el-input-number
@@ -889,7 +896,7 @@
                 </div>
 
                 <div
-                  style="display: flex; align-items: center; margin-left: -60px"
+                  class="form-row"
                 >
                   <label class="form-label">平衡梁长度</label>
                   <div class="input-with-unit">
@@ -902,7 +909,7 @@
                   </div>
                 </div>
 
-                <div style="display: flex; align-items: center">
+                <div  class="form-row">
                   <label class="form-label" style="max-width: 150px"
                     >吊梁下部吊具重量<span>G2</span></label
                   >
@@ -918,7 +925,7 @@
               </div>
             </div>
           </div>
-
+         </div>
           <!-- 吊索具配置 -->
           <div class="section section-with-border">
             <div class="section-title section-title-with-button">
@@ -8078,6 +8085,17 @@ stroke: #9C9C9C;
 box-shadow: -5px -5px 0 0 #EBEBEB inset;
 border: 1px solid #9C9C9C;
 }
+.sling-device-info{
+  display: flex;
+  justify-content: space-between;
+  gap:5px;
+}
+.sling-device-info>div:nth-child(1){
+  width: 40%;
+}
+.sling-device-info>div:nth-child(2){
+  flex:1;
+}
 /* 起重机参数Tabs下的基本信息和起重机工况的form-content样式 */
 .left-panel .crane-parameters-section .form-content,
 .left-panel .section-with-border .form-content {
@@ -8109,7 +8127,7 @@ border: 1px solid #9C9C9C;
 .form-row {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 13px;
   gap: 10px;
 }
 
