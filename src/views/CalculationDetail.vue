@@ -836,7 +836,6 @@
                     </el-select>
                   </div>
                 </div>
-                <div class="form-row"></div>
 
                 <div class="form-row">
                   <label class="form-label">设备型号</label>
@@ -845,9 +844,7 @@
                     placeholder="请输入设备型号"
                   />
                 </div>
-              </div>
-
-              <div class="form-row" style="margin-top: 13px">
+                   <div class="form-row">
                 <label class="form-label">设备重量<span>(G)</span></label>
                 <div class="input-with-unit">
                   <el-input-number
@@ -859,6 +856,7 @@
                 </div>
          
               </div>
+              </div>      
             </div>
           </div>
             <div class="section section-with-border">
@@ -869,20 +867,22 @@
                   <el-radio value="noBeam">无吊梁</el-radio>
                   <el-radio value="withBeam">有吊梁</el-radio>
                 </el-radio-group>
-                <el-checkbox
+              
+                </div>
+                 <div    class="form-row"> <el-checkbox
                   v-model="commonDeviceSettings.isSinglePointLifting"
                   style="margin-left: 20px"
                   @change="handleSinglePointLiftingChange"
                   v-if="commonDeviceSettings.liftingType !== 'withBeam'"
                 >
                   是否单点吊装
-                </el-checkbox>
-                </div>
+                </el-checkbox></div>
                    <!-- 有吊梁情况下显示平衡梁参数 -->
               <div
             
                 v-if="commonDeviceSettings.liftingType === 'withBeam'"
-              >
+              >  
+               
                 <div    class="form-row">
                   <label class="form-label">平衡梁重量<span>G1</span></label>
                   <div class="input-with-unit">
@@ -8438,8 +8438,8 @@ box-shadow: -5px -5px 0 0 #EBEBEB inset;
 }
 
 .form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 13px;
 }
 
