@@ -8407,9 +8407,6 @@ box-shadow: -5px -5px 0 0 #EBEBEB inset;
   transform: scale(1.1);
 }
 
-:deep(.el-input-number) {
-  width: 180px;
-}
 
 :deep(.el-input-number .el-input__inner) {
   text-align: left;
@@ -8421,17 +8418,17 @@ box-shadow: -5px -5px 0 0 #EBEBEB inset;
 :deep(.form-grid .el-input),
 :deep(.el-input) {
   border: 1px solid #828a99 !important;
-  height:23px;
+  height:26px;
 }
 :deep(.el-select__wrapper){
-  min-height:23px;
+  min-height:26px;
   padding: 0 12px;
   box-shadow: none;
 }
 :deep(.el-select__input){
-   height:23px;
+   height:26px;
 }
-.el-input-number.is-controls-right .el-input-number__decrease, .el-input-number.is-controls-right .el-input-number__increase{
+:deep(.el-input-number.is-controls-right .el-input-number__decrease, .el-input-number.is-controls-right .el-input-number__increase){
   --el-input-number-controls-height:10px;
 }
 /* 起重机参数部分样式 - 添加边框并实现每行2列布局 */
