@@ -70,7 +70,7 @@
               <div class="section crane-parameters-section">
                 <div class="section-title">基本信息</div>
                 <div class="form-content">
-                  <div class="form-grid">
+                  <div class="form-grid crane-basic-grid">
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
                       <div class="form-input-group">
@@ -285,7 +285,7 @@
               <div class="section crane-parameters-section">
                 <div class="section-title">基本信息</div>
                 <div class="form-content">
-                  <div class="form-grid">
+                  <div class="form-grid crane-basic-grid">
                     <div class="form-row">
                       <label class="form-label">起重机名称</label>
                       <div class="form-input-group">
@@ -8441,6 +8441,18 @@ box-shadow: -5px -5px 0 0 #EBEBEB inset;
   display: flex;
   flex-direction: column;
   gap: 13px;
+}
+
+/* 起重机校核计算 - 起重机参数1/2 基本信息：5个字段按两列展示 */
+.crane-basic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+  row-gap: 13px;
+}
+
+.crane-basic-grid .form-row {
+  margin-bottom: 0;
 }
 
 .form-grid .form-row {
