@@ -860,7 +860,7 @@
               </div>
               <div class="section section-with-border">
                 <div class="section-title">吊梁设置</div>
-                <div class="form-content">
+                <div class="form-content" style="padding:6px 0;">
                   <div class="form-row" style="margin-bottom: 0;justify-content: space-around;">
                     <el-radio-group v-model="commonDeviceSettings.liftingType">
                       <el-radio value="noBeam">无吊梁</el-radio>
