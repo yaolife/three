@@ -1468,7 +1468,7 @@
                 重心设置
               </div>
               <div class="form-content">
-                <div class="form-grid">
+                <div class="form-grid found-basic-grid">
                   <div class="form-row">
                     <label class="form-label">履带名称</label>
                     <el-input
@@ -8568,7 +8568,12 @@ const handleExportAll = async (exportType = 0) => {
   column-gap: 20px;
   row-gap: 13px;
 }
-
+.found-basic-grid{
+ display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 10px;
+  row-gap: 13px;
+}
 .crane-basic-grid .form-row {
   margin-bottom: 0;
 }
