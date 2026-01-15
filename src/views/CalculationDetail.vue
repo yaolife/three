@@ -1443,6 +1443,7 @@
                   <el-select
                     v-model="foundationData.craneType"
                     placeholder="请选择承载类型"
+                    style="width: 30%"
                   >
                     <el-option label="汽车式" value="truck" />
                     <el-option label="塔式" value="tower" />
@@ -1454,12 +1455,13 @@
                   <el-input
                     v-model="foundationData.foundationName"
                     placeholder="请输入起重机名称"
+                    style="width: 30%"
                   />
                 </div>
               </div>
             </div>
             <div class="weight_set">
-              <div class="section-title">重心设置</div>
+              <div class="section-title" style="color:#4E5969;font-size: 12px;margin-bottom: 5px;">重心设置</div>
               <div class="form-content">
                 <div class="form-grid">
                   <div class="form-row">
@@ -8579,7 +8581,6 @@ const handleExportAll = async (exportType = 0) => {
 .form-grid .form-input-group,
 .form-grid .el-input {
   width: 100%;
-  flex: 1;
 }
 .found_bear {
   color: #4E5969;
@@ -8592,9 +8593,7 @@ const handleExportAll = async (exportType = 0) => {
   align-items: center;
 }
 .weight_set {
-  margin-top: 15px;
-  padding: 20px 15px;
-  border: 1px solid #e5e5e5;
+  margin-top: 10px;
 }
 /* 响应式调整 */
 @media (max-width: 768px) {
