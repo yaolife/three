@@ -8589,7 +8589,7 @@ const handleExportAll = async (exportType = 0) => {
   margin-bottom: 0;
   margin-right: 12px;
   text-align: right;
-  min-width: 120px;
+  min-width: 140px;
 }
 
 .form-grid .form-input-group,
