@@ -5167,7 +5167,8 @@ const equipmentCategories = ref([]);
 
 // 导出选择弹窗相关
 const exportSelectDialogVisible = ref(false);
-const selectedExportType = ref("all"); // 'all', 'crane', 'lifting', 'foundation', 'template'
+// 默认不选中任何一项，仅在用户点击后才标记选中项
+const selectedExportType = ref(""); // 'all', 'crane', 'lifting', 'foundation', 'template'
 const hoveredExportItem = ref(null); // 当前hover的选项
 const equipmentProducts = ref([]);
 const equipmentModels = ref([]);
@@ -7843,7 +7844,8 @@ const handleExport = async (type) => {
 
 // 打开导出选择弹窗
 const openExportSelectDialog = () => {
-  selectedExportType.value = "all"; // 默认选中第一个
+  // 打开时不默认选中任何一项
+  selectedExportType.value = "";
   hoveredExportItem.value = null;
   exportSelectDialogVisible.value = true;
 };
@@ -9192,6 +9194,12 @@ background: #FFF;
 .export-menu-item.is-selected {
   background-color: #006CAF;
   color: white;
+}
+
+/* 导出菜单项鼠标按下去时的背景色 */
+.export-menu-item:active {
+  background-color: #006CAF;
+  color: #fff;
 }
 
 .menu-item-label {
