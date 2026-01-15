@@ -1488,7 +1488,7 @@
                 <!-- 新增的2列布局 -->
                 <div
                   class="form-grid"
-                  style="margin-top: 13px; display: flex;"
+                  style="margin-top: 13px; display: flex;margin-left: 82px;"
                 >
                   <!-- 左列 -->
                   <div style="flex: 1">
