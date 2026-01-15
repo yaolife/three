@@ -1488,11 +1488,11 @@
                 <!-- 新增的2列布局 -->
                 <div
                   class="form-grid"
-                  style="margin-top: 16px; display: flex; gap: 20px"
+                  style="margin-top: 13px; display: flex;"
                 >
                   <!-- 左列 -->
                   <div style="flex: 1">
-                    <div class="form-row" style="margin-bottom: 16px">
+                    <div class="form-row" style="margin-bottom: 13px">
                       <label class="form-label"
                         >左或右侧履带板宽度<span>B1</span></label
                       >
@@ -1505,7 +1505,7 @@
                         <span class="unit">m</span>
                       </div>
                     </div>
-                    <div class="form-row" style="margin-bottom: 16px">
+                    <div class="form-row" style="margin-bottom: 13px">
                       <label class="form-label"
                         >履带接地长度<span>L4</span></label
                       >
@@ -1518,7 +1518,7 @@
                         <span class="unit">m</span>
                       </div>
                     </div>
-                    <div class="form-row" style="margin-bottom: 16px">
+                    <div class="form-row" style="margin-bottom: 13px">
                       <label class="form-label"
                         >起重机设计自重<span>W</span></label
                       >
