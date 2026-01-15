@@ -965,7 +965,6 @@
                   :class="{ active: activeSlingIndex === index }"
                 >
                   <el-button
-                    type="primary"
                     class="sling-tab-button"
                     :class="{
                       'sling-tab-button-active': activeSlingIndex === index,
@@ -997,18 +996,19 @@
                     @click="removeSling(index)"
                   />
                 </div>
-                <img
+                <div  class="add-sling-img"       @click="addNewSling"> <img
                   class="add-sling-button"
                   src="@/images/add.png"
                   alt="新增按钮"
                   :fit="'cover'"
-                  @click="addNewSling"
+            
                   v-if="
                     commonDeviceSettings.liftingType === 'noBeam'
                       ? !activeSlingData.isSinglePointLifting
                       : true
                   "
-                />
+                /></div>
+               
               </div>
               <div
                 class="form-content"
@@ -8586,7 +8586,6 @@ const handleExportAll = async (exportType = 0) => {
 
 .sling-tab-wrapper {
   position: relative;
-  margin-right: 10px;
 }
 
 .sling-tab-button {
@@ -8598,23 +8597,39 @@ const handleExportAll = async (exportType = 0) => {
 }
 
 .sling-tab-button-active {
-  background: #0775db !important;
-  color: #fff !important;
+  background: #ededed !important;
+  color: #4E5969 !important;
+     border-left: 1px solid rgb(231, 231, 231)!important;
+     border-right: 1px solid rgb(231, 231, 231)!important;
+       border-top: 1px solid rgb(231, 231, 231)!important;
+       position: relative;
+       top:3px;
+       z-index: 33;
 }
 
 .sling-tab-button-active:hover {
-  background: #0775db !important;
-  color: #fff !important;
+  background: #ededed !important;
+  color: #4E5969 !important;
+   border-left: 1px solid rgb(231, 231, 231)!important;
+     border-right: 1px solid rgb(231, 231, 231)!important;
+       border-top: 1px solid rgb(231, 231, 231)!important;
 }
 
 .sling-tab-button-inactive {
-  background: #d4d4d4 !important;
-  color: #fff !important;
+  background: #ededed !important;
+  color: #4E5969 !important;
+    border-left: 1px solid rgb(231, 231, 231)!important;
+     border-right: 1px solid rgb(231, 231, 231)!important;
+       border-top: 1px solid rgb(231, 231, 231)!important;
+        border-bottom: 1px solid rgb(231, 231, 231)!important;
+     position: relative;
+       top:2px;
+       z-index: 3;
 }
 
 .sling-tab-button-inactive:hover {
-  background: #d4d4d4 !important;
-  color: #fff !important;
+  background: #ededed !important;
+  color: #4E5969 !important;
 }
 
 .remove-sling-button {
@@ -8627,16 +8642,26 @@ const handleExportAll = async (exportType = 0) => {
   background: #d4d4d4;
   border-radius: 50%;
   padding: 2px;
+  z-index: 80;
 }
-
+.add-sling-img{
+  width: 70px;
+  height: 30px;
+  position: relative;
+  top:3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+ background: rgba(217, 217, 217, 0.31);
+box-shadow: -1px 1px 0 0 rgba(196, 196, 196, 0.25) inset;
+}
 .add-sling-button {
-  width: 22px;
-  height: 22px;
-  padding: 0;
+  width: 10px;
+  height: 10px;
   font-size: 18px;
-  background: white;
+
 }
-.add-sling-button:hover {
+.add-sling-img:hover {
   cursor: pointer;
 }
 
