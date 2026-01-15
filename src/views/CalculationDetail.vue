@@ -1236,93 +1236,99 @@
                       </div>
                     </div>
                   </div>
-                  <div class="distance-inputs-right">
-                    <template v-if="activeSlingData.bottomPointCount > 2">
-                      <div
-                        class="form-row"
-                        v-for="config in bottomDistanceFields"
-                        :key="config.valueKey"
-                      >
-                        <el-checkbox
-                          v-model="activeSlingData[config.enableKey]"
-                        />
-                        <label class="form-label error"
-                          >距离<span>{{ config.label }}</span></label
-                        >
-                        <div class="input-with-unit">
-                          <el-input-number
-                            v-model="activeSlingData[config.valueKey]"
-                            controls-position="right"
-                            :precision="2"
-                          />
-                          <span class="unit">m</span>
-                        </div>
-                      </div>
-
-                      <div
-                        class="form-row full-width"
-                        v-if="activeSlingData.bottomPointCount >= 3"
-                      >
-                        <el-button
-                          type="primary"
-                          size="small"
-                          class="calculate-distance-btn"
-                          :loading="isCalculatingHeightAngle"
-                          @click="handleCalculateHeightAngle"
-                        >
-                          计算角度和高度结果
-                        </el-button>
-                      </div>
-                    </template>
-
-                    <template v-else>
-                      <div class="form-row">
-                        <el-checkbox v-model="activeSlingData.enableLa" />
-                        <label class="form-label error"
-                          >距离<span>La</span></label
-                        >
-                        <div class="input-with-unit">
-                          <el-input-number
-                            v-model="activeSlingData.distanceLa"
-                            controls-position="right"
-                            :precision="2"
-                          />
-                          <span class="unit">m</span>
-                        </div>
-                      </div>
-                      <div class="form-row full-width">
-                        <el-button
-                          type="primary"
-                          size="small"
-                          class="calculate-distance-btn"
-                          :loading="isCalculatingHeightAngle"
-                          @click="handleCalculateHeightAngleByLa"
-                        >
-                          计算角度和高度结果
-                        </el-button>
-                      </div>
-                    </template>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="section section-with-border">
+          <div class="section section-with-border lifting-set">
             <!-- 左侧吊点距离 -->
             <div
               class="form-content"
               style="
-                border: none;
-                box-shadow: none;
-                padding: 0;
-                margin-top: 6px;
-                background: none;
-                filter: none;
+                fill: #fafafa;
+                stroke-width: 1px;
+                stroke: #9c9c9c;
+                border: 1px solid #c3c3c3;
+                box-shadow: -5px -5px 0 0 #ebebeb inset;
               "
             >
               <div class="section-title">吊点距离</div>
-              <div  class="lifting-point"></div>
+              <div class="lifting-point">
+                <template v-if="activeSlingData.bottomPointCount > 2">
+                  <div
+                    class="form-row"
+                    v-for="config in bottomDistanceFields"
+                    :key="config.valueKey"
+                  >
+                    <el-checkbox v-model="activeSlingData[config.enableKey]" />
+                    <label class="form-label error"
+                      >距离<span>{{ config.label }}</span></label
+                    >
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="activeSlingData[config.valueKey]"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+
+                  <div
+                    class="form-row full-width"
+                    v-if="activeSlingData.bottomPointCount >= 3"
+                  >
+                    <el-button
+                      style="
+                        background: #ebebeb;
+                        box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+                        color: #666;
+                        font-size: 12px;
+                        padding: 2px 0 3px 0;
+                      "
+                      size="small"
+                      class="calculate-distance-btn"
+                      :loading="isCalculatingHeightAngle"
+                      @click="handleCalculateHeightAngle"
+                    >
+                      计算角度和高度结果
+                    </el-button>
+                  </div>
+                </template>
+
+                <template v-else>
+                  <div class="form-row">
+                    <el-checkbox v-model="activeSlingData.enableLa" />
+                    <label class="form-label error">距离<span>La</span></label>
+                    <div class="input-with-unit">
+                      <el-input-number
+                        v-model="activeSlingData.distanceLa"
+                        controls-position="right"
+                        :precision="2"
+                      />
+                      <span class="unit">m</span>
+                    </div>
+                  </div>
+                  <div class="form-row full-width">
+                    <el-button
+                      style="
+                        background: #ebebeb;
+                        box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.25) inset;
+                        color: #666;
+                        font-size: 12px;
+                        padding: 2px 0 3px 0;
+                      "
+                      size="small"
+                      class="calculate-distance-btn"
+                      :loading="isCalculatingHeightAngle"
+                      @click="handleCalculateHeightAngleByLa"
+                    >
+                      计算角度和高度结果
+                    </el-button>
+                  </div>
+                </template>
+              </div>
             </div>
             <!-- 右侧系数设置 -->
             <div
@@ -8201,7 +8207,13 @@ const handleExportAll = async (exportType = 0) => {
   margin-top: 6px;
   padding-bottom: 0;
 }
-
+.lifting-set {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 0;
+  margin-top: 6px;
+}
 /* 吊装计算设置区域样式 */
 .section-hoisting .form-row .form-label {
   min-width: 130px; /* 与起重机1吊点至设备重心距离L1保持左对齐 */
@@ -8815,30 +8827,45 @@ const handleExportAll = async (exportType = 0) => {
   padding: 16px;
 }
 
+.lifting-point {
+  border: 1px solid #e7e7e7;
+  background: #f6f6f6;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 16px;
+}
+
 /* Added checkbox styling for distance inputs */
-.distance-inputs .form-row .el-checkbox {
+.distance-inputs .form-row .el-checkbox,
+.lifting-point .form-row .el-checkbox {
   margin-right: 8px;
 }
 
-.distance-inputs .form-row .form-label {
+.distance-inputs .form-row .form-label,
+.lifting-point .form-row .form-label {
   min-width: 80px;
   margin-right: 8px;
 }
 
-.distance-inputs-right .form-row {
+.distance-inputs-right .form-row,
+.lifting-point .form-row {
   display: flex;
   align-items: center;
   margin-bottom: 16px;
 }
-.distance-inputs-right .form-row .form-label {
+.distance-inputs-right .form-row .form-label,
+.lifting-point .form-row .form-label {
   text-align: left;
 }
 
-.distance-inputs-right .form-row:last-child {
+.distance-inputs-right .form-row:last-child,
+.lifting-point .form-row:last-child {
   margin-bottom: 0;
 }
 
-.distance-inputs-right .form-row.full-width {
+.distance-inputs-right .form-row.full-width,
+.lifting-point .form-row.full-width {
   width: 100%;
   justify-content: center;
 }
