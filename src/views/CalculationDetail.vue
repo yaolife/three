@@ -1241,16 +1241,14 @@
             </div>
           </div>
 
-          <div class="section section-with-border lifting-set">
+          <div class="section section-with-border lifting-set" >
             <!-- 左侧吊点距离 -->
             <div
               class="form-content"
-              style="
-                fill: #fafafa;
-                stroke-width: 1px;
-                stroke: #9c9c9c;
-                border: 1px solid #c3c3c3;
-                box-shadow: -5px -5px 0 0 #ebebeb inset;
+           style="
+                box-shadow: none;
+                background: none;
+                filter: none;
               "
             >
               <div class="section-title">吊点距离</div>
@@ -1342,7 +1340,14 @@
               "
             >
               <div class="section-title">系数设置</div>
-              <div class="form-content">
+              <div class="form-content" style="
+              border: none;
+              box-shadow: none;
+              padding: 0;
+              margin-top: 6px;
+              background: none;
+              filter: none;
+            ">
                 <div class="system-table">
                   <table>
                     <thead>
@@ -8829,7 +8834,6 @@ const handleExportAll = async (exportType = 0) => {
 
 .lifting-point {
   border: 1px solid #e7e7e7;
-  background: #f6f6f6;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
