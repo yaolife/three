@@ -1470,7 +1470,7 @@
               <div class="form-content">
                 <div class="form-grid">
                   <div class="form-row">
-                    <label class="form-label">名称</label>
+                    <label class="form-label">履带名称</label>
                     <el-input
                       v-model="foundationData.trackName"
                       placeholder="请输入名称"
