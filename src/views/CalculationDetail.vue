@@ -1119,7 +1119,7 @@
                   >
                 </div>
                 <!-- Removed standalone radio group row -->
-                <div class="form-row">
+                <div class="form-row" style="justify-content: center;">
                   <el-radio-group v-model="activeSlingData.loadType">
                     <el-radio :label="1">破断拉力</el-radio>
                     <el-radio :label="0">额定载荷</el-radio>
@@ -1143,20 +1143,19 @@
                     </el-select>
                   </div>
                 </div>
-                <div class="form-row">
-                  <label
-                    class="form-label"
-                    v-if="activeSlingData.loadType === 1"
-                    >破断拉力</label
-                  >
-                  <div
-                    class="input-with-unit"
-                    v-if="activeSlingData.loadType === 1"
-                  >
+                <div
+                  class="form-row"
+                  :class="{
+                    'sling-disabled-row': activeSlingData.loadType !== 1,
+                  }"
+                >
+                  <label class="form-label">破断拉力</label>
+                  <div class="input-with-unit">
                     <el-input-number
                       v-model="activeSlingData.safetyFactor"
                       controls-position="right"
                       :precision="2"
+                      :disabled="activeSlingData.loadType !== 1"
                     />
                     <span class="unit">MPa</span>
                   </div>
@@ -1173,20 +1172,19 @@
                     <span class="unit">m</span>
                   </div>
                 </div>
-                <div>
-                  <label
-                    class="form-label"
-                    v-if="activeSlingData.loadType === 0"
-                    >额定载荷(PQ)</label
-                  >
-                  <div
-                    class="input-with-unit"
-                    v-if="activeSlingData.loadType === 0"
-                  >
+                <div
+                  class="form-row"
+                  :class="{
+                    'sling-disabled-row': activeSlingData.loadType !== 0,
+                  }"
+                >
+                  <label class="form-label">额定载荷(PQ)</label>
+                  <div class="input-with-unit">
                     <el-input-number
                       v-model="activeSlingData.ratedLoad"
                       controls-position="right"
                       :precision="2"
+                      :disabled="activeSlingData.loadType !== 0"
                     />
                     <span class="unit">t</span>
                   </div>
@@ -1204,21 +1202,20 @@
                     <span class="unit">m</span>
                   </div>
                 </div>
-                <div class="form-row">
-                  <label
-                    class="form-label"
-                    v-if="activeSlingData.loadType === 0"
-                    >出厂安全系数</label
-                  >
-                  <div
-                    class="input-with-unit"
-                    v-if="activeSlingData.loadType === 0"
-                  >
+                <div
+                  class="form-row"
+                  :class="{
+                    'sling-disabled-row': activeSlingData.loadType !== 0,
+                  }"
+                >
+                  <label class="form-label">出厂安全系数</label>
+                  <div class="input-with-unit">
                     <el-input-number
                       v-model="activeSlingData.factorySafetyFactor"
                       controls-position="right"
                       :precision="2"
                       :min="0"
+                      :disabled="activeSlingData.loadType !== 0"
                     />
                   </div>
                 </div>
@@ -8183,6 +8180,12 @@ const handleExportAll = async (exportType = 0) => {
 }
 .sling-device-info > div:nth-child(2) {
   flex: 1;
+}
+
+/* 吊索具配置 - 行禁用样式（仅当前 form-row 内） */
+.sling-disabled-row .form-label,
+.sling-disabled-row .unit {
+  color: #b3b3b3!important;
 }
 
 /* 吊梁设置/是否单点吊装 置灰样式 */
