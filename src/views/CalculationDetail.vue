@@ -91,7 +91,11 @@
                         </el-select>
                         <el-button
                           size="default"
-                          style="background-color: #006CAF;color:#fff;height: 30px;"
+                          style="
+                            background-color: #006caf;
+                            color: #fff;
+                            height: 30px;
+                          "
                           @click="openIntelligentSelection(0)"
                           >智能选型</el-button
                         >
@@ -307,7 +311,11 @@
                         </el-select>
                         <el-button
                           size="default"
-                          style="background-color: #006CAF;color:#fff;height: 30px;"
+                          style="
+                            background-color: #006caf;
+                            color: #fff;
+                            height: 30px;
+                          "
                           @click="openIntelligentSelection(1)"
                           >智能选型</el-button
                         >
@@ -815,8 +823,8 @@
               <div class="section section-with-border">
                 <div class="section-title">设备设置</div>
                 <div class="form-content">
-                  <div class="form-grid" style="margin-left: -30px;">
-                    <div class="form-row" style="margin: 10px 0;">
+                  <div class="form-grid" style="margin-left: -30px">
+                    <div class="form-row" style="margin: 10px 0">
                       <label class="form-label">设备名称</label>
                       <div class="form-input-group">
                         <el-select
@@ -837,14 +845,14 @@
                       </div>
                     </div>
 
-                    <div class="form-row" style="margin: 10px 0;">
+                    <div class="form-row" style="margin: 10px 0">
                       <label class="form-label">设备型号</label>
                       <el-input
                         v-model="commonDeviceSettings.equipmentModel"
                         placeholder="请输入设备型号"
                       />
                     </div>
-                    <div class="form-row" style="margin: 10px 0;">
+                    <div class="form-row" style="margin: 10px 0">
                       <label class="form-label">设备重量<span>(G)</span></label>
                       <div class="input-with-unit">
                         <el-input-number
@@ -860,8 +868,11 @@
               </div>
               <div class="section section-with-border">
                 <div class="section-title">吊梁设置</div>
-                <div class="form-content" style="padding:6px 0;">
-                  <div class="form-row" style="margin-bottom: 0;justify-content: space-around;">
+                <div class="form-content" style="padding: 6px 0">
+                  <div
+                    class="form-row"
+                    style="margin-bottom: 0; justify-content: space-around"
+                  >
                     <el-radio-group v-model="commonDeviceSettings.liftingType">
                       <el-radio value="noBeam">无吊梁</el-radio>
                       <el-radio value="withBeam">有吊梁</el-radio>
@@ -869,7 +880,7 @@
                   </div>
                   <div
                     class="form-row"
-                    style="margin-bottom: 0;justify-content: center;gap:23px"
+                    style="margin-bottom: 0; justify-content: center; gap: 23px"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'withBeam',
@@ -879,7 +890,9 @@
                       v-model="commonDeviceSettings.isSinglePointLifting"
                       style="margin-left: 35px"
                       @change="handleSinglePointLiftingChange"
-                      :disabled="commonDeviceSettings.liftingType === 'withBeam'"
+                      :disabled="
+                        commonDeviceSettings.liftingType === 'withBeam'
+                      "
                     >
                       是否单点吊装
                     </el-checkbox>
@@ -887,21 +900,21 @@
                   <!-- 平衡梁参数：无吊梁时置灰禁用，有吊梁时可编辑 -->
                   <div
                     class="form-row"
-                    style="justify-content: center;gap:23px"
+                    style="justify-content: center; gap: 23px"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'noBeam',
                     }"
                   >
-                    <label class="form-label"
-                      >平衡梁重量<span>G1</span></label
-                    >
+                    <label class="form-label">平衡梁重量<span>G1</span></label>
                     <div class="input-with-unit">
                       <el-input-number
                         v-model="commonDeviceSettings.beamWeight"
                         controls-position="right"
                         :precision="2"
-                        :disabled="commonDeviceSettings.liftingType === 'noBeam'"
+                        :disabled="
+                          commonDeviceSettings.liftingType === 'noBeam'
+                        "
                       />
                       <span class="unit">t</span>
                     </div>
@@ -909,7 +922,7 @@
 
                   <div
                     class="form-row"
-                    style="justify-content: center;gap:23px"
+                    style="justify-content: center; gap: 23px"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'noBeam',
@@ -921,7 +934,9 @@
                         v-model="commonDeviceSettings.beamLength"
                         controls-position="right"
                         :precision="2"
-                        :disabled="commonDeviceSettings.liftingType === 'noBeam'"
+                        :disabled="
+                          commonDeviceSettings.liftingType === 'noBeam'
+                        "
                       />
                       <span class="unit">m</span>
                     </div>
@@ -929,7 +944,7 @@
 
                   <div
                     class="form-row"
-                    style="justify-content: center;gap:23px"
+                    style="justify-content: center; gap: 23px"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'noBeam',
@@ -943,7 +958,9 @@
                         v-model="commonDeviceSettings.beamSlingWeight"
                         controls-position="right"
                         :precision="2"
-                        :disabled="commonDeviceSettings.liftingType === 'noBeam'"
+                        :disabled="
+                          commonDeviceSettings.liftingType === 'noBeam'
+                        "
                       />
                       <span class="unit">t</span>
                     </div>
@@ -996,19 +1013,19 @@
                     @click="removeSling(index)"
                   />
                 </div>
-                <div  class="add-sling-img"       @click="addNewSling"> <img
-                  class="add-sling-button"
-                  src="@/images/add.png"
-                  alt="新增按钮"
-                  :fit="'cover'"
-            
-                  v-if="
-                    commonDeviceSettings.liftingType === 'noBeam'
-                      ? !activeSlingData.isSinglePointLifting
-                      : true
-                  "
-                /></div>
-               
+                <div class="add-sling-img" @click="addNewSling">
+                  <img
+                    class="add-sling-button"
+                    src="@/images/add.png"
+                    alt="新增按钮"
+                    :fit="'cover'"
+                    v-if="
+                      commonDeviceSettings.liftingType === 'noBeam'
+                        ? !activeSlingData.isSinglePointLifting
+                        : true
+                    "
+                  />
+                </div>
               </div>
               <div
                 class="form-content"
@@ -1024,7 +1041,11 @@
                     />
                     <!-- Added click handler to open three-level selection dialog -->
                     <el-button
-                        style="background-color: #006CAF;color:#fff;height: 30px;"
+                      style="
+                        background-color: #006caf;
+                        color: #fff;
+                        height: 30px;
+                      "
                       size="default"
                       @click="openLiftingEquipmentDialog"
                       >选择</el-button
@@ -1286,51 +1307,78 @@
               </div>
             </div>
           </div>
-          <!-- 系数设置 -->
+
           <div class="section section-with-border">
-            <div class="section-title">系数设置</div>
-            <div class="form-content">
-              <div class="system-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th width="60">勾选</th>
-                      <th width="80">序号</th>
-                      <th>系数名称</th>
-                      <th width="120">值</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="(
-                        item, index
-                      ) in activeSlingData.liftingSystemItems"
-                      :key="item.id"
-                    >
-                      <td>
-                        <el-checkbox v-model="item.checked" />
-                      </td>
-                      <td>{{ item.order }}</td>
-                      <td>
-                        <el-input
-                          v-model="item.name"
-                          size="small"
-                          placeholder="请输入系数名称"
-                          @input="handleLiftingSystemInputChange(index)"
-                        />
-                      </td>
-                      <td>
-                        <el-input-number
-                          v-model="item.value"
-                          :controls="false"
-                          size="small"
-                          :precision="2"
-                          @change="handleLiftingSystemInputChange(index)"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            <!-- 左侧吊点距离 -->
+            <div
+              class="form-content"
+              style="
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                margin-top: 6px;
+                background: none;
+                filter: none;
+              "
+            >
+              <div class="section-title">吊点距离</div>
+              <div  class="lifting-point"></div>
+            </div>
+            <!-- 右侧系数设置 -->
+            <div
+              class="weight-table"
+              style="
+                fill: #fafafa;
+                stroke-width: 1px;
+                stroke: #9c9c9c;
+                border: 1px solid #c3c3c3;
+                box-shadow: -5px -5px 0 0 #ebebeb inset;
+              "
+            >
+              <div class="section-title">系数设置</div>
+              <div class="form-content">
+                <div class="system-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th width="30">勾选</th>
+                        <th width="30">序号</th>
+                        <th>系数名称</th>
+                        <th width="80">值</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(
+                          item, index
+                        ) in activeSlingData.liftingSystemItems"
+                        :key="item.id"
+                      >
+                        <td>
+                          <el-checkbox v-model="item.checked" />
+                        </td>
+                        <td>{{ item.order }}</td>
+                        <td>
+                          <el-input
+                            v-model="item.name"
+                            size="small"
+                            placeholder="请输入系数名称"
+                            @input="handleLiftingSystemInputChange(index)"
+                          />
+                        </td>
+                        <td>
+                          <el-input-number
+                            v-model="item.value"
+                            :controls="false"
+                            size="small"
+                            :precision="2"
+                            @change="handleLiftingSystemInputChange(index)"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -8598,38 +8646,38 @@ const handleExportAll = async (exportType = 0) => {
 
 .sling-tab-button-active {
   background: #ededed !important;
-  color: #4E5969 !important;
-     border-left: 1px solid rgb(231, 231, 231)!important;
-     border-right: 1px solid rgb(231, 231, 231)!important;
-       border-top: 1px solid rgb(231, 231, 231)!important;
-       position: relative;
-       top:3px;
-       z-index: 33;
+  color: #4e5969 !important;
+  border-left: 1px solid rgb(231, 231, 231) !important;
+  border-right: 1px solid rgb(231, 231, 231) !important;
+  border-top: 1px solid rgb(231, 231, 231) !important;
+  position: relative;
+  top: 3px;
+  z-index: 33;
 }
 
 .sling-tab-button-active:hover {
   background: #ededed !important;
-  color: #4E5969 !important;
-   border-left: 1px solid rgb(231, 231, 231)!important;
-     border-right: 1px solid rgb(231, 231, 231)!important;
-       border-top: 1px solid rgb(231, 231, 231)!important;
+  color: #4e5969 !important;
+  border-left: 1px solid rgb(231, 231, 231) !important;
+  border-right: 1px solid rgb(231, 231, 231) !important;
+  border-top: 1px solid rgb(231, 231, 231) !important;
 }
 
 .sling-tab-button-inactive {
   background: #ededed !important;
-  color: #4E5969 !important;
-    border-left: 1px solid rgb(231, 231, 231)!important;
-     border-right: 1px solid rgb(231, 231, 231)!important;
-       border-top: 1px solid rgb(231, 231, 231)!important;
-        border-bottom: 1px solid rgb(231, 231, 231)!important;
-     position: relative;
-       top:2px;
-       z-index: 3;
+  color: #4e5969 !important;
+  border-left: 1px solid rgb(231, 231, 231) !important;
+  border-right: 1px solid rgb(231, 231, 231) !important;
+  border-top: 1px solid rgb(231, 231, 231) !important;
+  border-bottom: 1px solid rgb(231, 231, 231) !important;
+  position: relative;
+  top: 2px;
+  z-index: 3;
 }
 
 .sling-tab-button-inactive:hover {
   background: #ededed !important;
-  color: #4E5969 !important;
+  color: #4e5969 !important;
 }
 
 .remove-sling-button {
@@ -8644,22 +8692,21 @@ const handleExportAll = async (exportType = 0) => {
   padding: 2px;
   z-index: 80;
 }
-.add-sling-img{
+.add-sling-img {
   width: 70px;
   height: 30px;
   position: relative;
-  top:3px;
+  top: 3px;
   display: flex;
   justify-content: center;
   align-items: center;
- background: rgba(217, 217, 217, 0.31);
-box-shadow: -1px 1px 0 0 rgba(196, 196, 196, 0.25) inset;
+  background: rgba(217, 217, 217, 0.31);
+  box-shadow: -1px 1px 0 0 rgba(196, 196, 196, 0.25) inset;
 }
 .add-sling-button {
   width: 10px;
   height: 10px;
   font-size: 18px;
-
 }
 .add-sling-img:hover {
   cursor: pointer;
