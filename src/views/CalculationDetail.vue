@@ -1561,7 +1561,7 @@
               class="section-title"
               style="color: #4e5969; font-size: 12px; margin-bottom: 5px"
             >
-              重心设置
+                驱动方式
             </div>
             <div class="form-content" style="margin-top: 5px">
               <div class="form-grid">
