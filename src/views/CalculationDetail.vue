@@ -861,7 +861,7 @@
               <div class="section section-with-border">
                 <div class="section-title">吊梁设置</div>
                 <div class="form-content">
-                  <div class="form-row">
+                  <div class="form-row" style="margin-bottom: 0;">
                     <el-radio-group v-model="commonDeviceSettings.liftingType">
                       <el-radio value="noBeam">无吊梁</el-radio>
                       <el-radio value="withBeam">有吊梁</el-radio>
@@ -869,6 +869,7 @@
                   </div>
                   <div
                     class="form-row"
+                    style="margin-bottom: 0;"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'withBeam',
