@@ -9161,29 +9161,36 @@ const handleExportAll = async (exportType = 0) => {
   position: absolute;
   top: 60px;
   left: 24px;
-  background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   min-width: 320px;
-  padding: 8px 0;
+  padding: 8px 5px;
   z-index: 2001;
+  border-radius: 4px;
+border: 1px solid #A3A3A3;
+background: #FFF;
+box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
 }
 
 .export-menu-item {
   padding: 10px 16px;
+  margin-bottom: 2px;
   cursor: pointer;
   transition: background-color 0.2s ease;
   font-size: 14px;
   color: #333;
   user-select: none;
+  background: #F0F0F0;
 }
 
 .export-menu-item.is-hover {
   background-color: #f0f7ff;
+  cursor: pointer;
+  border: 1px solid #B1B1B1;
+background: #FFF;
 }
 
 .export-menu-item.is-selected {
-  background-color: #409eff;
+  background-color: #006CAF;
   color: white;
 }
 
