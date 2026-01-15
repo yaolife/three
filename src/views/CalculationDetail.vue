@@ -1120,7 +1120,7 @@
                   >
                 </div>
                 <!-- Removed standalone radio group row -->
-                <div class="form-row" style="justify-content: center;">
+                <div class="form-row" style="justify-content: center">
                   <el-radio-group v-model="activeSlingData.loadType">
                     <el-radio :label="1">破断拉力</el-radio>
                     <el-radio :label="0">额定载荷</el-radio>
@@ -1461,7 +1461,12 @@
               </div>
             </div>
             <div class="weight_set">
-              <div class="section-title" style="color:#4E5969;font-size: 12px;margin-bottom: 5px;">重心设置</div>
+              <div
+                class="section-title"
+                style="color: #4e5969; font-size: 12px; margin-bottom: 5px"
+              >
+                重心设置
+              </div>
               <div class="form-content">
                 <div class="form-grid">
                   <div class="form-row">
@@ -1477,15 +1482,6 @@
                       v-model="foundationData.trackModel"
                       placeholder="请输入履带型号"
                     />
-                  </div>
-                </div>
-                <div class="form-grid" style="margin-top: 16px">
-                  <div class="form-row">
-                    <label class="form-label">计算方式</label>
-                    <el-radio-group v-model="foundationData.calculateType">
-                      <el-radio :label="0">平均接地比压</el-radio>
-                      <el-radio :label="1" disabled>力矩平衡</el-radio>
-                    </el-radio-group>
                   </div>
                 </div>
 
@@ -1547,32 +1543,45 @@
                       </div>
                     </div>
                   </div>
-
-                  <!-- 右列 -->
-                  <div>
-                    <div class="form-row">
-                      <label class="form-label">驱动轮</label>
-                      <el-checkbox
-                        v-model="foundationData.driveWheelOffGround"
-                      />
-                      <label
-                        class="form-label"
-                        style="text-align: left; margin-left: -35px"
-                        >是否离地</label
-                      >
-                    </div>
-                    <div class="form-row">
-                      <label class="form-label">从动轮</label>
-                      <el-checkbox
-                        v-model="foundationData.idlerWheelOffGround"
-                      />
-                      <label
-                        class="form-label"
-                        style="text-align: left; margin-left: -35px"
-                        >是否离地</label
-                      >
-                    </div>
-                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-content" style="margin-top: 5px">
+              <div class="form-grid">
+                <div class="form-row">
+                  <label class="form-label">计算方式</label>
+                  <el-radio-group v-model="foundationData.calculateType">
+                    <el-radio :label="0">平均接地比压</el-radio>
+                    <el-radio :label="1" disabled>力矩平衡</el-radio>
+                  </el-radio-group>
+                </div>
+              </div>
+            </div>
+            <div
+              class="section-title"
+              style="color: #4e5969; font-size: 12px; margin-bottom: 5px"
+            >
+              重心设置
+            </div>
+            <div class="form-content" style="margin-top: 5px">
+              <div class="form-grid">
+                <div class="form-row">
+                  <label class="form-label">驱动轮</label>
+                  <el-checkbox v-model="foundationData.driveWheelOffGround" />
+                  <label
+                    class="form-label"
+                    style="text-align: left; margin-left: -35px"
+                    >是否离地</label
+                  >
+                </div>
+                <div class="form-row">
+                  <label class="form-label">从动轮</label>
+                  <el-checkbox v-model="foundationData.idlerWheelOffGround" />
+                  <label
+                    class="form-label"
+                    style="text-align: left; margin-left: -35px"
+                    >是否离地</label
+                  >
                 </div>
               </div>
             </div>
@@ -8189,7 +8198,7 @@ const handleExportAll = async (exportType = 0) => {
 /* 吊索具配置 - 行禁用样式（仅当前 form-row 内） */
 .sling-disabled-row .form-label,
 .sling-disabled-row .unit {
-  color: #b3b3b3!important;
+  color: #b3b3b3 !important;
 }
 
 /* 吊梁设置/是否单点吊装 置灰样式 */
@@ -8583,7 +8592,7 @@ const handleExportAll = async (exportType = 0) => {
   width: 100%;
 }
 .found_bear {
-  color: #4E5969;
+  color: #4e5969;
   width: 86px;
   font-weight: 400;
   height: 28px;
@@ -8814,8 +8823,8 @@ const handleExportAll = async (exportType = 0) => {
   column-gap: 15px;
   row-gap: 13px;
 }
-.lifting-basic-grid .form-row{
- margin-bottom: 0;
+.lifting-basic-grid .form-row {
+  margin-bottom: 0;
 }
 .distance-inputs {
   display: flex;
