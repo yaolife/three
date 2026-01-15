@@ -90,8 +90,8 @@
                           />
                         </el-select>
                         <el-button
-                          type="primary"
                           size="default"
+                          style="background-color: #006CAF;color:#fff;height: 30px;"
                           @click="openIntelligentSelection(0)"
                           >智能选型</el-button
                         >
@@ -306,8 +306,8 @@
                           />
                         </el-select>
                         <el-button
-                          type="primary"
                           size="default"
+                          style="background-color: #006CAF;color:#fff;height: 30px;"
                           @click="openIntelligentSelection(1)"
                           >智能选型</el-button
                         >
