@@ -1106,12 +1106,13 @@
                 </div>
                 <div class="form-row">
                   <label class="form-label">上部吊点数量</label>
-                  <div class="input-with-unit">
+                  <div class="input-with-unit" style="width: 120px">
                     <el-input-number
                       v-model="activeSlingData.topPointCount"
                       controls-position="right"
                       :precision="0"
                       disabled
+                      style="width: 100%"
                     />
                   </div>
                   <el-checkbox v-model="activeSlingData.isDouble"
@@ -1128,11 +1129,12 @@
 
                 <div class="form-row">
                   <label class="form-label">下部吊点数量</label>
-                  <div class="input-with-unit">
+                  <div class="input-with-unit" style="width: 120px">
                     <el-select
                       v-model="activeSlingData.bottomPointCount"
                       :disabled="activeSlingData.isSinglePointLifting"
                       placeholder="请选择"
+                      style="width: 100%"
                     >
                       <el-option
                         v-for="option in lowerPointCountOptions"
