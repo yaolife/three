@@ -1434,7 +1434,7 @@
       <div v-if="activeTab === 'foundation'" class="left-panel">
         <el-scrollbar>
           <!-- 基本信息 -->
-          <div class="found_bear">地基承载</div>
+          <div class="found_bear">基础设置</div>
           <div class="section section-with-border" style="margin-top: 0">
             <div class="form-content">
               <div class="form-grid">
@@ -8582,10 +8582,11 @@ const handleExportAll = async (exportType = 0) => {
   flex: 1;
 }
 .found_bear {
-  background: #0775db;
-  color: white;
+  color: #4E5969;
   width: 86px;
+  font-weight: 400;
   height: 28px;
+  font-size: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
