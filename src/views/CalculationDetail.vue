@@ -861,7 +861,7 @@
               <div class="section section-with-border">
                 <div class="section-title">吊梁设置</div>
                 <div class="form-content">
-                  <div class="form-row" style="margin-bottom: 0;">
+                  <div class="form-row" style="margin-bottom: 0;justify-content: space-around;">
                     <el-radio-group v-model="commonDeviceSettings.liftingType">
                       <el-radio value="noBeam">无吊梁</el-radio>
                       <el-radio value="withBeam">有吊梁</el-radio>
@@ -869,7 +869,7 @@
                   </div>
                   <div
                     class="form-row"
-                    style="margin-bottom: 0;"
+                    style="margin-bottom: 0;justify-content: center;gap:23px"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'withBeam',
@@ -877,7 +877,7 @@
                   >
                     <el-checkbox
                       v-model="commonDeviceSettings.isSinglePointLifting"
-                      style="margin-left: 20px"
+                      style="margin-left: 35px"
                       @change="handleSinglePointLiftingChange"
                       :disabled="commonDeviceSettings.liftingType === 'withBeam'"
                     >
@@ -887,6 +887,7 @@
                   <!-- 平衡梁参数：无吊梁时置灰禁用，有吊梁时可编辑 -->
                   <div
                     class="form-row"
+                    style="justify-content: center;gap:23px"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'noBeam',
@@ -908,6 +909,7 @@
 
                   <div
                     class="form-row"
+                    style="justify-content: center;gap:23px"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'noBeam',
@@ -927,6 +929,7 @@
 
                   <div
                     class="form-row"
+                    style="justify-content: center;gap:23px"
                     :class="{
                       'disabled-row':
                         commonDeviceSettings.liftingType === 'noBeam',
