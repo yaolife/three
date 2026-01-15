@@ -8603,7 +8603,7 @@ const handleExportAll = async (exportType = 0) => {
      border-right: 1px solid rgb(231, 231, 231)!important;
        border-top: 1px solid rgb(231, 231, 231)!important;
        position: relative;
-       top:3px;
+       top:2px;
        z-index: 33;
 }
 
