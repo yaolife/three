@@ -1024,7 +1024,7 @@
                     />
                     <!-- Added click handler to open three-level selection dialog -->
                     <el-button
-                      type="primary"
+                        style="background-color: #006CAF;color:#fff;height: 30px;"
                       size="default"
                       @click="openLiftingEquipmentDialog"
                       >选择</el-button
