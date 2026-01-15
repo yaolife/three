@@ -1028,7 +1028,7 @@
                 </div>
               </div>
               <div
-                class="form-content"
+                class="form-content lifting-basic-grid"
                 style="border: 1px solid #e7e7e7; padding-top: 15px"
               >
                 <div class="form-row">
@@ -1051,6 +1051,8 @@
                       >选择</el-button
                     >
                   </div>
+                </div>
+                <div class="form-row">
                   <!-- Added radio buttons inline with name field -->
                   <el-radio-group
                     v-model="activeSlingData.slingType"
@@ -1062,7 +1064,6 @@
                     <el-radio value="3">缆绳</el-radio>
                   </el-radio-group>
                 </div>
-
                 <div class="form-row">
                   <label class="form-label">生产厂家</label>
                   <el-input
@@ -1071,7 +1072,30 @@
                     class="manufacturer-input"
                   />
                 </div>
-
+                <div class="form-row">
+                  <label
+                    class="form-label"
+                    v-if="
+                      activeSlingData.liftingType === 'noBeam' ||
+                      (activeSlingData.liftingType === 'withBeam' &&
+                        activeSlingData.isBottomSling)
+                    "
+                    >排布方式</label
+                  >
+                  <el-select
+                    v-model="activeSlingData.customLoop"
+                    placeholder="请选择"
+                    class="hanging-method-select"
+                    v-if="
+                      activeSlingData.liftingType === 'noBeam' ||
+                      (activeSlingData.liftingType === 'withBeam' &&
+                        activeSlingData.isBottomSling)
+                    "
+                  >
+                    <el-option label="矩形" value="loop" />
+                    <el-option label="圆形" value="zero" />
+                  </el-select>
+                </div>
                 <div class="form-row">
                   <label class="form-label">产品型号</label>
                   <el-input
@@ -1080,13 +1104,46 @@
                     class="manufacturer-input"
                   />
                 </div>
-
+                <div class="form-row">
+                  <label class="form-label">上部吊点数量</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="activeSlingData.topPointCount"
+                      controls-position="right"
+                      :precision="0"
+                      disabled
+                    />
+                  </div>
+                  <el-checkbox v-model="activeSlingData.isDouble"
+                    >是否打双</el-checkbox
+                  >
+                </div>
                 <!-- Removed standalone radio group row -->
-                <div class="form-row" style="margin-left: 50px">
+                <div class="form-row">
                   <el-radio-group v-model="activeSlingData.loadType">
                     <el-radio :label="1">破断拉力</el-radio>
                     <el-radio :label="0">额定载荷</el-radio>
                   </el-radio-group>
+                </div>
+
+                <div class="form-row">
+                  <label class="form-label">下部吊点数量</label>
+                  <div class="input-with-unit">
+                    <el-select
+                      v-model="activeSlingData.bottomPointCount"
+                      :disabled="activeSlingData.isSinglePointLifting"
+                      placeholder="请选择"
+                    >
+                      <el-option
+                        v-for="option in lowerPointCountOptions"
+                        :key="option"
+                        :label="option"
+                        :value="option"
+                      />
+                    </el-select>
+                  </div>
+                </div>
+                <div class="form-row">
                   <label
                     class="form-label"
                     v-if="activeSlingData.loadType === 1"
@@ -1103,6 +1160,20 @@
                     />
                     <span class="unit">MPa</span>
                   </div>
+                </div>
+                <div class="form-row">
+                  <label class="form-label">绳索长度</label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="activeSlingData.ropeLength"
+                      controls-position="right"
+                      placeholder="输入长度"
+                      :precision="2"
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+                <div>
                   <label
                     class="form-label"
                     v-if="activeSlingData.loadType === 0"
@@ -1119,6 +1190,21 @@
                     />
                     <span class="unit">t</span>
                   </div>
+                </div>
+                <div class="form-row">
+                  <label class="form-label error">高度<span>(h)</span></label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="activeSlingData.height"
+                      controls-position="right"
+                      :precision="2"
+                      placeholder="输入高度"
+                      disabled
+                    />
+                    <span class="unit">m</span>
+                  </div>
+                </div>
+                <div class="form-row">
                   <label
                     class="form-label"
                     v-if="activeSlingData.loadType === 0"
@@ -1136,120 +1222,28 @@
                     />
                   </div>
                 </div>
-
-                <div class="distance-inputs">
-                  <div class="distance-inputs-left">
-                    <div class="form-row">
-                      <label class="form-label">上部吊点数量</label>
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="activeSlingData.topPointCount"
-                          controls-position="right"
-                          :precision="0"
-                          disabled
-                        />
-                      </div>
-                      <el-checkbox v-model="activeSlingData.isDouble"
-                        >是否打双</el-checkbox
-                      >
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">下部吊点数量</label>
-                      <div class="input-with-unit">
-                        <el-select
-                          v-model="activeSlingData.bottomPointCount"
-                          :disabled="activeSlingData.isSinglePointLifting"
-                          placeholder="请选择"
-                        >
-                          <el-option
-                            v-for="option in lowerPointCountOptions"
-                            :key="option"
-                            :label="option"
-                            :value="option"
-                          />
-                        </el-select>
-                      </div>
-                      <label
-                        class="form-label"
-                        v-if="
-                          activeSlingData.liftingType === 'noBeam' ||
-                          (activeSlingData.liftingType === 'withBeam' &&
-                            activeSlingData.isBottomSling)
-                        "
-                        >排布方式</label
-                      >
-                      <el-select
-                        v-model="activeSlingData.customLoop"
-                        placeholder="请选择"
-                        class="hanging-method-select"
-                        v-if="
-                          activeSlingData.liftingType === 'noBeam' ||
-                          (activeSlingData.liftingType === 'withBeam' &&
-                            activeSlingData.isBottomSling)
-                        "
-                      >
-                        <el-option label="矩形" value="loop" />
-                        <el-option label="圆形" value="zero" />
-                      </el-select>
-                    </div>
-                    <div class="form-row">
-                      <label class="form-label">绳索长度</label>
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="activeSlingData.ropeLength"
-                          controls-position="right"
-                          placeholder="输入长度"
-                          :precision="2"
-                        />
-                        <span class="unit">m</span>
-                      </div>
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label error"
-                        >高度<span>(h)</span></label
-                      >
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="activeSlingData.height"
-                          controls-position="right"
-                          :precision="2"
-                          placeholder="输入高度"
-                          disabled
-                        />
-                        <span class="unit">m</span>
-                      </div>
-                    </div>
-
-                    <div class="form-row">
-                      <label class="form-label">角度<span>(α)</span></label>
-                      <div class="input-with-unit">
-                        <el-input-number
-                          v-model="activeSlingData.angle"
-                          controls-position="right"
-                          placeholder="输入角度"
-                          :precision="2"
-                          disabled
-                        />
-                        <span class="unit">度</span>
-                      </div>
-                    </div>
+                <div class="form-row">
+                  <label class="form-label">角度<span>(α)</span></label>
+                  <div class="input-with-unit">
+                    <el-input-number
+                      v-model="activeSlingData.angle"
+                      controls-position="right"
+                      placeholder="输入角度"
+                      :precision="2"
+                      disabled
+                    />
+                    <span class="unit">度</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="section section-with-border lifting-set" >
+          <div class="section section-with-border lifting-set">
             <!-- 左侧吊点距离 -->
             <div
               class="form-content"
-           style="
-                box-shadow: none;
-                background: none;
-                filter: none;
-              "
+              style="box-shadow: none; background: none; filter: none"
             >
               <div class="section-title">吊点距离</div>
               <div class="lifting-point">
@@ -1340,14 +1334,17 @@
               "
             >
               <div class="section-title">系数设置</div>
-              <div class="form-content" style="
-              border: none;
-              box-shadow: none;
-              padding: 0;
-              margin-top: 6px;
-              background: none;
-              filter: none;
-            ">
+              <div
+                class="form-content"
+                style="
+                  border: none;
+                  box-shadow: none;
+                  padding: 0;
+                  margin-top: 6px;
+                  background: none;
+                  filter: none;
+                "
+              >
                 <div class="system-table">
                   <table>
                     <thead>
@@ -8654,7 +8651,6 @@ const handleExportAll = async (exportType = 0) => {
 }
 
 .sling-tab-button {
-  border: none;
   padding: 8px 24px;
   font-size: 14px;
   font-weight: 500;
@@ -8807,7 +8803,12 @@ const handleExportAll = async (exportType = 0) => {
 .system-table td {
   color: #666;
 }
-
+.lifting-basic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 15px;
+  row-gap: 13px;
+}
 .distance-inputs {
   display: flex;
   justify-content: space-around;
