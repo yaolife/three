@@ -815,8 +815,8 @@
               <div class="section section-with-border">
                 <div class="section-title">设备设置</div>
                 <div class="form-content">
-                  <div class="form-grid">
-                    <div class="form-row">
+                  <div class="form-grid" style="margin-left: -30px;">
+                    <div class="form-row" style="margin: 10px 0;">
                       <label class="form-label">设备名称</label>
                       <div class="form-input-group">
                         <el-select
@@ -837,14 +837,14 @@
                       </div>
                     </div>
 
-                    <div class="form-row">
+                    <div class="form-row" style="margin: 10px 0;">
                       <label class="form-label">设备型号</label>
                       <el-input
                         v-model="commonDeviceSettings.equipmentModel"
                         placeholder="请输入设备型号"
                       />
                     </div>
-                    <div class="form-row">
+                    <div class="form-row" style="margin: 10px 0;">
                       <label class="form-label">设备重量<span>(G)</span></label>
                       <div class="input-with-unit">
                         <el-input-number
@@ -8121,7 +8121,6 @@ const handleExportAll = async (exportType = 0) => {
 .sling-device-info {
   display: flex;
   justify-content: space-between;
-  gap: 5px;
 }
 .sling-device-info > div:nth-child(1) {
   width: 40%;
