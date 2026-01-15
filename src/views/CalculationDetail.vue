@@ -8812,6 +8812,9 @@ const handleExportAll = async (exportType = 0) => {
   column-gap: 15px;
   row-gap: 13px;
 }
+.lifting-basic-grid .form-row{
+ margin-bottom: 0;
+}
 .distance-inputs {
   display: flex;
   justify-content: space-around;
