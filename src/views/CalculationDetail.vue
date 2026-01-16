@@ -8737,8 +8737,6 @@ const handleExportAll = async (exportType = 0) => {
 
 .sling-result-header {
   margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #409eff;
 }
 
 .sling-result-header h4 {
