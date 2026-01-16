@@ -8546,10 +8546,14 @@ const handleExportAll = async (exportType = 0) => {
   height: 26px;
 }
 :deep(
-    .el-input-number.is-controls-right .el-input-number__decrease,
     .el-input-number.is-controls-right .el-input-number__increase
   ) {
-  --el-input-number-controls-height: 10px;
+  --el-input-number-controls-height: 13px !important;
+}
+:deep(
+    .el-input-number.is-controls-right .el-input-number__decrease
+  ) {
+  padding-top: 2px !important;
 }
 /* 起重机参数部分样式 - 添加边框并实现每行2列布局 */
 .crane-parameters-section {
