@@ -56,6 +56,11 @@
             <div class="tab-label">施工平面图</div>
           </template>
         </el-tab-pane>
+        <el-tab-pane label="施工立面图" name="elevation">
+          <template #label>
+            <div class="tab-label">施工立面图</div>
+          </template>
+        </el-tab-pane>
       </el-tabs>
     </div>
 
@@ -1655,39 +1660,36 @@
         </div>
       </div>
 
-      <!-- Added construction plan content area with embedded method-draw -->
+      <!-- 施工平面图内容区域 -->
       <div
         v-if="activeTab === 'construction'"
         class="content-wrapper construction-plan-wrapper"
       >
-        <el-tabs v-model="constructionSubTab" type="card">
-          <el-tab-pane label="平面图" name="plan">
-            <iframe
-              v-if="constructionSubTab === 'plan'"
-              ref="planIframe"
-              key="plan-iframe"
-              class="method-draw-iframe"
-              frameborder="0"
-              title="平面图编辑器"
-              @load="handleIframeLoad('plan')"
-              @error="handleIframeError('plan')"
-            ></iframe>
-            <div v-else class="iframe-placeholder">平面图编辑器</div>
-          </el-tab-pane>
-          <el-tab-pane label="立面图" name="elevation">
-            <iframe
-              v-if="constructionSubTab === 'elevation'"
-              ref="facadeIframe"
-              key="elevation-iframe"
-              class="method-draw-iframe"
-              frameborder="0"
-              title="立面图编辑器"
-              @load="handleIframeLoad('elevation')"
-              @error="handleIframeError('elevation')"
-            ></iframe>
-            <div v-else class="iframe-placeholder">立面图编辑器</div>
-          </el-tab-pane>
-        </el-tabs>
+        <iframe
+          ref="planIframe"
+          key="plan-iframe"
+          class="method-draw-iframe"
+          frameborder="0"
+          title="平面图编辑器"
+          @load="handleIframeLoad('plan')"
+          @error="handleIframeError('plan')"
+        ></iframe>
+      </div>
+
+      <!-- 施工立面图内容区域 -->
+      <div
+        v-if="activeTab === 'elevation'"
+        class="content-wrapper construction-plan-wrapper"
+      >
+        <iframe
+          ref="facadeIframe"
+          key="elevation-iframe"
+          class="method-draw-iframe"
+          frameborder="0"
+          title="立面图编辑器"
+          @load="handleIframeLoad('elevation')"
+          @error="handleIframeError('elevation')"
+        ></iframe>
       </div>
     </div>
   </div>
@@ -3794,7 +3796,6 @@ const handleBackToVerification = () => {
 };
 const activeTab = ref("crane");
 const craneParamsTab = ref("crane1"); // 起重机参数tab页默认选中第一个
-const constructionSubTab = ref("plan"); // 施工平立面图子tab，默认选中平面图
 
 // 动态生成iframe路径，兼容开发和生产环境
 const getIframePath = (folderName) => {
@@ -3965,57 +3966,28 @@ const setupIframeSrc = async (tabName, folderName, retryCount = 0) => {
   }
 };
 
-// 监听constructionSubTab变化，当tab切换时设置iframe src
-watch(
-  constructionSubTab,
-  async (newTab, oldTab) => {
-    // 只有当construction tab激活时才处理
-    if (activeTab.value !== "construction") {
-      return;
-    }
-
-    console.log(`[ConstructionTab] 切换到: ${newTab} (从 ${oldTab})`);
-
-    // 等待DOM更新，确保iframe被创建
-    await nextTick();
-    await nextTick();
-
-    // 再等待一小段时间，确保iframe元素完全创建
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    if (newTab === "plan") {
-      await setupIframeSrc("plan", "plane");
-    } else if (newTab === "elevation") {
-      await setupIframeSrc("elevation", "facade");
-    }
-  },
-  { immediate: true }
-); // immediate: true 确保初始化时也执行
-
-// 监听activeTab变化，当切换到construction tab时，设置当前子tab的iframe src
+// 监听activeTab变化，当切换到construction或elevation tab时，设置对应的iframe src
 watch(activeTab, async (newTab) => {
   if (newTab === "construction") {
-    console.log("[ActiveTab] 切换到construction tab");
+    console.log("[ActiveTab] 切换到construction tab (施工平面图)");
     await nextTick();
-    // 根据当前constructionSubTab设置对应的iframe
-    if (constructionSubTab.value === "plan") {
-      await setupIframeSrc("plan", "plane");
-    } else if (constructionSubTab.value === "elevation") {
-      await setupIframeSrc("elevation", "facade");
-    }
+    await setupIframeSrc("plan", "plane");
+  } else if (newTab === "elevation") {
+    console.log("[ActiveTab] 切换到elevation tab (施工立面图)");
+    await nextTick();
+    await setupIframeSrc("elevation", "facade");
   }
 });
 
-// 组件挂载后，如果默认显示construction tab，设置iframe src
+// 组件挂载后，如果默认显示construction或elevation tab，设置iframe src
 onMounted(async () => {
   await nextTick();
   if (activeTab.value === "construction") {
-    console.log("[OnMounted] 初始化construction tab");
-    if (constructionSubTab.value === "plan") {
-      await setupIframeSrc("plan", "plane");
-    } else if (constructionSubTab.value === "elevation") {
-      await setupIframeSrc("elevation", "facade");
-    }
+    console.log("[OnMounted] 初始化construction tab (施工平面图)");
+    await setupIframeSrc("plan", "plane");
+  } else if (activeTab.value === "elevation") {
+    console.log("[OnMounted] 初始化elevation tab (施工立面图)");
+    await setupIframeSrc("elevation", "facade");
   }
 });
 
