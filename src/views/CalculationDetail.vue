@@ -3532,6 +3532,7 @@
               <div style="display: flex; align-items: center; gap: 10px">
                 <el-select
                   v-model="selectedDeviceId"
+                  style="width:262px"
                   placeholder="请选择设备名称"
                   filterable
                   clearable
@@ -9113,6 +9114,7 @@ const handleExportAll = async (exportType = 0) => {
   justify-content: center;
   width: 110px;
   height: 56px;
+  box-sizing: border-box;
   color: #0775db;
 }
 .selection-params .selection-params_button:hover {
