@@ -3636,9 +3636,10 @@
     </div>
 
     <template #footer>
-      <el-button @click="intelligentSelectionDialogVisible = false"
+      <div style="text-align: center">
+      <el-button type="primary" @click="intelligentSelectionDialogVisible = false"
         >关闭</el-button
-      >
+      ></div>
     </template>
   </el-dialog>
 
