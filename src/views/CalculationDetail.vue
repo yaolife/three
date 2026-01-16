@@ -8305,6 +8305,7 @@ const handleExportAll = async (exportType = 0) => {
 /* 计算结果弹窗样式 */
 .calculation-result {
   font-size: 14px;
+  margin-top: -20px;
 }
 
 .calculation-result h3 {
