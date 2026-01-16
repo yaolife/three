@@ -51,9 +51,9 @@
           </template>
         </el-tab-pane>
         <!-- Added new tab for construction plan and elevation drawing -->
-        <el-tab-pane label="施工平立面图" name="construction">
+        <el-tab-pane label="施工平面图" name="construction">
           <template #label>
-            <div class="tab-label">施工平立面图</div>
+            <div class="tab-label">施工平面图</div>
           </template>
         </el-tab-pane>
       </el-tabs>
