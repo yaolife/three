@@ -706,6 +706,18 @@
             @mouseleave="handleCanvasMouseUp"
             @wheel="handleCanvasWheel"
           ></canvas>
+          <!-- 坐标弹窗（仅点击点位占位/路径点时展示） -->
+          <div
+            v-if="coordTipVisible"
+            class="coord-tip"
+            :style="{
+              // 让弹窗随画布的缩放/平移同步移动（基于“变换前”的坐标）
+              left: `${coordTipCanvasX * scale + offsetX}px`,
+              top: `${coordTipCanvasY * scale + offsetY}px`,
+            }"
+          >
+            X:{{ coordTipX.toFixed(3) }}&nbsp;&nbsp;Y:{{ coordTipY.toFixed(3) }}
+          </div>
           <!-- 顶部自由标注图形覆盖层 -->
           <svg
             v-if="canvasSize.width && canvasSize.height && renderedFreeAnnotations.length"
@@ -1320,6 +1332,54 @@ const canvasSize = reactive({
   height: 0,
 });
 
+// 点击点位坐标 tips（X/Y 为地理坐标）
+const coordTipVisible = ref(false);
+const coordTipX = ref(0);
+const coordTipY = ref(0);
+// 记录点击时“变换前”的画布坐标，用于在缩放/拖动时同步更新弹窗位置
+const coordTipCanvasX = ref(0);
+const coordTipCanvasY = ref(0);
+
+const hideCoordTip = () => {
+  coordTipVisible.value = false;
+};
+
+const showCoordTipByMousePos = (mousePos) => {
+  const geo = convertToGeoCoords(mousePos.x, mousePos.y);
+  coordTipX.value = geo.x;
+  coordTipY.value = geo.y;
+
+  coordTipCanvasX.value = mousePos.x;
+  coordTipCanvasY.value = mousePos.y;
+  coordTipVisible.value = true;
+};
+
+// 按图形中心点显示坐标（用于点击点位占位图形本体时）
+const showCoordTipByShapeItem = (item) => {
+  if (!item) return;
+  const canvasX = Number(item.canvasX);
+  const canvasY = Number(item.canvasY);
+  if (!Number.isFinite(canvasX) || !Number.isFinite(canvasY)) return;
+
+  // 优先使用图形已绑定的地理坐标，取不到再通过画布坐标反算
+  const geoX =
+    item?.geoPosition?.x ??
+    item?.position?.x ??
+    item?.point?.x ??
+    convertToGeoCoords(canvasX, canvasY).x;
+  const geoY =
+    item?.geoPosition?.y ??
+    item?.position?.y ??
+    item?.point?.y ??
+    convertToGeoCoords(canvasX, canvasY).y;
+
+  coordTipX.value = geoX;
+  coordTipY.value = geoY;
+  coordTipCanvasX.value = canvasX;
+  coordTipCanvasY.value = canvasY;
+  coordTipVisible.value = true;
+};
+
 // 标尺0点位置跟随图片移动（以图片左上角为0点）
 // 0点位置会根据图片的offsetX和offsetY动态变化
 
@@ -1343,9 +1403,10 @@ const draggedPoint = ref(null);
 const draggedCrane = ref(null);
 const draggedPointIndex = ref(-1);
 const pointHitRadiusMap = {
-  start: 16,
-  lifting: 14,
-  moving: 14,
+  // 适当放大命中半径，确保在点击点位图标的边缘/模型视觉区域时也能稳定命中
+  start: 28,
+  lifting: 28,
+  moving: 28,
 }; // 点位点击检测半径（不同图标大小）
 
 // 轨迹播放相关
@@ -2284,6 +2345,22 @@ const setShapePositionByCanvas = (shapeId, canvasX, canvasY) => {
 const handleShapeMouseDown = (item, event) => {
   event.preventDefault();
   event.stopPropagation();
+
+  // 点击点位占位图形本体时，直接显示该图形中心坐标。
+  // 这样即使没有命中点图标，也能稳定展示坐标 tips。
+  if (item?.pointId) {
+    showCoordTipByShapeItem(item);
+  } else {
+    // 非点位占位图形（例如自由标注）仍按点位命中规则处理
+    const mousePos = getMouseCanvasPos(event);
+    const hitPoint = getPointAtPosition(mousePos.x, mousePos.y);
+    if (hitPoint) {
+      showCoordTipByMousePos(mousePos);
+    } else {
+      hideCoordTip();
+    }
+  }
+
   activeShapeId.value = item.id;
   
   // 在点位设置中选中该点位占位对应的点位
@@ -4121,6 +4198,8 @@ const isClickOnShape = (x, y) => {
 // 鼠标按下事件处理
 const handleCanvasMouseDown = async (event) => {
   const mousePos = getMouseCanvasPos(event);
+  // 默认隐藏：只有点击到点位占位/路径点时才显示
+  hideCoordTip();
 
   // 如果选中了顶部自由标注工具，则在任意位置添加自由标注
   if (activeFreeAnnotationTool.value) {
@@ -4214,15 +4293,11 @@ const handleCanvasMouseDown = async (event) => {
     return;
   }
 
-  // 如果点击在图形上，不处理 canvas 事件（让 SVG 层处理）
-  if (isClickOnShape(mousePos.x, mousePos.y)) {
-    return;
-  }
-  
   // 先检查是否点击在点位上
   const hitPoint = getPointAtPosition(mousePos.x, mousePos.y);
   
   if (hitPoint) {
+    showCoordTipByMousePos(mousePos);
     // 开始拖动点位
     isDraggingPoint.value = true;
     draggedPoint.value = hitPoint.point;
@@ -4242,6 +4317,10 @@ const handleCanvasMouseDown = async (event) => {
       activePointId.value = hitPoint.point.id;
     }
   } else {
+    // 如果点击在图形上，不处理 canvas 事件（让 SVG 层处理）
+    if (isClickOnShape(mousePos.x, mousePos.y)) {
+      return;
+    }
     // 开始拖动Canvas
     isDragging.value = true;
     lastMouseX.value = event.clientX;
@@ -7328,6 +7407,30 @@ const handleBack = () => {
 
 .point-canvas:active {
   cursor: grabbing;
+}
+
+/* 坐标弹窗样式（与画布层级一致，不影响点击/拖拽） */
+.coord-tip {
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+  /* 减小上移幅度，避免点位靠上时弹窗被顶出视口 */
+  transform: translate(-50%, -90%);
+
+  /* 提高背景不透明度，确保在亮底图上可读 */
+  background: rgba(0, 0, 0, 0.65);
+  color: #FFF;
+  -webkit-text-stroke-width: 1px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: normal;
+
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 4px;
+
+  /* 进一步提升文字与底图对比度 */
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.8);
 }
 
 
