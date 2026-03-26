@@ -3086,7 +3086,8 @@ const drawTextShape = (coords, config = {}) => {
   ctx.value.restore();
 };
 
-const capturePointSnapshot = (point) => {
+const capturePointSnapshot = (point, options = {}) => {
+  const { withAxisLabels = false } = options;
   if (!canvas.value) return null;
   // convertToCanvasCoords 返回的是变换前的坐标（原始坐标）
   const { x, y } = convertToCanvasCoords(point.x, point.y);
@@ -3211,6 +3212,78 @@ const capturePointSnapshot = (point) => {
       
       snapshotCtx.restore();
     });
+  }
+
+  // 仅用于报告截图：在最后一个矩形占位图四角打 a/b/c/d（小写）
+  if (withAxisLabels && shapes.length > 0) {
+    const lastRect = [...shapes].reverse().find((shape) => shape?.tool === "rectangle");
+    if (lastRect) {
+      const config = lastRect.config || {};
+      const width = Number(config.width) || 80;
+      const height = Number(config.height) || 40;
+      const rotate = Number(config.rotate) || 0;
+      const centerGeo = lastRect.position || { x: point.x, y: point.y };
+      const centerBase = convertToCanvasCoords(centerGeo.x, centerGeo.y);
+      const centerX = centerBase.x * scale.value + offsetX.value;
+      const centerY = centerBase.y * scale.value + offsetY.value;
+
+      const halfW = (width * scale.value) / 2;
+      const halfH = (height * scale.value) / 2;
+      const rad = degToRad(rotate);
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const corners = [
+        { x: -halfW, y: -halfH },
+        { x: halfW, y: -halfH },
+        { x: halfW, y: halfH },
+        { x: -halfW, y: halfH },
+      ].map((p) => ({
+        x: centerX + (p.x * cos - p.y * sin),
+        y: centerY + (p.x * sin + p.y * cos),
+      }));
+
+      // a 固定左上角（y 最小，若并列取 x 最小）
+      let aIndex = 0;
+      corners.forEach((p, idx) => {
+        if (p.y < corners[aIndex].y || (Math.abs(p.y - corners[aIndex].y) < 0.001 && p.x < corners[aIndex].x)) {
+          aIndex = idx;
+        }
+      });
+
+      // 从 a 开始按逆时针排序
+      const center = corners.reduce(
+        (acc, p) => ({ x: acc.x + p.x / 4, y: acc.y + p.y / 4 }),
+        { x: 0, y: 0 }
+      );
+      const angleDeg = (p) => (Math.atan2(-(p.y - center.y), p.x - center.x) * 180) / Math.PI;
+      const baseAngle = angleDeg(corners[aIndex]);
+      const ordered = corners
+        .map((p, idx) => ({
+          ...p,
+          delta: idx === aIndex ? 0 : (angleDeg(p) - baseAngle + 360) % 360,
+        }))
+        .sort((m, n) => m.delta - n.delta)
+        .slice(0, 4);
+
+      const drawOffsetX = (size - sw) / 2;
+      const drawOffsetY = (size - sh) / 2;
+      const labels = ["a", "b", "c", "d"];
+
+      snapshotCtx.save();
+      ordered.forEach((p, idx) => {
+        const px = drawOffsetX + (p.x - sx);
+        const py = drawOffsetY + (p.y - sy) + 0;
+        snapshotCtx.font = 'bold 18px "Inter", sans-serif';
+        snapshotCtx.textAlign = "center";
+        snapshotCtx.textBaseline = "middle";
+        snapshotCtx.lineWidth = 3;
+        snapshotCtx.strokeStyle = "#004567";
+        snapshotCtx.fillStyle = "#FFFFFF";
+        snapshotCtx.strokeText(labels[idx], px, py);
+        snapshotCtx.fillText(labels[idx], px, py);
+      });
+      snapshotCtx.restore();
+    }
   }
 
   return snapshotCanvas.toDataURL("image/png");
@@ -5720,6 +5793,16 @@ const handleGenerateReport = async () => {
 
   try {
     ElMessage.info("正在生成报告，请稍候...");
+    // 生成报告前先保存一次“带 a/b/c/d 标签”的点位占位截图（仅影响报告截图，不影响页面显示）
+    const reportSaveOk = await handleSave({
+      captureWithAxisLabels: true,
+      silentSuccess: true,
+      skipVerify: true,
+    });
+    if (!reportSaveOk) {
+      ElMessage.error("生成报告前准备截图失败");
+      return;
+    }
     const response = await exportProject({ projectId: projectId.value });
     
     // 如果返回的是文件 blob（Word 或 PDF）
@@ -5835,21 +5918,26 @@ const getRectangleAxisFromShapes = (shapes = [], fallbackPoint = null) => {
   };
 };
 
-const handleSave = async () => {
+const handleSave = async (saveOptions = {}) => {
+  const {
+    captureWithAxisLabels = false,
+    silentSuccess = false,
+    skipVerify = false,
+  } = saveOptions;
   // 防抖处理：如果正在保存，直接返回
   if (isSaving.value) {
     ElMessage.warning("正在保存中，请勿重复点击");
-    return;
+    return false;
   }
 
   if (!projectId.value) {
     ElMessage.warning("项目ID不存在");
-    return;
+    return false;
   }
 
   if (!cranes.value || cranes.value.length === 0) {
     ElMessage.warning("请先添加起重机路径");
-    return;
+    return false;
   }
 
   // 设置保存状态，防止重复点击
@@ -5870,7 +5958,7 @@ const handleSave = async () => {
           if (shapes.length > 0) {
             try {
               // 截取当前点位的图片
-              const snapshot = capturePointSnapshot(point);
+              const snapshot = capturePointSnapshot(point, { withAxisLabels: captureWithAxisLabels });
               if (snapshot) {
                 // 将 base64 转换为 Blob
                 const blob = await base64ToBlob(snapshot);
@@ -6232,37 +6320,44 @@ const handleSave = async () => {
     if (response && response.code === "0") {
       console.log("✅ 保存成功！");
       console.log("保存的自由标注数量:", freeAnnotations.value?.length || 0);
-      ElMessage.success("保存成功");
+      if (!silentSuccess) {
+        ElMessage.success("保存成功");
+      }
       
       // 保存成功后，验证数据是否正确
-      setTimeout(async () => {
-        console.log("========== 验证保存结果 ==========");
-        try {
-          const verifyResponse = await getGeneralDetails(projectId.value);
-          if (verifyResponse && verifyResponse.code === "0" && verifyResponse.data) {
-            console.log("后端返回的 sysProjectInfo:", verifyResponse.data.sysProjectInfo);
-            
-            if (verifyResponse.data.sysProjectInfo && verifyResponse.data.sysProjectInfo.freeAnnotations) {
-              const savedData = verifyResponse.data.sysProjectInfo.freeAnnotations;
-              const parsed = typeof savedData === "string" ? JSON.parse(savedData) : savedData;
-              console.log("✅ 后端已保存的自由标注数量:", parsed?.length || 0);
-              console.log("后端已保存的自由标注详情:", parsed);
-            } else {
-              console.warn("⚠️ 后端没有返回自由标注数据 (sysProjectInfo.freeAnnotations)");
+      if (!skipVerify) {
+        setTimeout(async () => {
+          console.log("========== 验证保存结果 ==========");
+          try {
+            const verifyResponse = await getGeneralDetails(projectId.value);
+            if (verifyResponse && verifyResponse.code === "0" && verifyResponse.data) {
+              console.log("后端返回的 sysProjectInfo:", verifyResponse.data.sysProjectInfo);
+              
+              if (verifyResponse.data.sysProjectInfo && verifyResponse.data.sysProjectInfo.freeAnnotations) {
+                const savedData = verifyResponse.data.sysProjectInfo.freeAnnotations;
+                const parsed = typeof savedData === "string" ? JSON.parse(savedData) : savedData;
+                console.log("✅ 后端已保存的自由标注数量:", parsed?.length || 0);
+                console.log("后端已保存的自由标注详情:", parsed);
+              } else {
+                console.warn("⚠️ 后端没有返回自由标注数据 (sysProjectInfo.freeAnnotations)");
+              }
             }
+          } catch (e) {
+            console.error("验证保存结果失败:", e);
           }
-        } catch (e) {
-          console.error("验证保存结果失败:", e);
-        }
-        console.log("========== 验证完成 ==========");
-      }, 1000);
+          console.log("========== 验证完成 ==========");
+        }, 1000);
+      }
+      return true;
     } else {
       console.error("❌ 保存失败:", response?.msg);
       ElMessage.error(response?.msg || "保存失败");
+      return false;
     }
   } catch (error) {
     console.error("保存总平规划失败:", error);
     ElMessage.error("保存失败，请检查网络连接");
+    return false;
   } finally {
     // 保存完成后，清除保存状态
     isSaving.value = false;

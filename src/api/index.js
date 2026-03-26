@@ -612,6 +612,7 @@ export async function uploadImage(file, fileName = "image.png") {
     if (token) {
       // 使用与其他接口一致的 token 字段格式
       headers["token"] = token;
+      headers['ngrok-skip-browser-warning']=true;
     }
 
     const response = await fetch(`${API_BASE_URL}/file/upload/upload`, {
