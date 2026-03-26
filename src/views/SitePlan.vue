@@ -5043,6 +5043,16 @@ const setCranePosition = () => {
           response.data.flatInfo.forEach((flatInfo, index) => {
             console.log(`flatInfo[${index}]:`, flatInfo);
             if (flatInfo.sysProjectFlatDetailItem && Array.isArray(flatInfo.sysProjectFlatDetailItem)) {
+              // 规范 getGeneralDetails 返回的 axis 精度（x/y 保留 3 位小数）
+              flatInfo.sysProjectFlatDetailItem = flatInfo.sysProjectFlatDetailItem.map((item) => {
+                const normalizedAxis = normalizeAxisPrecision(item?.axis);
+                if (!normalizedAxis) return item;
+                return {
+                  ...item,
+                  axis: normalizedAxis,
+                };
+              });
+
               flatInfo.sysProjectFlatDetailItem.forEach((item, itemIndex) => {
                 console.log(`  点位[${itemIndex}]:`, {
                   id: item.id,
@@ -5737,6 +5747,94 @@ const handleGenerateReport = async () => {
   }
 };
 
+const toFixed3Number = (value) => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return 0;
+  return Number(num.toFixed(3));
+};
+
+const normalizeAxisPrecision = (axis) => {
+  if (!axis || typeof axis !== "object") return null;
+  const keys = ["a", "b", "c", "d"];
+  const normalized = {};
+  let hasValidCorner = false;
+
+  keys.forEach((key) => {
+    const corner = axis[key];
+    if (!corner || typeof corner !== "object") return;
+    const x = Number(corner.x);
+    const y = Number(corner.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    normalized[key] = {
+      x: toFixed3Number(x),
+      y: toFixed3Number(y),
+    };
+    hasValidCorner = true;
+  });
+
+  return hasValidCorner ? normalized : null;
+};
+
+const getRectangleAxisFromShapes = (shapes = [], fallbackPoint = null) => {
+  if (!Array.isArray(shapes) || shapes.length === 0) return null;
+
+  // 若绘制多个四边形，占位图以最后一个为准
+  const targetRect = [...shapes].reverse().find((shape) => shape?.tool === "rectangle");
+  if (!targetRect) return null;
+
+  const config = targetRect.config || {};
+  const width = Number(config.width) || 80;
+  const height = Number(config.height) || 40;
+  const rotate = Number(config.rotate) || 0;
+
+  const centerGeo =
+    targetRect.position ||
+    fallbackPoint ||
+    null;
+  if (!centerGeo) return null;
+
+  const centerCanvas = convertToCanvasCoords(centerGeo.x, centerGeo.y);
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const rad = (rotate * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+
+  // 初始顺序：左上 -> 右上 -> 右下 -> 左下
+  const localCorners = [
+    { x: -halfW, y: -halfH },
+    { x: halfW, y: -halfH },
+    { x: halfW, y: halfH },
+    { x: -halfW, y: halfH },
+  ];
+
+  const geoCorners = localCorners.map((corner) => {
+    const rotatedX = corner.x * cos - corner.y * sin;
+    const rotatedY = corner.x * sin + corner.y * cos;
+    const canvasX = centerCanvas.x + rotatedX;
+    const canvasY = centerCanvas.y + rotatedY;
+    const geo = convertToGeoCoords(canvasX, canvasY);
+    return {
+      x: toFixed3Number(geo.x),
+      y: toFixed3Number(geo.y),
+    };
+  });
+
+  // 校正为逆时针顺序（基于地理坐标）
+  const area2 = geoCorners.reduce((acc, p, i) => {
+    const next = geoCorners[(i + 1) % geoCorners.length];
+    return acc + (p.x * next.y - next.x * p.y);
+  }, 0);
+  const ccwCorners = area2 > 0 ? geoCorners : [...geoCorners].reverse();
+
+  return {
+    a: ccwCorners[0],
+    b: ccwCorners[1],
+    c: ccwCorners[2],
+    d: ccwCorners[3],
+  };
+};
+
 const handleSave = async () => {
   // 防抖处理：如果正在保存，直接返回
   if (isSaving.value) {
@@ -5954,7 +6052,9 @@ const handleSave = async () => {
           };
         });
 
-        return {
+        const axis = getRectangleAxisFromShapes(shapesToSave, { x: point.x, y: point.y });
+
+        const pointPayload = {
           flatDetailId: crane.id || null,
           pointName: point.name || "",
           x: typeof point.x === "number" ? point.x : parseFloat(point.x) || 0,
@@ -5981,6 +6081,13 @@ const handleSave = async () => {
           deviceInfo: occupyType === 0 ? (point.deviceInfo && point.deviceInfo.length > 0 ? point.deviceInfo : null) : null,
           other: occupyType === 0 ? (point.other || null) : null,
         };
+
+        // 仅占位点位且存在四边形占位图时传 axis；否则不传
+        if (occupyType === 0 && axis) {
+          pointPayload.axis = axis;
+        }
+
+        return pointPayload;
         
         // 调试：输出保存的形状数据
         if (shapes.length > 0) {
