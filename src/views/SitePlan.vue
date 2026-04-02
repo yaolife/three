@@ -821,7 +821,7 @@
                 :height="item.config.height || 0"
                 :fill="item.config.fill || 'rgba(255,255,255,0.2)'"
                 :stroke="item.config.stroke || '#F59A23'"
-                :stroke-width="((item.config.strokeWidth || 2) * scale)"
+                :stroke-width="1 / (scale || 1)"
                 :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
               />
               <circle
@@ -832,7 +832,7 @@
                 :r="item.config.radius || MIN_RADIUS"
                 :fill="item.config.fill || 'rgba(38,132,255,0.25)'"
                 :stroke="item.config.stroke || '#2684FF'"
-                :stroke-width="((item.config.strokeWidth || 2) * scale)"
+                :stroke-width="1 / (scale || 1)"
               />
               <polygon
                 v-else-if="item.tool === 'triangle'"
@@ -840,7 +840,7 @@
                 :points="createTrianglePoints(item.canvasX, item.canvasY, item.config.size || MIN_TRIANGLE_SIZE, item.config.rotate || 0)"
                 :fill="item.config.fill || 'rgba(245,108,108,0.25)'"
                 :stroke="item.config.stroke || '#F56C6C'"
-                :stroke-width="((item.config.strokeWidth || 2) * scale)"
+                :stroke-width="1 / (scale || 1)"
               />
               <polygon
                 v-else-if="item.tool === 'pentagon'"
@@ -848,7 +848,7 @@
                 :points="createPentagonPoints(item.canvasX, item.canvasY, item.config.size || 48, item.config.rotate || 0)"
                 :fill="item.config.fill || 'rgba(52,152,219,0.25)'"
                 :stroke="item.config.stroke || '#3498DB'"
-                :stroke-width="((item.config.strokeWidth || 2) * scale)"
+                :stroke-width="1 / (scale || 1)"
               />
               <path
                 v-else-if="item.tool === 'sector'"
@@ -856,7 +856,7 @@
                 :d="createSectorPath(item.canvasX, item.canvasY, item.config.radius || MIN_RADIUS, item.config.rotate || 0, (item.config.rotate || 0) + (item.config.angle || 60))"
                 :fill="item.config.fill || 'rgba(255,196,112,0.25)'"
                 :stroke="item.config.stroke || '#F59A23'"
-                :stroke-width="((item.config.strokeWidth || 2) * scale)"
+                :stroke-width="1 / (scale || 1)"
               />
               <text
                 v-else-if="item.tool === 'text'"
@@ -880,7 +880,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
+                  :stroke-width="1 / (scale || 1)"
                   stroke-linecap="round"
                   :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 />
@@ -901,7 +901,7 @@
                   :x2="item.canvasX + (item.config.length || 60) / 2"
                   :y2="item.canvasY"
                   :stroke="item.config.stroke || '#E74C3C'"
-                  :stroke-width="((item.config.strokeWidth || 2) * scale)"
+                  :stroke-width="1 / (scale || 1)"
                   stroke-linecap="round"
                   :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
                 />
@@ -8062,12 +8062,10 @@ const handleBack = () => {
 }
 
 .shape-overlay-item .shape-body {
-  stroke-width: 2px;
   pointer-events: auto;
 }
 
 .shape-overlay-item.active .shape-body {
-  stroke-width: 2.5px;
   filter: drop-shadow(0 2px 6px rgba(64, 158, 255, 0.25));
 }
 
@@ -8212,7 +8210,7 @@ const handleBack = () => {
 .shape-resize-handle {
   fill: #ffffff;
   stroke: #409eff;
-  stroke-width: 2px;
+  stroke-width: 1px;
   pointer-events: auto;
   cursor: se-resize;
 }
