@@ -716,7 +716,14 @@
               top: `${coordTipCanvasY * scale + offsetY}px`,
             }"
           >
-            X:{{ coordTipX.toFixed(3) }}&nbsp;&nbsp;Y:{{ coordTipY.toFixed(3) }}
+            <template v-if="coordTipCorners.length">
+              <div v-for="corner in coordTipCorners" :key="corner.key">
+                {{ corner.label }} X:{{ corner.x.toFixed(3) }}&nbsp;&nbsp;Y:{{ corner.y.toFixed(3) }}
+              </div>
+            </template>
+            <template v-else>
+              X:{{ coordTipX.toFixed(3) }}&nbsp;&nbsp;Y:{{ coordTipY.toFixed(3) }}
+            </template>
           </div>
           <!-- 顶部自由标注图形覆盖层 -->
           <svg
@@ -1339,9 +1346,11 @@ const coordTipY = ref(0);
 // 记录点击时“变换前”的画布坐标，用于在缩放/拖动时同步更新弹窗位置
 const coordTipCanvasX = ref(0);
 const coordTipCanvasY = ref(0);
+const coordTipCorners = ref([]);
 
 const hideCoordTip = () => {
   coordTipVisible.value = false;
+  coordTipCorners.value = [];
 };
 
 const showCoordTipByMousePos = (mousePos) => {
@@ -1351,11 +1360,45 @@ const showCoordTipByMousePos = (mousePos) => {
 
   coordTipCanvasX.value = mousePos.x;
   coordTipCanvasY.value = mousePos.y;
+  coordTipCorners.value = [];
   coordTipVisible.value = true;
 };
 
+const getRectangleCanvasCorners = (item) => {
+  if (!item) return [];
+  const canvasX = Number(item.canvasX);
+  const canvasY = Number(item.canvasY);
+  if (!Number.isFinite(canvasX) || !Number.isFinite(canvasY)) return [];
+
+  const width = Number(item?.config?.width) || 80;
+  const height = Number(item?.config?.height) || 40;
+  const rotate = Number(item?.config?.rotate) || 0;
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const rad = (rotate * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+
+  const localCorners = [
+    { key: "lt", label: "左上", x: -halfW, y: -halfH },
+    { key: "rt", label: "右上", x: halfW, y: -halfH },
+    { key: "rb", label: "右下", x: halfW, y: halfH },
+    { key: "lb", label: "左下", x: -halfW, y: halfH },
+  ];
+
+  return localCorners.map((corner) => {
+    const rotatedX = corner.x * cos - corner.y * sin;
+    const rotatedY = corner.x * sin + corner.y * cos;
+    return {
+      ...corner,
+      canvasX: canvasX + rotatedX,
+      canvasY: canvasY + rotatedY,
+    };
+  });
+};
+
 // 按图形中心点显示坐标（用于点击点位占位图形本体时）
-const showCoordTipByShapeItem = (item) => {
+const showCoordTipByShapeItem = (item, mousePos = null) => {
   if (!item) return;
   const canvasX = Number(item.canvasX);
   const canvasY = Number(item.canvasY);
@@ -1372,6 +1415,45 @@ const showCoordTipByShapeItem = (item) => {
     item?.position?.y ??
     item?.point?.y ??
     convertToGeoCoords(canvasX, canvasY).y;
+
+  // “矩形”是点位占位绘制工具中的第一个图形：
+  // 若命中某个角点则仅显示该角坐标，否则显示四个角坐标。
+  if (item.tool === "rectangle") {
+    const corners = getRectangleCanvasCorners(item);
+    const cornersWithGeo = corners.map((corner) => {
+      const geo = convertToGeoCoords(corner.canvasX, corner.canvasY);
+      return {
+        key: corner.key,
+        label: corner.label,
+        canvasX: corner.canvasX,
+        canvasY: corner.canvasY,
+        x: geo.x,
+        y: geo.y,
+      };
+    });
+
+    const cornerHitRadius = Math.max(8, 14 / (scale.value || 1));
+    let hitCorner = null;
+    if (mousePos && Number.isFinite(mousePos.x) && Number.isFinite(mousePos.y)) {
+      for (const corner of cornersWithGeo) {
+        const dx = mousePos.x - corner.canvasX;
+        const dy = mousePos.y - corner.canvasY;
+        if (Math.hypot(dx, dy) <= cornerHitRadius) {
+          hitCorner = corner;
+          break;
+        }
+      }
+    }
+
+    if (!hitCorner) {
+      // 仅针对该矩形：未命中角点时不显示任何坐标
+      hideCoordTip();
+      return;
+    }
+    coordTipCorners.value = [{ key: hitCorner.key, label: hitCorner.label, x: hitCorner.x, y: hitCorner.y }];
+  } else {
+    coordTipCorners.value = [];
+  }
 
   coordTipX.value = geoX;
   coordTipY.value = geoY;
@@ -2349,7 +2431,8 @@ const handleShapeMouseDown = (item, event) => {
   // 点击点位占位图形本体时，直接显示该图形中心坐标。
   // 这样即使没有命中点图标，也能稳定展示坐标 tips。
   if (item?.pointId) {
-    showCoordTipByShapeItem(item);
+    const mousePos = getMouseCanvasPos(event);
+    showCoordTipByShapeItem(item, mousePos);
   } else {
     // 非点位占位图形（例如自由标注）仍按点位命中规则处理
     const mousePos = getMouseCanvasPos(event);
