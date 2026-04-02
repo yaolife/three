@@ -74,6 +74,7 @@
       <el-dialog
          v-model="showMenuDialog"
         width="600px"
+        :z-index="900"
         :close-on-click-modal="false"
         :close-on-press-escape="false"
         :show-close="false"
