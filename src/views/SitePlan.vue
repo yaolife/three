@@ -1432,6 +1432,30 @@ const getRectangleCanvasCorners = (item) => {
   });
 };
 
+// 显示矩形某个角的坐标（用于点击/拖拽角控制点时）
+const showCoordTipByRectangleCornerKey = (item, cornerKey) => {
+  if (!item || !cornerKey) return;
+  const corners = getRectangleCanvasCorners(item);
+  const keyMap = {
+    nw: "lt",
+    ne: "rt",
+    se: "rb",
+    sw: "lb",
+  };
+  const targetKey = keyMap[cornerKey] || cornerKey;
+  const corner = corners.find((c) => c.key === targetKey);
+  if (!corner) return;
+  const geo = convertToGeoCoords(corner.canvasX, corner.canvasY);
+  coordTipX.value = geo.x;
+  coordTipY.value = geo.y;
+  coordTipCanvasX.value = corner.canvasX;
+  coordTipCanvasY.value = corner.canvasY;
+  coordTipCorners.value = [
+    { key: corner.key, label: corner.label, x: geo.x, y: geo.y },
+  ];
+  coordTipVisible.value = true;
+};
+
 // 按图形中心点显示坐标（用于点击点位占位图形本体时）
 const showCoordTipByShapeItem = (item, mousePos = null) => {
   if (!item) return;
@@ -2515,6 +2539,10 @@ const handleResizeMouseDown = (item, event, handle) => {
   dragContext.initialCanvasPos = { x: item.canvasX, y: item.canvasY };
   dragContext.initialBounds = getShapeBounds(item);
   isResizingShape.value = true;
+  // 点击矩形四个角的控制点时，同步显示该角坐标
+  if (item.tool === "rectangle" && handle?.kind === "scale-corner") {
+    showCoordTipByRectangleCornerKey(item, handle.position);
+  }
   attachPointerListeners();
 };
 
