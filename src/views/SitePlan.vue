@@ -935,18 +935,51 @@
                 stroke-dasharray="4 4"
               />
               
-              <!-- 8个控制点 -->
+              <!-- 控制点 -->
               <g v-if="item.id === activeShapeId && isShapeResizable(item.tool)">
-                <circle
+                <g
                   v-for="(handle, index) in getResizeHandles(item)"
                   :key="index"
-                  class="shape-resize-handle"
-                  :class="`handle-${handle.position}`"
-                  :cx="handle.x"
-                  :cy="handle.y"
-                  r="4"
-                  @mousedown.stop="handleResizeMouseDown(item, $event, handle.position)"
-                />
+                  class="shape-resize-handle-group"
+                  :class="[
+                    `handle-${handle.position}`,
+                    `handle-kind-${handle.kind || 'default'}`,
+                    item.tool === 'rectangle' ? 'rect-handle-group' : ''
+                  ]"
+                  :style="{ cursor: getHandleCursor(item, handle) }"
+                  @mousedown.stop="handleResizeMouseDown(item, $event, handle)"
+                >
+                  <rect
+                    v-if="item.tool === 'rectangle' && handle.kind === 'scale-corner'"
+                    class="shape-resize-handle rect-corner-handle"
+                    :x="handle.x - 4"
+                    :y="handle.y - 4"
+                    width="8"
+                    height="8"
+                  />
+                  <line
+                    v-else-if="item.tool === 'rectangle' && handle.kind === 'scale-edge'"
+                    class="rect-edge-hitline"
+                    :x1="handle.x1"
+                    :y1="handle.y1"
+                    :x2="handle.x2"
+                    :y2="handle.y2"
+                  />
+                  <g
+                    v-else-if="item.tool === 'rectangle' && handle.kind === 'rotate'"
+                    class="shape-resize-handle rect-rotate-handle"
+                    :transform="`translate(${handle.x}, ${handle.y})`"
+                  >
+                    <circle class="rect-rotate-hit-area" r="10" />
+                  </g>
+                  <circle
+                    v-else
+                    class="shape-resize-handle"
+                    :cx="handle.x"
+                    :cy="handle.y"
+                    r="4"
+                  />
+                </g>
               </g>
             </g>
           </svg>
@@ -1293,6 +1326,8 @@ const dragContext = reactive({
   shapeId: null,
   tool: null,
   handlePosition: null,
+  handleKind: null,
+  handleAnchor: null,
   startPos: { x: 0, y: 0 },
   initialConfig: null,
   initialCanvasPos: { x: 0, y: 0 },
@@ -2465,14 +2500,16 @@ const handleShapeMouseDown = (item, event) => {
   attachPointerListeners();
 };
 
-const handleResizeMouseDown = (item, event, handlePosition) => {
+const handleResizeMouseDown = (item, event, handle) => {
   event.preventDefault();
   event.stopPropagation();
   activeShapeId.value = item.id;
   dragContext.type = "resize";
   dragContext.shapeId = item.id;
   dragContext.tool = item.tool;
-  dragContext.handlePosition = handlePosition; // 保存控制点位置
+  dragContext.handlePosition = handle?.position || "se"; // 保存控制点位置
+  dragContext.handleKind = handle?.kind || "default";
+  dragContext.handleAnchor = handle?.anchor || null;
   dragContext.startPos = getMouseCanvasPos(event);
   dragContext.initialConfig = { ...(item.config || {}) };
   dragContext.initialCanvasPos = { x: item.canvasX, y: item.canvasY };
@@ -2504,6 +2541,8 @@ const handleGlobalPointerUp = () => {
   dragContext.shapeId = null;
   dragContext.tool = null;
   dragContext.handlePosition = null;
+  dragContext.handleKind = null;
+  dragContext.handleAnchor = null;
   dragContext.initialConfig = null;
   dragContext.initialCanvasPos = null;
   dragContext.initialBounds = null;
@@ -2515,80 +2554,129 @@ const resizeShapeWithDelta = (deltaX, deltaY) => {
   const tool = dragContext.tool;
   const initial = dragContext.initialConfig || {};
   const handlePos = dragContext.handlePosition || "se";
+  const handleKind = dragContext.handleKind || "default";
+  const handleAnchor = dragContext.handleAnchor || null;
   const bounds = dragContext.initialBounds;
   
   updateShapeConfig(dragContext.shapeId, (config) => {
     const next = { ...config };
     
     if (tool === "rectangle") {
-      // 矩形调整逻辑：
-      // - 角落控制点（nw, ne, sw, se）：旋转
-      // - 边缘控制点（n, s, w, e）：调整大小
-      if (handlePos === "ne" || handlePos === "se" || handlePos === "sw" || handlePos === "nw") {
-        // 角落控制点：旋转矩形
-        const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
-        const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
-        
-        const initialRotate = initial.rotate || 0;
-        const rad = degToRad(initialRotate);
-        const handleOffsetX = handlePos.includes("e") ? bounds.width / 2 : -bounds.width / 2;
-        const handleOffsetY = handlePos.includes("s") ? bounds.height / 2 : -bounds.height / 2;
-        const rotatedOffsetX = handleOffsetX * Math.cos(rad) - handleOffsetY * Math.sin(rad);
-        const rotatedOffsetY = handleOffsetX * Math.sin(rad) + handleOffsetY * Math.cos(rad);
-        const initialHandleX = centerX + rotatedOffsetX;
-        const initialHandleY = centerY + rotatedOffsetY;
-        
-        const newHandleX = initialHandleX + deltaX;
-        const newHandleY = initialHandleY + deltaY;
-        
-        const initialAngle = Math.atan2(initialHandleY - centerY, initialHandleX - centerX);
+      const centerX = dragContext.initialCanvasPos?.x || (bounds.left + bounds.width / 2);
+      const centerY = dragContext.initialCanvasPos?.y || (bounds.top + bounds.height / 2);
+      const initialRotate = initial.rotate || 0;
+      const rad = degToRad(initialRotate);
+      const ux = { x: Math.cos(rad), y: Math.sin(rad) };
+      const uy = { x: -Math.sin(rad), y: Math.cos(rad) };
+      const deltaLocalX = deltaX * ux.x + deltaY * ux.y;
+      const deltaLocalY = deltaX * uy.x + deltaY * uy.y;
+      const initialWidth = initial.width || 80;
+      const initialHeight = initial.height || 40;
+      let nextCenterCanvas = null;
+
+      if (handleKind === "rotate") {
+        const anchorPos = handleAnchor || (handlePos.startsWith("rotate-") ? handlePos.replace("rotate-", "") : "ne");
+        const halfW = initialWidth / 2;
+        const halfH = initialHeight / 2;
+        const sx = anchorPos.includes("e") ? 1 : -1;
+        const sy = anchorPos.includes("s") ? 1 : -1;
+        const cornerX = sx * halfW;
+        const cornerY = sy * halfH;
+        const cornerCanvasX = centerX + cornerX * ux.x + cornerY * uy.x;
+        const cornerCanvasY = centerY + cornerX * ux.y + cornerY * uy.y;
+        const vX = cornerCanvasX - centerX;
+        const vY = cornerCanvasY - centerY;
+        const vLen = Math.hypot(vX, vY) || 1;
+        const rotateHandleX = cornerCanvasX + (vX / vLen) * 16;
+        const rotateHandleY = cornerCanvasY + (vY / vLen) * 16;
+        const newHandleX = rotateHandleX + deltaX;
+        const newHandleY = rotateHandleY + deltaY;
+        const initialAngle = Math.atan2(rotateHandleY - centerY, rotateHandleX - centerX);
         const newAngle = Math.atan2(newHandleY - centerY, newHandleX - centerX);
         let angleDiff = (newAngle - initialAngle) * (180 / Math.PI);
-        
         while (angleDiff > 180) angleDiff -= 360;
         while (angleDiff < -180) angleDiff += 360;
-        
         next.rotate = ((initialRotate + angleDiff) % 360 + 360) % 360;
-        // 保持宽高不变
-        next.width = initial.width || 80;
-        next.height = initial.height || 40;
-      } else {
-        // 边缘控制点：调整大小
-        let newWidth = bounds.width;
-        let newHeight = bounds.height;
-        let offsetX = 0;
-        let offsetY = 0;
-        
-        if (handlePos.includes("e")) {
-          newWidth = Math.max(MIN_RECT_SIZE, bounds.width + deltaX);
-        }
-        if (handlePos.includes("w")) {
-          newWidth = Math.max(MIN_RECT_SIZE, bounds.width - deltaX);
-          offsetX = deltaX;
-        }
-        if (handlePos.includes("s")) {
-          newHeight = Math.max(MIN_RECT_SIZE, bounds.height + deltaY);
-        }
-        if (handlePos.includes("n")) {
-          newHeight = Math.max(MIN_RECT_SIZE, bounds.height - deltaY);
-          offsetY = deltaY;
-        }
-        
+        next.width = initialWidth;
+        next.height = initialHeight;
+        nextCenterCanvas = { x: centerX, y: centerY };
+      } else if (handleKind === "scale-corner") {
+        const sx = handlePos.includes("e") ? 1 : -1;
+        const sy = handlePos.includes("s") ? 1 : -1;
+
+        // Figma 风格：角点拖拽按对角锚点缩放，并保持矩形旋转角不变
+        const halfW = initialWidth / 2;
+        const halfH = initialHeight / 2;
+        const anchorLocalX = -sx * halfW;
+        const anchorLocalY = -sy * halfH;
+        const movingLocalX = sx * halfW;
+        const movingLocalY = sy * halfH;
+        const anchorCanvas = {
+          x: centerX + anchorLocalX * ux.x + anchorLocalY * uy.x,
+          y: centerY + anchorLocalX * ux.y + anchorLocalY * uy.y,
+        };
+        const movingCanvas = {
+          x: centerX + movingLocalX * ux.x + movingLocalY * uy.x + deltaX,
+          y: centerY + movingLocalX * ux.y + movingLocalY * uy.y + deltaY,
+        };
+        const vecX = movingCanvas.x - anchorCanvas.x;
+        const vecY = movingCanvas.y - anchorCanvas.y;
+        const projectedW = sx * (vecX * ux.x + vecY * ux.y);
+        const projectedH = sy * (vecX * uy.x + vecY * uy.y);
+        const newWidth = Math.max(MIN_RECT_SIZE, projectedW);
+        const newHeight = Math.max(MIN_RECT_SIZE, projectedH);
+
+        const centerLocalX = anchorLocalX + sx * newWidth / 2;
+        const centerLocalY = anchorLocalY + sy * newHeight / 2;
+        nextCenterCanvas = {
+          x: anchorCanvas.x + centerLocalX * ux.x + centerLocalY * uy.x,
+          y: anchorCanvas.y + centerLocalX * ux.y + centerLocalY * uy.y,
+        };
+
         next.width = newWidth;
         next.height = newHeight;
-        next.rotate = initial.rotate || 0; // 保持旋转角度不变
-        
-        // 更新位置（如果从左边或上边调整）
-        const currentPos = dragContext.initialCanvasPos || { x: 0, y: 0 };
-        if (handlePos.includes("w") || handlePos.includes("n")) {
-          const newCanvasX = handlePos.includes("w") ? currentPos.x + offsetX : currentPos.x;
-          const newCanvasY = handlePos.includes("n") ? currentPos.y + offsetY : currentPos.y;
-          const geo = convertToGeoCoords(newCanvasX, newCanvasY);
-          updateShape(dragContext.shapeId, (shape) => ({
-            ...shape,
-            position: { x: geo.x, y: geo.y },
-          }));
+        next.rotate = initialRotate;
+      } else if (handleKind === "scale-edge") {
+        // Figma 风格：边中点拖拽为单轴缩放，且对边作为锚点
+        let newWidth = initialWidth;
+        let newHeight = initialHeight;
+        let centerShiftLocalX = 0;
+        let centerShiftLocalY = 0;
+
+        if (handlePos === "e") {
+          newWidth = Math.max(MIN_RECT_SIZE, initialWidth + deltaLocalX);
+          centerShiftLocalX = (newWidth - initialWidth) / 2;
+        } else if (handlePos === "w") {
+          newWidth = Math.max(MIN_RECT_SIZE, initialWidth - deltaLocalX);
+          centerShiftLocalX = -(newWidth - initialWidth) / 2;
+        } else if (handlePos === "s") {
+          newHeight = Math.max(MIN_RECT_SIZE, initialHeight + deltaLocalY);
+          centerShiftLocalY = (newHeight - initialHeight) / 2;
+        } else if (handlePos === "n") {
+          newHeight = Math.max(MIN_RECT_SIZE, initialHeight - deltaLocalY);
+          centerShiftLocalY = -(newHeight - initialHeight) / 2;
         }
+
+        next.width = newWidth;
+        next.height = newHeight;
+        next.rotate = initialRotate;
+        nextCenterCanvas = {
+          x: centerX + centerShiftLocalX * ux.x + centerShiftLocalY * uy.x,
+          y: centerY + centerShiftLocalX * ux.y + centerShiftLocalY * uy.y,
+        };
+      } else {
+        next.width = initialWidth;
+        next.height = initialHeight;
+        next.rotate = initialRotate;
+        nextCenterCanvas = { x: centerX, y: centerY };
+      }
+
+      if (nextCenterCanvas) {
+        const geo = convertToGeoCoords(nextCenterCanvas.x, nextCenterCanvas.y);
+        updateShape(dragContext.shapeId, (shape) => ({
+          ...shape,
+          position: { x: geo.x, y: geo.y },
+        }));
       }
     } else if (tool === "circle") {
       // 圆形调整逻辑：
@@ -2888,6 +2976,83 @@ const findPointById = (pointId, craneId) => {
 
 const degToRad = (deg) => (deg * Math.PI) / 180;
 
+const cursorSvgCache = new Map();
+
+const normalizeDeg = (deg) => {
+  let d = deg % 360;
+  if (d < 0) d += 360;
+  return d;
+};
+
+const toCursorDataUrl = (svgText, fallback = "default", hotX = 12, hotY = 12) => {
+  return `url("data:image/svg+xml,${encodeURIComponent(svgText)}") ${hotX} ${hotY}, ${fallback}`;
+};
+
+/** SVG 光标用 base64，部分浏览器对 encodeURIComponent 的 SVG 里 marker 支持更好 */
+const toCursorDataUrlBase64 = (svgText, fallback = "default", hotX = 12, hotY = 12) => {
+  try {
+    const b64 = typeof btoa === "function" ? btoa(svgText) : "";
+    if (b64) {
+      return `url("data:image/svg+xml;base64,${b64}") ${hotX} ${hotY}, ${fallback}`;
+    }
+  } catch {
+    /* ignore */
+  }
+  return toCursorDataUrl(svgText, fallback, hotX, hotY);
+};
+
+const getScaleCursorByAngle = (angleDeg) => {
+  const normalized = normalizeDeg(angleDeg);
+  const key = `scale:${Math.round(normalized)}`;
+  if (cursorSvgCache.has(key)) return cursorSvgCache.get(key);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+    <g transform="rotate(${normalized} 12 12)" fill="none" stroke="#1f1f1f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5.5" y1="12" x2="18.5" y2="12"/>
+      <path d="M8.5 9.5 L5.5 12 L8.5 14.5"/>
+      <path d="M15.5 9.5 L18.5 12 L15.5 14.5"/>
+    </g>
+  </svg>`;
+  const cursor = toCursorDataUrl(svg, "move");
+  cursorSvgCache.set(key, cursor);
+  return cursor;
+};
+
+const getRotateCursorByAngle = (angleDeg) => {
+  const normalized = normalizeDeg(angleDeg);
+  const key = `rotate-v4:${Math.round(normalized)}`;
+  if (cursorSvgCache.has(key)) return cursorSvgCache.get(key);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 32 32" fill="none" shape-rendering="geometricPrecision"><g transform="rotate(${normalized} 16 16)"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.29004 11.03L7.99715 10.3229L8.3507 9.96932L10.3507 7.96932L11.0578 7.26221L11.7649 7.96932L12.472 8.67642L13.5444 9.72742L13.5826 9.73466C18.1745 10.6121 21.7972 14.2202 22.6961 18.8045L22.7238 18.8887L23.0578 19.2622L23.7649 19.9693L24.472 20.6764L25.1791 21.3835L24.472 22.0906L22.472 24.0906L22.1184 24.4442L21.4113 25.1513L20.7042 24.4442L20.3507 24.0906L18.3507 22.0906L17.6436 21.3835L18.3507 20.6764L19.0578 19.9693L19.7338 19.2933C19.0485 15.9924 16.4489 13.3928 13.148 12.7075L12.472 13.3835L11.7649 14.0907L11.0578 14.7978L10.3507 14.0907L8.3507 12.0907L7.99715 11.7371L7.29004 11.03ZM11.4113 10.53H10.6185L11.0578 10.0906L11.4113 9.73708L11.6166 9.53177L11.7649 9.38353L11.0578 8.67642L10.3507 9.38353L9.91136 9.82287L9.41136 10.3229L9.20425 10.53L9.05781 10.6764L8.70425 11.03L9.05781 11.3835L9.20425 11.53L9.41136 11.7371L9.91136 12.2371L10.3507 12.6764L11.0578 13.3835L11.7649 12.6764L11.621 12.5325L11.4113 12.3229L11.0578 11.9693L10.6185 11.53H11.4113C11.6273 11.53 11.8416 11.5372 12.054 11.5514C16.7886 11.8677 20.5736 15.6527 20.8899 20.3872C20.9041 20.5997 20.9113 20.814 20.9113 21.03V21.8229L20.472 21.3835L20.1184 21.03L19.9088 20.8203L19.7649 20.6764L19.0578 21.3835L19.7649 22.0906L20.2042 22.53L20.7042 23.03L20.9113 23.2371L21.0578 23.3835L21.4113 23.7371L21.7649 23.3835L21.9113 23.2371L22.1184 23.03L22.6184 22.53L23.0578 22.0906L23.7649 21.3835L23.0578 20.6764L22.9095 20.8247L22.7042 21.03L22.3507 21.3835L21.9113 21.8229V21.03C21.9113 20.8272 21.9056 20.6257 21.8942 20.4257C21.5925 15.1079 17.3334 10.8488 12.0156 10.5471C11.8156 10.5357 11.6141 10.53 11.4113 10.53Z" fill="#000000"/><path d="M11.4112 11.5298C16.6579 11.5298 20.9112 15.7831 20.9112 21.0298V21.8226L19.7648 20.6762L19.0577 21.3833L21.0577 23.3833L21.4112 23.7369L21.7648 23.3833L23.7648 21.3833L23.0577 20.6762L21.9112 21.8226V21.0298C21.9112 15.2308 17.2102 10.5298 11.4112 10.5298H10.6183L11.7648 9.38337L11.0577 8.67627L9.05765 10.6763L8.7041 11.0298L9.05765 11.3833L11.0577 13.3833L11.7648 12.6762L10.6183 11.5298H11.4112Z" fill="#000000"/></g></svg>`;
+  const cursor = toCursorDataUrlBase64(svg, "alias", 14, 14);
+  cursorSvgCache.set(key, cursor);
+  return cursor;
+};
+
+const getHandleCursor = (item, handle) => {
+  if (!item || !handle) return "default";
+  if (item.tool !== "rectangle") return "default";
+
+  if (handle.kind === "rotate") {
+    const anchor = handle.anchor || "ne";
+    const baseMap = { ne: -45, se: 45, sw: 135, nw: -135 };
+    const rotate = Number(item?.config?.rotate) || 0;
+    // 基础方向再按角位做细微顺时针偏移，让弧度更贴合各自角
+    const extraOffsetMap = { ne: 16, se: 10, sw: 18, nw: 10 }; // 单位：度
+    const base = baseMap[anchor] ?? -45;
+    const extra = extraOffsetMap[anchor] ?? 10;
+    return getRotateCursorByAngle(rotate + base + extra);
+  }
+
+  if (handle.kind === "scale-corner" || handle.kind === "scale-edge") {
+    const cx = Number(item.canvasX);
+    const cy = Number(item.canvasY);
+    if (!Number.isFinite(cx) || !Number.isFinite(cy)) return "nwse-resize";
+    const angle = Math.atan2(handle.y - cy, handle.x - cx) * (180 / Math.PI);
+    return getScaleCursorByAngle(angle);
+  }
+
+  return "default";
+};
+
 const rotatePoint = (x, y, angleDeg = 0) => {
   const rad = degToRad(angleDeg);
   return {
@@ -3037,8 +3202,74 @@ const getShapeBounds = (item) => {
   return null;
 };
 
-// 获取8个控制点的位置（类似 Figma）
+const getRectangleControlHandles = (item) => {
+  const config = item?.config || {};
+  const cx = Number(item?.canvasX);
+  const cy = Number(item?.canvasY);
+  if (!Number.isFinite(cx) || !Number.isFinite(cy)) return [];
+
+  const width = Number(config.width) || 80;
+  const height = Number(config.height) || 40;
+  const rotate = Number(config.rotate) || 0;
+  const rad = degToRad(rotate);
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const halfW = width / 2;
+  const halfH = height / 2;
+
+  const toCanvas = (lx, ly) => ({
+    x: cx + lx * cos - ly * sin,
+    y: cy + lx * sin + ly * cos,
+  });
+
+  const corners = {
+    nw: toCanvas(-halfW, -halfH),
+    ne: toCanvas(halfW, -halfH),
+    se: toCanvas(halfW, halfH),
+    sw: toCanvas(-halfW, halfH),
+  };
+  const edges = {
+    n: toCanvas(0, -halfH),
+    e: toCanvas(halfW, 0),
+    s: toCanvas(0, halfH),
+    w: toCanvas(-halfW, 0),
+  };
+
+  const rotateOffset = 16;
+  const createRotateHandle = (position, point) => {
+    const vx = point.x - cx;
+    const vy = point.y - cy;
+    const len = Math.hypot(vx, vy) || 1;
+    return {
+      x: point.x + (vx / len) * rotateOffset,
+      y: point.y + (vy / len) * rotateOffset,
+      position: `rotate-${position}`,
+      kind: "rotate",
+      anchor: position,
+    };
+  };
+
+  return [
+    { ...corners.nw, position: "nw", kind: "scale-corner" },
+    { ...edges.n, position: "n", kind: "scale-edge", x1: corners.nw.x, y1: corners.nw.y, x2: corners.ne.x, y2: corners.ne.y },
+    { ...corners.ne, position: "ne", kind: "scale-corner" },
+    { ...edges.e, position: "e", kind: "scale-edge", x1: corners.ne.x, y1: corners.ne.y, x2: corners.se.x, y2: corners.se.y },
+    { ...corners.se, position: "se", kind: "scale-corner" },
+    { ...edges.s, position: "s", kind: "scale-edge", x1: corners.sw.x, y1: corners.sw.y, x2: corners.se.x, y2: corners.se.y },
+    { ...corners.sw, position: "sw", kind: "scale-corner" },
+    { ...edges.w, position: "w", kind: "scale-edge", x1: corners.nw.x, y1: corners.nw.y, x2: corners.sw.x, y2: corners.sw.y },
+    createRotateHandle("nw", corners.nw),
+    createRotateHandle("ne", corners.ne),
+    createRotateHandle("se", corners.se),
+    createRotateHandle("sw", corners.sw),
+  ];
+};
+
+// 获取控制点的位置
 const getResizeHandles = (item) => {
+  if (item?.tool === "rectangle") {
+    return getRectangleControlHandles(item);
+  }
   const bounds = getShapeBounds(item);
   if (!bounds) return [];
   
@@ -3047,14 +3278,14 @@ const getResizeHandles = (item) => {
   const centerY = (top + bottom) / 2;
   
   return [
-    { x: left, y: top, position: "nw" },      // 左上
-    { x: centerX, y: top, position: "n" },    // 上
-    { x: right, y: top, position: "ne" },     // 右上
-    { x: right, y: centerY, position: "e" },  // 右
-    { x: right, y: bottom, position: "se" },   // 右下
-    { x: centerX, y: bottom, position: "s" }, // 下
-    { x: left, y: bottom, position: "sw" },   // 左下
-    { x: left, y: centerY, position: "w" },   // 左
+    { x: left, y: top, position: "nw", kind: "default" },      // 左上
+    { x: centerX, y: top, position: "n", kind: "default" },    // 上
+    { x: right, y: top, position: "ne", kind: "default" },     // 右上
+    { x: right, y: centerY, position: "e", kind: "default" },  // 右
+    { x: right, y: bottom, position: "se", kind: "default" },   // 右下
+    { x: centerX, y: bottom, position: "s", kind: "default" }, // 下
+    { x: left, y: bottom, position: "sw", kind: "default" },   // 左下
+    { x: left, y: centerY, position: "w", kind: "default" },   // 左
   ];
 };
 
@@ -8213,6 +8444,71 @@ const handleBack = () => {
   stroke-width: 1px;
   pointer-events: auto;
   cursor: se-resize;
+}
+
+.shape-resize-handle-group {
+  pointer-events: auto;
+}
+
+.rect-handle-group.handle-kind-scale-corner {
+  cursor: nwse-resize;
+}
+
+.rect-handle-group.handle-kind-scale-edge.handle-n,
+.rect-handle-group.handle-kind-scale-edge.handle-s {
+  cursor: ns-resize;
+}
+
+.rect-handle-group.handle-kind-scale-edge.handle-e,
+.rect-handle-group.handle-kind-scale-edge.handle-w {
+  cursor: ew-resize;
+}
+
+.rect-corner-handle {
+  fill: #ffffff;
+  stroke: #409eff;
+  stroke-width: 1;
+  rx: 1;
+  cursor: inherit;
+}
+
+.rect-edge-handle {
+  fill: #ffffff;
+  stroke: #409eff;
+  stroke-width: 1;
+  cursor: inherit;
+}
+
+.rect-edge-hitline {
+  stroke: transparent;
+  stroke-width: 14;
+  pointer-events: stroke;
+  cursor: inherit;
+}
+
+.rect-rotate-handle {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  cursor: inherit;
+}
+
+.shape-overlay-item.active .rect-handle-group.handle-kind-rotate:hover .rect-rotate-handle {
+  opacity: 1;
+}
+
+.rect-rotate-hit-area {
+  fill: transparent !important;
+  stroke: transparent !important;
+  stroke-width: 0 !important;
+  pointer-events: all;
+  cursor: inherit;
+}
+
+.rect-rotate-handle text {
+  fill: #409eff;
+  font-size: 10px;
+  font-weight: 700;
+  user-select: none;
 }
 
 .shape-resize-handle.handle-nw {
