@@ -44,6 +44,7 @@ function checkResponseCode(result) {
     // 清除登录状态
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
+    localStorage.removeItem("lastActivityAt");
     // 触发自定义事件，通知 App.vue 更新登录状态
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("tokenCleared"));

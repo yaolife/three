@@ -1,5 +1,9 @@
 import { reactive } from 'vue'
 
+const APP_SESSION_KEY = 'appSessionInitialized'
+const LAST_ACTIVITY_KEY = 'lastActivityAt'
+const INACTIVITY_MS = 60 * 60 * 1000 // 1 小时无操作需重新登录
+
 // 创建用户状态
 const userState = reactive({
   isLoggedIn: false,
@@ -43,6 +47,7 @@ const login = (username, userNickName = null, loginType = null, menus = null) =>
     loginType: loginType !== null && loginType !== undefined ? loginType : null,
     menus: userState.userInfo.menus
   }))
+  updateLastActivity()
 }
 
 // 登出方法
@@ -56,6 +61,44 @@ const logout = () => {
   // 清除 localStorage 中的用户信息
   localStorage.removeItem('userInfo')
   localStorage.removeItem('token')
+  localStorage.removeItem(LAST_ACTIVITY_KEY)
+}
+
+const updateLastActivity = () => {
+  localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()))
+}
+
+const isSessionExpired = () => {
+  const last = localStorage.getItem(LAST_ACTIVITY_KEY)
+  if (!last) return true
+  return Date.now() - Number(last) > INACTIVITY_MS
+}
+
+// 应用启动时初始化会话：重新打开软件需重新登录
+const initAuthSession = () => {
+  const isSameAppSession = sessionStorage.getItem(APP_SESSION_KEY) === '1'
+
+  if (!isSameAppSession) {
+    sessionStorage.setItem(APP_SESSION_KEY, '1')
+    logout()
+    return false
+  }
+
+  if (isSessionExpired()) {
+    logout()
+    return false
+  }
+
+  restoreUserState()
+  return userState.isLoggedIn
+}
+
+// 检查空闲超时，超时则登出
+const checkInactivityTimeout = () => {
+  if (!userState.isLoggedIn) return false
+  if (!isSessionExpired()) return false
+  logout()
+  return true
 }
 
 // 从 localStorage 恢复用户状态
@@ -111,5 +154,10 @@ export default {
   login,
   logout,
   skipLogin,
-  restoreUserState
+  restoreUserState,
+  initAuthSession,
+  updateLastActivity,
+  checkInactivityTimeout,
+  isSessionExpired,
+  INACTIVITY_MS,
 }

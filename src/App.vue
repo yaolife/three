@@ -404,7 +404,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted, nextTick, watch } from "vue";
+import { ref, computed, reactive, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   VideoPlay,
@@ -587,6 +587,22 @@ const createProject = () => {
   console.log('Navigating to verification-projects page for project creation');
   window.createProjectFlag = true;
   router.push('/verification-projects');
+};
+
+const promptRequireLogin = async (message = "请重新登录") => {
+  if (userStore.userState.isLoggedIn) {
+    userStore.logout();
+  }
+  ElMessage.warning(message);
+  showMenuDialog.value = false;
+  if (route.path !== "/welcome") {
+    await router.push("/welcome");
+    await nextTick();
+  }
+  if (window.clearProjectListDirect) {
+    window.clearProjectListDirect();
+  }
+  showLoginDialog.value = true;
 };
 
 const handleLoginClick = () => {
@@ -1185,63 +1201,88 @@ watch(syncActiveTab, (newTab) => {
   }
 });
 
-// 页面加载时恢复用户状态
+const ACTIVITY_EVENTS = ["mousedown", "keydown", "scroll", "touchstart", "click"];
+const ACTIVITY_THROTTLE_MS = 30000;
+let lastActivityUpdate = 0;
+let inactivityCheckTimer = null;
+
+const handleUserActivity = () => {
+  if (!userStore.userState.isLoggedIn) return;
+  const now = Date.now();
+  if (now - lastActivityUpdate < ACTIVITY_THROTTLE_MS) return;
+  lastActivityUpdate = now;
+  userStore.updateLastActivity();
+};
+
+const handleTokenCleared = () => {
+  promptRequireLogin("请重新登录");
+};
+
+const handleStorageChange = (e) => {
+  if (e.key === "token" && !e.newValue) {
+    promptRequireLogin("请重新登录");
+  }
+};
+
+const handleVisibilityChange = () => {
+  if (document.visibilityState === "visible" && userStore.checkInactivityTimeout()) {
+    promptRequireLogin("长时间未操作，请重新登录");
+  }
+};
+
+// 页面加载时初始化登录会话（重新打开软件 / 超时均需重新登录）
 onMounted(async () => {
-  userStore.restoreUserState();
-  
+  userStore.initAuthSession();
+
   if (!userStore.userState.isLoggedIn) {
-    // 未登录时，确保在welcome页面
-    if (route.path !== '/welcome') {
-      await router.push('/welcome');
+    if (route.path !== "/welcome") {
+      await router.push("/welcome");
       await nextTick();
     }
     showLoginDialog.value = true;
   } else {
-    // 如果已登录，自动显示功能菜单弹窗
-    // 使用 nextTick 确保组件完全挂载后再显示菜单
     nextTick(() => {
-      // 如果当前不在欢迎页面，先跳转到欢迎页面
-      if (route.path !== '/welcome') {
-        router.push('/welcome').then(() => {
+      if (route.path !== "/welcome") {
+        router.push("/welcome").then(() => {
           nextTick(() => {
             openMenuDialog();
           });
         });
       } else {
-        // 如果已经在欢迎页面，直接显示菜单
         openMenuDialog();
       }
     });
   }
-  // 暴露 router 实例到 window，供 api/index.js 中的 checkResponseCode 使用
+
   window.__VUE_ROUTER__ = router;
-  
-  // 监听 token 被清除的事件，同步更新登录状态
-  window.addEventListener("tokenCleared", async () => {
-    userStore.logout();
-    // 跳转到welcome页面
-    if (route.path !== '/welcome') {
-      await router.push('/welcome');
-      await nextTick();
-    }
-    // 显示登录弹窗
-    showLoginDialog.value = true;
+
+  ACTIVITY_EVENTS.forEach((evt) => {
+    window.addEventListener(evt, handleUserActivity, { passive: true });
   });
-  
-  // 监听 storage 变化事件（处理跨标签页的情况）
-  window.addEventListener("storage", async (e) => {
-    if (e.key === "token" && !e.newValue) {
-      // token 被清除
-      userStore.logout();
-      // 跳转到welcome页面
-      if (route.path !== '/welcome') {
-        await router.push('/welcome');
-        await nextTick();
-      }
-      // 显示登录弹窗
-      showLoginDialog.value = true;
+
+  inactivityCheckTimer = setInterval(() => {
+    if (userStore.checkInactivityTimeout()) {
+      promptRequireLogin("长时间未操作，请重新登录");
     }
+  }, 60000);
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  window.addEventListener("tokenCleared", handleTokenCleared);
+  window.addEventListener("storage", handleStorageChange);
+});
+
+onUnmounted(() => {
+  ACTIVITY_EVENTS.forEach((evt) => {
+    window.removeEventListener(evt, handleUserActivity);
   });
+  if (inactivityCheckTimer) {
+    clearInterval(inactivityCheckTimer);
+    inactivityCheckTimer = null;
+  }
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
+  window.removeEventListener("tokenCleared", handleTokenCleared);
+  window.removeEventListener("storage", handleStorageChange);
 });
 </script>
 
