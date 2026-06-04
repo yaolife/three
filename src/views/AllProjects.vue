@@ -658,7 +658,7 @@ const handleOpen = async (row) => {
       // 检查是否在 Electron 环境中
       if (window.electronAPI && window.electronAPI.openExternalApp) {
         // 根据项目类型选择不同的应用路径
-        let appPath = 'PT3DMPD\\PT3DMPD.exe' // 默认使用 PT3DMPD（construction-plans 三维项目）
+        let appPath = 'PT3DMPD\\MPP.exe' // 默认使用 MPP（construction-plans 三维项目）
         if (row.projectType === 1) {
           // virtual-simulation 页面使用 PT3DS
           appPath = 'PT3DS\\PT3DS.exe'

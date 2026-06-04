@@ -15,7 +15,7 @@ export default defineConfig({
       "/server-api": {
         //target: "https://839f-240e-47e-3852-d0b-193c-e99a-ba3b-a5a5.ngrok-free.app", // 公司服务器 photothermal
         //target: "http://192.168.0.102:18080",// 生产服务器
-        target: "http://10.29.139.79:18080",
+        target: "http://localhost:18080",
          //target: "http://192.168.162.254:18080",//国虎http://192.168.21.64:18080
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/server-api/, ""),

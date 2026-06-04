@@ -17,7 +17,7 @@ const getApiBaseUrl = () => {
   // Electron 环境使用完整 URL
   if (isElectron) {
     // 默认 API 地址，请根据实际情况修改
-    return "http://10.29.139.79:18080"; 
+    return "http://localhost:18080"; 
   }
   
   // Web 环境使用相对路径（通过 Vite 代理）
