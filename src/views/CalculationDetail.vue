@@ -859,7 +859,7 @@
                     </div>
                     <div class="form-row" style="margin: 10px 0">
                       <label class="form-label">设备重量<span>(G)</span></label>
-                      <div class="input-with-unit">
+                      <div class="input-with-unit device-input">
                         <el-input-number
                           v-model="commonDeviceSettings.equipmentWeight"
                           controls-position="right"
@@ -9185,4 +9185,5 @@ background: #FFF;
   font-size: 14px;
   line-height: 1.5;
 }
+
 </style>
