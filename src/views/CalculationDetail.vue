@@ -8253,6 +8253,18 @@ const handleExportAll = async (exportType = 0) => {
   gap: 4px;
 }
 
+/* 设备设置-设备重量：输入框宽度减半，小屏桌面端单位 t 不溢出边框 */
+.sling-device-info .form-row > .device-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.sling-device-info .form-row > .device-input :deep(.el-input-number) {
+  width: 72%;
+  max-width: 72%;
+  flex: none;
+}
+
 .input-with-unit.error :deep(.el-input-number) {
   border-color: #ff4d4f;
 }
