@@ -1349,7 +1349,7 @@
                   filter: none;
                 "
               >
-                <div class="system-table">
+                <div class="system-table sling-coefficient-table-scroll">
                   <table>
                     <thead>
                       <tr>
@@ -4830,22 +4830,118 @@ watch(
   { immediate: false, deep: true }
 );
 
-const createDefaultLiftingSystemItems = () => [
-  { id: 1, order: 1, name: "动载系数", value: 1, checked: false },
-  { id: 2, order: 2, name: "偏载系数", value: 1, checked: false },
-  { id: 3, order: 3, name: "其他系数", value: 1, checked: false },
-  { id: 4, order: 4, name: "", value: null, checked: false },
+const BASE_LIFTING_COEFFICIENT_NAMES = ["动载系数", "偏载系数"];
+const OTHER_LIFTING_COEFFICIENT_NAME = "其他系数";
+const WIRE_ROPE_EXTRA_COEFFICIENT_NAMES = [
+  "歪斜系数",
+  "倾斜系数",
+  "横摇系数",
+  "重心偏移系数",
+  "不走通系数",
+  "重量系数",
 ];
 
-const cloneLiftingSystemItems = (items) =>
-  (Array.isArray(items) && items.length > 0
-    ? items
-    : createDefaultLiftingSystemItems()
-  ).map((item, index) => ({
+const createCoefficientItem = (
+  order,
+  name,
+  value = 1,
+  checked = false,
+  id = order
+) => ({
+  id,
+  order,
+  name,
+  value,
+  checked,
+});
+
+const syncLiftingSystemItemsForSlingType = (items, slingType = "0") => {
+  const existing = Array.isArray(items) ? items.filter(Boolean) : [];
+  const isWireRope = slingType === "0";
+  const findExisting = (name) => existing.find((item) => item.name === name);
+
+  const result = [];
+  let order = 1;
+
+  BASE_LIFTING_COEFFICIENT_NAMES.forEach((name) => {
+    const found = findExisting(name);
+    result.push(
+      createCoefficientItem(
+        order,
+        name,
+        found?.value ?? 1,
+        !!found?.checked,
+        found?.id ?? order
+      )
+    );
+    order += 1;
+  });
+
+  if (isWireRope) {
+    WIRE_ROPE_EXTRA_COEFFICIENT_NAMES.forEach((name) => {
+      const found = findExisting(name);
+      result.push(
+        createCoefficientItem(
+          order,
+          name,
+          found?.value ?? 1,
+          !!found?.checked,
+          found?.id ?? order
+        )
+      );
+      order += 1;
+    });
+  }
+
+  const knownNames = new Set([
+    ...BASE_LIFTING_COEFFICIENT_NAMES,
+    OTHER_LIFTING_COEFFICIENT_NAME,
+    ...WIRE_ROPE_EXTRA_COEFFICIENT_NAMES,
+  ]);
+
+  existing
+    .filter((item) => item.name && item.name.trim() && !knownNames.has(item.name))
+    .forEach((item) => {
+      const value =
+        item.value === "" || item.value === null || item.value === undefined
+          ? null
+          : Number(item.value);
+      result.push({
+        id: item.id ?? order,
+        order,
+        name: item.name,
+        value: Number.isNaN(value) ? null : value,
+        checked: !!item.checked,
+      });
+      order += 1;
+    });
+
+  const otherFound = findExisting(OTHER_LIFTING_COEFFICIENT_NAME);
+  result.push(
+    createCoefficientItem(
+      order,
+      OTHER_LIFTING_COEFFICIENT_NAME,
+      otherFound?.value ?? 1,
+      !!otherFound?.checked,
+      otherFound?.id ?? order
+    )
+  );
+  order += 1;
+
+  result.push(createCoefficientItem(order, "", null, false, order));
+
+  return result.map((item, index) => ({
     ...item,
     id: item.id ?? index + 1,
-    order: item.order ?? index + 1,
+    order: index + 1,
   }));
+};
+
+const createDefaultLiftingSystemItems = (slingType = "0") =>
+  syncLiftingSystemItemsForSlingType([], slingType);
+
+const cloneLiftingSystemItems = (items, slingType = "0") =>
+  syncLiftingSystemItemsForSlingType(items, slingType);
 
 const createDefaultSling = (overrides = {}) => ({
   id: 1,
@@ -4897,7 +4993,7 @@ const createDefaultSling = (overrides = {}) => ({
   isDouble: false,
   isSinglePointLifting: false,
   isBottomSling: false,
-  liftingSystemItems: cloneLiftingSystemItems(),
+  liftingSystemItems: cloneLiftingSystemItems([], overrides.slingType ?? "0"),
   arrangeType: null,
   ...overrides,
 });
@@ -5184,7 +5280,8 @@ watch(
         upperSling.beamSlingWeight =
           commonDeviceSettings.value.beamSlingWeight || 0;
         upperSling.liftingSystemItems = cloneLiftingSystemItems(
-          upperSling.liftingSystemItems
+          upperSling.liftingSystemItems,
+          upperSling.slingType
         );
 
         // 创建下部吊索具01，使用默认初始化内容
@@ -5199,7 +5296,8 @@ watch(
         lowerSling.beamSlingWeight =
           commonDeviceSettings.value.beamSlingWeight || 0;
         lowerSling.liftingSystemItems = cloneLiftingSystemItems(
-          lowerSling.liftingSystemItems
+          lowerSling.liftingSystemItems,
+          lowerSling.slingType
         );
 
         // 添加到数组中，确保顺序正确
@@ -5218,12 +5316,26 @@ watch(
         firstSling.liftingType = "noBeam";
         firstSling.isBottomSling = false; // Reset if it was a lower sling
         firstSling.liftingSystemItems = cloneLiftingSystemItems(
-          firstSling.liftingSystemItems
+          firstSling.liftingSystemItems,
+          firstSling.slingType
         );
         liftingFormDatas.value = [firstSling];
         activeSlingIndex.value = 0;
       }
     }
+  }
+);
+
+// 监听吊索具类型变化，同步钢丝绳专属系数
+watch(
+  () => activeSlingData.value?.slingType,
+  (newType, oldType) => {
+    if (isInitializingFromApi || !activeSlingData.value) return;
+    if (newType === oldType) return;
+    activeSlingData.value.liftingSystemItems = cloneLiftingSystemItems(
+      activeSlingData.value.liftingSystemItems,
+      newType
+    );
   }
 );
 
@@ -7113,7 +7225,7 @@ const populateCraneDetails = (details = []) => {
   });
 };
 
-const parseCoefficientItems = (coefficientSet) => {
+const parseCoefficientItems = (coefficientSet, slingType = "0") => {
   let items = [];
   if (Array.isArray(coefficientSet)) {
     items = coefficientSet;
@@ -7128,9 +7240,9 @@ const parseCoefficientItems = (coefficientSet) => {
     }
   }
   if (!items.length) {
-    return cloneLiftingSystemItems();
+    return createDefaultLiftingSystemItems(slingType);
   }
-  return items.map((item, index) => ({
+  const parsedItems = items.map((item, index) => ({
     id: item.id ?? index + 1,
     order: item.order ?? index + 1,
     name: item.name ?? "",
@@ -7140,6 +7252,7 @@ const parseCoefficientItems = (coefficientSet) => {
         : Number(item.value),
     checked: !!item.checked,
   }));
+  return syncLiftingSystemItemsForSlingType(parsedItems, slingType);
 };
 
 const createSlingFromDetail = (detail, index) => {
@@ -7202,17 +7315,20 @@ const createSlingFromDetail = (detail, index) => {
   sling.isSinglePointLifting = parseBooleanFlag(detail?.singlePoint);
   sling.liftingType = Number(detail?.type) === 1 ? "withBeam" : "noBeam";
   sling.isBottomSling = parseBooleanFlag(detail?.liftingPosition);
-  sling.liftingSystemItems = parseCoefficientItems(detail?.coefficientSet);
+  sling.slingType =
+    detail?.liftingType !== undefined && detail?.liftingType !== null
+      ? String(detail.liftingType)
+      : sling.slingType;
+  sling.liftingSystemItems = parseCoefficientItems(
+    detail?.coefficientSet,
+    sling.slingType
+  );
   sling.beamWeight = toNumberOrZero(detail?.beamWeight, sling.beamWeight);
   sling.beamLength = toNumberOrZero(detail?.beamLength, sling.beamLength);
   sling.beamSlingWeight = toNumberOrZero(
     detail?.utensilWeight,
     sling.beamSlingWeight
   );
-  sling.slingType =
-    detail?.liftingType !== undefined && detail?.liftingType !== null
-      ? String(detail.liftingType)
-      : sling.slingType;
   sling.distanceLa = toNumberOrZero(detail?.distanceLa, sling.distanceLa);
   sling.distanceLb = toNumberOrZero(detail?.distanceLb, sling.distanceLb);
   sling.distanceL1 = toNumberOrZero(detail?.distanceL1, sling.distanceL1);
@@ -8812,6 +8928,34 @@ const handleExportAll = async (exportType = 0) => {
 
 .system-table td {
   color: #666;
+}
+
+.sling-coefficient-table-scroll {
+  max-height: 210px;
+  overflow-y: auto;
+}
+
+.sling-coefficient-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.sling-coefficient-table-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sling-coefficient-table-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sling-coefficient-table-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sling-coefficient-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 .lifting-basic-grid {
   display: grid;
