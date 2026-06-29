@@ -6216,6 +6216,18 @@ A:履带接地面积= ${formatNumber(
 };
 
 // 打开吊索具配置选择弹窗
+const getDefaultWireRopeCategory = (categories = []) => {
+  if (!categories.length) return null;
+  return (
+    categories.find(
+      (item) =>
+        item.liftingTypeName === "钢丝绳" ||
+        item.liftingType === 0 ||
+        item.liftingType === "0"
+    ) ?? categories[0]
+  );
+};
+
 const openLiftingEquipmentDialog = async () => {
   showLiftingEquipmentDialog.value = true;
   // 重置选择状态
@@ -6227,6 +6239,11 @@ const openLiftingEquipmentDialog = async () => {
 
   // 加载一级分类数据
   await fetchCategories();
+
+  const defaultCategory = getDefaultWireRopeCategory(equipmentCategories.value);
+  if (defaultCategory) {
+    await selectCategory(defaultCategory);
+  }
 };
 
 // 获取一级分类数据
