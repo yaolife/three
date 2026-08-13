@@ -8,6 +8,7 @@ MD.Keyboard = function () {
     s: { name: "形状工具", cb: () => state.set("canvasMode", "shapelib") },
     p: { name: "路径工具", cb: () => state.set("canvasMode", "path") },
     t: { name: "文本工具", cb: () => state.set("canvasMode", "text") },
+    d: { name: "尺寸标注", cb: () => state.set("canvasMode", "dimension") },
     z: { name: "缩放工具", cb: () => state.set("canvasMode", "zoom") },
     e: {
       name: "吸管工具",
