@@ -725,6 +725,155 @@
               X:{{ coordTipX.toFixed(3) }}&nbsp;&nbsp;Y:{{ coordTipY.toFixed(3) }}
             </template>
           </div>
+
+          <!-- Figma 风格：点位占位图形属性面板 -->
+          <div
+            v-if="shapeInspectorVisible && activeShape"
+            class="shape-inspector-panel"
+            @mousedown.stop
+            @click.stop
+          >
+            <div class="shape-inspector-header">
+              <span class="shape-inspector-title">
+                {{
+                  activeShape.tool === "rectangle"
+                    ? "矩形"
+                    : activeShape.tool === "circle"
+                      ? "圆形"
+                      : activeShape.tool === "triangle"
+                        ? "三角形"
+                        : activeShape.tool === "sector"
+                          ? "扇形"
+                          : "图形"
+                }}
+              </span>
+              <button
+                class="shape-inspector-close"
+                type="button"
+                title="关闭"
+                @click="shapeInspectorVisible = false"
+              >
+                ×
+              </button>
+            </div>
+
+            <div class="shape-inspector-section">
+              <div class="shape-inspector-label">位置与尺寸</div>
+              <div class="shape-inspector-grid">
+                <label class="shape-field">
+                  <span>X</span>
+                  <input
+                    v-model.number="shapeInspectorForm.x"
+                    type="number"
+                    step="0.001"
+                    @change="applyShapeInspectorChanges"
+                  />
+                </label>
+                <label class="shape-field">
+                  <span>Y</span>
+                  <input
+                    v-model.number="shapeInspectorForm.y"
+                    type="number"
+                    step="0.001"
+                    @change="applyShapeInspectorChanges"
+                  />
+                </label>
+                <label class="shape-field">
+                  <span>W</span>
+                  <input
+                    v-model.number="shapeInspectorForm.w"
+                    type="number"
+                    min="1"
+                    step="1"
+                    @change="applyShapeInspectorChanges"
+                  />
+                </label>
+                <label class="shape-field">
+                  <span>H</span>
+                  <input
+                    v-model.number="shapeInspectorForm.h"
+                    type="number"
+                    min="1"
+                    step="1"
+                    @change="applyShapeInspectorChanges"
+                  />
+                </label>
+                <label class="shape-field shape-field-wide">
+                  <span>角度</span>
+                  <input
+                    v-model.number="shapeInspectorForm.rotate"
+                    type="number"
+                    step="1"
+                    @change="applyShapeInspectorChanges"
+                  />
+                  <em>°</em>
+                </label>
+              </div>
+            </div>
+
+            <div class="shape-inspector-section">
+              <div class="shape-inspector-label">填充</div>
+              <div class="shape-inspector-row">
+                <label class="shape-color-field">
+                  <span>颜色</span>
+                  <input
+                    v-model="shapeInspectorForm.fillHex"
+                    type="color"
+                    @input="applyShapeInspectorChanges"
+                    @change="applyShapeInspectorChanges"
+                  />
+                </label>
+                <label class="shape-field shape-field-grow">
+                  <span>透明度</span>
+                  <input
+                    v-model.number="shapeInspectorForm.opacity"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    @change="applyShapeInspectorChanges"
+                  />
+                  <em>%</em>
+                </label>
+              </div>
+            </div>
+
+            <div class="shape-inspector-section">
+              <div class="shape-inspector-label">描边</div>
+              <div class="shape-inspector-row">
+                <label class="shape-color-field">
+                  <span>颜色</span>
+                  <input
+                    v-model="shapeInspectorForm.strokeHex"
+                    type="color"
+                    @input="applyShapeInspectorChanges"
+                    @change="applyShapeInspectorChanges"
+                  />
+                </label>
+                <label class="shape-field shape-field-grow">
+                  <span>粗细</span>
+                  <input
+                    v-model.number="shapeInspectorForm.strokeWidth"
+                    type="number"
+                    min="0.5"
+                    max="40"
+                    step="0.5"
+                    @change="applyShapeInspectorChanges"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div class="shape-inspector-actions">
+              <button
+                type="button"
+                class="shape-inspector-apply"
+                @click="applyShapeInspectorChanges"
+              >
+                应用
+              </button>
+            </div>
+          </div>
           <!-- 顶部自由标注图形覆盖层 -->
           <svg
             v-if="canvasSize.width && canvasSize.height && renderedFreeAnnotations.length"
@@ -819,9 +968,9 @@
                 :y="item.canvasY - (item.config.height || 0) / 2"
                 :width="item.config.width || 0"
                 :height="item.config.height || 0"
-                :fill="item.config.fill || 'rgba(255,255,255,0.2)'"
-                :stroke="item.config.stroke || '#F59A23'"
-                :stroke-width="1 / (scale || 1)"
+                :fill="getShapeDisplayFill(item.config, 'rgba(0,160,233,0.35)')"
+                :stroke="item.config.stroke || '#00A0E9'"
+                :stroke-width="getShapeStrokeWidth(item.config) / (scale || 1)"
                 :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
               />
               <circle
@@ -830,33 +979,34 @@
                 :cx="item.canvasX"
                 :cy="item.canvasY"
                 :r="item.config.radius || MIN_RADIUS"
-                :fill="item.config.fill || 'rgba(38,132,255,0.25)'"
+                :fill="getShapeDisplayFill(item.config, 'rgba(38,132,255,0.25)')"
                 :stroke="item.config.stroke || '#2684FF'"
-                :stroke-width="1 / (scale || 1)"
+                :stroke-width="getShapeStrokeWidth(item.config) / (scale || 1)"
+                :transform="`rotate(${item.config.rotate || 0}, ${item.canvasX}, ${item.canvasY})`"
               />
               <polygon
                 v-else-if="item.tool === 'triangle'"
                 class="shape-body"
                 :points="createTrianglePoints(item.canvasX, item.canvasY, item.config.size || MIN_TRIANGLE_SIZE, item.config.rotate || 0)"
-                :fill="item.config.fill || 'rgba(245,108,108,0.25)'"
+                :fill="getShapeDisplayFill(item.config, 'rgba(245,108,108,0.25)')"
                 :stroke="item.config.stroke || '#F56C6C'"
-                :stroke-width="1 / (scale || 1)"
+                :stroke-width="getShapeStrokeWidth(item.config) / (scale || 1)"
               />
               <polygon
                 v-else-if="item.tool === 'pentagon'"
                 class="shape-body"
                 :points="createPentagonPoints(item.canvasX, item.canvasY, item.config.size || 48, item.config.rotate || 0)"
-                :fill="item.config.fill || 'rgba(52,152,219,0.25)'"
+                :fill="getShapeDisplayFill(item.config, 'rgba(52,152,219,0.25)')"
                 :stroke="item.config.stroke || '#3498DB'"
-                :stroke-width="1 / (scale || 1)"
+                :stroke-width="getShapeStrokeWidth(item.config) / (scale || 1)"
               />
               <path
                 v-else-if="item.tool === 'sector'"
                 class="shape-body"
                 :d="createSectorPath(item.canvasX, item.canvasY, item.config.radius || MIN_RADIUS, item.config.rotate || 0, (item.config.rotate || 0) + (item.config.angle || 60))"
-                :fill="item.config.fill || 'rgba(255,196,112,0.25)'"
-                :stroke="item.config.stroke || '#F59A23'"
-                :stroke-width="1 / (scale || 1)"
+                :fill="getShapeDisplayFill(item.config, 'rgba(245,108,108,0.25)')"
+                :stroke="item.config.stroke || '#F56C6C'"
+                :stroke-width="getShapeStrokeWidth(item.config) / (scale || 1)"
               />
               <text
                 v-else-if="item.tool === 'text'"
@@ -1666,29 +1816,35 @@ const defaultShapeConfigs = {
   rectangle: withOffsetDefaults({
     width: 64,
     height: 32,
-    // 使用与平面图明显区分的冷色调
-    fill: "rgba(0, 160, 233, 0.35)", // 蓝青色半透明
+    fill: "#00A0E9",
     stroke: "#00A0E9",
+    opacity: 0.35,
+    strokeWidth: 1.5,
     rotate: 0,
   }),
   circle: withOffsetDefaults({
     radius: 30,
-    fill: "rgba(38, 132, 255, 0.25)",
+    fill: "#2684FF",
     stroke: "#2684FF",
+    opacity: 0.25,
+    strokeWidth: 1.5,
     rotate: 0,
   }),
   triangle: withOffsetDefaults({
     size: 56,
-    fill: "rgba(245, 108, 108, 0.25)",
+    fill: "#F56C6C",
     stroke: "#F56C6C",
+    opacity: 0.25,
+    strokeWidth: 1.5,
     rotate: 0,
   }),
   sector: withOffsetDefaults({
     radius: 72,
     angle: 60,
-    // 扇形初始化颜色改为红色
-    fill: "rgba(245, 108, 108, 0.25)",
+    fill: "#F56C6C",
     stroke: "#F56C6C",
+    opacity: 0.25,
+    strokeWidth: 1.5,
     rotate: -30,
   }),
   text: withOffsetDefaults({
@@ -1844,6 +2000,219 @@ const activeShape = computed(() => {
   if (!activeShapeId.value) return null;
   return shapeOverlays.value.find((shape) => shape.id === activeShapeId.value) || null;
 });
+
+// —— Figma 风格：点位占位图形属性检查器 ——
+const PLACEHOLDER_SHAPE_TOOLS = ["rectangle", "circle", "triangle", "sector"];
+const shapeInspectorVisible = ref(false);
+const shapeInspectorForm = reactive({
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0,
+  rotate: 0,
+  fillHex: "#00A0E9",
+  strokeHex: "#00A0E9",
+  opacity: 35,
+  strokeWidth: 1.5,
+});
+let shapeInspectorSyncLock = false;
+
+const hexToRgb = (hex) => {
+  const raw = String(hex || "").replace("#", "").trim();
+  if (raw.length === 3) {
+    return {
+      r: parseInt(raw[0] + raw[0], 16),
+      g: parseInt(raw[1] + raw[1], 16),
+      b: parseInt(raw[2] + raw[2], 16),
+    };
+  }
+  if (raw.length >= 6) {
+    return {
+      r: parseInt(raw.slice(0, 2), 16),
+      g: parseInt(raw.slice(2, 4), 16),
+      b: parseInt(raw.slice(4, 6), 16),
+    };
+  }
+  return { r: 0, g: 160, b: 233 };
+};
+
+const rgbToHex = (r, g, b) =>
+  `#${[r, g, b]
+    .map((v) => Math.max(0, Math.min(255, Number(v) || 0)).toString(16).padStart(2, "0"))
+    .join("")}`;
+
+const parseColorWithAlpha = (value, fallbackHex = "#00A0E9", fallbackOpacity = 0.35) => {
+  if (!value || typeof value !== "string") {
+    return { hex: fallbackHex, opacity: fallbackOpacity };
+  }
+  const trimmed = value.trim();
+  if (trimmed.startsWith("#")) {
+    return { hex: trimmed.slice(0, 7), opacity: fallbackOpacity };
+  }
+  const match = trimmed.match(
+    /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/i
+  );
+  if (match) {
+    return {
+      hex: rgbToHex(Number(match[1]), Number(match[2]), Number(match[3])),
+      opacity: match[4] !== undefined ? Number(match[4]) : 1,
+    };
+  }
+  return { hex: fallbackHex, opacity: fallbackOpacity };
+};
+
+const composeRgba = (hex, opacity01) => {
+  const { r, g, b } = hexToRgb(hex);
+  const a = Math.max(0, Math.min(1, Number(opacity01) || 0));
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
+
+const getShapeDisplayFill = (config = {}, fallback = "rgba(0,160,233,0.35)") => {
+  if (config.fillHex) {
+    const opacity = Number.isFinite(config.opacity) ? Number(config.opacity) : 0.35;
+    return composeRgba(config.fillHex, opacity);
+  }
+  if (config.fill && String(config.fill).startsWith("rgba")) return config.fill;
+  if (config.fill && String(config.fill).startsWith("#")) {
+    const opacity = Number.isFinite(config.opacity) ? Number(config.opacity) : 0.35;
+    return composeRgba(config.fill, opacity);
+  }
+  return fallback;
+};
+
+const getShapeStrokeWidth = (config = {}) => {
+  const width = Number(config.strokeWidth);
+  return Number.isFinite(width) && width > 0 ? width : 1.5;
+};
+
+const syncShapeInspectorFromActive = () => {
+  if (shapeInspectorSyncLock) return;
+  const shape = activeShape.value;
+  if (!shape || !PLACEHOLDER_SHAPE_TOOLS.includes(shape.tool)) {
+    shapeInspectorVisible.value = false;
+    return;
+  }
+  const rendered = renderedShapeItems.value.find((item) => item.id === shape.id);
+  const config = shape.config || {};
+  const fillInfo = parseColorWithAlpha(
+    config.fillHex || config.fill,
+    config.stroke || "#00A0E9",
+    Number.isFinite(config.opacity) ? Number(config.opacity) : 0.35
+  );
+  const strokeInfo = parseColorWithAlpha(
+    config.stroke || fillInfo.hex,
+    fillInfo.hex,
+    1
+  );
+
+  shapeInspectorForm.x = Number(
+    (shape.position?.x ?? rendered?.geoPosition?.x ?? 0).toFixed(3)
+  );
+  shapeInspectorForm.y = Number(
+    (shape.position?.y ?? rendered?.geoPosition?.y ?? 0).toFixed(3)
+  );
+  shapeInspectorForm.rotate = Number(config.rotate) || 0;
+  shapeInspectorForm.fillHex = fillInfo.hex;
+  shapeInspectorForm.strokeHex = strokeInfo.hex;
+  shapeInspectorForm.opacity = Math.round(
+    (Number.isFinite(config.opacity) ? Number(config.opacity) : fillInfo.opacity) * 100
+  );
+  shapeInspectorForm.strokeWidth = getShapeStrokeWidth(config);
+
+  if (shape.tool === "rectangle") {
+    shapeInspectorForm.w = Number(config.width) || 64;
+    shapeInspectorForm.h = Number(config.height) || 32;
+  } else if (shape.tool === "circle") {
+    const diameter = (Number(config.radius) || 30) * 2;
+    shapeInspectorForm.w = diameter;
+    shapeInspectorForm.h = diameter;
+  } else if (shape.tool === "triangle") {
+    const size = Number(config.size) || 56;
+    shapeInspectorForm.w = size;
+    shapeInspectorForm.h = size;
+  } else if (shape.tool === "sector") {
+    const diameter = (Number(config.radius) || 72) * 2;
+    shapeInspectorForm.w = diameter;
+    shapeInspectorForm.h = diameter;
+  }
+
+  shapeInspectorVisible.value = true;
+};
+
+const applyShapeInspectorChanges = () => {
+  if (!activeShapeId.value || !activeShape.value) return;
+  if (!PLACEHOLDER_SHAPE_TOOLS.includes(activeShape.value.tool)) return;
+
+  shapeInspectorSyncLock = true;
+  const tool = activeShape.value.tool;
+  const opacity01 = Math.max(0, Math.min(100, Number(shapeInspectorForm.opacity) || 0)) / 100;
+  const fillHex = String(shapeInspectorForm.fillHex || "#00A0E9").slice(0, 7);
+  const strokeHex = String(shapeInspectorForm.strokeHex || fillHex).slice(0, 7);
+  const strokeWidth = Math.max(0.5, Number(shapeInspectorForm.strokeWidth) || 1.5);
+  const rotate = Number(shapeInspectorForm.rotate) || 0;
+  const nextX = Number(shapeInspectorForm.x);
+  const nextY = Number(shapeInspectorForm.y);
+  let nextW = Math.max(1, Number(shapeInspectorForm.w) || 1);
+  let nextH = Math.max(1, Number(shapeInspectorForm.h) || 1);
+
+  // 圆 / 三角 / 扇形保持等比
+  if (tool === "circle" || tool === "sector" || tool === "triangle") {
+    const size = Math.max(nextW, nextH);
+    nextW = size;
+    nextH = size;
+    shapeInspectorForm.w = size;
+    shapeInspectorForm.h = size;
+  }
+
+  // 同步表单中的颜色值，避免取色器未闭合时 v-model 滞后
+  shapeInspectorForm.fillHex = fillHex;
+  shapeInspectorForm.strokeHex = strokeHex;
+
+  updateShape(activeShapeId.value, (shape) => {
+    const nextConfig = {
+      ...(shape.config || {}),
+      // 同时保存 hex 与合成后的 rgba，保证各渲染路径都能吃到最新颜色
+      fill: composeRgba(fillHex, opacity01),
+      fillHex,
+      stroke: strokeHex,
+      opacity: opacity01,
+      strokeWidth,
+      rotate,
+    };
+    if (tool === "rectangle") {
+      nextConfig.width = nextW;
+      nextConfig.height = nextH;
+    } else if (tool === "circle") {
+      nextConfig.radius = Math.max(MIN_RADIUS, nextW / 2);
+    } else if (tool === "triangle") {
+      nextConfig.size = Math.max(MIN_TRIANGLE_SIZE, nextW);
+    } else if (tool === "sector") {
+      nextConfig.radius = Math.max(MIN_RADIUS, nextW / 2);
+    }
+    return {
+      ...shape,
+      position: {
+        x: Number.isFinite(nextX) ? nextX : shape.position?.x,
+        y: Number.isFinite(nextY) ? nextY : shape.position?.y,
+      },
+      config: nextConfig,
+    };
+  });
+
+  nextTick(() => {
+    shapeInspectorSyncLock = false;
+    // 强制刷新一次检查器显示，确保与画布一致
+    syncShapeInspectorFromActive();
+  });
+};
+
+watch(
+  [activeShapeId, activeShape],
+  () => {
+    syncShapeInspectorFromActive();
+  },
+  { deep: true }
+);
 
 // 计算水平标尺刻度（0刻度跟随图片移动，以图片左上角为0点）
 const horizontalTicks = computed(() => {
@@ -2366,11 +2735,13 @@ const addShapeOverlayForPoint = (toolType, extraConfig = {}) => {
 
   shapeOverlays.value = [...shapeOverlays.value, shape];
   activeShapeId.value = shape.id;
+  shapeInspectorVisible.value = PLACEHOLDER_SHAPE_TOOLS.includes(toolType);
   
   // 创建完成后立即重绘
   nextTick(() => {
     drawAllTrajectories();
     isCreatingShape = false;
+    syncShapeInspectorFromActive();
   });
 };
 
@@ -2382,6 +2753,7 @@ const handleClearShapes = () => {
   shapeOverlays.value = shapeOverlays.value.filter((shape) => shape.pointId !== activePoint.value.id);
   activeDrawingTool.value = null;
   activeShapeId.value = null;
+  shapeInspectorVisible.value = false;
   ElMessage.success("已清除当前点位的绘制图形");
 };
 
@@ -3359,10 +3731,10 @@ const drawRectangleShape = (coords, config = {}) => {
   ctx.value.rotate(degToRad(config.rotate || 0));
   ctx.value.beginPath();
   ctx.value.rect(-width / 2, -height / 2, width, height);
-  ctx.value.fillStyle = config.fill || "rgba(255,255,255,0.2)";
+  ctx.value.fillStyle = getShapeDisplayFill(config, "rgba(0,160,233,0.35)");
   ctx.value.fill();
-  ctx.value.strokeStyle = config.stroke || "#F59A23";
-  ctx.value.lineWidth = 2;
+  ctx.value.strokeStyle = config.stroke || "#00A0E9";
+  ctx.value.lineWidth = getShapeStrokeWidth(config);
   ctx.value.stroke();
   ctx.value.restore();
 };
@@ -3372,10 +3744,10 @@ const drawCircleShape = (coords, config = {}) => {
   ctx.value.save();
   ctx.value.beginPath();
   ctx.value.arc(coords.x, coords.y, radius, 0, Math.PI * 2);
-  ctx.value.fillStyle = config.fill || "rgba(38,132,255,0.25)";
+  ctx.value.fillStyle = getShapeDisplayFill(config, "rgba(38,132,255,0.25)");
   ctx.value.fill();
   ctx.value.strokeStyle = config.stroke || "#2684FF";
-  ctx.value.lineWidth = 2;
+  ctx.value.lineWidth = getShapeStrokeWidth(config);
   ctx.value.stroke();
   ctx.value.restore();
 };
@@ -3390,10 +3762,10 @@ const drawTriangleShape = (coords, config = {}) => {
   ctx.value.lineTo(size / 2, size / 2);
   ctx.value.lineTo(-size / 2, size / 2);
   ctx.value.closePath();
-  ctx.value.fillStyle = config.fill || "rgba(245,108,108,0.25)";
+  ctx.value.fillStyle = getShapeDisplayFill(config, "rgba(245,108,108,0.25)");
   ctx.value.fill();
   ctx.value.strokeStyle = config.stroke || "#F56C6C";
-  ctx.value.lineWidth = 2;
+  ctx.value.lineWidth = getShapeStrokeWidth(config);
   ctx.value.stroke();
   ctx.value.restore();
 };
@@ -3410,10 +3782,10 @@ const drawSectorShape = (coords, config = {}) => {
   ctx.value.moveTo(coords.x, coords.y);
   ctx.value.arc(coords.x, coords.y, radius, startAngle, endAngle);
   ctx.value.closePath();
-  ctx.value.fillStyle = config.fill || "rgba(255,196,112,0.25)";
+  ctx.value.fillStyle = getShapeDisplayFill(config, "rgba(245,108,108,0.25)");
   ctx.value.fill();
-  ctx.value.strokeStyle = config.stroke || "#F59A23";
-  ctx.value.lineWidth = 2;
+  ctx.value.strokeStyle = config.stroke || "#F56C6C";
+  ctx.value.lineWidth = getShapeStrokeWidth(config);
   ctx.value.stroke();
   ctx.value.restore();
 };
@@ -8198,6 +8570,160 @@ const handleBack = () => {
   border: 1px solid rgba(255, 255, 255, 0.6);
   z-index: 5;
   white-space: nowrap;
+}
+
+/* Figma 风格图形属性小窗 */
+.shape-inspector-panel {
+  position: absolute;
+  top: 78px;
+  right: 24px;
+  width: 248px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 30px rgba(15, 35, 95, 0.16);
+  z-index: 8;
+  color: #1f2937;
+  font-size: 12px;
+  user-select: none;
+}
+
+.shape-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.shape-inspector-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.shape-inspector-close {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.shape-inspector-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.shape-inspector-section + .shape-inspector-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
+.shape-inspector-label {
+  margin-bottom: 8px;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.shape-inspector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.shape-inspector-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shape-field,
+.shape-color-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.shape-field span,
+.shape-color-field span {
+  flex: none;
+  width: 28px;
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.shape-field input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #111827;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.shape-field em {
+  flex: none;
+  color: #9ca3af;
+  font-style: normal;
+  font-size: 11px;
+}
+
+.shape-field-wide {
+  grid-column: 1 / -1;
+}
+
+.shape-field-grow {
+  flex: 1;
+}
+
+.shape-color-field input[type="color"] {
+  width: 28px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.shape-inspector-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
+.shape-inspector-apply {
+  min-width: 72px;
+  height: 28px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: #409eff;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.shape-inspector-apply:hover {
+  background: #66b1ff;
 }
 
 .toolbar-headline {
