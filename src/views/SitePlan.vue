@@ -1160,6 +1160,7 @@
             <div class="property-item">
               <label>起重机类型</label>
               <el-select
+                :key="`crane-category-${selectedCrane.id}-${selectedCrane.craneCategory}`"
                 v-model="selectedCrane.craneCategory"
                 placeholder="请选择起重机类型"
                 @change="handleCraneCategoryChange"
@@ -1172,6 +1173,7 @@
             <div class="property-item">
               <label>选择起重机</label>
               <el-select
+                :key="`crane-template-${selectedCrane.id}-${selectedCrane.templateCraneDetailId}`"
                 v-model="selectedCrane.templateCraneDetailId"
                 placeholder="请选择起重机"
                 :disabled="!selectedCrane.craneCategory"
@@ -1202,6 +1204,28 @@
             ></div>
           </div>
         </div>
+            <div class="property-item">
+              <label>W(宽)</label>
+              <el-input-number
+                controls-position="right"
+                :precision="2"
+                v-model="pointIconDisplayW"
+                :min="1"
+                :step="1"
+                placeholder="22"
+              />
+            </div>
+            <div class="property-item">
+              <label>G(高)</label>
+              <el-input-number
+                controls-position="right"
+                :precision="2"
+                v-model="pointIconDisplayH"
+                :min="1"
+                :step="1"
+                placeholder="22"
+              />
+            </div>
             <div class="property-item">
               <label>路径使用宽度</label>
               <el-input-number
@@ -1789,6 +1813,77 @@ const pointIconSizes = {
   moving: 18,  // 移动点位图标更小一点
 };
 
+// 点位图标默认宽高（任务属性编辑 W/G 初始值）
+const DEFAULT_POINT_ICON_SIZE = pointIconSizes.start;
+
+const ensureCranePointIconSize = (crane) => {
+  if (!crane) return DEFAULT_POINT_ICON_SIZE;
+  const w = Number(crane.iconWidth);
+  const h = Number(crane.iconHeight);
+  if (!Number.isFinite(w) || w <= 0) {
+    crane.iconWidth = DEFAULT_POINT_ICON_SIZE;
+  }
+  if (!Number.isFinite(h) || h <= 0) {
+    crane.iconHeight = Number(crane.iconWidth) || DEFAULT_POINT_ICON_SIZE;
+  }
+  return Number(crane.iconWidth) || DEFAULT_POINT_ICON_SIZE;
+};
+
+const syncSelectedCranePointIconSize = () => {
+  if (!selectedCrane.value) return;
+  ensureCranePointIconSize(selectedCrane.value);
+  const craneIndex = cranes.value.findIndex((c) => c.id === selectedCrane.value.id);
+  if (craneIndex !== -1) {
+    cranes.value[craneIndex].iconWidth = selectedCrane.value.iconWidth;
+    cranes.value[craneIndex].iconHeight = selectedCrane.value.iconHeight;
+  }
+};
+
+// W/G 只表示图标基础尺寸，与画布缩放无关；仅手动修改时更新（宽高联动）
+const pointIconDisplayW = computed({
+  get() {
+    if (!selectedCrane.value) return DEFAULT_POINT_ICON_SIZE;
+    return Math.round(ensureCranePointIconSize(selectedCrane.value) * 100) / 100;
+  },
+  set(v) {
+    if (!selectedCrane.value) return;
+    const next = Math.max(1, Number(v) || DEFAULT_POINT_ICON_SIZE);
+    selectedCrane.value.iconWidth = next;
+    selectedCrane.value.iconHeight = next;
+    syncSelectedCranePointIconSize();
+    drawAllTrajectories();
+  },
+});
+
+const pointIconDisplayH = computed({
+  get() {
+    if (!selectedCrane.value) return DEFAULT_POINT_ICON_SIZE;
+    ensureCranePointIconSize(selectedCrane.value);
+    return Math.round((Number(selectedCrane.value.iconHeight) || DEFAULT_POINT_ICON_SIZE) * 100) / 100;
+  },
+  set(v) {
+    if (!selectedCrane.value) return;
+    const next = Math.max(1, Number(v) || DEFAULT_POINT_ICON_SIZE);
+    selectedCrane.value.iconHeight = next;
+    selectedCrane.value.iconWidth = next;
+    syncSelectedCranePointIconSize();
+    drawAllTrajectories();
+  },
+});
+
+const getCranePointIconDrawSize = (crane, iconKey, isSelected = false) => {
+  const fallback = pointIconSizes[iconKey] || DEFAULT_POINT_ICON_SIZE;
+  const w = Number(crane?.iconWidth);
+  const h = Number(crane?.iconHeight);
+  const baseW = Number.isFinite(w) && w > 0 ? w : fallback;
+  const baseH = Number.isFinite(h) && h > 0 ? h : fallback;
+  const factor = isSelected ? 1.1 : 1;
+  return {
+    iconW: baseW * factor,
+    iconH: baseH * factor,
+  };
+};
+
 const pointIconSrcMap = {
   start: startIconSrc,
   lifting: liftingIconSrc,
@@ -1799,6 +1894,20 @@ const getPointIconKey = (point) => {
   if (!point) return "lifting";
   if (point.isStart) return "start";
   return point.type === "lifting" ? "lifting" : "moving";
+};
+
+// 起重机类型归一化：下拉仅支持 '1' 汽车式 / '2' 履带式
+const normalizeCraneCategory = (raw) => {
+  if (raw === null || raw === undefined || raw === "") return null;
+  const text = String(raw).trim();
+  if (text === "1" || text === "汽车式") return "1";
+  if (text === "2" || text === "履带式") return "2";
+  const num = Number(text);
+  if (num === 1) return "1";
+  if (num === 2) return "2";
+  // 兼容历史错误落库的 0：旧逻辑曾转成 "0"，与下拉 value 不匹配导致无法回显
+  if (num === 0 || text === "0") return "1";
+  return null;
 };
 
 const isValidDateDay = (value) => {
@@ -4800,6 +4909,12 @@ const drawAllTrajectories = () => {
   });
   
   // 绘制所有点位（图标 + 点位名称标签）
+  // 在屏幕坐标系绘制：屏幕尺寸 = 基础尺寸(W/G) * scale，随画布缩放视觉变大/变小；
+  // W/G 本身不随缩放改变，只有手动改 W/G 才改变基础尺寸。
+  const currentScale = scale.value || 1;
+  const currentOffsetX = offsetX.value;
+  const currentOffsetY = offsetY.value;
+
   allPoints.forEach(({ point, crane, index, isSelected, isStart }) => {
     const coords = convertToCanvasCoords(point.x, point.y);
     const color = crane.color || '#26256B';
@@ -4817,41 +4932,49 @@ const drawAllTrajectories = () => {
       iconImage = pointIconImages[iconKey];
     }
     
-    const iconSize = (pointIconSizes[iconKey] || 24) * (isSelected ? 1.1 : 1);
+    const { iconW, iconH } = getCranePointIconDrawSize(crane, iconKey, isSelected);
+    const screenX = coords.x * currentScale + currentOffsetX;
+    const screenY = coords.y * currentScale + currentOffsetY;
+    const drawW = iconW * currentScale;
+    const drawH = iconH * currentScale;
     
+    ctx.value.save();
+    // 临时重置变换，按屏幕像素绘制，保证图标随画布缩放变化
+    ctx.value.setTransform(1, 0, 0, 1, 0, 0);
+
     // 绘制点位图标
     if (iconImage && iconImage.complete) {
       ctx.value.drawImage(
         iconImage,
-        coords.x - iconSize / 2,
-        coords.y - iconSize / 2,
-        iconSize,
-        iconSize
+        screenX - drawW / 2,
+        screenY - drawH / 2,
+        drawW,
+        drawH
       );
     } else {
       // 备用：使用彩色圆形
       ctx.value.beginPath();
       ctx.value.fillStyle = color;
-      ctx.value.arc(coords.x, coords.y, iconSize / 2, 0, Math.PI * 2);
+      ctx.value.arc(screenX, screenY, Math.max(drawW, drawH) / 2, 0, Math.PI * 2);
       ctx.value.fill();
       ctx.value.strokeStyle = '#ffffff';
       ctx.value.lineWidth = 1;
       ctx.value.stroke();
     }
 
-    // 绘制点位名称（在图标下面，14px）
+    // 绘制点位名称（在图标下面，14px，随缩放）
     const label = point.name || '';
     if (label) {
-      const fontSize = 14;
-      const margin = 4; // 图标底部与文字之间的间距
-      ctx.value.save();
+      const fontSize = 14 * currentScale;
+      const margin = 4 * currentScale;
       ctx.value.font = `${fontSize}px sans-serif`;
       ctx.value.fillStyle = "#333333";
       ctx.value.textAlign = "center";
       ctx.value.textBaseline = "top";
-      ctx.value.fillText(label, coords.x, coords.y + iconSize / 2 + margin);
-      ctx.value.restore();
+      ctx.value.fillText(label, screenX, screenY + drawH / 2 + margin);
     }
+
+    ctx.value.restore();
   });
   
   // 如果是播放状态，绘制播放进度
@@ -4892,7 +5015,8 @@ const getPointAtPosition = (x, y) => {
     crane.points.forEach((point, pointIndex) => {
       const coords = convertToCanvasCoords(point.x, point.y);
       const iconKey = getPointIconKey(point);
-      const hitRadius = pointHitRadiusMap[iconKey] || 12;
+      const { iconW, iconH } = getCranePointIconDrawSize(crane, iconKey, false);
+      const hitRadius = Math.max(iconW, iconH, pointHitRadiusMap[iconKey] || 12) / 2 + 4;
       const distance = Math.sqrt(Math.pow(x - coords.x, 2) + Math.pow(y - coords.y, 2));
       
       if (distance <= hitRadius) {
@@ -5367,6 +5491,8 @@ const addCrane = () => {
     templateCraneDetailId: null, // 智能选型返回的 craneInfoId
     color: "#26256B",
     width: 10,
+    iconWidth: DEFAULT_POINT_ICON_SIZE,
+    iconHeight: DEFAULT_POINT_ICON_SIZE,
     time: 10,
     load: 10,
     points: [], // 添加点位数组
@@ -5408,6 +5534,9 @@ const selectCrane = (crane) => {
   if (!crane.points) {
     crane.points = [];
   }
+  // 回显时纠正类型值，保证下拉能选中
+  crane.craneCategory = normalizeCraneCategory(crane.craneCategory);
+  ensureCranePointIconSize(crane);
   const normalizedPoints = updateCranePoints(crane.id, crane.points);
   selectedCrane.value = { ...crane, points: normalizedPoints };
   nextTick(() => {
@@ -6176,12 +6305,15 @@ const setCranePosition = () => {
             });
             
             // 构建起重机对象
-            // 注意：后端 type 可能是数字，这里统一转成字符串以适配下拉框
-            const craneCategory =
-              craneDetail.type === 0 || craneDetail.type === "0"
-                ? "0"
-                : craneDetail.type != null
-                ? String(craneDetail.type)
+            // 注意：后端 type 可能是数字/字符串/中文，统一归一成 '1' | '2' 以适配下拉框
+            const craneCategory = normalizeCraneCategory(
+              craneDetail.type ?? craneDetail.craneCategory
+            );
+            const templateCraneDetailId =
+              craneDetail.templateCraneDetailId !== null &&
+              craneDetail.templateCraneDetailId !== undefined &&
+              craneDetail.templateCraneDetailId !== ""
+                ? craneDetail.templateCraneDetailId
                 : null;
 
             // 构建起重机对象
@@ -6190,11 +6322,13 @@ const setCranePosition = () => {
               name: craneDetail.craneName || "",
               type: craneDetail.craneType || "",
               craneCategory,
-              templateCraneDetailId: craneDetail.templateCraneDetailId || null,
+              templateCraneDetailId,
               color: craneDetail.color || "#26256B",
               pathUseWidth: craneDetail.pathUseWidth || null,
               useTime: craneDetail.useTime || null,
               carryingCapacity: craneDetail.carryingCapacity || null,
+              iconWidth: DEFAULT_POINT_ICON_SIZE,
+              iconHeight: DEFAULT_POINT_ICON_SIZE,
               points: points,
             };
           });
@@ -6204,7 +6338,7 @@ const setCranePosition = () => {
 
           // 根据已保存的起重机类型，预加载每个起重机的智能选型结果，用于下拉回显
           const cranesWithCategory = loadedCranes.filter(
-            (crane) => crane.craneCategory
+            (crane) => crane.craneCategory === "1" || crane.craneCategory === "2"
           );
           if (cranesWithCategory.length > 0) {
             try {
@@ -6216,6 +6350,20 @@ const setCranePosition = () => {
                     });
                     if (resp && resp.code === "0" && Array.isArray(resp.data)) {
                       craneSelectionOptions.value[crane.id] = resp.data;
+                      // 对齐已保存的 templateCraneDetailId 与选项 value 类型，保证「选择起重机」回显
+                      if (
+                        crane.templateCraneDetailId !== null &&
+                        crane.templateCraneDetailId !== undefined
+                      ) {
+                        const matched = resp.data.find(
+                          (item) =>
+                            String(item.craneInfoId) ===
+                            String(crane.templateCraneDetailId)
+                        );
+                        if (matched) {
+                          crane.templateCraneDetailId = matched.craneInfoId;
+                        }
+                      }
                     } else {
                       craneSelectionOptions.value[crane.id] = [];
                     }
@@ -6306,8 +6454,8 @@ const setCranePosition = () => {
           }
           
           // 如果有数据，选中第一个起重机（在添加形状之后）
-          if (loadedCranes.length > 0) {
-            selectCrane(loadedCranes[0]);
+          if (cranes.value.length > 0) {
+            selectCrane(cranes.value[0]);
             await nextTick();
             
             // 再次强制更新 shapeOverlays，确保在 selectCrane 之后也能正确渲染
