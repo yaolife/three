@@ -1189,22 +1189,6 @@
               </el-select>
             </div>
             <div class="property-item">
-          <label>路径颜色</label>
-          <div class="color-input-wrapper">
-            <el-color-picker
-              v-model="selectedCrane.color"
-              size="small"
-              show-alpha
-              show-input="false"
-              @change="onColorChange"
-            />
-            <div
-              class="color-preview"
-              :style="{ backgroundColor: selectedCrane.color }"
-            ></div>
-          </div>
-        </div>
-            <div class="property-item">
               <label>W(宽)</label>
               <el-input-number
                 controls-position="right"
@@ -1226,6 +1210,22 @@
                 placeholder="22"
               />
             </div>
+            <div class="property-item">
+          <label>路径颜色</label>
+          <div class="color-input-wrapper">
+            <el-color-picker
+              v-model="selectedCrane.color"
+              size="small"
+              show-alpha
+              show-input="false"
+              @change="onColorChange"
+            />
+            <div
+              class="color-preview"
+              :style="{ backgroundColor: selectedCrane.color }"
+            ></div>
+          </div>
+        </div>
             <div class="property-item">
               <label>路径使用宽度</label>
               <el-input-number
