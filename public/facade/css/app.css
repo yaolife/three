@@ -38,6 +38,11 @@
   cursor: crosshair;
 }
 
+#text_panel.dimension-label-only h4,
+#text_panel.dimension-label-only .draginputs > *:not(#tool_font_size) {
+  display: none !important;
+}
+
 #dimension_label_input {
   position: fixed;
   z-index: 10000;

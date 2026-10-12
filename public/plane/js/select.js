@@ -61,6 +61,21 @@ svgedit.select.Selector = function(id, elem) {
       }
     })
   );
+
+  // 整组尺寸标注的选框描边加宽命中区，方便拖动，不影响其它图形
+  this.selectorHit = this.selectorGroup.appendChild(
+    svgFactory_.createSVGElement({
+      'element': 'path',
+      'attr': {
+        'fill': 'none',
+        'stroke': '#000',
+        'stroke-width': '12',
+        'stroke-opacity': '0',
+        'pointer-events': 'none',
+        'style': 'cursor:move'
+      }
+    })
+  );
   
   if (svgedit.browser.isTouch()) {
     this.selectorRect.setAttribute("stroke-opacity", 0.3);
@@ -233,6 +248,11 @@ svgedit.select.Selector.prototype.resize = function() {
         + ' ' + (nbax+nbaw) + ',' + (nbay+nbah)
         + ' ' + nbax + ',' + (nbay+nbah) + 'z';
   selectedBox.setAttribute('d', dstr);
+  if (this.selectorHit) {
+    var isDimGroup = selected.getAttribute("data-dimension") === "1";
+    this.selectorHit.setAttribute('d', dstr);
+    this.selectorHit.setAttribute('pointer-events', isDimGroup ? 'stroke' : 'none');
+  }
   
   var xform = angle ? 'rotate(' + [angle,cx,cy].join(',') + ')' : '';
   this.selectorGroup.setAttribute('transform', xform);
@@ -262,7 +282,16 @@ svgedit.select.Selector.prototype.resize = function() {
       selectedGrips[dir].setAttribute('y', coords[1]);
     };
     
-    this.rotateCoords = {
+    var isDimLabel = selected.getAttribute("data-dimension-label") === "1";
+    var gripSize = svgedit.browser.isTouch() ? 30.5 : 8;
+    var rotOut = isDimLabel ? 4 : 0;
+    var rotR = isDimLabel ? 4 : 8;
+    this.rotateCoords = isDimLabel ? {
+      'nw': [nbax - rotOut, nbay - rotOut],
+      'ne': [nbax + nbaw + gripSize + rotOut, nbay - rotOut],
+      'sw': [nbax - rotOut, nbay + nbah + gripSize + rotOut],
+      'se': [nbax + nbaw + gripSize + rotOut, nbay + nbah + gripSize + rotOut]
+    } : {
       'nw': [nbax, nbay],
       'ne': [nbax+nbaw+8, nbay],
       'sw': [nbax, nbay+nbah+8],
@@ -271,8 +300,31 @@ svgedit.select.Selector.prototype.resize = function() {
     
     for(var dir in this.rotateCoords) {
       var coords = this.rotateCoords[dir];
-      mgr.rotateGrips[dir].setAttribute('cx', coords[0]); 
-      mgr.rotateGrips[dir].setAttribute('cy', coords[1]);
+      var rotGrip = mgr.rotateGrips[dir];
+      rotGrip.setAttribute('cx', coords[0]);
+      rotGrip.setAttribute('cy', coords[1]);
+      rotGrip.setAttribute('r', rotR);
+      if (isDimLabel) {
+        rotGrip.setAttribute('fill', '#ffffff');
+        rotGrip.setAttribute('stroke', '#4F80FF');
+        rotGrip.setAttribute('stroke-width', 1);
+        rotGrip.setAttribute('fill-opacity', 1);
+        rotGrip.setAttribute('stroke-opacity', 1);
+        rotGrip.setAttribute('pointer-events', 'all');
+        mgr.selectorGripsGroup.appendChild(rotGrip);
+      } else {
+        rotGrip.setAttribute('fill', '#000');
+        rotGrip.setAttribute('stroke', '#000');
+        rotGrip.setAttribute('stroke-width', 0);
+        rotGrip.setAttribute('fill-opacity', 0);
+        rotGrip.setAttribute('stroke-opacity', 0);
+        rotGrip.setAttribute('pointer-events', 'visiblePainted');
+      }
+    }
+    if (!isDimLabel) {
+      for (var resizeDir in this.gripCoords) {
+        mgr.selectorGripsGroup.appendChild(mgr.selectorGrips[resizeDir]);
+      }
     }
 
 };

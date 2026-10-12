@@ -2149,6 +2149,10 @@ var getMouseTarget = this.getMouseTarget = function(evt) {
     return selectorManager.selectorParentGroup;
   }
 
+  // 尺寸标注的文字单独选中，不连同尺寸线一起选
+  var dimensionLabel = $target.closest("[data-dimension-label='1']")[0];
+  if (dimensionLabel) return dimensionLabel;
+
   while (mouse_target.parentNode && mouse_target.parentNode !== (current_group || current_layer)) {
     mouse_target = mouse_target.parentNode;
   }
@@ -2314,6 +2318,10 @@ var getMouseTarget = this.getMouseTarget = function(evt) {
         started = true;
         start_x = x;
         start_y = y;
+        // 尺寸标注：缩放只改变文字大小，不改变尺寸线
+        if (window.MD && MD.dimensionLabel && MD.dimensionLabel.beginScale(mouse_target)) {
+          break;
+        }
         
         // Getting the BBox from the selection box, since we know we
         // want to orient around it
@@ -2677,6 +2685,13 @@ var getMouseTarget = this.getMouseTarget = function(evt) {
           
         break;
       case "resize":
+        // 尺寸标注：拖动手柄只放大/缩小文字
+        if (window.MD && MD.dimensionLabel && MD.dimensionLabel.isScaling()) {
+          MD.dimensionLabel.moveScale(x - start_x, y - start_y, current_resize_mode);
+          selectorManager.requestSelector(selected).resize();
+          call("transition", selectedElements);
+          break;
+        }
         // we track the resize bounding box and translate/scale the selected element
         // while the mouse is down, when mouse goes up, we use this to recalculate
         // the shape's coordinates

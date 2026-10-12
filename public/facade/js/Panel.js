@@ -336,6 +336,13 @@ MD.Panel = function(){
            var title = svgCanvas.getTitle();
          }
        }
+
+       $("#text_panel").removeClass("dimension-label-only");
+       if (elem.getAttribute("data-dimension") === "1") {
+         $("#text_panel").addClass("dimension-label-only").css("display", "inline");
+         var dimLabel = elem.querySelector("[data-dimension-label='1']");
+         if (dimLabel) $("#font_size").val(dimLabel.getAttribute("font-size") || 13);
+       }
        menu_items[(el_name === 'g' ? 'en':'dis') + 'ableContextMenuItems']('#ungroup');
        menu_items[((el_name === 'g' || !multiselected) ? 'dis':'en') + 'ableContextMenuItems']('#group');
      }
